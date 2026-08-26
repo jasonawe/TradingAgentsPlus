@@ -77,8 +77,8 @@ def web_command(
     port: int = typer.Option(8000, "--port", min=1, max=65535, help="Local web server port."),
 ):
     """Launch the local TradingAgents web console."""
-    from web.app import app as web_app
     import uvicorn
+    from web.app import app as web_app
 
     uvicorn.run(web_app, host="127.0.0.1", port=port)
 
