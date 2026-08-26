@@ -22,6 +22,7 @@ Add a useful local web interface for running TradingAgents analyses, following t
 - Markdown report download.
 - Cooperative cancellation of active runs.
 - Automated API/unit tests and a browser smoke test.
+- A `tradingagents web` launch command that starts Uvicorn on loopback.
 
 ### Out of scope for the first release
 
@@ -96,9 +97,11 @@ Create a focused `web/` package:
 
 The exact split may be adjusted in the implementation plan if an existing project convention suggests a smaller module, but each unit should retain one clear responsibility.
 
+The packaging change is part of this feature. Update `pyproject.toml` so package discovery includes `web*`, include `web/static/*` as package data, and add the runtime dependencies required by the server (`fastapi` and `uvicorn`). Add a web test extra for the HTTP test client and Playwright. Use a pinned, explicitly declared safe Markdown stack (for example `markdown-it-py` plus `bleach`) if the server emits rendered HTML; otherwise the implementation may render Markdown as escaped text and omit those runtime dependencies. The installed package must contain the static UI and `tradingagents web` must work after a clean `pip install .`.
+
 ### Core integration
 
-Extend the existing graph execution surface with an optional chunk callback, preserving all existing call signatures and behavior when the callback is omitted:
+Extend the existing graph execution surface with optional chunk and cancellation callbacks, preserving all existing call signatures and behavior when both are omitted:
 
 ```python
 graph.propagate(
@@ -106,10 +109,11 @@ graph.propagate(
     trade_date,
     asset_type="stock",
     on_chunk=web_runner.handle_chunk,
+    should_cancel=web_runner.should_cancel,
 )
 ```
 
-The callback is invoked for each streamed LangGraph chunk after it is received and before the final state is assembled. Debug pretty-printing remains controlled by the existing `debug` flag and must not be required for web progress.
+`on_chunk` has the type `Callable[[dict[str, Any]], None] | None` and is invoked for each streamed LangGraph chunk after it is received and before the final state is assembled. Supplying either callback forces the streaming execution path even when `debug=False`; with neither callback, the current `invoke()`/debug behavior remains unchanged. `should_cancel` has the type `Callable[[], bool] | None` and is checked before processing each chunk and once after the final chunk. If it returns true, the graph raises a dedicated `PropagationCancelled` exception before state logging, memory-log storage, signal processing, or report writing. Callback exceptions propagate to the worker and produce a failed run; they are not silently swallowed. Cancellation during an in-flight provider request is best effort and takes effect at the next callback/check point.
 
 The runner uses the existing `TradingAgentsGraph` lifecycle so instrument identity resolution, memory-log handling, checkpoint behavior, signal processing, and state logging stay centralized. It calls `save_reports` only after a successful final state is available.
 
@@ -129,14 +133,16 @@ The manager stores, at minimum:
 
 The in-memory records are intentionally ephemeral. On process restart, active runs are gone; completed reports remain discoverable from disk.
 
+Terminal run records remain available to the API for a bounded retention period (one hour by default) and are then evicted; disk history is the durable source for completed runs. The event log and per-run subscriber notifications are bounded independently.
+
 ### Event flow
 
 1. The browser submits a validated run request.
 2. The API creates a run record and starts the bounded worker.
 3. The runner constructs `TradingAgentsGraph` with a copy of `DEFAULT_CONFIG`, applying only request-level choices that the current CLI already supports.
-4. The runner invokes `propagate` with an `on_chunk` callback.
-5. The callback maps graph state deltas and messages to small JSON events and puts them into the run's thread-safe queue.
-6. The SSE endpoint drains queued events and emits `event:` plus JSON `data:` records.
+4. The runner invokes `propagate` with both `on_chunk` and `should_cancel` callbacks.
+5. The callback maps graph state deltas and messages to small JSON events and appends them to the run's bounded event log.
+6. Each SSE subscriber has its own cursor and condition/notification; subscribers replay retained events after their cursor and then wait for new events. No subscriber drains or removes events for another subscriber.
 7. The runner writes the report tree and publishes the final result event.
 8. The browser renders the completed Editorial Briefing and refreshes the recent-runs list.
 
@@ -183,6 +189,7 @@ Returns the current run record, including status, phase, current agent, progress
 
 Returns `text/event-stream`. Event names:
 
+- `run_snapshot`
 - `run_started`
 - `phase_changed`
 - `agent_status`
@@ -193,23 +200,56 @@ Returns `text/event-stream`. Event names:
 - `run_failed`
 - `run_cancelled`
 
-Every event includes `run_id`, a monotonically increasing sequence number, and an ISO timestamp. Event history is bounded; the endpoint sends retained events first, then waits for new events. A terminal event closes the stream.
+Every event includes `run_id`, a monotonically increasing integer `seq`, and an ISO timestamp. Clients reconnect with the `Last-Event-ID` header; an `after_seq` query parameter is accepted as a fallback for clients that cannot set that header. The server replays every retained event with `seq > cursor`, then waits for new events. Events are never removed merely because one subscriber received them. If the cursor is older than the oldest retained event, the server first emits `run_snapshot` containing the current `GET /api/runs/{run_id}` representation, then emits all retained events in order. The client deduplicates by `seq`, so replay after a network retry is safe. The server emits an SSE comment heartbeat at least every 15 seconds while waiting. A terminal event closes that subscriber's stream after all retained events up to the terminal sequence have been sent.
+
+Event payloads use these required fields; fields marked nullable are present with JSON `null` when unavailable:
+
+| Event | Required payload fields |
+| --- | --- |
+| `run_snapshot` | `run` (full run record), `replay_from_seq` (integer or null) |
+| `run_started` | `status="running"`, `ticker`, `analysis_date`, `asset_type`, `analysts`, `research_depth` |
+| `phase_changed` | `phase`, `phase_index`, `phase_count`, `status` |
+| `agent_status` | `agent`, `status` (`pending`, `in_progress`, or `completed`) |
+| `progress` | `progress` (number 0-1), `phase`, `current_agent` (string or null) |
+| `message` | `message_type`, `text` |
+| `activity` | `activity_type`, `name`, `summary` (string, possibly empty) |
+| `run_completed` | `status="completed"`, `signal` (string or null), `report_id` |
+| `run_failed` | `status="failed"`, `error_code`, `error_message` |
+| `run_cancelled` | `status="cancelled"`, `phase`, `current_agent` (string or null) |
+
+`run_id`, `seq`, and `timestamp` are added to every payload envelope. Unknown graph fields map to `activity` with a stable `activity_type="graph_update"`; they do not change the event schema.
 
 ### `POST /api/runs/{run_id}/cancel`
 
 Sets the cooperative cancellation flag and returns the current run record. It is idempotent for terminal runs. The runner checks the flag between graph chunks and emits `run_cancelled` when it stops.
 
+### Launch command
+
+Add a `web` subcommand to the existing Typer application. `tradingagents web` starts Uvicorn with the FastAPI app on `127.0.0.1` and a documented default port (8000, with a `--port` override). The command must not require an API key until a user actually starts an analysis.
+
 ### `GET /api/history`
 
-Lists report directories containing `complete_report.md` under the configured web report root and compatible existing report roots. Results are sorted newest first and include run ID/path, ticker, generated timestamp, and a short decision preview when available. Directory traversal must remain inside the configured results directory.
+Lists report directories containing `complete_report.md` under exactly these allowlisted roots: `<results_dir>/web_reports` for web runs, `<results_dir>/reports` for programmatic/graph reports, and `<cwd>/reports` for the existing CLI's default save location. User-selected arbitrary CLI save paths are not automatically discovered. Results are sorted newest first and include a stable opaque `report_id`, source (`web` or `legacy`), ticker, generated timestamp, and a short decision preview when available. Directory traversal must remain inside the specific allowlisted root.
 
 ### `GET /api/history/{run_id}`
 
-Returns the complete report plus known section files as structured JSON. Missing optional sections are represented as empty values rather than errors.
+Returns the complete report plus known section files as structured JSON. Missing optional sections are represented as empty values rather than errors. Web reports include a `run.json` sidecar written by the runner with `report_id`, ticker, analysis date, asset type, analysts, research depth, generated timestamp, and signal. Legacy reports have no sidecar: their stable ID is `legacy-<first-16-hex-of-sha256(relative-report-directory)>`, ticker/generated timestamp are parsed from the standard `complete_report.md` header when present, and analysis date is taken from a recognized date-named parent directory when present; unavailable metadata is returned as `null`.
 
 ### `GET /api/history/{run_id}/download`
 
-Streams the corresponding `complete_report.md` with a download filename. The route must reject path traversal and unknown report IDs.
+Streams the corresponding `complete_report.md` with a download filename. The route resolves only the canonical ID index built by `web/history.py`; it never treats a route parameter as a filesystem path. Unknown IDs and traversal attempts return HTTP 404.
+
+## Request Semantics
+
+The web request mirrors the CLI's supported values:
+
+- `asset_type`: `stock` or `crypto`.
+- `analysts`: `market`, `social`, `news`, and `fundamentals`.
+- `research_depth`: integer `1`, `3`, or `5`, corresponding to the CLI's shallow, medium, and deep choices.
+
+The server starts with a fresh copy of `DEFAULT_CONFIG`. The request's analyst list and research depth are applied as analysis choices. Research depth sets both `max_debate_rounds` and `max_risk_discuss_rounds`, except when the corresponding `TRADINGAGENTS_MAX_DEBATE_ROUNDS` or `TRADINGAGENTS_MAX_RISK_ROUNDS` environment variable is already set; those environment values retain the CLI's precedence. Provider/model/endpoint/data-vendor settings always come from `.env`/`DEFAULT_CONFIG` and are never accepted from the browser.
+
+Ticker normalization and asset detection reuse `cli.utils`. For `crypto`, the server applies the existing `filter_analysts_for_asset_type` rule and removes `fundamentals` from the effective analyst list; the response and `run_started` event expose the effective list. If filtering leaves no analysts, the request is rejected with HTTP 422. The UI disables the inapplicable checkbox before submission.
 
 ## Progress Mapping
 
