@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from datetime import date, datetime
 from enum import Enum
-from typing import Any
+from typing import Any, ClassVar, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -131,6 +131,104 @@ class HistoryRecord(BaseModel):
     report_id: str | None = None
 
 
+class EventPayload(BaseModel):
+    """Base class for event payloads with legacy mapping-style access."""
+
+    model_config = ConfigDict(extra="allow")
+
+    _required_event_fields: ClassVar[tuple[str, ...]] = ()
+
+    def __getitem__(self, key: str) -> Any:
+        return getattr(self, key)
+
+    def get(self, key: str, default: Any = None) -> Any:
+        return getattr(self, key, default)
+
+    def keys(self):
+        return self.model_dump().keys()
+
+    def items(self):
+        return self.model_dump().items()
+
+    def __contains__(self, key: str) -> bool:
+        return key in self.model_fields
+
+
+class RunSnapshotPayload(EventPayload):
+    run: RunRecord
+    replay_from_seq: int | None
+
+
+class RunStartedPayload(EventPayload):
+    status: Literal["running"]
+    ticker: str
+    analysis_date: date
+    asset_type: AssetType
+    analysts: list[AnalystType]
+    research_depth: Literal[1, 3, 5]
+
+
+class PhaseChangedPayload(EventPayload):
+    phase: str
+    phase_index: int
+    phase_count: int
+    status: str
+
+
+class AgentStatusPayload(EventPayload):
+    agent: str
+    status: Literal["pending", "in_progress", "completed"]
+
+
+class ProgressPayload(EventPayload):
+    progress: float = Field(ge=0.0, le=1.0)
+    phase: str
+    current_agent: str | None
+
+
+class MessagePayload(EventPayload):
+    message_type: str
+    text: str
+
+
+class ActivityPayload(EventPayload):
+    activity_type: str
+    name: str
+    summary: str
+
+
+class RunCompletedPayload(EventPayload):
+    status: Literal["completed"]
+    signal: str | None
+    report_id: str
+
+
+class RunFailedPayload(EventPayload):
+    status: Literal["failed"]
+    error_code: str
+    error_message: str
+
+
+class RunCancelledPayload(EventPayload):
+    status: Literal["cancelled"]
+    phase: str
+    current_agent: str | None
+
+
+_EVENT_PAYLOAD_MODELS: dict[EventName, type[EventPayload]] = {
+    EventName.RUN_SNAPSHOT: RunSnapshotPayload,
+    EventName.RUN_STARTED: RunStartedPayload,
+    EventName.PHASE_CHANGED: PhaseChangedPayload,
+    EventName.AGENT_STATUS: AgentStatusPayload,
+    EventName.PROGRESS: ProgressPayload,
+    EventName.MESSAGE: MessagePayload,
+    EventName.ACTIVITY: ActivityPayload,
+    EventName.RUN_COMPLETED: RunCompletedPayload,
+    EventName.RUN_FAILED: RunFailedPayload,
+    EventName.RUN_CANCELLED: RunCancelledPayload,
+}
+
+
 class EventEnvelope(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -138,4 +236,21 @@ class EventEnvelope(BaseModel):
     seq: int = Field(ge=1)
     timestamp: datetime = Field(default_factory=datetime.now)
     event: EventName
-    payload: dict[str, Any] = Field(default_factory=dict)
+    payload: EventPayload
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_event_payload(cls, values: Any) -> Any:
+        if not isinstance(values, dict):
+            return values
+        event = values.get("event")
+        try:
+            event_name = EventName(event)
+        except (TypeError, ValueError):
+            return values
+        payload = values.get("payload")
+        payload_model = _EVENT_PAYLOAD_MODELS.get(event_name)
+        if payload_model is not None and not isinstance(payload, payload_model):
+            values = dict(values)
+            values["payload"] = payload_model.model_validate(payload)
+        return values
