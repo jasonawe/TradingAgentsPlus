@@ -11,6 +11,10 @@ requires-python = ">=3.10"
 dependencies = [
     "langchain-core>=0.3.81",
     "backtrader>=1.9.78.123",
+    "fastapi",
+    "uvicorn",
+    "markdown-it-py>=3.0,<4.0",
+    "bleach>=6.0,<7.0",
     "langchain-anthropic>=0.3.15",
     "langchain-experimental>=0.3.4",
     "langchain-google-genai>=4.0.0",
@@ -44,15 +48,20 @@ dev = [
 bedrock = [
     "langchain-aws>=1.5.0",
 ]
+web = [
+    "httpx",
+    "playwright",
+]
 
 [project.scripts]
 tradingagents = "cli.main:app"
 
 [tool.setuptools.packages.find]
-include = ["tradingagents*", "cli*"]
+include = ["tradingagents*", "cli*", "web*"]
 
 [tool.setuptools.package-data]
 cli = ["static/*"]
+web = ["static/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

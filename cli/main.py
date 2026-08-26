@@ -72,6 +72,17 @@ app = typer.Typer(
 )
 
 
+@app.command("web")
+def web_command(
+    port: int = typer.Option(8000, "--port", min=1, max=65535, help="Local web server port."),
+):
+    """Launch the local TradingAgents web console."""
+    from web.app import app as web_app
+    import uvicorn
+
+    uvicorn.run(web_app, host="127.0.0.1", port=port)
+
+
 # Create a deque to store recent messages with a maximum length
 class MessageBuffer:
     # Fixed teams that always run (not user-selectable)
