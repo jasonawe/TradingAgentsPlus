@@ -10,6 +10,14 @@ from tradingagents.graph.propagation import PropagationCancelled
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 
 
+class _Message:
+    def __init__(self, content):
+        self.content = content
+
+    def pretty_print(self):
+        return None
+
+
 def _state(**overrides):
     state = {
         "messages": [],
@@ -108,13 +116,14 @@ def test_callback_free_non_debug_uses_invoke():
 
 
 def test_callback_free_debug_streams_and_merges_chunks():
-    first = _state(messages=["first"], market_report="first")
-    second = _state(messages=["second"], news_report="second")
+    first = _state(messages=[_Message("first")], market_report="first")
+    second = {"messages": [], "news_report": "second", "silent_update": True}
     graph = _graph(chunks=(first, second), debug=True)
 
     result = TradingAgentsGraph._run_graph(graph, "ACME", "2026-08-26")
 
     assert result == ({**first, **second}, "Buy")
+    assert result[0]["silent_update"] is True
     assert graph.graph.stream_calls == 1
     assert graph.graph.invoke_calls == 0
 

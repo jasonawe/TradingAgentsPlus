@@ -3,9 +3,10 @@
 import json
 import logging
 import os
+from collections.abc import Callable
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import yfinance as yf
 from langgraph.prebuilt import ToolNode
@@ -483,8 +484,9 @@ class TradingAgentsGraph:
                     if signature != last_printed:
                         msg.pretty_print()
                         last_printed = signature
-                if on_chunk is not None or should_cancel is not None or messages:
-                    trace.append(chunk)
+                # Keep every streamed delta in the merge, including updates
+                # from nodes that do not append a message.
+                trace.append(chunk)
             if should_cancel is not None and should_cancel():
                 raise PropagationCancelled()
             # Streamed chunks are per-node deltas. Merge them so the returned
