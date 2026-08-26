@@ -1,3 +1,5 @@
+import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -101,3 +103,69 @@ def test_wait_for_events_times_out_without_losing_cursor():
     assert isinstance(batch, EventBatch)
     assert batch.events == []
     assert batch.timed_out is True
+
+
+def test_cleanup_is_safe_when_called_concurrently_with_run_lifecycle():
+    now = datetime.now(timezone.utc)
+    manager = RunManager(terminal_ttl=timedelta(seconds=10), clock=lambda: now)
+    for index in range(40):
+        run = manager.start_run(request(f"T{index}"), run_id=f"run-{index}")
+        manager.begin_run(run.run_id)
+        manager.complete_run(run.run_id, signal="BUY", report_id=run.run_id)
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        list(executor.map(lambda _: manager.cleanup(now=now + timedelta(seconds=11)), range(100)))
+
+    assert manager.active_run_id is None
+
+
+def test_non_terminal_events_are_dropped_after_terminal_transition():
+    manager = RunManager()
+    run = manager.start_run(request())
+    manager.begin_run(run.run_id)
+    manager.complete_run(run.run_id, signal="BUY", report_id="report-1")
+
+    assert manager.publish(run.run_id, EventName.MESSAGE, {"message_type": "log", "text": "late"}) is None
+    assert [event.event for event in manager.read_events(run.run_id).events] == [
+        EventName.RUN_STARTED,
+        EventName.RUN_COMPLETED,
+    ]
+
+
+def test_public_publish_cannot_append_duplicate_terminal_event_after_completion():
+    manager = RunManager()
+    run = manager.start_run(request())
+    manager.begin_run(run.run_id)
+    manager.complete_run(run.run_id, signal="BUY", report_id="report-1")
+    event = manager.publish(
+        run.run_id,
+        EventName.RUN_COMPLETED,
+        {"status": "completed", "signal": "BUY", "report_id": "report-1"},
+    )
+
+    assert event is None
+    assert [event.event for event in manager.read_events(run.run_id).events] == [
+        EventName.RUN_STARTED,
+        EventName.RUN_COMPLETED,
+    ]
+
+
+def test_worker_exception_is_exposed_as_generic_error_without_raw_details():
+    secret = "sk-test-secret"
+
+    def worker(_run_id: str) -> None:
+        raise RuntimeError(f"provider payload api_key={secret} body={{'token': '{secret}'}}")
+
+    manager = RunManager()
+    run = manager.start_run(request(), worker=worker)
+    deadline = time.monotonic() + 2
+    while manager.get_run(run.run_id).status is not RunStatus.FAILED and time.monotonic() < deadline:
+        time.sleep(0.01)
+
+    failed = manager.get_run(run.run_id)
+    assert failed.status is RunStatus.FAILED
+    assert failed.error_message == "analysis worker failed"
+    assert secret not in failed.error_message
+    terminal_events = manager.read_events(run.run_id).events
+    assert terminal_events[-1].payload.error_message == "analysis worker failed"
+    assert secret not in terminal_events[-1].model_dump_json()

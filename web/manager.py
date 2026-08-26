@@ -59,6 +59,11 @@ class RunManager:
     else.
     """
 
+    _TERMINAL_STATUSES = frozenset(
+        (RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED)
+    )
+    _WORKER_ERROR_MESSAGE = "analysis worker failed"
+
     def __init__(
         self,
         *,
@@ -121,8 +126,14 @@ class RunManager:
             if record.status is not RunStatus.RUNNING:
                 return None
             return worker(run_id)
-        except Exception as exc:  # pragma: no cover - defensive worker boundary
-            self.fail_run(run_id, error_code="worker_error", error_message=self._sanitize_error(exc))
+        except Exception:  # pragma: no cover - defensive worker boundary
+            # Run records and browser events must never expose provider payloads
+            # or credentials from worker exceptions.
+            self.fail_run(
+                run_id,
+                error_code="worker_error",
+                error_message=self._WORKER_ERROR_MESSAGE,
+            )
             return None
 
     def begin_run(self, run_id: str) -> RunRecord:
@@ -150,13 +161,22 @@ class RunManager:
             )
             return self._copy_record(state.record)
 
-    def publish(self, run_id: str, event: EventName | str, payload: dict[str, Any]) -> EventEnvelope:
+    def publish(
+        self, run_id: str, event: EventName | str, payload: dict[str, Any]
+    ) -> EventEnvelope | None:
         with self._lock:
             return self._publish_locked(self._state(run_id), EventName(event), payload)
 
     def _publish_locked(
-        self, state: _ManagedRun, event: EventName, payload: dict[str, Any]
-    ) -> EventEnvelope:
+        self,
+        state: _ManagedRun,
+        event: EventName,
+        payload: dict[str, Any],
+        *,
+        allow_terminal: bool = False,
+    ) -> EventEnvelope | None:
+        if state.record.status in self._TERMINAL_STATUSES and not allow_terminal:
+            return None
         envelope = EventEnvelope(
             run_id=state.record.run_id,
             seq=state.next_seq,
@@ -201,6 +221,7 @@ class RunManager:
                 state,
                 EventName.RUN_COMPLETED,
                 {"status": "completed", "signal": signal, "report_id": report_id},
+                allow_terminal=True,
             )
             return self._copy_record(state.record)
 
@@ -222,6 +243,7 @@ class RunManager:
                     "error_code": state.record.error_code,
                     "error_message": state.record.error_message,
                 },
+                allow_terminal=True,
             )
             return self._copy_record(state.record)
 
@@ -248,6 +270,7 @@ class RunManager:
                     "phase": state.record.phase or "",
                     "current_agent": state.record.current_agent,
                 },
+                allow_terminal=True,
             )
             return self._copy_record(state.record)
 
@@ -291,14 +314,15 @@ class RunManager:
         return EventBatch(events, stale=stale, terminal=terminal)
 
     def cleanup(self, *, now: datetime | None = None) -> None:
-        current = now or self._clock()
-        expired = [
-            run_id
-            for run_id, state in self._records.items()
-            if state.terminal_expires_at is not None and state.terminal_expires_at <= current
-        ]
-        for run_id in expired:
-            self._records.pop(run_id, None)
+        with self._lock:
+            current = now or self._clock()
+            expired = [
+                run_id
+                for run_id, state in self._records.items()
+                if state.terminal_expires_at is not None and state.terminal_expires_at <= current
+            ]
+            for run_id in expired:
+                self._records.pop(run_id, None)
 
     def shutdown(self, wait: bool = True) -> None:
         self._executor.shutdown(wait=wait, cancel_futures=not wait)
