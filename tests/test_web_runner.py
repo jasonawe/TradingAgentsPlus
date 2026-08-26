@@ -33,8 +33,44 @@ def test_runner_streams_events_and_writes_sidecar(tmp_path):
     assert manager.get_run(run.run_id).status is RunStatus.COMPLETED
     events = manager.read_events(run.run_id).events
     assert EventName.AGENT_STATUS in [event.event for event in events]
+    assert EventName.PROGRESS in [event.event for event in events]
     sidecar = tmp_path / "web_reports" / "AAPL" / "2026-08-26" / "run-1" / "run.json"
-    assert json.loads(sidecar.read_text()) == {"run_id": "run-1", "report_id": "run-1"}
+    metadata = json.loads(sidecar.read_text())
+    assert metadata["run_id"] == metadata["report_id"] == "run-1"
+    assert metadata["ticker"] == "AAPL"
+    assert metadata["analysis_date"] == "2026-08-26"
+    assert metadata["asset_type"] == "stock"
+    assert metadata["analysts"] == ["market"]
+    assert metadata["research_depth"] == 1
+    assert metadata["signal"] == "BUY"
+    assert metadata["generated_at"]
+
+
+def test_runner_constrains_unsafe_run_id_path(tmp_path):
+    manager = RunManager()
+    run = manager.start_run(request(), run_id="../../outside")
+    manager.begin_run(run.run_id)
+    WebRunRunner(manager, graph_factory=FakeGraph, config={"results_dir": str(tmp_path)}).worker(run.run_id)
+    report_dirs = list((tmp_path / "web_reports" / "AAPL" / "2026-08-26").iterdir())
+    assert len(report_dirs) == 1
+    assert report_dirs[0].name.startswith("run-")
+    assert not (tmp_path / "outside").exists()
+
+
+def test_runner_emits_phase_and_analyst_progress_events(tmp_path):
+    manager = RunManager()
+    run = manager.start_run(request(), run_id="run-progress")
+    manager.begin_run(run.run_id)
+    runner = WebRunRunner(manager, graph_factory=FakeGraph, config={"results_dir": str(tmp_path)})
+    runner.worker(run.run_id)
+    events = manager.read_events(run.run_id).events
+    phase_events = [event for event in events if event.event is EventName.PHASE_CHANGED]
+    progress_events = [event for event in events if event.event is EventName.PROGRESS]
+    statuses = [event.payload.status for event in events if event.event is EventName.AGENT_STATUS]
+    assert phase_events[0].payload.phase == "Analyst Team"
+    assert progress_events
+    assert "in_progress" in statuses
+    assert "completed" in statuses
 
 
 def test_runner_redacts_unknown_activity():
@@ -46,4 +82,3 @@ def test_runner_redacts_unknown_activity():
     event = manager.read_events(run.run_id).events[-1]
     assert event.event is EventName.ACTIVITY
     assert "secret" not in event.payload.summary
-
