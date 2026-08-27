@@ -6,7 +6,14 @@ import yfinance as yf
 
 from cli.utils import is_valid_ticker_input, normalize_ticker_symbol
 
-from ..market_models import AssetIdentity, Candle, Freshness, ProviderError, ProviderErrorCode, QuoteSnapshot
+from ..market_models import (
+    AssetIdentity,
+    Candle,
+    Freshness,
+    ProviderError,
+    ProviderErrorCode,
+    QuoteSnapshot,
+)
 
 
 class YFinanceProvider:
@@ -22,6 +29,7 @@ class YFinanceProvider:
 
     def get_quote(self, symbol: str, asset_type: str) -> QuoteSnapshot:
         ticker = self._ticker(symbol)
+        info = _info(ticker)
         try:
             frame = ticker.history(period="5d", interval="1d")
         except TimeoutError as exc:
@@ -41,11 +49,26 @@ class YFinanceProvider:
         if as_of.tzinfo is None:
             as_of = as_of.replace(tzinfo=timezone.utc)
         change = price - previous if previous is not None else None
-        return QuoteSnapshot(symbol=normalize_ticker_symbol(symbol), asset_type=asset_type,
-                             price=price, previous_close=previous, change=change,
-                             change_percent=(change / previous * 100 if change is not None and previous else None),
-                             currency=None, as_of=as_of, fetched_at=datetime.now(timezone.utc),
-                             freshness=Freshness.DELAYED, is_delayed=True, source=self.name)
+        return QuoteSnapshot(
+            symbol=normalize_ticker_symbol(symbol),
+            asset_type=asset_type,
+            price=price,
+            previous_close=previous,
+            change=change,
+            change_percent=(change / previous * 100 if change is not None and previous else None),
+            open=float(frame["Open"].iloc[-1]) if "Open" in frame else None,
+            high=float(frame["High"].iloc[-1]) if "High" in frame else None,
+            low=float(frame["Low"].iloc[-1]) if "Low" in frame else None,
+            volume=float(frame["Volume"].iloc[-1]) if "Volume" in frame else None,
+            currency=info.get("currency"),
+            as_of=as_of,
+            fetched_at=datetime.now(timezone.utc),
+            freshness=Freshness.DELAYED,
+            is_delayed=True,
+            source=self.name,
+            exchange=info.get("exchange"),
+            raw_summary=info.get("longName") or info.get("shortName"),
+        )
 
     def get_candles(self, symbol: str, interval: str, start, end) -> list[Candle]:
         ticker = self._ticker(symbol)
@@ -57,9 +80,19 @@ class YFinanceProvider:
             raise ProviderError(ProviderErrorCode.NO_DATA, "no candle data")
         result = []
         for ts, row in frame.iterrows():
-            result.append(Candle(symbol=normalize_ticker_symbol(symbol), interval=interval, timestamp=ts,
-                                 open=row.get("Open"), high=row.get("High"), low=row.get("Low"),
-                                 close=row.get("Close"), volume=row.get("Volume"), source=self.name))
+            result.append(
+                Candle(
+                    symbol=normalize_ticker_symbol(symbol),
+                    interval=interval,
+                    timestamp=ts,
+                    open=row.get("Open"),
+                    high=row.get("High"),
+                    low=row.get("Low"),
+                    close=row.get("Close"),
+                    volume=row.get("Volume"),
+                    source=self.name,
+                )
+            )
         return result
 
     def get_identity(self, symbol: str, asset_type: str) -> AssetIdentity:
@@ -68,6 +101,29 @@ class YFinanceProvider:
             info = ticker.info or {}
         except Exception as exc:
             raise ProviderError(ProviderErrorCode.PROVIDER_ERROR, str(exc)) from exc
-        return AssetIdentity(symbol=normalize_ticker_symbol(symbol), asset_type=asset_type,
-                             name=info.get("longName") or info.get("shortName"),
-                             exchange=info.get("exchange"), currency=info.get("currency"))
+        return AssetIdentity(
+            symbol=normalize_ticker_symbol(symbol),
+            asset_type=asset_type,
+            name=info.get("longName") or info.get("shortName"),
+            exchange=info.get("exchange"),
+            currency=info.get("currency"),
+        )
+
+
+def _info(ticker):
+    try:
+        return ticker.info or {}
+    except Exception:
+        return {}
+
+
+def info_currency(ticker):
+    return _info(ticker).get("currency")
+
+
+def info_exchange(ticker):
+    return _info(ticker).get("exchange")
+
+
+def info_name(ticker):
+    return _info(ticker).get("longName") or _info(ticker).get("shortName")

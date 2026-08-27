@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+import importlib.util
+import os
 from typing import Any
 
 from tradingagents.llm_clients.model_catalog import MODEL_OPTIONS, get_model_options
-import os
-import importlib.util
 
 OUTPUT_LANGUAGES: tuple[str, ...] = (
     "English",
@@ -28,9 +28,12 @@ QUOTE_STRATEGIES = {
 }
 
 
-def market_data_catalog(config: dict[str, Any], settings: dict[str, Any] | None = None) -> dict[str, Any]:
+def market_data_catalog(
+    config: dict[str, Any], settings: dict[str, Any] | None = None
+) -> dict[str, Any]:
     """Return non-sensitive market provider strategy and diagnostics."""
     settings = settings or {}
+
     def resolved(key: str, env_key: str, default: Any):
         if env_key in os.environ and os.environ[env_key]:
             return os.environ[env_key], "environment"
@@ -38,23 +41,59 @@ def market_data_catalog(config: dict[str, Any], settings: dict[str, Any] | None 
         if isinstance(item, dict) and item.get("value") is not None:
             return item["value"], item.get("source", "sqlite")
         return config.get(key, default), "default"
-    strategy, source = resolved("quote_strategy_id", "TRADINGAGENTS_QUOTE_STRATEGY", "default-yfinance")
+
+    strategy, source = resolved(
+        "quote_strategy_id", "TRADINGAGENTS_QUOTE_STRATEGY", "default-yfinance"
+    )
     ttl, ttl_source = resolved("quote_ttl_seconds", "TRADINGAGENTS_QUOTE_TTL_SECONDS", 60)
-    try: ttl = int(ttl)
-    except (TypeError, ValueError): ttl = 60
+    try:
+        ttl = int(ttl)
+    except (TypeError, ValueError):
+        ttl = 60
     yfinance_installed = importlib.util.find_spec("yfinance") is not None
     alpha_configured = bool(os.getenv("ALPHA_VANTAGE_API_KEY"))
-    provider_ready = {"yfinance": yfinance_installed, "alpha_vantage": yfinance_installed and alpha_configured}
+    provider_ready = {
+        "yfinance": yfinance_installed,
+        "alpha_vantage": yfinance_installed and alpha_configured,
+    }
     return {
-        "quote_strategy_id": {"value": strategy if strategy in QUOTE_STRATEGIES else "default-yfinance", "source": source},
-        "quote_provider_chain": {"value": QUOTE_STRATEGIES.get(strategy, QUOTE_STRATEGIES["default-yfinance"])["providers"], "source": source},
+        "quote_strategy_id": {
+            "value": strategy if strategy in QUOTE_STRATEGIES else "default-yfinance",
+            "source": source,
+        },
+        "quote_provider_chain": {
+            "value": QUOTE_STRATEGIES.get(strategy, QUOTE_STRATEGIES["default-yfinance"])[
+                "providers"
+            ],
+            "source": source,
+        },
         "quote_ttl_seconds": {"value": ttl, "source": ttl_source},
-        "strategies": [{"id": key, "providers": value["providers"], "available": all(provider_ready.get(p, False) for p in value["providers"])} for key, value in QUOTE_STRATEGIES.items()],
+        "strategies": [
+            {
+                "id": key,
+                "providers": value["providers"],
+                "available": all(provider_ready.get(p, False) for p in value["providers"]),
+            }
+            for key, value in QUOTE_STRATEGIES.items()
+        ],
         "providers": [
-            {"id": "yfinance", "available": yfinance_installed, "configured": yfinance_installed, "capabilities": ["quote", "candles", "identity"], "status": "ready" if yfinance_installed else "not_installed"},
-            {"id": "alpha_vantage", "available": alpha_configured, "configured": alpha_configured, "capabilities": ["quote", "identity"], "status": "ready" if alpha_configured else "not_configured"},
+            {
+                "id": "yfinance",
+                "available": yfinance_installed,
+                "configured": yfinance_installed,
+                "capabilities": ["quote", "candles", "identity"],
+                "status": "ready" if yfinance_installed else "not_installed",
+            },
+            {
+                "id": "alpha_vantage",
+                "available": alpha_configured,
+                "configured": alpha_configured,
+                "capabilities": ["quote", "identity"],
+                "status": "ready" if alpha_configured else "not_configured",
+            },
         ],
     }
+
 
 # Custom-only providers require another input (endpoint/model ID), so they
 # remain available through the CLI but are intentionally not advertised by
@@ -82,7 +121,11 @@ PROVIDER_LABELS = {
 
 
 def _options(provider: str, mode: str) -> list[dict[str, str]]:
-    return [{"label": label, "value": value} for label, value in get_model_options(provider, mode) if value != "custom"]
+    return [
+        {"label": label, "value": value}
+        for label, value in get_model_options(provider, mode)
+        if value != "custom"
+    ]
 
 
 def model_catalog(config: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, str]]:
@@ -96,12 +139,14 @@ def model_catalog(config: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[st
         deep = _options(provider_key, "deep")
         if not quick or not deep:
             continue
-        providers.append({
-            "value": provider_key,
-            "label": PROVIDER_LABELS.get(provider_key, provider_key.title()),
-            "quick_models": quick,
-            "deep_models": deep,
-        })
+        providers.append(
+            {
+                "value": provider_key,
+                "label": PROVIDER_LABELS.get(provider_key, provider_key.title()),
+                "quick_models": quick,
+                "deep_models": deep,
+            }
+        )
     selected = next(item for item in providers if item["value"] == provider)
     quick_values = {item["value"] for item in selected["quick_models"]}
     deep_values = {item["value"] for item in selected["deep_models"]}
@@ -118,7 +163,9 @@ def model_catalog(config: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[st
     return providers, defaults
 
 
-def resolve_model_config(config: dict[str, Any], provider: str | None, quick_model: str | None, deep_model: str | None) -> dict[str, str]:
+def resolve_model_config(
+    config: dict[str, Any], provider: str | None, quick_model: str | None, deep_model: str | None
+) -> dict[str, str]:
     providers, defaults = model_catalog(config)
     provider_key = (provider or defaults["provider"]).lower()
     selected = next((item for item in providers if item["value"] == provider_key), None)
@@ -126,8 +173,16 @@ def resolve_model_config(config: dict[str, Any], provider: str | None, quick_mod
         raise ValueError("invalid analysis configuration")
     quick_values = {item["value"] for item in selected["quick_models"]}
     deep_values = {item["value"] for item in selected["deep_models"]}
-    quick = quick_model or (defaults["quick_model"] if provider_key == defaults["provider"] else selected["quick_models"][0]["value"])
-    deep = deep_model or (defaults["deep_model"] if provider_key == defaults["provider"] else selected["deep_models"][0]["value"])
+    quick = quick_model or (
+        defaults["quick_model"]
+        if provider_key == defaults["provider"]
+        else selected["quick_models"][0]["value"]
+    )
+    deep = deep_model or (
+        defaults["deep_model"]
+        if provider_key == defaults["provider"]
+        else selected["deep_models"][0]["value"]
+    )
     if quick not in quick_values or deep not in deep_values:
         raise ValueError("invalid analysis configuration")
     return {"provider": provider_key, "quick_model": quick, "deep_model": deep}

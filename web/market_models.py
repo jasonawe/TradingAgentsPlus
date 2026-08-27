@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Protocol, Literal
+from typing import Any, Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -34,7 +34,9 @@ class ProviderErrorCode(str, Enum):
     PROVIDER_ERROR = "provider_error"
 
 
-_SECRET_RE = re.compile(r"(?i)(api[_-]?key|token|authorization|password|secret)(\s*[=:]\s*)([\"']?)([^\"'\s,}&]+)([\"']?)")
+_SECRET_RE = re.compile(
+    r"(?i)(api[_-]?key|token|authorization|password|secret)(\s*[=:]\s*)([\"']?)([^\"'\s,}&]+)([\"']?)"
+)
 _URL_QUERY_RE = re.compile(r"([?&](?:api[_-]?key|token|key|secret)=)([^&\s]+)", re.I)
 _BEARER_RE = re.compile(r"(?i)(bearer\s+)[^\s'\"},]+")
 
@@ -96,7 +98,8 @@ class QuoteSnapshot(BaseModel):
             self.is_delayed = False
         elif self.freshness == Freshness.UNAVAILABLE:
             self.price = self.previous_close = self.change = self.change_percent = None
-            self.is_delayed = True
+            self.open = self.high = self.low = self.volume = None
+            self.is_delayed = False
         elif self.freshness in (Freshness.DELAYED, Freshness.STALE):
             self.is_delayed = True
         return self
@@ -115,11 +118,13 @@ class Candle(BaseModel):
 
     @field_validator("symbol", mode="before")
     @classmethod
-    def normalize_symbol(cls, value: str) -> str: return str(value).strip().upper()
+    def normalize_symbol(cls, value: str) -> str:
+        return str(value).strip().upper()
 
     @field_validator("timestamp", mode="before")
     @classmethod
-    def normalize_timestamp(cls, value): return _utc(value)
+    def normalize_timestamp(cls, value):
+        return _utc(value)
 
 
 class AssetIdentity(BaseModel):

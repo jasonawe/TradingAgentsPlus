@@ -134,7 +134,7 @@ class QuoteRepository:
         self.store = store
 
     def upsert_quote(self, quote: dict[str, Any]) -> None:
-        fields = ("symbol", "asset_type", "price", "previous_close", "change", "change_percent", "currency", "as_of", "fetched_at", "freshness", "source", "payload_json")
+        fields = ("symbol", "asset_type", "price", "previous_close", "change", "change_percent", "currency", "as_of", "fetched_at", "freshness", "source", "payload_json", "open", "high", "low", "volume", "market_status", "exchange", "raw_summary", "cache_status")
         data = dict(quote)
         data.setdefault("fetched_at", _now())
         data["payload_json"] = json.dumps(data.get("payload") or {}, ensure_ascii=False)

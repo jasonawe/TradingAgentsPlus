@@ -59,7 +59,7 @@ class AlphaVantageRateLimitError(VendorRateLimitError):
     """Raised when the Alpha Vantage API rate limit is exceeded."""
     pass
 
-def _make_api_request(function_name: str, params: dict) -> dict | str:
+def _make_api_request(function_name: str, params: dict, *, api_key: str | None = None) -> dict | str:
     """Helper function to make API requests and handle responses.
 
     Raises:
@@ -69,7 +69,7 @@ def _make_api_request(function_name: str, params: dict) -> dict | str:
     api_params = params.copy()
     api_params.update({
         "function": function_name,
-        "apikey": get_api_key(),
+        "apikey": api_key or get_api_key(),
         "source": "trading_agents",
     })
 

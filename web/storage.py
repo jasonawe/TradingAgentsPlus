@@ -25,6 +25,7 @@ class SQLiteStore:
         self._migrate()
         self._migrate_legacy_snapshot_table()
         self._ensure_web_run_columns()
+        self._ensure_market_quote_columns()
 
     def _prepare_legacy_snapshots(self) -> None:
         with _MIGRATION_LOCK:
@@ -48,6 +49,21 @@ class SQLiteStore:
                 for name, kind in expected.items():
                     if name not in existing:
                         conn.execute(f"ALTER TABLE web_runs ADD COLUMN {name} {kind}")
+                conn.commit()
+            finally:
+                conn.close()
+
+    def _ensure_market_quote_columns(self) -> None:
+        expected = {"open": "REAL", "high": "REAL", "low": "REAL", "volume": "REAL", "market_status": "TEXT", "exchange": "TEXT", "raw_summary": "TEXT", "cache_status": "TEXT"}
+        with _MIGRATION_LOCK:
+            conn = self._connect()
+            try:
+                if not conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='market_quotes'").fetchone():
+                    return
+                existing = {row[1] for row in conn.execute("PRAGMA table_info(market_quotes)")}
+                for name, kind in expected.items():
+                    if name not in existing:
+                        conn.execute(f"ALTER TABLE market_quotes ADD COLUMN {name} {kind}")
                 conn.commit()
             finally:
                 conn.close()

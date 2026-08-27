@@ -50,6 +50,14 @@ CREATE TABLE IF NOT EXISTS market_quotes (
     freshness TEXT NOT NULL,
     source TEXT,
     payload_json TEXT,
+    open REAL,
+    high REAL,
+    low REAL,
+    volume REAL,
+    market_status TEXT,
+    exchange TEXT,
+    raw_summary TEXT,
+    cache_status TEXT,
     PRIMARY KEY(symbol, asset_type)
 );
 

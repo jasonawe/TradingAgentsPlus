@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import os
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
+import queue
+import threading
+from collections.abc import Callable
+from concurrent.futures import Future, TimeoutError as FutureTimeout
 from datetime import datetime, timezone
-from typing import Any, Callable
+from typing import Any
 
 from .market_models import (
     AssetIdentity,
@@ -16,7 +19,6 @@ from .market_models import (
     QuoteSnapshot,
 )
 
-
 TRANSIENT = {
     ProviderErrorCode.NOT_CONFIGURED,
     ProviderErrorCode.RATE_LIMITED,
@@ -25,13 +27,47 @@ TRANSIENT = {
 }
 
 
+class _DaemonExecutor:
+    """Fixed-size daemon workers; hung provider calls cannot block process exit."""
+
+    def __init__(self, max_workers: int = 8):
+        self._queue = queue.Queue()
+        self._workers = []
+        for index in range(max_workers):
+            worker = threading.Thread(
+                target=self._run, name=f"market-provider-{index}", daemon=True
+            )
+            worker.start()
+            self._workers.append(worker)
+
+    def submit(self, fn):
+        future = Future()
+        self._queue.put((future, fn))
+        return future
+
+    def _run(self):
+        while True:
+            future, fn = self._queue.get()
+            if future.set_running_or_notify_cancel():
+                try:
+                    future.set_result(fn())
+                except BaseException as exc:
+                    future.set_exception(exc)
+            self._queue.task_done()
+
+
+_BOUNDED_EXECUTOR = _DaemonExecutor()
+
+
 class ProviderRouter:
     STRATEGIES = {
         "default-yfinance": ("yfinance",),
         "fallback-yfinance-alpha-vantage": ("yfinance", "alpha_vantage"),
     }
 
-    def __init__(self, providers: dict[str, Any], *, strategies: dict[str, tuple[str, ...]] | None = None):
+    def __init__(
+        self, providers: dict[str, Any], *, strategies: dict[str, tuple[str, ...]] | None = None
+    ):
         self.providers = providers
         self.strategies = strategies or self.STRATEGIES
 
@@ -41,7 +77,16 @@ class ProviderRouter:
             raise ValueError(f"unknown quote strategy: {strategy}")
         return tuple(self.providers[name] for name in names if name in self.providers)
 
-    def _call(self, method: str, symbol: str, asset_type: str, strategy: str, *args, timeout_seconds: float = 10, retries: int = 1):
+    def _call(
+        self,
+        method: str,
+        symbol: str,
+        asset_type: str,
+        strategy: str,
+        *args,
+        timeout_seconds: float = 10,
+        retries: int = 1,
+    ):
         last: ProviderError | None = None
         names = self.strategies.get(strategy)
         if not names:
@@ -49,31 +94,53 @@ class ProviderRouter:
         for name in names:
             provider = self.providers.get(name)
             if provider is None:
-                last = ProviderError(ProviderErrorCode.NOT_CONFIGURED, f"provider {name} unavailable")
+                last = ProviderError(
+                    ProviderErrorCode.NOT_CONFIGURED, f"provider {name} unavailable"
+                )
                 continue
             try:
-                capability = {"get_quote": "quote", "get_candles": "candles", "get_identity": "identity"}[method]
+                capability = {
+                    "get_quote": "quote",
+                    "get_candles": "candles",
+                    "get_identity": "identity",
+                }[method]
                 supports = getattr(provider, "supports", None)
                 if not callable(supports) or not supports(symbol, asset_type, capability):
-                    last = ProviderError(ProviderErrorCode.NOT_CONFIGURED, f"provider {name} does not support {capability}")
+                    last = ProviderError(
+                        ProviderErrorCode.NOT_CONFIGURED,
+                        f"provider {name} does not support {capability}",
+                    )
                     continue
                 fn = getattr(provider, method, None)
                 if not callable(fn):
-                    last = ProviderError(ProviderErrorCode.NOT_CONFIGURED, f"provider {name} unavailable")
+                    last = ProviderError(
+                        ProviderErrorCode.NOT_CONFIGURED, f"provider {name} unavailable"
+                    )
                     continue
-                if method == "get_quote":
-                    call = lambda: fn(symbol, asset_type)
-                elif method == "get_identity":
-                    call = lambda: fn(symbol, asset_type)
+                if method == "get_quote" or method == "get_identity":
+
+                    def call(fn=fn, symbol=symbol, asset_type=asset_type):
+                        return fn(symbol, asset_type)
                 else:
-                    call = lambda: fn(symbol, *args)
-                with ThreadPoolExecutor(max_workers=1) as executor:
-                    future = executor.submit(call)
+
+                    def call(fn=fn, symbol=symbol, args=args):
+                        return fn(symbol, *args)
+
+                for attempt in range(max(0, retries) + 1):
                     try:
+                        future = _BOUNDED_EXECUTOR.submit(call)
                         return future.result(timeout=timeout_seconds)
                     except FutureTimeout as exc:
                         future.cancel()
-                        raise ProviderError(ProviderErrorCode.TIMEOUT, "provider request timed out") from exc
+                        if attempt < retries:
+                            continue
+                        raise ProviderError(
+                            ProviderErrorCode.TIMEOUT, "provider request timed out"
+                        ) from exc
+                    except ProviderError as exc:
+                        if attempt < retries and exc.code in TRANSIENT:
+                            continue
+                        raise
             except ProviderError as exc:
                 last = exc
                 if exc.code not in TRANSIENT:
@@ -84,22 +151,82 @@ class ProviderRouter:
                 last = ProviderError(ProviderErrorCode.PROVIDER_ERROR, str(exc))
         raise last or ProviderError(ProviderErrorCode.NO_DATA, "no provider available")
 
-    def get_quote(self, symbol: str, asset_type: str, strategy: str = "default-yfinance", *, timeout_seconds: float = 10, retries: int = 1) -> QuoteSnapshot:
-        return self._call("get_quote", symbol, asset_type, strategy, timeout_seconds=timeout_seconds, retries=retries)
+    def get_quote(
+        self,
+        symbol: str,
+        asset_type: str,
+        strategy: str = "default-yfinance",
+        *,
+        timeout_seconds: float = 10,
+        retries: int = 1,
+    ) -> QuoteSnapshot:
+        return self._call(
+            "get_quote",
+            symbol,
+            asset_type,
+            strategy,
+            timeout_seconds=timeout_seconds,
+            retries=retries,
+        )
 
-    def get_candles(self, symbol: str, interval: str, start: Any, end: Any, strategy: str = "default-yfinance", *, timeout_seconds: float = 10, retries: int = 1) -> list[Candle]:
-        return self._call("get_candles", symbol, "stock", strategy, interval, start, end, timeout_seconds=timeout_seconds, retries=retries)
+    def get_candles(
+        self,
+        symbol: str,
+        interval: str,
+        start: Any,
+        end: Any,
+        strategy: str = "default-yfinance",
+        *,
+        timeout_seconds: float = 10,
+        retries: int = 1,
+    ) -> list[Candle]:
+        return self._call(
+            "get_candles",
+            symbol,
+            "stock",
+            strategy,
+            interval,
+            start,
+            end,
+            timeout_seconds=timeout_seconds,
+            retries=retries,
+        )
 
-    def get_identity(self, symbol: str, asset_type: str, strategy: str = "default-yfinance") -> AssetIdentity:
-        return self._call("get_identity", symbol, asset_type, strategy)
+    def get_identity(
+        self,
+        symbol: str,
+        asset_type: str,
+        strategy: str = "default-yfinance",
+        *,
+        timeout_seconds: float = 10,
+        retries: int = 1,
+    ) -> AssetIdentity:
+        return self._call(
+            "get_identity",
+            symbol,
+            asset_type,
+            strategy,
+            timeout_seconds=timeout_seconds,
+            retries=retries,
+        )
 
 
 class QuoteService:
     MAX_SYMBOLS = 50
 
-    def __init__(self, router: ProviderRouter, repository: Any, *, clock: Callable[[], datetime] | None = None,
-                 ttl_seconds: int | None = None, strategy: str | None = None, settings: Any | None = None,
-                 config: dict[str, Any] | None = None, timeout_seconds: float = 10, retries: int = 1):
+    def __init__(
+        self,
+        router: ProviderRouter,
+        repository: Any,
+        *,
+        clock: Callable[[], datetime] | None = None,
+        ttl_seconds: int | None = None,
+        strategy: str | None = None,
+        settings: Any | None = None,
+        config: dict[str, Any] | None = None,
+        timeout_seconds: float = 10,
+        retries: int = 1,
+    ):
         self.router = router
         self.repository = repository
         self.clock = clock or (lambda: datetime.now(timezone.utc))
@@ -107,9 +234,15 @@ class QuoteService:
         self.config = config or {}
         self.timeout_seconds = timeout_seconds
         self.retries = max(0, int(retries))
-        ttl_value = ttl_seconds if ttl_seconds is not None else self._resolved("quote_ttl_seconds", "TRADINGAGENTS_QUOTE_TTL_SECONDS", 60)
+        ttl_value = (
+            ttl_seconds
+            if ttl_seconds is not None
+            else self._resolved("quote_ttl_seconds", "TRADINGAGENTS_QUOTE_TTL_SECONDS", 60)
+        )
         self.ttl_seconds = max(15, min(60, int(ttl_value)))
-        self.strategy = strategy or self._resolved("quote_strategy_id", "TRADINGAGENTS_QUOTE_STRATEGY", "default-yfinance")
+        self.strategy = strategy or self._resolved(
+            "quote_strategy_id", "TRADINGAGENTS_QUOTE_STRATEGY", "default-yfinance"
+        )
         if self.strategy not in self.router.strategies:
             raise ValueError(f"unknown quote strategy: {self.strategy}")
 
@@ -132,11 +265,22 @@ class QuoteService:
     def get_quote(self, symbol: str, asset_type: str = "stock") -> QuoteSnapshot:
         cached = self._cached(symbol, asset_type)
         now = self.clock().astimezone(timezone.utc)
-        if cached and cached.fetched_at and (now - cached.fetched_at).total_seconds() <= self.ttl_seconds:
+        if (
+            cached
+            and cached.fetched_at
+            and (now - cached.fetched_at).total_seconds() <= self.ttl_seconds
+        ):
             cached.cache_status = "hit"
+            cached.fetched_at = now
             return cached
         try:
-            fresh = self.router.get_quote(symbol, asset_type, self.strategy, timeout_seconds=self.timeout_seconds, retries=self.retries)
+            fresh = self.router.get_quote(
+                symbol,
+                asset_type,
+                self.strategy,
+                timeout_seconds=self.timeout_seconds,
+                retries=self.retries,
+            )
             fresh.cache_status = "live"
             self.repository.upsert_quote(fresh.model_dump(mode="json"))
             return fresh
@@ -157,14 +301,45 @@ class QuoteService:
             try:
                 items.append(QuoteItem(symbol=symbol, quote=self.get_quote(symbol, asset_type)))
             except ProviderError as exc:
-                items.append(QuoteItem(symbol=str(symbol).upper(), error=QuoteItemError(symbol=str(symbol).upper(), code=exc.code.value, message=exc.message)))
+                normalized = str(symbol).upper()
+                unavailable = QuoteSnapshot(
+                    symbol=normalized,
+                    asset_type=asset_type,
+                    fetched_at=self.clock(),
+                    freshness="unavailable",
+                )
+                items.append(
+                    QuoteItem(
+                        symbol=normalized,
+                        quote=unavailable,
+                        error=QuoteItemError(
+                            symbol=normalized, code=exc.code.value, message=exc.message
+                        ),
+                    )
+                )
             except ValueError as exc:
-                items.append(QuoteItem(symbol=str(symbol).upper(), error=QuoteItemError(symbol=str(symbol).upper(), code="invalid_symbol", message=str(exc))))
+                normalized = str(symbol).upper()
+                unavailable = QuoteSnapshot(
+                    symbol=normalized,
+                    asset_type=asset_type,
+                    fetched_at=self.clock(),
+                    freshness="unavailable",
+                )
+                items.append(
+                    QuoteItem(
+                        symbol=normalized,
+                        quote=unavailable,
+                        error=QuoteItemError(
+                            symbol=normalized, code="invalid_symbol", message=str(exc)
+                        ),
+                    )
+                )
         return BulkQuoteResponse(items=items, partial=any(item.error is not None for item in items))
 
 
 def _payload(row: dict[str, Any]) -> dict[str, Any]:
     import json
+
     value = row.get("payload_json")
     if not value:
         return {}
