@@ -32,6 +32,53 @@ def test_only_one_active_run_and_atomic_begin():
     assert [event.event for event in events] == [EventName.RUN_STARTED]
 
 
+def test_sqlite_persists_terminal_run_metadata_across_manager_instances(tmp_path):
+    database = tmp_path / "web-runs.sqlite3"
+    manager = RunManager(db_path=database)
+    run = manager.start_run(request(), run_id="run-persisted")
+    manager.begin_run(run.run_id)
+    manager.complete_run(run.run_id, signal="BUY", report_id="report-persisted")
+    manager.shutdown()
+
+    restored = RunManager(db_path=database)
+    record = restored.get_run("run-persisted")
+    assert record.status is RunStatus.COMPLETED
+    assert record.request.ticker == "AAPL"
+    assert record.report_id == "report-persisted"
+    assert restored.active_run_id is None
+    restored.shutdown()
+
+
+def test_terminal_events_are_durable_and_replayed_after_restart(tmp_path):
+    database = tmp_path / "events.sqlite3"
+    manager = RunManager(db_path=database)
+    run = manager.start_run(request(), run_id="run-events")
+    manager.begin_run(run.run_id)
+    manager.complete_run(run.run_id, signal="BUY", report_id="report")
+    manager.shutdown()
+
+    restored = RunManager(db_path=database)
+    events = restored.read_events(run.run_id, 0).events
+    assert [event.event for event in events][-1] is EventName.RUN_COMPLETED
+    restored.shutdown()
+
+
+def test_direct_db_path_uses_full_store_migration_and_replays_restart_interrupt(tmp_path):
+    database = tmp_path / "direct.sqlite3"
+    manager = RunManager(db_path=database)
+    assert manager._store is not None
+    manager.start_run(request(), run_id="queued-restart")
+    manager.shutdown()
+    restored = RunManager(db_path=database)
+    with restored._store.connection() as conn:
+        assert conn.execute("SELECT version FROM schema_version").fetchone()[0] == 1
+        assert conn.execute("SELECT id FROM watchlists WHERE id='default'").fetchone() is not None
+        assert conn.execute("SELECT COUNT(*) FROM web_run_events WHERE run_id='queued-restart'").fetchone()[0] >= 1
+    events = restored.read_events("queued-restart", 0).events
+    assert sum(event.event is EventName.RUN_FAILED for event in events) == 1
+    restored.shutdown()
+
+
 def test_events_have_monotonic_sequences_and_iso_timestamps():
     manager = RunManager()
     run = manager.start_run(request())

@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Header, HTTPException, Query, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -20,6 +21,16 @@ from .history import ReportHistory, ReportNotFound
 from .manager import ActiveRunError, EventBatch, RunManager
 from .models import AnalysisRequest, EventEnvelope, RunRecord
 from .runner import WebRunRunner
+from .config import OUTPUT_LANGUAGES, model_catalog, resolve_model_config
+from .repositories import (
+    AnalysisRunRepository,
+    QuoteRepository,
+    ReportRepository,
+    SettingsRepository,
+    SnapshotRepository,
+    WatchlistRepository,
+)
+from .storage import SQLiteStore
 
 _STATIC_DIR = Path(__file__).with_name("static")
 _SAFE_FILENAME = re.compile(r"[^A-Za-z0-9._-]+")
@@ -41,6 +52,7 @@ def _safe_filename(value: str, fallback: str = "report") -> str:
 def _config_view(config: dict[str, Any]) -> dict[str, Any]:
     """Expose only the small, non-sensitive subset needed by the browser."""
 
+    providers, configured = model_catalog(config)
     return {
         "supported_asset_types": ["stock", "crypto"],
         "analyst_options": [
@@ -51,9 +63,13 @@ def _config_view(config: dict[str, Any]) -> dict[str, Any]:
         ],
         "research_depths": [1, 3, 5],
         "default_date": date.today().isoformat(),
-        "output_language": config.get("output_language", "English"),
-        "provider": config.get("llm_provider", "unknown"),
-        "model": config.get("deep_think_llm"),
+        "output_languages": [{"value": value, "label": value} for value in OUTPUT_LANGUAGES],
+        "output_language": configured["output_language"],
+        "providers": providers,
+        "configured": configured,
+        # Keep these aliases for older clients.
+        "provider": configured["provider"],
+        "model": configured["deep_model"],
     }
 
 
@@ -88,8 +104,18 @@ def create_app(
 ) -> FastAPI:
     """Build an isolated application instance suitable for local use or tests."""
 
-    active_manager = manager or RunManager()
     active_config = copy.deepcopy(config if config is not None else DEFAULT_CONFIG)
+    run_db_path = active_config.get("web_runs_db") or (Path(active_config.get("results_dir") or ".") / "web_runs.sqlite3")
+    if manager is not None and getattr(manager, "_store", None) is not None:
+        store = manager._store
+    elif manager is not None and getattr(manager, "_db_path", None) is not None:
+        store = SQLiteStore(manager._db_path)
+    else:
+        store = SQLiteStore(run_db_path)
+    active_manager = manager or RunManager(store=store)
+    if manager is not None and getattr(manager, "_store", None) is None:
+        manager._store = store
+        manager._db_path = store.path
     active_history = history or ReportHistory(
         results_dir=active_config.get("results_dir"), cwd=active_config.get("project_dir")
     )
@@ -97,6 +123,19 @@ def create_app(
     app.state.manager = active_manager
     app.state.config = active_config
     app.state.history = active_history
+    app.state.store = store
+    app.state.repositories = {
+        "watchlist": WatchlistRepository(store),
+        "quotes": QuoteRepository(store),
+        "runs": AnalysisRunRepository(store),
+        "snapshots": SnapshotRepository(store),
+        "settings": SettingsRepository(store),
+        "reports": ReportRepository(store),
+    }
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_error(_request: Request, _exc: RequestValidationError) -> JSONResponse:
+        return JSONResponse({"detail": "invalid analysis request"}, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
     if _STATIC_DIR.is_dir():
         app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
@@ -112,8 +151,39 @@ def create_app(
     def get_config() -> dict[str, Any]:
         return _config_view(active_config)
 
+    @app.get("/api/runs/active")
+    def get_active_run() -> dict[str, Any]:
+        """Return the current analysis so a reopened client can reattach."""
+
+        active_id = active_manager.active_run_id
+        if not active_id:
+            return {"run": None}
+        try:
+            return {"run": _record_json(active_manager.get_run(active_id))}
+        except KeyError:
+            # The worker may finish between reading active_run_id and get_run.
+            return {"run": None}
+
     @app.post("/api/runs", status_code=status.HTTP_202_ACCEPTED)
     def create_run(request_data: AnalysisRequest) -> JSONResponse:
+        try:
+            selected = resolve_model_config(
+                active_config,
+                request_data.provider,
+                request_data.quick_model,
+                request_data.deep_model,
+            )
+            language = request_data.output_language or model_catalog(active_config)[1]["output_language"]
+            if language not in OUTPUT_LANGUAGES:
+                raise ValueError("invalid analysis configuration")
+            request_data = request_data.model_copy(update={
+                "provider": selected["provider"],
+                "quick_model": selected["quick_model"],
+                "deep_model": selected["deep_model"],
+                "output_language": language,
+            })
+        except ValueError as exc:
+            raise _error(status.HTTP_422_UNPROCESSABLE_ENTITY, "invalid analysis configuration") from exc
         if runner is None:
             worker = WebRunRunner(active_manager, config=active_config).worker
         elif hasattr(runner, "worker"):
@@ -203,8 +273,10 @@ def create_app(
             raise _error(status.HTTP_404_NOT_FOUND, "report not found") from exc
         ticker = _safe_filename(str(report.get("ticker") or "report"))
         filename = f"{ticker}-{_safe_filename(report_id)}.md"
+        summary = str(report.get("executive_summary") or "").strip()
+        content = f"{summary}\n\n---\n\n{report['complete_report']}" if summary else report["complete_report"]
         return Response(
-            content=report["complete_report"],
+            content=content,
             media_type="text/markdown",
             headers={"Content-Disposition": f'attachment; filename="{filename}"'},
         )

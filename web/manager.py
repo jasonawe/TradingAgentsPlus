@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import re
+import sqlite3
 import threading
 import uuid
 from collections import deque
@@ -10,7 +12,12 @@ from collections.abc import Callable
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from web.storage import SQLiteStore
 
 from web.models import (
     AnalysisRequest,
@@ -70,6 +77,8 @@ class RunManager:
         event_limit: int = 256,
         terminal_ttl: timedelta = timedelta(hours=1),
         clock: Callable[[], datetime] | None = None,
+        db_path: str | Path | None = None,
+        store: SQLiteStore | None = None,
     ) -> None:
         if event_limit < 1:
             raise ValueError("event_limit must be positive")
@@ -80,6 +89,17 @@ class RunManager:
         self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="tradingagents-web")
         self._records: dict[str, _ManagedRun] = {}
         self._active_run_id: str | None = None
+        self._db_path = Path(db_path) if db_path is not None else None
+        self._store = store
+        if self._store is None and self._db_path is not None:
+            from web.storage import SQLiteStore
+            self._store = SQLiteStore(self._db_path)
+        if self._db_path is not None and self._store is None:
+            self._init_db()
+            self._load_persisted_runs()
+        elif self._store is not None:
+            self._db_path = self._store.path
+            self._load_persisted_runs()
 
     @property
     def active_run_id(self) -> str | None:
@@ -116,6 +136,7 @@ class RunManager:
             )
             self._records[identifier] = state
             self._active_run_id = identifier
+            self._persist_locked(record)
             if worker is not None:
                 state.future = self._executor.submit(self._run_worker, identifier, worker)
             return self._copy_record(record)
@@ -147,6 +168,7 @@ class RunManager:
                 return self._copy_record(state.record)
             state.record.status = RunStatus.RUNNING
             state.record.started_at = self._clock()
+            self._persist_locked(state.record)
             self._publish_locked(
                 state,
                 EventName.RUN_STARTED,
@@ -186,8 +208,19 @@ class RunManager:
         )
         state.next_seq += 1
         state.events.append(envelope)
+        self._persist_event(envelope)
         state.condition.notify_all()
         return envelope
+
+    def _persist_event(self, event: EventEnvelope) -> None:
+        if self._db_path is None:
+            return
+        connector = self._store.connection() if self._store is not None else sqlite3.connect(self._db_path)
+        with connector as connection:
+            connection.execute(
+                "INSERT OR IGNORE INTO web_run_events(run_id,seq,event,timestamp,payload_json) VALUES (?,?,?,?,?)",
+                (event.run_id, event.seq, event.event.value, event.timestamp.isoformat(), json.dumps(event.payload.model_dump(mode="json"), ensure_ascii=False, separators=(",", ":"))),
+            )
 
     def get_run(self, run_id: str) -> RunRecord:
         with self._lock:
@@ -201,6 +234,7 @@ class RunManager:
             state = self._state(run_id)
             if state.record.status not in (RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED):
                 state.cancel_event.set()
+                self._persist_locked(state.record)
             return self._copy_record(state.record)
 
     def is_cancelled(self, run_id: str) -> bool:
@@ -217,6 +251,7 @@ class RunManager:
             state.record.signal = signal
             state.record.report_id = report_id
             self._finish_locked(state)
+            self._persist_locked(state.record)
             self._publish_locked(
                 state,
                 EventName.RUN_COMPLETED,
@@ -235,6 +270,7 @@ class RunManager:
             state.record.error_code = self._sanitize_code(error_code)
             state.record.error_message = self._sanitize_error(error_message)
             self._finish_locked(state)
+            self._persist_locked(state.record)
             self._publish_locked(
                 state,
                 EventName.RUN_FAILED,
@@ -262,6 +298,7 @@ class RunManager:
             if current_agent is not None:
                 state.record.current_agent = current_agent
             self._finish_locked(state)
+            self._persist_locked(state.record)
             self._publish_locked(
                 state,
                 EventName.RUN_CANCELLED,
@@ -323,6 +360,7 @@ class RunManager:
             ]
             for run_id in expired:
                 self._records.pop(run_id, None)
+                self._delete_persisted_locked(run_id)
 
     def shutdown(self, wait: bool = True) -> None:
         self._executor.shutdown(wait=wait, cancel_futures=not wait)
@@ -338,6 +376,159 @@ class RunManager:
             return self._records[run_id]
         except KeyError:
             raise KeyError(f"unknown run: {run_id}") from None
+
+    def _init_db(self) -> None:
+        assert self._db_path is not None
+        self._db_path.parent.mkdir(parents=True, exist_ok=True)
+        connector = self._store.connection() if self._store is not None else sqlite3.connect(self._db_path)
+        with connector as connection:
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS web_runs (
+                    run_id TEXT PRIMARY KEY,
+                    request_json TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    phase TEXT,
+                    current_agent TEXT,
+                    progress REAL NOT NULL,
+                    queued_at TEXT,
+                    started_at TEXT,
+                    finished_at TEXT,
+                    signal TEXT,
+                    report_id TEXT,
+                    error_code TEXT,
+                    error_message TEXT,
+                    terminal_expires_at TEXT
+                )
+                """
+            )
+            connection.execute(
+                "CREATE TABLE IF NOT EXISTS web_run_events (run_id TEXT NOT NULL, seq INTEGER NOT NULL, event TEXT NOT NULL, timestamp TEXT NOT NULL, payload_json TEXT NOT NULL, PRIMARY KEY(run_id, seq))"
+            )
+
+    def _load_persisted_runs(self) -> None:
+        assert self._db_path is not None
+        connector = self._store.connection() if self._store is not None else sqlite3.connect(self._db_path)
+        with connector as connection:
+            rows = connection.execute(
+                "SELECT run_id, request_json, status, phase, current_agent, progress, "
+                "queued_at, started_at, finished_at, signal, report_id, error_code, "
+                "error_message, terminal_expires_at FROM web_runs"
+            ).fetchall()
+        interrupted: list[RunRecord] = []
+        for row in rows:
+            (
+                run_id, request_json, status, phase, current_agent, progress,
+                queued_at, started_at, finished_at, signal, report_id, error_code,
+                error_message, terminal_expires_at,
+            ) = row
+            try:
+                request = AnalysisRequest.model_validate(json.loads(request_json))
+                record = RunRecord(
+                    run_id=run_id,
+                    request=request,
+                    status=RunStatus(status),
+                    phase=phase,
+                    current_agent=current_agent,
+                    progress=progress,
+                    queued_at=queued_at,
+                    started_at=started_at,
+                    finished_at=finished_at,
+                    signal=signal,
+                    report_id=report_id,
+                    error_code=error_code,
+                    error_message=error_message,
+                )
+            except (TypeError, ValueError, json.JSONDecodeError):
+                continue
+            state = _ManagedRun(
+                record=record,
+                events=deque(maxlen=self.event_limit),
+                condition=threading.Condition(self._lock),
+                cancel_event=threading.Event(),
+                terminal_expires_at=self._parse_datetime(terminal_expires_at),
+            )
+            connector = self._store.connection() if self._store is not None else sqlite3.connect(self._db_path)
+            with connector as connection:
+                event_rows = connection.execute("SELECT seq,event,timestamp,payload_json FROM web_run_events WHERE run_id=? ORDER BY seq", (record.run_id,)).fetchall()
+            for seq, event_name, timestamp, payload_json in event_rows:
+                try:
+                    state.events.append(EventEnvelope(run_id=record.run_id, seq=seq, timestamp=self._parse_datetime(timestamp), event=event_name, payload=json.loads(payload_json)))
+                    state.next_seq = max(state.next_seq, seq + 1)
+                except (TypeError, ValueError, json.JSONDecodeError):
+                    continue
+            self._records[record.run_id] = state
+            if record.status in (RunStatus.QUEUED, RunStatus.RUNNING):
+                interrupted.append(record)
+        if interrupted:
+            now = self._clock()
+            with self._lock:
+                for record in interrupted:
+                    state = self._records[record.run_id]
+                    state.record.status = RunStatus.FAILED
+                    state.record.finished_at = now
+                    state.record.error_code = "service_restart"
+                    state.record.error_message = "analysis interrupted by web service restart"
+                    state.terminal_expires_at = now + self.terminal_ttl
+                    self._persist_locked(state.record)
+                    self._publish_locked(state, EventName.RUN_FAILED, {"status": "failed", "error_code": "service_restart", "error_message": state.record.error_message}, allow_terminal=True)
+
+    def _persist_locked(self, record: RunRecord) -> None:
+        if self._db_path is None:
+            return
+        state = self._records.get(record.run_id)
+        terminal_expires_at = state.terminal_expires_at.isoformat() if state and state.terminal_expires_at else None
+        values = (
+            record.run_id,
+            json.dumps(record.request.model_dump(mode="json"), ensure_ascii=False, separators=(",", ":")),
+            record.status.value,
+            record.phase,
+            record.current_agent,
+            record.progress,
+            self._format_datetime(record.queued_at),
+            self._format_datetime(record.started_at),
+            self._format_datetime(record.finished_at),
+            record.signal,
+            record.report_id,
+            record.error_code,
+            record.error_message,
+            terminal_expires_at,
+        )
+        connector = self._store.connection() if self._store is not None else sqlite3.connect(self._db_path)
+        with connector as connection:
+            connection.execute(
+                """
+                INSERT INTO web_runs (
+                    run_id, request_json, status, phase, current_agent, progress,
+                    queued_at, started_at, finished_at, signal, report_id, error_code,
+                    error_message, terminal_expires_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(run_id) DO UPDATE SET
+                    request_json=excluded.request_json, status=excluded.status,
+                    phase=excluded.phase, current_agent=excluded.current_agent,
+                    progress=excluded.progress, queued_at=excluded.queued_at,
+                    started_at=excluded.started_at, finished_at=excluded.finished_at,
+                    signal=excluded.signal, report_id=excluded.report_id,
+                    error_code=excluded.error_code, error_message=excluded.error_message,
+                    terminal_expires_at=excluded.terminal_expires_at
+                """,
+                values,
+            )
+
+    def _delete_persisted_locked(self, run_id: str) -> None:
+        if self._db_path is None:
+            return
+        connector = self._store.connection() if self._store is not None else sqlite3.connect(self._db_path)
+        with connector as connection:
+            connection.execute("DELETE FROM web_runs WHERE run_id = ?", (run_id,))
+
+    @staticmethod
+    def _format_datetime(value: datetime | None) -> str | None:
+        return value.isoformat() if value is not None else None
+
+    @staticmethod
+    def _parse_datetime(value: str | None) -> datetime | None:
+        return datetime.fromisoformat(value) if value else None
 
     @staticmethod
     def _copy_record(record: RunRecord) -> RunRecord:
