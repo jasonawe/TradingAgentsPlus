@@ -51,6 +51,7 @@ class AnalysisRequest(BaseModel):
     asset_type: AssetType = AssetType.STOCK
     analysts: list[AnalystType] = Field(min_length=1)
     research_depth: int
+    output_language: str | None = Field(default=None, min_length=1, max_length=64)
 
     @field_validator("ticker", mode="before")
     @classmethod

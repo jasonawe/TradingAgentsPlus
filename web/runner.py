@@ -57,6 +57,8 @@ class WebRunRunner:
             cfg["max_debate_rounds"] = request.research_depth
         if not os.environ.get("TRADINGAGENTS_MAX_RISK_ROUNDS"):
             cfg["max_risk_discuss_rounds"] = request.research_depth
+        if request.output_language:
+            cfg["output_language"] = request.output_language
         analysts = [getattr(a, "value", str(a)) for a in request.analysts]
         graph = self.graph_factory(analysts, config=cfg, debug=False)
         phase = {"name": "Analyst Team", "index": 1, "phase_count": 5}

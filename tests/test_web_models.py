@@ -32,6 +32,14 @@ def test_request_normalizes_and_filters_crypto_fundamentals():
     assert req.analysts == ["market"]
 
 
+def test_request_accepts_web_output_language_override():
+    req = AnalysisRequest(
+        ticker="AAPL", analysis_date="2026-08-26", analysts=["market"],
+        research_depth=1, output_language="Chinese",
+    )
+    assert req.output_language == "Chinese"
+
+
 @pytest.mark.parametrize("field,value", [("asset_type", "forex"), ("research_depth", 2), ("analysts", ["market", "market"])])
 def test_invalid_values_are_rejected(field, value):
     data = {"ticker": "AAPL", "analysis_date": "2026-08-26", "analysts": ["market"], "research_depth": 1}

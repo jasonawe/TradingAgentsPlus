@@ -46,6 +46,7 @@ def test_client_supports_complete_english_and_simplified_chinese_localization():
         "setLanguage",
         "renderFormOptions",
         "DYNAMIC_KEYS",
+        "output_language",
         "简体中文",
         "English",
         "Analyst Team",

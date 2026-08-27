@@ -6,12 +6,18 @@ from web.models import AnalysisRequest, EventName, RunStatus
 from web.runner import WebRunRunner
 
 
-def request():
-    return AnalysisRequest(ticker="AAPL", analysis_date="2026-08-26", asset_type="stock", analysts=["market"], research_depth=1)
+def request(**overrides):
+    value = {
+        "ticker": "AAPL", "analysis_date": "2026-08-26", "asset_type": "stock",
+        "analysts": ["market"], "research_depth": 1,
+    }
+    value.update(overrides)
+    return AnalysisRequest(**value)
 
 
 class FakeGraph:
     def __init__(self, analysts, *, config, debug):
+        FakeGraph.last_instance = self
         self.config = config
         self.debug = debug
 
@@ -44,6 +50,17 @@ def test_runner_streams_events_and_writes_sidecar(tmp_path):
     assert metadata["research_depth"] == 1
     assert metadata["signal"] == "BUY"
     assert metadata["generated_at"]
+
+
+def test_runner_applies_request_output_language_to_graph_config(tmp_path):
+    manager = RunManager()
+    run = manager.start_run(request(output_language="Chinese"), run_id="run-language")
+    manager.begin_run(run.run_id)
+    WebRunRunner(manager, graph_factory=FakeGraph, config={"results_dir": str(tmp_path), "output_language": "English"}).worker(run.run_id)
+    assert manager.get_run(run.run_id).status is RunStatus.COMPLETED
+    # The fake graph is instantiated with the per-run language override.
+    graph = FakeGraph.last_instance
+    assert graph.config["output_language"] == "Chinese"
 
 
 def test_runner_constrains_unsafe_run_id_path(tmp_path):

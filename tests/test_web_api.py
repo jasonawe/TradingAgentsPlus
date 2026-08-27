@@ -18,6 +18,7 @@ def _request(**overrides):
         "asset_type": "stock",
         "analysts": ["market", "news"],
         "research_depth": 1,
+        "output_language": "English",
     }
     value.update(overrides)
     return value
