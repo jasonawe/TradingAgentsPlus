@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>TradingAgents | Analysis Desk</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="brand"><span class="brand-mark">TA</span><span>TradingAgents</span></div>
+      <div class="masthead-meta"><span class="eyebrow">LOCAL RESEARCH DESK</span><span id="connection-status" class="connection-dot is-idle">Ready</span></div>
+    </header>
+
+    <main class="page-shell">
+      <section id="setup-view" class="view active" aria-labelledby="setup-title">
+        <div class="intro-grid">
+          <div>
+            <p class="kicker">MULTI-AGENT MARKET INTELLIGENCE</p>
+            <h1 id="setup-title">Frame the question.<br /><em>Let the desk investigate.</em></h1>
+            <p class="lede">Configure a focused research run, watch each specialist work, and receive a decision-ready briefing in one place.</p>
+          </div>
+          <aside class="config-note"><span class="note-rule"></span><p>Credentials stay in your local environment. This desk only exposes non-sensitive model metadata.</p><small id="provider-summary">Loading desk configuration...</small></aside>
+        </div>
+        <form id="analysis-form" class="analysis-form" novalidate>
+          <div class="form-row primary-row">
+            <label class="field field-ticker"><span>Ticker</span><input id="ticker" name="ticker" autocomplete="off" placeholder="AAPL or BTC-USD" required maxlength="32" /></label>
+            <label class="field"><span>Asset type</span><select id="asset-type" name="asset_type"><option value="stock">Stock</option><option value="crypto">Crypto</option></select></label>
+            <label class="field"><span>Analysis date</span><input id="analysis-date" name="analysis_date" type="date" required /></label>
+          </div>
+          <fieldset class="field-group"><legend>Analyst desk</legend><div id="analyst-options" class="analyst-options"></div></fieldset>
+          <fieldset class="field-group depth-group"><legend>Research depth</legend><div id="depth-options" class="depth-options"></div></fieldset>
+          <div class="form-actions"><p id="form-error" class="form-error" role="alert" aria-live="polite"></p><button class="button button-primary" type="submit">Start analysis <span aria-hidden="true">&#8594;</span></button></div>
+        </form>
+        <section class="history-section" aria-labelledby="history-title"><div class="section-heading"><div><p class="kicker">ARCHIVE</p><h2 id="history-title">Previous briefings</h2></div><button id="refresh-history" class="text-button" type="button">Refresh</button></div><div id="history-list" class="history-list"><p class="muted">Loading history...</p></div></section>
+      </section>
+
+      <section id="run-view" class="view" aria-labelledby="run-title" hidden>
+        <div class="run-header"><div><p class="kicker" id="run-kicker">LIVE BRIEFING</p><h1 id="run-title">Analysis in progress</h1><p id="run-subtitle" class="lede"></p></div><button id="cancel-run" class="button button-secondary" type="button">Cancel run</button></div>
+        <div class="run-grid">
+          <aside class="timeline-panel"><div class="panel-heading"><span class="kicker">DESK PROGRESS</span><span id="progress-label">0%</span></div><div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div><ol id="phase-timeline" class="phase-timeline"></ol><div class="current-agent"><span class="status-pulse"></span><div><small>CURRENTLY WORKING</small><strong id="current-agent">Preparing desk...</strong></div></div></aside>
+          <section class="activity-panel"><div class="panel-heading"><span class="kicker">FIELD NOTES</span><span id="event-count">0 events</span></div><div id="activity-feed" class="activity-feed" aria-live="polite"></div></section>
+        </div>
+        <section id="terminal-panel" class="terminal-panel" hidden></section>
+        <section id="report-panel" class="report-panel" hidden><div class="report-heading"><div><p class="kicker">FINAL BRIEFING</p><h2 id="report-title">Decision report</h2></div><div class="report-actions"><button id="download-report" class="button button-secondary" type="button">Download markdown</button><button id="new-analysis" class="button button-primary" type="button">New analysis <span aria-hidden="true">&#8594;</span></button></div></div><div id="report-content" class="report-content"></div></section>
+      </section>
+    </main>
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>
