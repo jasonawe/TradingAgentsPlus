@@ -10,6 +10,7 @@ from web.market_models import (
     ProviderError,
     ProviderErrorCode,
 )
+from web.config import market_data_catalog
 
 
 def quote(symbol="AAPL", *, fetched_at=None, freshness="fresh", price=100.0, source="test"):
@@ -67,7 +68,7 @@ def test_quote_service_uses_cache_until_ttl_then_marks_stale(tmp_path):
     service = QuoteService(ProviderRouter({"yfinance": Provider()}), repo, clock=lambda: now[0], ttl_seconds=60)
     assert service.get_quote("AAPL", "stock").source == "provider"
     now[0] += timedelta(seconds=30)
-    assert service.get_quote("AAPL", "stock").source == "cache"
+    assert service.get_quote("AAPL", "stock").cache_status == "hit"
     now[0] += timedelta(seconds=40)
     Provider.get_quote = lambda self, symbol, asset_type: (_ for _ in ()).throw(ProviderError(ProviderErrorCode.TIMEOUT, "offline"))
     stale = service.get_quote("AAPL", "stock")
@@ -90,3 +91,28 @@ def test_bulk_limits_and_partial_errors(tmp_path):
     result = service.get_quotes(["AAPL", "BAD"])
     assert result.items[0].quote.symbol == "AAPL"
     assert result.items[1].error.code == "invalid_symbol"
+    assert result.partial is True
+
+
+def test_quote_service_precedence_defaults_then_sqlite_then_environment(monkeypatch):
+    class Settings:
+        def get(self, key):
+            return {"value": "120" if key == "quote_ttl_seconds" else "fallback-yfinance-alpha-vantage"}
+    router = ProviderRouter({"yfinance": object(), "alpha_vantage": object()})
+    monkeypatch.setenv("TRADINGAGENTS_QUOTE_TTL_SECONDS", "30")
+    monkeypatch.setenv("TRADINGAGENTS_QUOTE_STRATEGY", "default-yfinance")
+    service = QuoteService(router, object(), settings=Settings(), config={"quote_ttl_seconds": 15, "quote_strategy_id": "default-yfinance"})
+    assert service.ttl_seconds == 30
+    assert service.strategy == "default-yfinance"
+
+
+def test_router_checks_capability_before_calling_provider():
+    class P:
+        def supports(self, symbol, asset_type, capability): return capability != "candles"
+        def get_quote(self, *args): raise AssertionError("must not call unsupported provider")
+        def get_candles(self, *args): raise AssertionError("must not call unsupported provider")
+        def get_identity(self, *args): raise AssertionError("must not call unsupported provider")
+    router = ProviderRouter({"p": P()}, strategies={"s": ("p",)})
+    with pytest.raises(ProviderError) as exc:
+        router.get_candles("AAPL", "1d", "2026-01-01", "2026-01-02", "s")
+    assert exc.value.code is ProviderErrorCode.NOT_CONFIGURED

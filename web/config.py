@@ -6,6 +6,7 @@ from typing import Any
 
 from tradingagents.llm_clients.model_catalog import MODEL_OPTIONS, get_model_options
 import os
+import importlib.util
 
 OUTPUT_LANGUAGES: tuple[str, ...] = (
     "English",
@@ -41,14 +42,17 @@ def market_data_catalog(config: dict[str, Any], settings: dict[str, Any] | None 
     ttl, ttl_source = resolved("quote_ttl_seconds", "TRADINGAGENTS_QUOTE_TTL_SECONDS", 60)
     try: ttl = int(ttl)
     except (TypeError, ValueError): ttl = 60
+    yfinance_installed = importlib.util.find_spec("yfinance") is not None
+    alpha_configured = bool(os.getenv("ALPHA_VANTAGE_API_KEY"))
+    provider_ready = {"yfinance": yfinance_installed, "alpha_vantage": yfinance_installed and alpha_configured}
     return {
         "quote_strategy_id": {"value": strategy if strategy in QUOTE_STRATEGIES else "default-yfinance", "source": source},
         "quote_provider_chain": {"value": QUOTE_STRATEGIES.get(strategy, QUOTE_STRATEGIES["default-yfinance"])["providers"], "source": source},
         "quote_ttl_seconds": {"value": ttl, "source": ttl_source},
-        "strategies": [{"id": key, "providers": value["providers"], "available": True} for key, value in QUOTE_STRATEGIES.items()],
+        "strategies": [{"id": key, "providers": value["providers"], "available": all(provider_ready.get(p, False) for p in value["providers"])} for key, value in QUOTE_STRATEGIES.items()],
         "providers": [
-            {"id": "yfinance", "available": True, "configured": True, "capabilities": ["quote", "candles", "identity"]},
-            {"id": "alpha_vantage", "available": True, "configured": bool(os.getenv("ALPHA_VANTAGE_API_KEY")), "capabilities": ["quote", "identity"]},
+            {"id": "yfinance", "available": yfinance_installed, "configured": yfinance_installed, "capabilities": ["quote", "candles", "identity"], "status": "ready" if yfinance_installed else "not_installed"},
+            {"id": "alpha_vantage", "available": alpha_configured, "configured": alpha_configured, "capabilities": ["quote", "identity"], "status": "ready" if alpha_configured else "not_configured"},
         ],
     }
 

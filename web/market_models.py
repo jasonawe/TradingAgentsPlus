@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any
+from typing import Any, Protocol, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -41,6 +41,8 @@ _BEARER_RE = re.compile(r"(?i)(bearer\s+)[^\s'\"},]+")
 
 def redact(value: Any) -> str:
     text = str(value)
+    text = re.sub(r"https?://[^\s'\"}]+", "[URL_REDACTED]", text, flags=re.I)
+    text = re.sub(r"(?i)\bheaders?\s*=\s*\{[^}]*\}", "[REDACTED]", text)
     text = _SECRET_RE.sub(r"\1\2\3REDACTED\5", text)
     text = _URL_QUERY_RE.sub(r"\1REDACTED", text)
     text = _BEARER_RE.sub(r"\1REDACTED", text)
@@ -59,6 +61,10 @@ class QuoteSnapshot(BaseModel):
     symbol: str
     asset_type: str = "stock"
     price: float | None = None
+    open: float | None = None
+    high: float | None = None
+    low: float | None = None
+    volume: float | None = None
     previous_close: float | None = None
     change: float | None = None
     change_percent: float | None = None
@@ -68,6 +74,10 @@ class QuoteSnapshot(BaseModel):
     freshness: Freshness = Freshness.FRESH
     is_delayed: bool = False
     source: str | None = None
+    market_status: str | None = None
+    exchange: str | None = None
+    raw_summary: str | None = None
+    cache_status: Literal["live", "hit", "stale"] | None = None
     payload: dict[str, Any] = Field(default_factory=dict)
 
     @field_validator("symbol", mode="before")
@@ -119,6 +129,13 @@ class AssetIdentity(BaseModel):
     exchange: str | None = None
     currency: str | None = None
 
+    @field_validator("asset_type")
+    @classmethod
+    def validate_asset_type(cls, value: str) -> str:
+        if value not in {"stock", "crypto"}:
+            raise ValueError("asset_type must be stock or crypto")
+        return value
+
 
 class QuoteItemError(BaseModel):
     symbol: str
@@ -135,6 +152,14 @@ class QuoteItem(BaseModel):
 class BulkQuoteResponse(BaseModel):
     items: list[QuoteItem]
     source: str | None = None
+    partial: bool = False
+
+
+class QuoteProvider(Protocol):
+    def supports(self, symbol: str, asset_type: str, capability: str) -> bool: ...
+    def get_quote(self, symbol: str, asset_type: str) -> QuoteSnapshot: ...
+    def get_candles(self, symbol: str, interval: str, start, end) -> list[Candle]: ...
+    def get_identity(self, symbol: str, asset_type: str) -> AssetIdentity: ...
 
 
 class ProviderDiagnostic(BaseModel):
