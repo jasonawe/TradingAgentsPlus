@@ -7,6 +7,8 @@ button { cursor:pointer; }
 .brand { display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.01em; }
 .brand-mark { display:grid; place-items:center; width:31px; height:31px; background:var(--ink); color:#fff; font-size:11px; letter-spacing:.08em; }
 .masthead-meta { display:flex; align-items:center; gap:18px; color:var(--muted); }
+.language-toggle { min-height:30px; padding:0 10px; border:1px solid var(--line); background:#fff; color:var(--ink); font-size:11px; font-weight:700; }
+.language-toggle:hover { border-color:var(--accent); color:var(--accent); }
 .eyebrow, .kicker, small { font-size:10px; font-weight:700; letter-spacing:.14em; }
 .connection-dot { display:flex; align-items:center; gap:7px; font-size:12px; }.connection-dot::before { content:""; width:7px; height:7px; border-radius:50%; background:var(--gold); }.connection-dot.is-live::before { background:var(--green); }.connection-dot.is-error::before { background:var(--accent); }
 .page-shell { width:min(1180px, calc(100% - 40px)); margin:0 auto; padding:clamp(42px,7vw,86px) 0 100px; }
