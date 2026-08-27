@@ -31,7 +31,12 @@ def test_indexes_web_and_legacy_roots_newest_first(tmp_path):
         "generated_at": "2026-08-26T12:00:00+00:00", "signal": "BUY",
     })
     write_report(legacy_root, "MSFT_2026-08-25", complete="# Trading Analysis Report: MSFT\n\nGenerated: 2026-08-25 09:00:00\n\n## V. Portfolio Manager Decision\n\nHOLD")
-    write_report(cwd_root, "TSLA/2026-08-24/run", sidecar={"report_id": "ignored"})
+    write_report(
+        cwd_root,
+        "TSLA/2026-08-24/run",
+        sidecar={"report_id": "ignored"},
+        complete="# Trading Analysis Report: TSLA\n\nGenerated: 2026-08-24 08:00:00\n\n## V. Portfolio Manager Decision\n\nSELL",
+    )
 
     records = ReportHistory(results_dir=tmp_path / "results", cwd=tmp_path / "cwd").list_reports()
     assert [record["ticker"] for record in records] == ["AAPL", "MSFT", "TSLA"]

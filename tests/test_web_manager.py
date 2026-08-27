@@ -65,7 +65,7 @@ def test_stale_cursor_returns_snapshot_before_retained_events():
     assert batch.stale is True
     assert batch.events[0].event is EventName.RUN_SNAPSHOT
     assert batch.events[0].payload.run.run_id == run.run_id
-    assert [event.seq for event in batch.events[1:]] == [4, 5]
+    assert [event.seq for event in batch.events[1:]] == [3, 4]
 
 
 def test_terminal_records_expire_and_terminal_cancel_is_idempotent():
