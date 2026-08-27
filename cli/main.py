@@ -72,6 +72,35 @@ app = typer.Typer(
 )
 
 
+@app.callback(invoke_without_command=True)
+def default_command(ctx: typer.Context):
+    """Preserve the original interactive flow when no subcommand is given."""
+    if ctx.invoked_subcommand is not None:
+        return
+    try:
+        run_analysis()
+    except _NO_CONSOLE_ERRORS:
+        typer.echo(
+            "Error: no Windows console available. The interactive CLI needs a real "
+            "console buffer — run it from Windows Terminal, PowerShell, or cmd.exe "
+            "rather than a piped or embedded terminal.",
+            err=True,
+        )
+        raise typer.Exit(code=1) from None
+
+
+@app.command("web")
+def web_command(
+    port: int = typer.Option(8000, "--port", min=1, max=65535, help="Local web server port."),
+):
+    """Launch the local TradingAgents web console."""
+    import uvicorn
+
+    from web.app import app as web_app
+
+    uvicorn.run(web_app, host="127.0.0.1", port=port)
+
+
 # Create a deque to store recent messages with a maximum length
 class MessageBuffer:
     # Fixed teams that always run (not user-selectable)

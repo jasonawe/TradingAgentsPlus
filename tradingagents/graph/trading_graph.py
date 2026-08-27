@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+from collections.abc import Callable
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -36,7 +37,7 @@ from tradingagents.reporting import write_report_tree
 
 from .checkpointer import checkpoint_step, clear_checkpoint, get_checkpointer, thread_id
 from .conditional_logic import ConditionalLogic
-from .propagation import Propagator
+from .propagation import PropagationCancelled, Propagator
 from .reflection import Reflector
 from .setup import GraphSetup
 from .signal_processing import SignalProcessor
@@ -359,7 +360,15 @@ class TradingAgentsGraph:
             f"asset={asset_type}",
         ])
 
-    def propagate(self, company_name, trade_date, asset_type: str = "stock"):
+    def propagate(
+        self,
+        company_name,
+        trade_date,
+        asset_type: str = "stock",
+        *,
+        on_chunk: Callable[[dict[str, Any]], None] | None = None,
+        should_cancel: Callable[[], bool] | None = None,
+    ):
         """Run the trading agents graph for a company on a specific date.
 
         ``asset_type`` selects between the stock pipeline (default) and the
@@ -369,6 +378,11 @@ class TradingAgentsGraph:
         a per-ticker SqliteSaver so a crashed run can resume from the last
         successful node on a subsequent invocation with the same ticker+date.
         """
+        # Check before resolving pending entries: that step can perform network,
+        # LLM, and memory-log writes and should not begin for a cancelled run.
+        if should_cancel is not None and should_cancel():
+            raise PropagationCancelled()
+
         self.ticker = company_name
 
         # Resolve any pending memory-log entries for this ticker before the pipeline runs.
@@ -394,7 +408,13 @@ class TradingAgentsGraph:
                 logger.info("Starting fresh for %s on %s", company_name, trade_date)
 
         try:
-            return self._run_graph(company_name, trade_date, asset_type=asset_type)
+            return self._run_graph(
+                company_name,
+                trade_date,
+                asset_type=asset_type,
+                on_chunk=on_chunk,
+                should_cancel=should_cancel,
+            )
         finally:
             if self._checkpointer_ctx is not None:
                 self._checkpointer_ctx.__exit__(None, None, None)
@@ -416,7 +436,15 @@ class TradingAgentsGraph:
             )
         return write_report_tree(final_state, ticker, save_path)
 
-    def _run_graph(self, company_name, trade_date, asset_type: str = "stock"):
+    def _run_graph(
+        self,
+        company_name,
+        trade_date,
+        asset_type: str = "stock",
+        *,
+        on_chunk: Callable[[dict[str, Any]], None] | None = None,
+        should_cancel: Callable[[], bool] | None = None,
+    ):
         """Execute the graph and write the resulting state to disk and memory log."""
         # Initialize state — inject memory log context for PM and the
         # deterministically resolved instrument identity for all agents.
@@ -437,12 +465,18 @@ class TradingAgentsGraph:
             tid = thread_id(company_name, str(trade_date), self._run_signature(asset_type))
             args.setdefault("config", {}).setdefault("configurable", {})["thread_id"] = tid
 
-        if self.debug:
+        streaming = self.debug or on_chunk is not None or should_cancel is not None
+        if streaming:
             trace = []
             last_printed = None
             for chunk in self.graph.stream(init_agent_state, **args):
-                if chunk["messages"]:
-                    msg = chunk["messages"][-1]
+                if should_cancel is not None and should_cancel():
+                    raise PropagationCancelled()
+                if on_chunk is not None:
+                    on_chunk(chunk)
+                messages = chunk.get("messages", []) if self.debug else []
+                if self.debug and messages:
+                    msg = messages[-1]
                     # Nodes after the trader don't append to messages, so the
                     # same trailing message repeats across chunks. Print it only
                     # when it changes (#1027); the trace/state merge is unchanged.
@@ -450,7 +484,11 @@ class TradingAgentsGraph:
                     if signature != last_printed:
                         msg.pretty_print()
                         last_printed = signature
-                    trace.append(chunk)
+                # Keep every streamed delta in the merge, including updates
+                # from nodes that do not append a message.
+                trace.append(chunk)
+            if should_cancel is not None and should_cancel():
+                raise PropagationCancelled()
             # Streamed chunks are per-node deltas. Merge them so the returned
             # state matches what graph.invoke() yields in the non-debug path.
             final_state = {}

@@ -8,6 +8,10 @@ from tradingagents.agents.utils.agent_states import (
 )
 
 
+class PropagationCancelled(Exception):
+    """Raised when a graph propagation run is cooperatively cancelled."""
+
+
 class Propagator:
     """Handles state initialization and propagation through the graph."""
 
