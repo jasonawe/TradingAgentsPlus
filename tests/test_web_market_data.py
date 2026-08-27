@@ -42,11 +42,12 @@ def test_provider_router_only_falls_back_for_transient_typed_errors():
         def get_candles(self, symbol, interval, start, end): return []
         def get_identity(self, symbol, asset_type): return AssetIdentity(symbol=symbol, asset_type=asset_type, name=symbol)
 
-    router = ProviderRouter({"x": P(ProviderError(ProviderErrorCode.TIMEOUT, "down")), "y": P()})
-    assert router.get_quote("AAPL", "stock", "x,y").source == "second"
-    stopped = ProviderRouter({"x": P(ProviderError(ProviderErrorCode.NO_DATA, "none")), "y": P()})
+    strategies = {"test": ("x", "y")}
+    router = ProviderRouter({"x": P(ProviderError(ProviderErrorCode.TIMEOUT, "down")), "y": P()}, strategies=strategies)
+    assert router.get_quote("AAPL", "stock", "test").source == "second"
+    stopped = ProviderRouter({"x": P(ProviderError(ProviderErrorCode.NO_DATA, "none")), "y": P()}, strategies=strategies)
     with pytest.raises(ProviderError) as exc:
-        stopped.get_quote("AAPL", "stock", "x,y")
+        stopped.get_quote("AAPL", "stock", "test")
     assert exc.value.code is ProviderErrorCode.NO_DATA
 
 

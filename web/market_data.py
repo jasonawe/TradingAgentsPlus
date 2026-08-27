@@ -43,8 +43,6 @@ class ProviderRouter:
     def _call(self, method: str, symbol: str, asset_type: str, strategy: str, *args):
         last: ProviderError | None = None
         names = self.strategies.get(strategy)
-        if not names and "," in strategy:
-            names = tuple(part.strip() for part in strategy.split(",") if part.strip())
         if not names:
             raise ValueError(f"unknown quote strategy: {strategy}")
         for name in names:
