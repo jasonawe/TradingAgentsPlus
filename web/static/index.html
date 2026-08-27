@@ -37,13 +37,13 @@
       </section>
 
       <section id="run-view" class="view" aria-labelledby="run-title" hidden>
-        <div class="run-header"><div><p class="kicker" id="run-kicker">LIVE BRIEFING</p><h1 id="run-title">Analysis in progress</h1><p id="run-subtitle" class="lede"></p></div><button id="cancel-run" class="button button-secondary" type="button">Cancel run</button></div>
+        <div class="run-header"><div><p class="kicker" id="run-kicker">LIVE BRIEFING</p><h1 id="run-title">Analysis in progress</h1><p id="run-subtitle" class="lede"></p><p id="elapsed-time" class="elapsed-time" aria-live="polite">Elapsed 00:00</p></div><div class="run-actions"><button id="back-history" class="button button-secondary" type="button">Back to history</button><button id="cancel-run" class="button button-secondary" type="button">Cancel run</button></div></div>
         <div class="run-grid">
           <aside class="timeline-panel"><div class="panel-heading"><span class="kicker">DESK PROGRESS</span><span id="progress-label">0%</span></div><div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div><ol id="phase-timeline" class="phase-timeline"></ol><div class="current-agent"><span class="status-pulse"></span><div><small>CURRENTLY WORKING</small><strong id="current-agent">Preparing desk...</strong></div></div></aside>
           <section class="activity-panel"><div class="panel-heading"><span class="kicker">FIELD NOTES</span><span id="event-count">0 events</span></div><div id="activity-feed" class="activity-feed" aria-live="polite"></div></section>
         </div>
         <section id="terminal-panel" class="terminal-panel" hidden></section>
-        <section id="report-panel" class="report-panel" hidden><div class="report-heading"><div><p class="kicker">FINAL BRIEFING</p><h2 id="report-title">Decision report</h2></div><div class="report-actions"><button id="download-report" class="button button-secondary" type="button">Download markdown</button><button id="new-analysis" class="button button-primary" type="button">New analysis <span aria-hidden="true">&#8594;</span></button></div></div><div id="report-content" class="report-content"></div></section>
+        <section id="report-panel" class="report-panel" hidden><div class="report-heading"><div><p class="kicker">FINAL BRIEFING</p><h2 id="report-title">Decision report</h2><dl id="report-meta" class="report-meta"></dl></div><div class="report-actions"><button id="download-report" class="button button-secondary" type="button">Download markdown</button><button id="new-analysis" class="button button-primary" type="button">New analysis <span aria-hidden="true">&#8594;</span></button></div></div><div id="report-content" class="report-content"></div></section>
       </section>
     </main>
     <script src="/static/app.js" defer></script>

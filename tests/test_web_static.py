@@ -17,11 +17,14 @@ def test_static_console_assets_exist_and_are_self_contained():
 
 def test_client_contract_covers_api_events_reconnect_and_safe_rendering():
     js = (STATIC / "app.js").read_text(encoding="utf-8")
-    for token in ("/api/config", "/api/history", "/api/runs", "EventSource", "after_seq", "lastSeq", "seen", "run_completed", "run_failed", "run_cancelled"):
+    for token in ("/api/config", "/api/history", "/api/runs", "EventSource", "after_seq", "lastSeq", "seen", "run_completed", "run_failed", "run_cancelled", "reconnectStatus", "syncRecord"):
         assert token in js
     assert "escapeHtml" in js
     assert "REPORT_GROUPS" in js
     assert "fundamentals" in js
+    assert "report-meta" in (STATIC / "index.html").read_text(encoding="utf-8")
+    assert "elapsed-time" in (STATIC / "index.html").read_text(encoding="utf-8")
+    assert "back-history" in (STATIC / "index.html").read_text(encoding="utf-8")
 
 
 def test_css_has_narrow_viewport_layout_and_stable_activity_regions():
