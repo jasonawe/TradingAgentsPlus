@@ -21,7 +21,12 @@ from tradingagents.graph.trading_graph import TradingAgentsGraph
 
 from .manager import RunManager
 from .models import EventName
-from .synthesis import generate_executive_summary, save_executive_summary
+
+try:
+    from .synthesis import generate_executive_summary, save_executive_summary
+except ImportError:  # Optional report-editor extension may be supplied by the UI layer.
+    generate_executive_summary = None
+    save_executive_summary = None
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +110,7 @@ class WebRunRunner:
             summary_status = "unavailable"
             try:
                 deep_llm = getattr(graph, "deep_thinking_llm", None)
-                if deep_llm is not None:
+                if deep_llm is not None and generate_executive_summary is not None and save_executive_summary is not None:
                     summary = generate_executive_summary(
                         deep_llm,
                         ticker=request.ticker,
