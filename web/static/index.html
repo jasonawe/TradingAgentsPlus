@@ -1,51 +1,70 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
-    <title>TradingAgents | Analysis Desk</title>
+    <title>TradingAgents | 个人投资研究平台</title>
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body>
     <header class="masthead">
       <div class="brand"><span class="brand-mark">TA</span><span>TradingAgents</span></div>
-      <div class="masthead-meta"><span class="eyebrow" data-i18n="brand.localDesk">LOCAL RESEARCH DESK</span><span id="connection-status" class="connection-dot is-idle" data-i18n="connection.ready">Ready</span><button id="language-toggle" class="language-toggle" type="button" aria-label="Switch language">中文</button></div>
+      <div class="masthead-meta"><span class="eyebrow">个人投资研究平台</span><span id="connection-status" class="connection-dot is-idle">就绪</span></div>
     </header>
 
     <main class="page-shell">
+      <nav class="top-nav" aria-label="主要导航"><button type="button" class="nav-button is-active" data-view="setup">我的关注</button><button type="button" class="nav-button" data-view="library">报告库</button><button type="button" class="nav-button" data-view="settings">设置诊断</button></nav>
       <section id="setup-view" class="view active" aria-labelledby="setup-title">
         <div class="intro-grid">
           <div>
-            <p class="kicker" data-i18n="setup.kicker">MULTI-AGENT MARKET INTELLIGENCE</p>
-            <h1 id="setup-title"><span data-i18n="setup.titleLine1">Frame the question.</span><br /><em data-i18n="setup.titleLine2">Let the desk investigate.</em></h1>
-            <p class="lede" data-i18n="setup.lede">Configure a focused research run, watch each specialist work, and receive a decision-ready briefing in one place.</p>
+            <p class="kicker">个人投资研究平台</p>
+            <h1 id="setup-title"><span>先明确问题。</span><br /><em>让研究台展开调查。</em></h1>
+            <p class="lede">关注资产行情，配置分析任务，并在同一个地方查看可追溯的资产报告。</p>
           </div>
-          <aside class="config-note"><span class="note-rule"></span><p data-i18n="setup.credentials">Credentials stay in your local environment. This desk only exposes non-sensitive model metadata.</p><small id="provider-summary" data-i18n="setup.loadingConfig">Loading desk configuration...</small></aside>
+          <aside class="config-note"><span class="note-rule"></span><p>行情仅用于只读研究，不提供交易执行或持仓管理。</p><small id="provider-summary">正在加载配置……</small></aside>
         </div>
-        <form id="analysis-form" class="analysis-form" novalidate>
+        <section id="watchlist-panel" class="watchlist-panel" aria-labelledby="watchlist-title"><div class="section-heading"><div><p class="kicker">资产关注</p><h2 id="watchlist-title">我的关注</h2></div><button id="refresh-quotes" class="text-button" type="button">刷新行情</button></div><form id="watchlist-form" class="watchlist-form"><label class="field"><span>添加标的</span><input id="watchlist-symbol" autocomplete="off" placeholder="例如 AAPL 或 BTC-USD" maxlength="32" /></label><label class="field"><span>类型</span><select id="watchlist-asset-type"><option value="stock">股票</option><option value="crypto">加密货币</option></select></label><button class="button button-secondary" type="submit">加入关注</button></form><div id="watchlist-list" class="watchlist-list"><p class="muted">正在加载关注列表……</p></div><p id="watchlist-error" class="form-error" role="alert" aria-live="polite"></p></section>
+        <form id="analysis-form" class="analysis-form" novalidate aria-labelledby="analysis-title">
+          <h2 id="analysis-title" class="form-title">创建一次资产分析</h2>
           <div class="form-row primary-row">
-            <label class="field field-ticker"><span data-i18n="form.ticker">Ticker</span><input id="ticker" name="ticker" autocomplete="off" data-i18n-placeholder="form.tickerPlaceholder" placeholder="AAPL or BTC-USD" required maxlength="32" /></label>
-            <label class="field"><span data-i18n="form.assetType">Asset type</span><select id="asset-type" name="asset_type"><option value="stock" data-i18n="assets.stock">Stock</option><option value="crypto" data-i18n="assets.crypto">Crypto</option></select></label>
-            <label class="field"><span data-i18n="form.analysisDate">Analysis date</span><input id="analysis-date" name="analysis_date" type="date" required /></label>
+            <label class="field field-ticker"><span>标的代码</span><input id="ticker" name="ticker" autocomplete="off" placeholder="例如 AAPL 或 BTC-USD" required maxlength="32" /></label>
+            <label class="field"><span data-i18n="form.assetType">资产类型</span><select id="asset-type" name="asset_type"><option value="stock" data-i18n="assets.stock">股票</option><option value="crypto" data-i18n="assets.crypto">加密货币</option></select></label>
+            <label class="field"><span data-i18n="form.analysisDate">分析日期</span><input id="analysis-date" name="analysis_date" type="date" required /></label>
+          </div>
+          <div class="form-row model-row">
+            <label class="field"><span data-i18n="form.provider">模型厂商</span><select id="provider" name="provider"></select></label>
+            <label class="field"><span data-i18n="form.quickModel">快速思考模型</span><select id="quick-model" name="quick_model"></select></label>
+            <label class="field"><span data-i18n="form.deepModel">深度思考模型</span><select id="deep-model" name="deep_model"></select></label>
+          </div>
+          <div class="form-row language-row">
+            <label class="field"><span data-i18n="form.outputLanguage">分析语言</span><select id="output-language" name="output_language"></select></label>
           </div>
           <fieldset class="field-group"><legend data-i18n="form.analystDesk">Analyst desk</legend><div id="analyst-options" class="analyst-options"></div></fieldset>
           <fieldset class="field-group depth-group"><legend data-i18n="form.researchDepth">Research depth</legend><div id="depth-options" class="depth-options"></div></fieldset>
-          <div class="form-actions"><p id="form-error" class="form-error" role="alert" aria-live="polite"></p><button class="button button-primary" type="submit"><span data-i18n="actions.startAnalysis"></span> <span aria-hidden="true">&#8594;</span></button></div>
+          <div class="form-actions"><p id="form-error" class="form-error" role="alert" aria-live="polite"></p><button class="button button-primary" type="submit"><span>开始分析</span> <span aria-hidden="true">&#8594;</span></button></div>
         </form>
-        <section class="history-section" aria-labelledby="history-title"><div class="section-heading"><div><p class="kicker" data-i18n="history.kicker">ARCHIVE</p><h2 id="history-title" data-i18n="history.title">Previous briefings</h2></div><button id="refresh-history" class="text-button" type="button" data-i18n="actions.refresh">Refresh</button></div><div id="history-list" class="history-list"><p class="muted" data-i18n="history.loading"></p></div></section>
+        <section class="history-section" aria-labelledby="history-title"><div class="section-heading"><div><p class="kicker">最近报告</p><h2 id="history-title">资产分析报告</h2></div><div class="section-actions"><button id="open-library" class="button button-secondary" type="button">打开报告库</button><button id="refresh-history" class="text-button" type="button">刷新</button></div></div><div id="history-list" class="history-list"><p class="muted">正在加载历史记录……</p></div></section>
       </section>
 
+      <section id="library-view" class="view" aria-labelledby="library-title" hidden>
+        <div class="library-header"><div><p class="kicker">报告库</p><h1 id="library-title">资产分析报告</h1><p class="lede">按标的、日期和数据状态筛选已经完成的报告。</p></div><button id="library-new-analysis" class="button button-primary" type="button">新建分析</button></div>
+        <div class="library-toolbar"><label class="field library-search"><span data-i18n="library.searchLabel">搜索报告</span><input id="library-search" type="search" data-i18n-placeholder="library.searchPlaceholder" placeholder="标的代码或决策文本" /></label><label class="field"><span data-i18n="library.assetFilter">资产</span><select id="library-asset-filter"><option value="" data-i18n="library.allAssets">全部资产</option><option value="stock" data-i18n="assets.stock">股票</option><option value="crypto" data-i18n="assets.crypto">加密货币</option></select></label><label class="field"><span data-i18n="library.statusFilter">状态</span><select id="library-status-filter"><option value="" data-i18n="library.allStatuses">全部状态</option><option value="completed" data-i18n="status.completed">已完成</option><option value="failed" data-i18n="status.failed">失败</option><option value="cancelled" data-i18n="status.cancelled">已取消</option><option value="interrupted" data-i18n="status.interrupted">已中断</option></select></label><label class="field"><span data-i18n="library.sort">排序</span><select id="library-sort"><option value="newest" data-i18n="library.newest">最新优先</option><option value="oldest" data-i18n="library.oldest">最早优先</option></select></label></div>
+        <div class="library-layout"><div id="library-list" class="library-list"><p class="muted" data-i18n="history.loading"></p></div><section id="library-detail" class="library-detail" hidden></section></div>
+      </section>
+
+      <section id="settings-view" class="view" aria-labelledby="settings-title" hidden><div class="library-header"><div><p class="kicker">设置诊断</p><h1 id="settings-title">数据与模型设置</h1><p class="lede">查看当前生效的行情来源、缓存策略和分析模型。凭据不会展示在浏览器中。</p></div></div><div class="settings-grid"><section class="settings-card"><h2>分析配置</h2><dl id="settings-fields" class="settings-fields"><div><dt>加载中</dt><dd>正在读取设置……</dd></div></dl></section><section class="settings-card"><h2>行情来源</h2><div id="provider-status-list" class="provider-status-list"><p class="muted">正在读取行情来源……</p></div></section></div></section>
+
       <section id="run-view" class="view" aria-labelledby="run-title" hidden>
-        <div class="run-header"><div><p class="kicker" id="run-kicker" data-i18n="run.liveBriefing">LIVE BRIEFING</p><h1 id="run-title" data-i18n="run.inProgress">Analysis in progress</h1><p id="run-subtitle" class="lede"></p><p id="elapsed-time" class="elapsed-time" aria-live="polite">Elapsed 00:00</p></div><div class="run-actions"><button id="back-history" class="button button-secondary" type="button" data-i18n="actions.backHistory">Back to history</button><button id="cancel-run" class="button button-secondary" type="button" data-i18n="actions.cancelRun">Cancel run</button></div></div>
-        <div class="run-grid">
-          <aside class="timeline-panel"><div class="panel-heading"><span class="kicker" data-i18n="run.deskProgress">DESK PROGRESS</span><span id="progress-label">0%</span></div><div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div><ol id="phase-timeline" class="phase-timeline"></ol><div class="current-agent"><span class="status-pulse"></span><div><small data-i18n="run.currentlyWorking">CURRENTLY WORKING</small><strong id="current-agent" data-i18n="run.preparing">Preparing desk...</strong></div></div></aside>
-          <section class="activity-panel"><div class="panel-heading"><span class="kicker" data-i18n="run.fieldNotes">FIELD NOTES</span><span id="event-count">0 events</span></div><div id="activity-feed" class="activity-feed" aria-live="polite"></div></section>
+        <div id="run-header" class="run-header"><div><p class="kicker" id="run-kicker" data-i18n="run.liveBriefing">实时分析</p><h1 id="run-title" data-i18n="run.inProgress">分析进行中</h1><p id="run-subtitle" class="lede"></p><p id="elapsed-time" class="elapsed-time" aria-live="polite">已用时 00:00</p></div><div class="run-actions"><button id="back-history" class="button button-secondary" type="button" data-i18n="actions.backHistory">返回历史</button><button id="cancel-run" class="button button-secondary" type="button" data-i18n="actions.cancelRun">取消运行</button></div></div>
+        <div id="run-grid" class="run-grid">
+          <aside class="timeline-panel"><div class="panel-heading"><span class="kicker" data-i18n="run.deskProgress">分析进度</span><span id="progress-label">0%</span></div><div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div><ol id="phase-timeline" class="phase-timeline"></ol><div class="current-agent"><span class="status-pulse"></span><div><small data-i18n="run.currentlyWorking">当前工作代理</small><strong id="current-agent" data-i18n="run.preparing">正在准备分析……</strong></div></div></aside>
+          <section class="activity-panel"><div class="panel-heading"><span class="kicker" data-i18n="run.fieldNotes">过程记录</span><span id="event-count">0 条事件</span></div><div id="activity-feed" class="activity-feed" aria-live="polite"></div></section>
         </div>
         <section id="terminal-panel" class="terminal-panel" hidden></section>
-        <section id="report-panel" class="report-panel" hidden><div class="report-heading"><div><p class="kicker" data-i18n="report.finalBriefing">FINAL BRIEFING</p><h2 id="report-title" data-i18n="report.decisionReport">Decision report</h2><dl id="report-meta" class="report-meta"></dl></div><div class="report-actions"><button id="download-report" class="button button-secondary" type="button" data-i18n="actions.downloadMarkdown">Download markdown</button><button id="new-analysis" class="button button-primary" type="button"><span data-i18n="actions.newAnalysis">New analysis</span> <span aria-hidden="true">&#8594;</span></button></div></div><div id="report-content" class="report-content"></div></section>
+        <section id="report-panel" class="report-panel" hidden><div class="report-heading"><div><p class="kicker" data-i18n="report.finalBriefing">最终简报</p><h2 id="report-title" data-i18n="report.decisionReport">决策报告</h2><dl id="report-meta" class="report-meta"></dl></div><div class="report-actions"><button id="download-report" class="button button-secondary" type="button" data-i18n="actions.downloadMarkdown">下载 Markdown</button><button id="new-analysis" class="button button-primary" type="button"><span data-i18n="actions.newAnalysis">新建分析</span> <span aria-hidden="true">&#8594;</span></button></div></div><section id="executive-summary" class="executive-summary" hidden><div class="summary-heading"><p class="kicker" data-i18n="report.executiveSummary">综合研判</p><span class="summary-badge" data-i18n="report.deepModelSummary">深度模型综合</span></div><div id="executive-summary-content" class="summary-content"></div></section><details id="detail-report" class="detail-report"><summary data-i18n="report.showDetails">展开详细智能体报告</summary><div id="report-content" class="report-content"></div></details></section>
       </section>
     </main>
-    <script src="/static/app.js" defer></script>
+    <script src="/static/app.js?v=20260827-report-view" defer></script>
   </body>
 </html>
