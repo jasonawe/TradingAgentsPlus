@@ -64,6 +64,14 @@ def test_detail_has_complete_report_and_all_explicit_sections(tmp_path):
     assert detail["risk"]["neutral"] == ""
 
 
+def test_detail_reads_optional_executive_summary(tmp_path):
+    root = tmp_path / "results" / "web_reports"
+    report_dir = write_report(root, "AAPL/2026-08-26/r2", sidecar={"report_id": "r2", "ticker": "AAPL"})
+    (report_dir / "executive_summary.md").write_text("## Executive summary\n\nHold", encoding="utf-8")
+    detail = ReportHistory(results_dir=tmp_path / "results", cwd=tmp_path).get_report("r2")
+    assert detail["executive_summary"] == "## Executive summary\n\nHold"
+
+
 def test_legacy_id_is_root_qualified_and_collisions_are_stable(tmp_path, monkeypatch):
     results = tmp_path / "results"
     cwd = tmp_path / "cwd"

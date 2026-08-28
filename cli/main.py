@@ -92,13 +92,14 @@ def default_command(ctx: typer.Context):
 @app.command("web")
 def web_command(
     port: int = typer.Option(8000, "--port", min=1, max=65535, help="Local web server port."),
+    host: str = typer.Option("127.0.0.1", "--host", help="Bind address; use 0.0.0.0 for LAN/external browser access."),
 ):
-    """Launch the local TradingAgents web console."""
+    """Launch the TradingAgents web console."""
     import uvicorn
 
     from web.app import app as web_app
 
-    uvicorn.run(web_app, host="127.0.0.1", port=port)
+    uvicorn.run(web_app, host=host, port=port)
 
 
 # Create a deque to store recent messages with a maximum length

@@ -7,6 +7,8 @@ from typing import Any, Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from .market_localization import localized_asset_name, localized_exchange_name
+
 
 def _utc(value: datetime | str | None) -> datetime | None:
     if value is None:
@@ -131,7 +133,9 @@ class AssetIdentity(BaseModel):
     symbol: str
     asset_type: str
     name: str | None = None
+    name_zh: str | None = None
     exchange: str | None = None
+    exchange_name_zh: str | None = None
     currency: str | None = None
 
     @field_validator("asset_type")
@@ -140,6 +144,12 @@ class AssetIdentity(BaseModel):
         if value not in {"stock", "crypto"}:
             raise ValueError("asset_type must be stock or crypto")
         return value
+
+    @model_validator(mode="after")
+    def localize_display_names(self):
+        self.name_zh = localized_asset_name(self.symbol, self.name)
+        self.exchange_name_zh = localized_exchange_name(self.exchange)
+        return self
 
 
 class QuoteItemError(BaseModel):
@@ -158,6 +168,10 @@ class QuoteItem(BaseModel):
     change_percent: float | None = None
     currency: str | None = None
     market_status: str | None = None
+    exchange: str | None = None
+    asset_name: str | None = None
+    asset_name_zh: str | None = None
+    exchange_name_zh: str | None = None
     source: str | None = None
     quote_time: datetime | None = None
     fetched_at: datetime | None = None
@@ -177,6 +191,10 @@ class QuoteItem(BaseModel):
             self.change_percent = self.quote.change_percent
             self.currency = self.quote.currency
             self.market_status = self.quote.market_status
+            self.exchange = self.quote.exchange
+            self.asset_name = self.quote.raw_summary
+            self.asset_name_zh = localized_asset_name(self.quote.symbol, self.quote.raw_summary)
+            self.exchange_name_zh = localized_exchange_name(self.quote.exchange)
             self.source = self.quote.source
             self.quote_time = self.quote.as_of
             self.fetched_at = self.quote.fetched_at

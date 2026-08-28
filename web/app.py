@@ -166,12 +166,23 @@ def create_app(
     if _STATIC_DIR.is_dir():
         app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
 
-    @app.get("/", response_class=HTMLResponse)
-    def index() -> Response:
+    def _console_entry() -> Response:
         index_path = _STATIC_DIR / "index.html"
         if index_path.is_file():
             return FileResponse(index_path, media_type="text/html")
         return HTMLResponse("<!doctype html><title>TradingAgents</title><h1>TradingAgents</h1>")
+
+    @app.get("/", response_class=HTMLResponse, include_in_schema=False)
+    @app.get("/analysis", response_class=HTMLResponse, include_in_schema=False)
+    @app.get("/active", response_class=HTMLResponse, include_in_schema=False)
+    @app.get("/reports", response_class=HTMLResponse, include_in_schema=False)
+    @app.get("/settings", response_class=HTMLResponse, include_in_schema=False)
+    def index() -> Response:
+        return _console_entry()
+
+    @app.get("/reports/{report_id}", response_class=HTMLResponse, include_in_schema=False)
+    def report_index(report_id: str) -> Response:
+        return _console_entry()
 
     @app.get("/api/config")
     def get_config() -> dict[str, Any]:

@@ -254,11 +254,28 @@ class RunManager:
             event=event,
             payload=payload,
         )
+        self._update_snapshot_locked(state, envelope)
+        self._persist_locked(state.record)
         state.next_seq += 1
         state.events.append(envelope)
         self._persist_event(envelope)
         state.condition.notify_all()
         return envelope
+
+    @staticmethod
+    def _update_snapshot_locked(state: _ManagedRun, envelope: EventEnvelope) -> None:
+        """Mirror live progress events into the durable run snapshot."""
+
+        payload = envelope.payload
+        if envelope.event is EventName.PHASE_CHANGED:
+            state.record.phase = payload.phase
+        elif envelope.event is EventName.AGENT_STATUS:
+            if payload.status == "in_progress":
+                state.record.current_agent = payload.agent
+        elif envelope.event is EventName.PROGRESS:
+            state.record.progress = payload.progress
+            state.record.phase = payload.phase
+            state.record.current_agent = payload.current_agent
 
     def _persist_event(self, event: EventEnvelope) -> None:
         if self._db_path is None:

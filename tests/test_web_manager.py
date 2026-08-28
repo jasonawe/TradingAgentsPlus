@@ -49,6 +49,26 @@ def test_sqlite_persists_terminal_run_metadata_across_manager_instances(tmp_path
     restored.shutdown()
 
 
+def test_sqlite_persists_live_progress_snapshot_across_manager_instances(tmp_path):
+    database = tmp_path / "progress.sqlite3"
+    manager = RunManager(db_path=database)
+    run = manager.start_run(request(), run_id="run-live-progress")
+    manager.begin_run(run.run_id)
+    manager.publish(
+        run.run_id,
+        EventName.PROGRESS,
+        {"progress": 0.1, "phase": "Analyst Team", "current_agent": "Market Analyst"},
+    )
+    manager.shutdown()
+
+    restored = RunManager(db_path=database)
+    record = restored.get_run(run.run_id)
+    assert record.phase == "Analyst Team"
+    assert record.current_agent == "Market Analyst"
+    assert record.progress == 0.1
+    restored.shutdown()
+
+
 def test_terminal_events_are_durable_and_replayed_after_restart(tmp_path):
     database = tmp_path / "events.sqlite3"
     manager = RunManager(db_path=database)
@@ -89,6 +109,31 @@ def test_events_have_monotonic_sequences_and_iso_timestamps():
     assert [event.seq for event in events] == [1, 2, 3]
     for event in events:
         assert datetime.fromisoformat(event.timestamp.isoformat())
+
+
+def test_progress_events_update_the_persisted_run_snapshot():
+    manager = RunManager()
+    run = manager.start_run(request(), run_id="run-progress-snapshot")
+    manager.begin_run(run.run_id)
+    manager.publish(
+        run.run_id,
+        EventName.PHASE_CHANGED,
+        {"phase": "Analyst Team", "phase_index": 1, "phase_count": 5, "status": "in_progress"},
+    )
+    manager.publish(
+        run.run_id,
+        EventName.AGENT_STATUS,
+        {"agent": "Market Analyst", "status": "in_progress"},
+    )
+    manager.publish(
+        run.run_id,
+        EventName.PROGRESS,
+        {"progress": 0.1, "phase": "Analyst Team", "current_agent": "Market Analyst"},
+    )
+    snapshot = manager.get_run(run.run_id)
+    assert snapshot.phase == "Analyst Team"
+    assert snapshot.current_agent == "Market Analyst"
+    assert snapshot.progress == 0.1
 
 
 def test_subscriber_cursors_are_independent_and_replay_is_ordered():

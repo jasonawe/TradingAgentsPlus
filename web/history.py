@@ -10,6 +10,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from .markdown import render_markdown
+
 
 class ReportNotFound(LookupError):
     """Raised when an opaque report ID is unknown or no longer readable."""
@@ -185,13 +187,19 @@ class ReportHistory:
             "quote_strategy_id": entry.quote_strategy_id,
             "effective_quote_provider_chain": entry.effective_quote_provider_chain,
             "complete_report": complete,
+            "complete_report_html": render_markdown(complete),
         }
         for group, fields in _SECTION_PATHS.items():
-            detail[group] = {
+            section = {
                 key: self._read_text(entry.path / relative, entry.root) or ""
                 for key, relative in fields.items()
             }
+            detail[group] = section
+            detail[f"{group}_html"] = {
+                key: render_markdown(value) for key, value in section.items()
+            }
         detail["executive_summary"] = self._read_text(entry.path / "executive_summary.md", entry.root) or ""
+        detail["executive_summary_html"] = render_markdown(detail["executive_summary"])
         return detail
 
     def resolve_path(self, path: str | Path, *, root: str | Path | None = None) -> Path | None:

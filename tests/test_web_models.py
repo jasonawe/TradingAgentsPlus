@@ -83,6 +83,7 @@ def test_typed_run_history_and_event_models():
     )
     assert run.run_id == history.run_id == event.run_id
     assert event.seq == 1
+    assert event.model_dump(mode="json")["payload"]["status"] == "running"
 
 
 def test_event_payloads_are_typed_and_validate_required_fields():

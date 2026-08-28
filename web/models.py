@@ -7,7 +7,7 @@ from datetime import date, datetime
 from enum import Enum
 from typing import Any, ClassVar, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator, model_validator
 
 from cli.models import AnalystType, AssetType
 from cli.utils import (
@@ -271,6 +271,12 @@ class EventEnvelope(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.now)
     event: EventName
     payload: EventPayload
+
+    @field_serializer("payload")
+    def serialize_payload(self, payload: EventPayload) -> dict[str, Any]:
+        """Preserve concrete event fields when serializing the polymorphic payload."""
+
+        return payload.model_dump(mode="json")
 
     @model_validator(mode="before")
     @classmethod

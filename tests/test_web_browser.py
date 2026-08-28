@@ -19,7 +19,16 @@ def test_browser_flow_contract_is_deterministic_and_local():
     static = Path(__file__).parents[1] / "web" / "static"
     html = (static / "index.html").read_text(encoding="utf-8")
     js = (static / "app.js").read_text(encoding="utf-8")
-    for token in ("analysis-form", "phase-timeline", "activity-feed", "cancel-run", "report-content", "history-list"):
+    for token in (
+        "analysis-view",
+        "analysis-form",
+        "watchlist-list",
+        "library-list",
+        "phase-timeline",
+        "activity-feed",
+        "cancel-run",
+        "report-content",
+    ):
         assert token in html
     for token in ("EventSource", "run_cancelled", "run_failed", "run_completed", "/api/history/", "download"):
         assert token in js

@@ -26,6 +26,8 @@ def quote(symbol="AAPL", *, fetched_at=None, freshness="fresh", price=100.0, sou
         fetched_at=now,
         freshness=freshness,
         source=source,
+        exchange="NASDAQ",
+        raw_summary="Apple Inc.",
     )
 
 
@@ -44,6 +46,68 @@ def test_quote_models_normalize_utc_and_unavailable_numeric_fields():
     assert value.price is None and value.change is None
     assert value.is_delayed is False
     assert value.model_dump(mode="json")["as_of"].endswith("Z")
+
+
+def test_quote_item_flattens_asset_name_and_exchange():
+    quote_item = __import__("web.market_models", fromlist=["QuoteItem"]).QuoteItem(
+        symbol="AAPL", quote=quote()
+    )
+    assert quote_item.asset_name == "Apple Inc."
+    assert quote_item.exchange == "NASDAQ"
+
+
+def test_quote_item_exposes_chinese_asset_and_exchange_names():
+    quote_item = __import__("web.market_models", fromlist=["QuoteItem"]).QuoteItem(
+        symbol="513880.SS",
+        quote=QuoteSnapshot(
+            symbol="513880.SS",
+            asset_type="stock",
+            price=2.14,
+            fetched_at=datetime.now(timezone.utc),
+            exchange="SHH",
+            raw_summary="Hua An Fund Management Co., Ltd-HuaAn Mitsubishi UFJ Nikkei 225 ETF",
+        ),
+    )
+    assert quote_item.asset_name_zh == "华安三菱日联日经225ETF"
+    assert quote_item.exchange_name_zh == "上海证券交易所"
+
+
+def test_unknown_localization_keeps_source_values():
+    quote_item = __import__("web.market_models", fromlist=["QuoteItem"]).QuoteItem(
+        symbol="UNKNOWN.XY",
+        quote=QuoteSnapshot(
+            symbol="UNKNOWN.XY",
+            asset_type="stock",
+            price=1.0,
+            fetched_at=datetime.now(timezone.utc),
+            exchange="XYX",
+            raw_summary="Unknown Holdings Ltd",
+        ),
+    )
+    assert quote_item.asset_name_zh is None
+    assert quote_item.exchange_name_zh == "XYX"
+
+
+@pytest.mark.parametrize(
+    ("symbol", "source_name", "expected"),
+    [
+        ("688825.SS", "CXMT Corporation", "长鑫科技"),
+        ("600999.SS", "China Merchants Securities Co., Ltd.", "招商证券"),
+    ],
+)
+def test_common_chinese_listed_assets_use_chinese_display_names(symbol, source_name, expected):
+    quote_item = __import__("web.market_models", fromlist=["QuoteItem"]).QuoteItem(
+        symbol=symbol,
+        quote=QuoteSnapshot(
+            symbol=symbol,
+            asset_type="stock",
+            price=1.0,
+            fetched_at=datetime.now(timezone.utc),
+            exchange="SHH",
+            raw_summary=source_name,
+        ),
+    )
+    assert quote_item.asset_name_zh == expected
 
 
 def test_provider_router_only_falls_back_for_transient_typed_errors():

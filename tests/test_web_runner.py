@@ -20,6 +20,7 @@ class FakeGraph:
         FakeGraph.last_instance = self
         self.config = config
         self.debug = debug
+        self.deep_thinking_llm = None
 
     def propagate(self, ticker, date, *, asset_type, on_chunk, should_cancel):
         on_chunk({"market_report": "report"})
@@ -61,6 +62,30 @@ def test_runner_applies_request_output_language_to_graph_config(tmp_path):
     # The fake graph is instantiated with the per-run language override.
     graph = FakeGraph.last_instance
     assert graph.config["output_language"] == "Chinese"
+
+
+class SummaryGraph(FakeGraph):
+    def __init__(self, analysts, *, config, debug):
+        super().__init__(analysts, config=config, debug=debug)
+        self.deep_thinking_llm = SummaryLLM()
+
+
+class SummaryLLM:
+    def invoke(self, prompt):
+        class Response:
+            content = "## Executive summary\n\nHold"
+        return Response()
+
+
+def test_runner_persists_executive_summary_when_deep_model_is_available(tmp_path):
+    manager = RunManager()
+    run = manager.start_run(request(output_language="Chinese", provider="openai", quick_model="gpt-5.4-mini", deep_model="gpt-5.5"), run_id="run-summary")
+    manager.begin_run(run.run_id)
+    WebRunRunner(manager, graph_factory=SummaryGraph, config={"results_dir": str(tmp_path)}).worker(run.run_id)
+    report_dir = tmp_path / "web_reports" / "AAPL" / "2026-08-26" / "run-summary"
+    assert (report_dir / "executive_summary.md").read_text(encoding="utf-8") == "## Executive summary\n\nHold"
+    metadata = json.loads((report_dir / "run.json").read_text())
+    assert metadata["summary_status"] == "completed"
 
 
 def test_runner_constrains_unsafe_run_id_path(tmp_path):
