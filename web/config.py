@@ -160,10 +160,10 @@ def model_catalog(config: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[st
         "provider": provider,
         "quick_model": quick if quick in quick_values else selected["quick_models"][0]["value"],
         "deep_model": deep if deep in deep_values else selected["deep_models"][0]["value"],
-        "output_language": str(os.getenv("TRADINGAGENTS_OUTPUT_LANGUAGE") or config.get("output_language") or "English"),
+        "output_language": str(os.getenv("TRADINGAGENTS_OUTPUT_LANGUAGE") or config.get("output_language") or "Chinese"),
     }
     if defaults["output_language"] not in OUTPUT_LANGUAGES:
-        defaults["output_language"] = "English"
+        defaults["output_language"] = "Chinese"
     return providers, defaults
 
 
