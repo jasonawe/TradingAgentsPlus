@@ -25,21 +25,21 @@
 - Test: `tests/test_web_settings.py`
 - Test: `tests/test_web_manager.py`
 
-- [ ] **Step 1: Write failing migration and repository tests**
+- [x] **Step 1: Write failing migration and repository tests**
 
   Cover a temporary SQLite database with: schema version 1 creation, `web_runs` preservation, default watchlist creation, canonical-symbol uniqueness, market quote/candle tables, snapshot table, settings table, durable terminal events, migration rollback on invalid SQL, and startup lock behavior. Assert existing `web_runs` columns and persisted run metadata survive migration. Add settings precedence fixtures for `DEFAULT_CONFIG -> SQLite settings -> environment` and fallback to defaults when settings reads fail.
 
-- [ ] **Step 2: Run storage tests to verify they fail**
+- [x] **Step 2: Run storage tests to verify they fail**
 
   Run: `pytest -q tests/test_web_storage.py tests/test_web_repositories.py tests/test_web_settings.py`
 
   Expected: collection or assertion failures because the storage module, migration, and repositories do not exist.
 
-- [ ] **Step 3: Implement `web/storage.py`**
+- [x] **Step 3: Implement `web/storage.py`**
 
   Add a `SQLiteStore` that opens connections with row factories, `foreign_keys=ON`, busy timeout, and `BEGIN IMMEDIATE` for migrations. Create `schema_version` at version 0, execute `001_personal_platform.sql` inside a transaction, record version 1, and leave the database untouched if any migration fails. Use a process-level lock plus SQLite locking to prevent concurrent migration.
 
-- [ ] **Step 4: Implement repository contracts**
+- [x] **Step 4: Implement repository contracts**
 
   Add small repository classes with explicit methods:
 
@@ -52,17 +52,17 @@
 
   Keep report bodies on disk. Store only references, hashes, statuses, and metadata in SQLite. Use parameterized SQL and map integrity errors to domain errors.
 
-- [ ] **Step 5: Integrate store initialization into app startup**
+- [x] **Step 5: Integrate store initialization into app startup**
 
   Update `create_app()` to construct one `SQLiteStore` under `results_dir` (or configured `web_runs_db` parent), run migrations before repositories, and expose repositories through `app.state`. Preserve injected fake manager/history dependencies used by current tests.
 
-- [ ] **Step 6: Run storage and manager tests to verify they pass**
+- [x] **Step 6: Run storage and manager tests to verify they pass**
 
   Run: `pytest -q tests/test_web_storage.py tests/test_web_repositories.py tests/test_web_settings.py tests/test_web_manager.py`
 
   Expected: all focused tests pass, including existing manager persistence tests.
 
-- [ ] **Step 7: Commit the storage boundary**
+- [x] **Step 7: Commit the storage boundary**
 
   Run: `git add web/storage.py web/repositories.py web/migrations/001_personal_platform.sql web/app.py web/manager.py tests/test_web_storage.py tests/test_web_repositories.py tests/test_web_settings.py tests/test_web_manager.py && git commit -m "feat: add personal platform sqlite boundary"`
 
@@ -79,7 +79,7 @@
 - Test: `tests/test_web_market_data.py`
 - Test: `tests/test_web_market_providers.py`
 
-- [ ] **Step 1: Write failing DTO/router/provider tests**
+- [x] **Step 1: Write failing DTO/router/provider tests**
 
   Test `QuoteSnapshot`, `Candle`, and identity validation; UTC serialization; `fresh|delayed|stale|unavailable`; `QuoteProvider` capability checks; explicit provider-chain fallback; `not_configured`, rate-limit, timeout, no-data, invalid-symbol, and provider-error behavior; 50-symbol limit; partial bulk results; stale cache hits; and null numeric fields for unavailable quotes. Mock all network calls. Assert that `invalid_symbol` and `no_data` stop the chain, while only `not_configured`, rate-limit, timeout, and provider-error advance to the next explicitly configured provider. Include mixed per-symbol outcomes and secret/header/full-URL redaction assertions. Use an injected clock and assert the default 60-second TTL plus env/SQLite override precedence.
 

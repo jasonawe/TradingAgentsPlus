@@ -75,7 +75,7 @@ def test_direct_db_path_uses_full_store_migration_and_replays_restart_interrupt(
         assert conn.execute("SELECT id FROM watchlists WHERE id='default'").fetchone() is not None
         assert conn.execute("SELECT COUNT(*) FROM web_run_events WHERE run_id='queued-restart'").fetchone()[0] >= 1
     events = restored.read_events("queued-restart", 0).events
-    assert sum(event.event is EventName.RUN_FAILED for event in events) == 1
+    assert sum(event.event is EventName.RUN_INTERRUPTED for event in events) == 1
     restored.shutdown()
 
 

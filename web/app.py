@@ -40,6 +40,7 @@ from .repositories import (
     WatchlistRepository,
 )
 from .runner import WebRunRunner
+from .snapshots import SnapshotCorruptError, SnapshotStore
 from .storage import SQLiteStore
 
 _STATIC_DIR = Path(__file__).with_name("static")
@@ -422,6 +423,23 @@ def create_app(
             return active_history.get_report(report_id)
         except ReportNotFound as exc:
             raise _error(status.HTTP_404_NOT_FOUND, "report not found") from exc
+
+    @app.get("/api/history/{report_id}/data-snapshot")
+    def history_snapshot(report_id: str) -> dict[str, Any]:
+        try:
+            report = active_history.get_report(report_id)
+            entry = active_history.get_entry(report_id)
+        except ReportNotFound as exc:
+            raise _error(status.HTTP_404_NOT_FOUND, "report not found") from exc
+        snapshot_id = report.get("data_snapshot_id")
+        if not snapshot_id:
+            raise _error(status.HTTP_404_NOT_FOUND, "该报告没有可用的数据快照")
+        run_id = str(report.get("run_id") or entry.sidecar.get("run_id") or report_id)
+        try:
+            manifest = SnapshotStore(entry.path).read_manifest(run_id)
+        except (SnapshotCorruptError, ValueError) as exc:
+            raise _error(status.HTTP_404_NOT_FOUND, "数据快照不可用") from exc
+        return {"report_id": report_id, "snapshot_id": snapshot_id, "manifest": manifest, "data_status": report.get("data_status") or "unknown", "reproducibility": report.get("reproducibility")}
 
     @app.get("/api/history/{report_id}/download")
     def history_download(report_id: str) -> Response:
