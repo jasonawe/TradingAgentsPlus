@@ -321,7 +321,7 @@ class QuoteService:
                         ),
                     )
                 )
-            except ValueError as exc:
+            except ValueError:
                 normalized = str(symbol).upper()
                 unavailable = QuoteSnapshot(
                     symbol=normalized,
