@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 import pytest
+from langchain_core.messages import HumanMessage
 
 from web.snapshots import (
     DataSnapshotRecorder,
@@ -16,6 +17,15 @@ def test_canonical_bytes_are_stable_for_json_csv_and_text():
     assert canonical_bytes({"b": 2, "a": [1, None]}) == b'{"a":[1,null],"b":2}'
     assert canonical_bytes("a,b\n2,x\n1,y\n", kind="csv") == b'[{"a":"2","b":"x"},{"a":"1","b":"y"}]'
     assert canonical_bytes("one\r\ntwo\rthree", kind="text") == b"one\ntwo\nthree"
+
+
+def test_canonical_bytes_normalizes_langchain_messages_in_final_state():
+    payload = {"messages": [HumanMessage(content="600999.SS")], "signal": "HOLD"}
+
+    encoded = canonical_bytes(payload)
+
+    assert b"600999.SS" in encoded
+    assert json.loads(encoded)["messages"][0]["data"]["content"] == "600999.SS"
 
 
 def test_recorder_writes_manifest_and_verifies_payload(tmp_path):
@@ -82,4 +92,3 @@ def test_manifest_json_is_immutable_after_finalize(tmp_path):
     with pytest.raises(RuntimeError):
         recorder.record("news", "late", request_fingerprint="late")
     assert path.read_bytes() == before
-

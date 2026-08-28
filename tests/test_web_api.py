@@ -176,9 +176,10 @@ def test_history_detail_and_download_are_allowlisted(harness):
         encoding="utf-8",
     )
     (report_dir / "run.json").write_text(
-        json.dumps({"report_id": "run-1", "ticker": "NVDA", "generated_at": "2026-08-26T10:00:00+00:00"}),
+        json.dumps({"report_id": "run-1", "ticker": "NVDA", "generated_at": "2026-08-26T10:00:00+00:00", "status": "completed"}),
         encoding="utf-8",
     )
+    (report_dir / "COMMITTED").write_text("ok\n", encoding="utf-8")
     with TestClient(app) as client:
         listing = client.get("/api/history")
         assert listing.status_code == 200

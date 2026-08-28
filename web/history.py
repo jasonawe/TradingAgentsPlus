@@ -103,6 +103,8 @@ class ReportHistory:
                     continue
                 seen.add(report_dir)
                 sidecar = self._read_sidecar(report_dir, root_resolved)
+                if source == "web" and not self._is_publishable_web_report(report_dir, sidecar):
+                    continue
                 candidates.append((source, root_resolved, report_dir, root_name, sidecar))
 
         candidates.sort(key=lambda item: (item[0], item[1].as_posix(), item[2].relative_to(item[1]).as_posix()))
@@ -276,6 +278,18 @@ class ReportHistory:
             return value if isinstance(value, dict) else {}
         except (OSError, UnicodeError, json.JSONDecodeError):
             return {}
+
+    @classmethod
+    def _is_publishable_web_report(cls, report_dir: Path, sidecar: dict[str, Any]) -> bool:
+        """Keep failed and temporary reports out while reading older completed reports."""
+        if ".tmp" in report_dir.parts:
+            return False
+        if sidecar.get("status") != "completed":
+            return False
+        # New runs always have COMMITTED after the temp directory is renamed.
+        # Older runs predate that marker, but their completed run.json remains a
+        # valid publication record and must stay visible to users.
+        return True
 
     @classmethod
     def _read_text(cls, path: Path, root: Path) -> str | None:

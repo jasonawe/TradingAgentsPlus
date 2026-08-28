@@ -18,7 +18,10 @@ def write_report(root: Path, relative: str, *, sidecar: dict | None = None, comp
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(value, encoding="utf-8")
     if sidecar is not None:
-        (report_dir / "run.json").write_text(json.dumps(sidecar), encoding="utf-8")
+        metadata = {"status": "completed", **sidecar}
+        (report_dir / "run.json").write_text(json.dumps(metadata), encoding="utf-8")
+        if metadata["status"] == "completed":
+            (report_dir / "COMMITTED").write_text("ok\n", encoding="utf-8")
     return report_dir
 
 
@@ -100,3 +103,38 @@ def test_missing_generated_metadata_is_null(tmp_path):
     write_report(tmp_path / "results" / "reports", "AAPL_2026-08-26", complete="# Trading Analysis Report: AAPL\n\nNo metadata")
     item = ReportHistory(results_dir=tmp_path / "results", cwd=tmp_path).list_reports()[0]
     assert item["generated_at"] is None
+
+
+def test_unpublished_web_report_in_tmp_is_not_indexed(tmp_path):
+    web_root = tmp_path / "results" / "web_reports"
+    write_report(web_root, "AAPL/2026-08-26/.tmp/run-failed", sidecar={
+        "run_id": "run-failed", "report_id": "run-failed", "ticker": "AAPL",
+        "status": "failed",
+    })
+
+    records = ReportHistory(results_dir=tmp_path / "results", cwd=tmp_path).list_reports()
+
+    assert records == []
+
+
+def test_web_report_in_tmp_is_never_indexed_even_with_publish_markers(tmp_path):
+    web_root = tmp_path / "results" / "web_reports"
+    report_dir = write_report(web_root, "AAPL/2026-08-26/.tmp/run-marked", sidecar={
+        "run_id": "run-marked", "report_id": "run-marked", "ticker": "AAPL",
+    })
+
+    (report_dir / "COMMITTED").write_text("ok\n", encoding="utf-8")
+
+    assert ReportHistory(results_dir=tmp_path / "results", cwd=tmp_path).list_reports() == []
+
+
+def test_completed_legacy_web_report_without_marker_remains_visible(tmp_path):
+    web_root = tmp_path / "results" / "web_reports"
+    report_dir = write_report(web_root, "AAPL/2026-08-26/run-old", sidecar={
+        "run_id": "run-old", "report_id": "run-old", "ticker": "AAPL",
+    })
+    (report_dir / "COMMITTED").unlink()
+
+    records = ReportHistory(results_dir=tmp_path / "results", cwd=tmp_path).list_reports()
+
+    assert [record["report_id"] for record in records] == ["run-old"]

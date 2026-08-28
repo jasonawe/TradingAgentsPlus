@@ -10,8 +10,20 @@ import os
 import tempfile
 from collections.abc import Callable
 from datetime import date, datetime, timezone
+from enum import Enum
 from pathlib import Path
 from typing import Any
+
+try:
+    from langchain_core.messages import BaseMessage, message_to_dict
+except ImportError:  # pragma: no cover - langchain-core is a project dependency.
+    BaseMessage = None
+    message_to_dict = None
+
+try:
+    from pydantic import BaseModel
+except ImportError:  # pragma: no cover - pydantic is supplied by LangChain.
+    BaseModel = None
 
 
 class SnapshotCorruptError(RuntimeError):
@@ -26,11 +38,30 @@ def _normalize(value: Any) -> Any:
         return dt.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
     if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
         return None
+    if isinstance(value, Enum):
+        return _normalize(value.value)
+    if BaseMessage is not None and isinstance(value, BaseMessage):
+        if message_to_dict is None:  # pragma: no cover - guarded by the import above.
+            raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
+        return _normalize(message_to_dict(value))
+    if BaseModel is not None and isinstance(value, BaseModel):
+        try:
+            dumped = value.model_dump(mode="json")
+        except TypeError:
+            dumped = value.model_dump()
+        return _normalize(dumped)
     if isinstance(value, dict):
         return {str(key): _normalize(value[key]) for key in sorted(value, key=lambda item: str(item))}
     if isinstance(value, (list, tuple)):
         return [_normalize(item) for item in value]
-    return value
+    if isinstance(value, (set, frozenset)):
+        normalized = [_normalize(item) for item in value]
+        return sorted(normalized, key=lambda item: json.dumps(item, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
+    if value is None or isinstance(value, (str, int, bool)):
+        return value
+    if value.__class__.__module__.split(".", 1)[0] == "numpy" and hasattr(value, "item"):
+        return _normalize(value.item())
+    raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
 
 
 def canonical_bytes(value: Any, *, kind: str = "json") -> bytes:
