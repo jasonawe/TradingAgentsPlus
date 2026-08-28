@@ -27,7 +27,11 @@
 
 ---
 
-# TradingAgents: Multi-Agents LLM Financial Trading Framework
+# TradingAgentsPlus：多智能体资产分析与个人投资者平台
+
+TradingAgentsPlus 基于 [TradingAgents](https://github.com/TauricResearch/TradingAgents) 多智能体研究框架，增加了面向个人投资者的本地 Web 工作台。它把关注列表、行情快照、可配置分析任务和历史报告放在同一个界面中，帮助用户研究资产，不连接券商，也不会自动下单。
+
+核心分析引擎仍然是 TradingAgents；本仓库的 Web 平台、数据适配、报告归档和 SQLite 持久化属于 TradingAgentsPlus 扩展。
 
 ## News
 - [2026-07] **TradingAgents v0.3.1** released with correctness and stability fixes: Alpha Vantage look-ahead filtering, graph-router crash-safety, graph-shape-aware checkpoint resume, working crypto sentiment sources, a configurable LLM retry budget, Bedrock API-key auth, and Claude Sonnet 5 / Fable 5 support. See [CHANGELOG.md](CHANGELOG.md) for the full list.
@@ -41,7 +45,7 @@
 
 <div align="center">
 
-🚀 [TradingAgents](#tradingagents-framework) | ⚡ [Installation & CLI](#installation-and-cli) | 🎬 [Demo](https://www.youtube.com/watch?v=90gr5lwjIho) | 📦 [Package Usage](#tradingagents-package) | 🤝 [Contributing](#contributing) | 📄 [Citation](#citation)
+🚀 [TradingAgentsPlus](#tradingagents-framework) | ⚡ [安装与启动](#installation-and-cli) | 🌐 [本地 Web 工作台](#local-web-console) | 📦 [Package Usage](#tradingagents-package) | 🤝 [Contributing](#contributing) | 📄 [Citation](#citation)
 
 </div>
 
@@ -97,10 +101,17 @@ Our framework decomposes complex trading tasks into specialized roles.
 
 ### Installation
 
-Clone TradingAgents:
+克隆 TradingAgentsPlus：
 ```bash
-git clone https://github.com/TauricResearch/TradingAgents.git
-cd TradingAgents
+git clone git@github.com:jasonawe/TradingAgentsPlus.git
+cd TradingAgentsPlus
+```
+
+如果本机尚未配置 GitHub SSH，也可以使用 HTTPS：
+
+```bash
+git clone https://github.com/jasonawe/TradingAgentsPlus.git
+cd TradingAgentsPlus
 ```
 
 Create a virtual environment in any of your favorite environment managers:
@@ -162,31 +173,54 @@ cp .env.example .env
 
 ### CLI Usage
 
-Launch the interactive CLI:
+启动交互式 CLI：
 ```bash
 tradingagents          # installed command
 python -m cli.main     # alternative: run directly from source
 ```
-You will see a screen where you can select your desired tickers, analysis date, LLM provider, research depth, and more.
+
+直接运行 `python -m cli.main` 时，交互流程依次为：
+
+1. 输入标的代码（ticker symbol）
+2. 输入分析日期
+3. 选择报告输出语言
+4. 选择分析师团队
+5. 选择分析深度
+6. 选择模型厂商
+7. 选择快速思考模型
+8. 选择深度思考模型
+
+CLI 只负责研究和生成分析报告，不执行真实交易。API 密钥和模型相关配置通过 `.env` 或 `TRADINGAGENTS_*` 环境变量提供。
 
 ### Local Web Console
 
-TradingAgents also includes a local browser console for managing a watchlist, viewing read-only market snapshots, configuring one analysis task at a time, and reopening completed reports. Install the package from the repository, then launch the local server:
+TradingAgentsPlus 提供中文本地 Web 工作台，用于管理关注列表、查看只读行情快照、创建分析任务、跟踪运行状态和重新打开已完成报告。先安装项目，再启动本地服务：
 
 ```bash
 pip install .
 tradingagents web
 ```
 
-Open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser. Use `--port` when another local service already uses port 8000:
+打开 [http://127.0.0.1:8000](http://127.0.0.1:8000)。如果 8000 端口已被占用，可以指定其他端口：
 
 ```bash
 tradingagents web --port 8765
 ```
 
-The product chrome is Simplified Chinese. Report output language is selected independently for each analysis and supports the eleven CLI languages (`English`, `Chinese`, `Japanese`, `Korean`, `Hindi`, `Spanish`, `Portuguese`, `French`, `German`, `Arabic`, and `Russian`). Existing report text is displayed as generated and is not machine-translated.
+工作台使用浏览器历史记录支持多路由导航，刷新或点击浏览器后退不会退回到无关页面：
 
-The server binds to `127.0.0.1` by default and is intended for local use. The console does not ask for, store, or display provider API keys. Provider, model, output-language, endpoint, and other settings continue to come from your existing `.env` / `TRADINGAGENTS_*` environment variables and `DEFAULT_CONFIG`; configure those before launching the server.
+| 页面 | 路径 | 用途 |
+| --- | --- | --- |
+| 我的关注 | `/` | 添加关注资产，查看实时行情和最近一次分析摘要 |
+| 分析任务 | `/analysis` | 创建新的资产分析，选择团队、深度、厂商、模型和语言 |
+| 进行中 | `/active` | 查看当前运行中的分析任务和事件进度 |
+| 报告库 | `/reports` | 筛选、打开和下载已完成的分析报告 |
+| 报告详情 | `/reports/<report_id>` | 查看单份报告的综合结论和智能体明细 |
+| 设置诊断 | `/settings` | 查看当前模型配置、行情供应商和数据状态 |
+
+界面固定使用简体中文。每次分析可以单独选择报告语言，支持 CLI 的 11 种语言（`English`、`Chinese`、`Japanese`、`Korean`、`Hindi`、`Spanish`、`Portuguese`、`French`、`German`、`Arabic`、`Russian`）。报告正文按模型生成的原文展示，不会在浏览器端二次机器翻译。
+
+服务默认绑定 `127.0.0.1`，适合本机使用。工作台不会向浏览器发送、保存或展示模型厂商 API 密钥；模型厂商、模型、报告语言、接口地址等配置继续从 `.env`、`TRADINGAGENTS_*` 环境变量和 `DEFAULT_CONFIG` 读取，请在启动前完成配置。
 
 To open the console from another browser or device on the same network, bind it to all interfaces and use the host machine's LAN address:
 
@@ -196,9 +230,9 @@ tradingagents web --host 0.0.0.0 --port 8000
 
 For example, open `http://192.168.112.100:8000` when `192.168.112.100` is the host machine's LAN address. Only do this on a trusted network because the console has no login layer.
 
-Watchlist quotes are read-only market snapshots; this platform does not connect to a broker and does not execute trades or manage holdings. The MVP uses a routed `yfinance` provider and can fall back to Alpha Vantage when configured. Each quote includes source, as-of time, and freshness (`fresh`, `delayed`, `stale`, or `unavailable`). New providers such as Polygon, Twelve Data, Tushare, or AKShare can be added behind the same provider contract.
+关注列表行情是只读市场快照；平台不连接券商、不执行交易，也不管理真实持仓。当前默认使用 `yfinance`，配置 `ALPHA_VANTAGE_API_KEY` 后可在需要时回退到 Alpha Vantage。每条行情会记录来源、时间和新鲜度（`fresh`、`delayed`、`stale` 或 `unavailable`）。Polygon、Twelve Data、Tushare、AKShare 等供应商可以在同一 Provider 契约后扩展接入。
 
-Run metadata is persisted in SQLite at `web_runs.sqlite3` under the configured results directory, while live event delivery remains in memory. A browser can reconnect to an active run after being closed or refreshed. If the web service itself restarts, a run that was still active is marked as interrupted because SQLite records state but cannot resume an in-flight model request; completed reports remain persisted on disk under the configured results directory (`TRADINGAGENTS_RESULTS_DIR`, or the default `~/.tradingagents/logs/web_reports`) and can be reopened from the report library. The report library filters the already loaded `/api/history` response in the browser; report-level `data_status` is kept distinct from per-dataset quote `freshness`.
+运行元数据和事件记录持久化到配置结果目录下的 SQLite（默认文件名为 `web_runs.sqlite3`），实时事件通过内存 SSE 推送。关闭或刷新浏览器后可以重新连接正在运行的任务；如果 Web 服务本身重启，尚未完成的任务会标记为“已中断”，因为 SQLite 只能保存状态，不能恢复已经发出的模型请求。已完成报告会保存到 `TRADINGAGENTS_RESULTS_DIR` 指定的目录（默认 `~/.tradingagents/logs/web_reports`），并可从报告库重新打开或下载。报告级 `data_status` 与每个行情数据集的 `freshness` 分开记录。
 
 To run the optional browser smoke tests locally, install the test extra and the Playwright browser once:
 
