@@ -83,7 +83,7 @@ def market_data_catalog(
                 "available": yfinance_installed,
                 "configured": yfinance_installed,
                 "capabilities": ["quote", "candles", "identity"],
-                "status": "ready" if yfinance_installed else "not_installed",
+                "status": "ready" if yfinance_installed else "not_configured",
                 "reason": None if yfinance_installed else "未安装 yfinance",
             },
             {
@@ -160,7 +160,7 @@ def model_catalog(config: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[st
         "provider": provider,
         "quick_model": quick if quick in quick_values else selected["quick_models"][0]["value"],
         "deep_model": deep if deep in deep_values else selected["deep_models"][0]["value"],
-        "output_language": str(config.get("output_language") or "English"),
+        "output_language": str(os.getenv("TRADINGAGENTS_OUTPUT_LANGUAGE") or config.get("output_language") or "English"),
     }
     if defaults["output_language"] not in OUTPUT_LANGUAGES:
         defaults["output_language"] = "English"

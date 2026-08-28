@@ -12,7 +12,12 @@ CREATE TABLE IF NOT EXISTS web_runs (
     report_id TEXT,
     error_code TEXT,
     error_message TEXT,
-    terminal_expires_at TEXT
+    terminal_expires_at TEXT,
+    effective_quote_strategy_id TEXT,
+    effective_quote_provider_chain TEXT,
+    data_snapshot_id TEXT,
+    data_status TEXT,
+    reproducibility TEXT
 );
 
 CREATE TABLE IF NOT EXISTS watchlists (

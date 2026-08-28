@@ -128,6 +128,14 @@ class RunRecord(BaseModel):
     effective_quote_strategy_id: str | None = None
     effective_quote_provider_chain: list[str] = Field(default_factory=list)
 
+    @model_validator(mode="after")
+    def effective_metadata_from_request(self):
+        if self.effective_quote_strategy_id is None:
+            self.effective_quote_strategy_id = self.request.quote_strategy_id
+        if not self.effective_quote_provider_chain and self.effective_quote_strategy_id:
+            self.effective_quote_provider_chain = ["yfinance", "alpha_vantage"] if self.effective_quote_strategy_id == "fallback-yfinance-alpha-vantage" else ["yfinance"]
+        return self
+
 
 class HistoryRecord(BaseModel):
     model_config = ConfigDict(extra="allow")

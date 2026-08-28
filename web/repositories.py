@@ -73,7 +73,7 @@ class WatchlistRepository:
             conn.execute("UPDATE watchlists SET version=version+1,updated_at=? WHERE id=?", (now, watchlist_id))
         return _row(row)
 
-    def update_item(self, item_id: str, *, expected_version: int, note: str | None | object = _UNSET, symbol: str | None = None, asset_type: str | None = None) -> dict[str, Any]:
+    def update_item(self, item_id: str, *, expected_version: int, note: str | None | object = _UNSET, symbol: str | None = None, asset_type: str | None = None, position: int | None = None, order: int | None = None) -> dict[str, Any]:
         now = _now()
         with self.store.connection() as conn:
             item = conn.execute("SELECT * FROM watchlist_items WHERE id=?", (item_id,)).fetchone()
@@ -87,11 +87,18 @@ class WatchlistRepository:
             canonical = normalize_ticker_symbol(symbol) if symbol is not None else item["symbol"]
             if not canonical:
                 raise ValueError("invalid symbol")
+            if position is not None or order is not None:
+                target_position = position if position is not None else order
+                if isinstance(target_position, bool) or not isinstance(target_position, int) or target_position < 0:
+                    raise ValueError("invalid position")
             if conn.execute("UPDATE watchlists SET version=version+1,updated_at=? WHERE id=? AND version=?", (now, watchlist_id, expected_version)).rowcount != 1:
                 raise RuntimeError("version conflict")
             note_value = item["note"] if note is _UNSET else note
             try:
-                conn.execute("UPDATE watchlist_items SET symbol=?,asset_type=?,note=?,updated_at=? WHERE id=? AND watchlist_id=?", (canonical, asset_type or item["asset_type"], note_value, now, item_id, watchlist_id))
+                target_position = position if position is not None else order
+                if target_position is None:
+                    target_position = item["position"]
+                conn.execute("UPDATE watchlist_items SET symbol=?,asset_type=?,note=?,position=?,updated_at=? WHERE id=? AND watchlist_id=?", (canonical, asset_type or item["asset_type"], note_value, target_position, now, item_id, watchlist_id))
             except sqlite3.IntegrityError as exc:
                 raise ValueError("duplicate symbol") from exc
             return _row(conn.execute("SELECT * FROM watchlist_items WHERE id=?", (item_id,)).fetchone())
@@ -245,9 +252,12 @@ class SettingsRepository:
 class AnalysisRunRepository:
     def __init__(self, store: SQLiteStore) -> None: self.store = store
     def upsert(self, record: dict[str, Any]) -> None:
-        fields = ("run_id", "request_json", "status", "phase", "current_agent", "progress", "queued_at", "started_at", "finished_at", "signal", "report_id", "error_code", "error_message", "terminal_expires_at")
+        fields = ("run_id", "request_json", "status", "phase", "current_agent", "progress", "queued_at", "started_at", "finished_at", "signal", "report_id", "error_code", "error_message", "terminal_expires_at", "effective_quote_strategy_id", "effective_quote_provider_chain", "data_snapshot_id", "data_status", "reproducibility")
+        encoded = dict(record)
+        if isinstance(encoded.get("effective_quote_provider_chain"), list):
+            encoded["effective_quote_provider_chain"] = json.dumps(encoded["effective_quote_provider_chain"], ensure_ascii=False)
         with self.store.connection() as conn:
-            conn.execute(f"INSERT INTO web_runs ({','.join(fields)}) VALUES ({','.join('?' for _ in fields)}) ON CONFLICT(run_id) DO UPDATE SET " + ','.join(f"{f}=excluded.{f}" for f in fields[1:]), tuple(record.get(f) for f in fields))
+            conn.execute(f"INSERT INTO web_runs ({','.join(fields)}) VALUES ({','.join('?' for _ in fields)}) ON CONFLICT(run_id) DO UPDATE SET " + ','.join(f"{f}=excluded.{f}" for f in fields[1:]), tuple(encoded.get(f) for f in fields))
     def get(self, run_id: str) -> dict[str, Any] | None:
         with self.store.connection() as conn:
             return _row(conn.execute("SELECT * FROM web_runs WHERE run_id=?", (run_id,)).fetchone())

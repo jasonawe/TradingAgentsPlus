@@ -299,7 +299,7 @@ class ReportHistory:
             "ticker": str(sidecar.get("ticker") or (title.group(1).strip() if title else "")) or None,
             "analysis_date": str(analysis_date) if analysis_date else None,
             "generated_at": str(generated) if generated else None,
-            "signal": str(sidecar.get("signal")) if sidecar.get("signal") is not None else None,
+            "signal": str(sidecar.get("signal") or sidecar.get("rating")) if (sidecar.get("signal") is not None or sidecar.get("rating") is not None) else None,
             "status": str(sidecar.get("status")) if sidecar.get("status") is not None else None,
             "asset_type": str(sidecar.get("asset_type")) if sidecar.get("asset_type") is not None else None,
             "analysts": [str(value) for value in sidecar.get("analysts", [])] if isinstance(sidecar.get("analysts", []), list) else [],

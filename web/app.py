@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import copy
 import json
+import os
 import re
 from collections.abc import Iterator
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -17,15 +18,19 @@ from fastapi.staticfiles import StaticFiles
 
 from tradingagents.default_config import DEFAULT_CONFIG
 
+from .config import (
+    OUTPUT_LANGUAGES,
+    QUOTE_STRATEGIES,
+    market_data_catalog,
+    model_catalog,
+    resolve_model_config,
+)
 from .history import ReportHistory, ReportNotFound
 from .manager import ActiveRunError, EventBatch, RunManager
-from .models import AnalysisRequest, EventEnvelope, RunRecord
-from .runner import WebRunRunner
-from .config import OUTPUT_LANGUAGES, model_catalog, resolve_model_config
-from .config import QUOTE_STRATEGIES, market_data_catalog
 from .market_data import ProviderRouter, QuoteService
-from .providers import AlphaVantageProvider, YFinanceProvider
 from .market_models import ProviderError
+from .models import AnalysisRequest, EventEnvelope, RunRecord
+from .providers import AlphaVantageProvider, YFinanceProvider
 from .repositories import (
     AnalysisRunRepository,
     QuoteRepository,
@@ -34,6 +39,7 @@ from .repositories import (
     SnapshotRepository,
     WatchlistRepository,
 )
+from .runner import WebRunRunner
 from .storage import SQLiteStore
 
 _STATIC_DIR = Path(__file__).with_name("static")
@@ -69,6 +75,7 @@ def _config_view(config: dict[str, Any]) -> dict[str, Any]:
         "default_date": date.today().isoformat(),
         "output_languages": [{"value": value, "label": value} for value in OUTPUT_LANGUAGES],
         "output_language": configured["output_language"],
+        "effective_output_language": configured["output_language"],
         "providers": providers,
         "configured": configured,
         # Keep these aliases for older clients.
@@ -196,12 +203,16 @@ def create_app(
     def update_watchlist_item(item_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         repo = app.state.repositories["watchlist"]
         if "symbol" in payload or "asset_type" in payload:
-            raise _error(422, "只能修改备注")
+            raise _error(422, "只能修改备注或排序")
         try:
             version = int(payload.get("version"))
             kwargs = {"expected_version": version}
             if "note" in payload:
                 kwargs["note"] = payload["note"]
+            if "position" in payload:
+                kwargs["position"] = payload["position"]
+            if "order" in payload:
+                kwargs["order"] = payload["order"]
             repo.update_item(item_id, **kwargs)
             return _watchlist_view(repo)
         except KeyError as exc:
@@ -245,7 +256,10 @@ def create_app(
         if not values or len(values) > 50:
             raise _error(422, "symbols 最多支持 50 个资产")
         try:
-            return app.state.market_service.get_quotes(values, asset_type).model_dump(mode="json")
+            result = app.state.market_service.get_quotes(values, asset_type)
+            if isinstance(result, dict):
+                return result
+            return result.model_dump(mode="json")
         except ValueError as exc:
             raise _error(422, "行情参数无效") from exc
 
@@ -261,7 +275,8 @@ def create_app(
             candles = app.state.market_router.get_candles(symbol, interval, start_date.isoformat(), end_date.isoformat(), app.state.market_service.strategy)
             if len(candles) > 2000:
                 raise _error(422, "K线点数最多 2000")
-            return {"symbol": symbol.upper(), "interval": interval, "candles": [c.model_dump(mode="json") for c in candles]}
+            source = next((c.source for c in candles if c.source), None)
+            return {"symbol": symbol.upper(), "canonical_symbol": symbol.upper(), "interval": interval, "items": [{"time": c.timestamp, "open": c.open, "high": c.high, "low": c.low, "close": c.close, "volume": c.volume} for c in candles], "candles": [c.model_dump(mode="json") for c in candles], "source": source, "fetched_at": datetime.now(timezone.utc), "freshness": "fresh", "error": None}
         except ProviderError as exc:
             raise _error(404 if exc.code.value == "no_data" else 502, "暂时无法获取行情数据") from exc
 
@@ -271,7 +286,7 @@ def create_app(
             identity = app.state.market_router.get_identity(symbol, asset_type, app.state.market_service.strategy)
             if not identity.name and not identity.exchange and not identity.currency:
                 raise _error(404, "未找到资产信息")
-            return identity.model_dump(mode="json")
+            return {**identity.model_dump(mode="json"), "canonical_symbol": identity.symbol, "source": getattr(identity, "source", None), "error": None}
         except ProviderError as exc:
             raise _error(404, "未找到资产信息") from exc
 
@@ -285,7 +300,9 @@ def create_app(
         catalog = market_data_catalog(active_config, settings_repo.all())
         fields = {key: catalog[key] for key in ("quote_strategy_id", "quote_provider_chain", "quote_ttl_seconds")}
         _, defaults = model_catalog(active_config)
-        fields["output_language"] = {"value": defaults["output_language"], "source": "default"}
+        source = "env" if os.getenv("TRADINGAGENTS_OUTPUT_LANGUAGE") else (settings_repo.get("output_language") or {}).get("source", "default")
+        fields["output_language"] = {"value": defaults["output_language"], "source": source}
+        fields["effective_output_language"] = fields["output_language"]
         return {"schema_version": 1, "fields": fields, "strategies": [{"id": k, "providers": v["providers"], "available": next((s["available"] for s in catalog["strategies"] if s["id"] == k), False)} for k, v in QUOTE_STRATEGIES.items()]}
 
     @app.get("/api/runs/active")

@@ -39,7 +39,7 @@ class SQLiteStore:
                 conn.close()
 
     def _ensure_web_run_columns(self) -> None:
-        expected = {"phase": "TEXT", "current_agent": "TEXT", "queued_at": "TEXT", "started_at": "TEXT", "finished_at": "TEXT", "signal": "TEXT", "report_id": "TEXT", "error_code": "TEXT", "error_message": "TEXT", "terminal_expires_at": "TEXT"}
+        expected = {"phase": "TEXT", "current_agent": "TEXT", "queued_at": "TEXT", "started_at": "TEXT", "finished_at": "TEXT", "signal": "TEXT", "report_id": "TEXT", "error_code": "TEXT", "error_message": "TEXT", "terminal_expires_at": "TEXT", "effective_quote_strategy_id": "TEXT", "effective_quote_provider_chain": "TEXT", "data_snapshot_id": "TEXT", "data_status": "TEXT", "reproducibility": "TEXT"}
         with _MIGRATION_LOCK:
             conn = self._connect()
             try:

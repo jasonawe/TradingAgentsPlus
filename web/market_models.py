@@ -150,13 +150,43 @@ class QuoteItemError(BaseModel):
 
 class QuoteItem(BaseModel):
     symbol: str
+    canonical_symbol: str | None = None
+    asset_type: str = "stock"
+    price: float | None = None
+    previous_close: float | None = None
+    change: float | None = None
+    change_percent: float | None = None
+    currency: str | None = None
+    market_status: str | None = None
+    source: str | None = None
+    quote_time: datetime | None = None
+    fetched_at: datetime | None = None
+    freshness: Freshness | None = None
+    is_delayed: bool = False
     quote: QuoteSnapshot | None = None
     error: QuoteItemError | None = None
+
+    @model_validator(mode="after")
+    def flatten_quote(self):
+        if self.quote is not None:
+            self.canonical_symbol = self.quote.symbol
+            self.asset_type = self.quote.asset_type
+            self.price = self.quote.price
+            self.previous_close = self.quote.previous_close
+            self.change = self.quote.change
+            self.change_percent = self.quote.change_percent
+            self.currency = self.quote.currency
+            self.market_status = self.quote.market_status
+            self.source = self.quote.source
+            self.quote_time = self.quote.as_of
+            self.fetched_at = self.quote.fetched_at
+            self.freshness = self.quote.freshness
+            self.is_delayed = self.quote.is_delayed
+        return self
 
 
 class BulkQuoteResponse(BaseModel):
     items: list[QuoteItem]
-    source: str | None = None
     partial: bool = False
 
 

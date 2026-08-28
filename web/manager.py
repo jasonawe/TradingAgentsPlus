@@ -13,8 +13,7 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from web.storage import SQLiteStore
@@ -128,6 +127,8 @@ class RunManager:
             if identifier in self._records:
                 raise ValueError("run_id already exists")
             record = RunRecord(run_id=identifier, request=request, queued_at=self._clock())
+            record.effective_quote_strategy_id = request.quote_strategy_id
+            record.effective_quote_provider_chain = ["yfinance", "alpha_vantage"] if request.quote_strategy_id == "fallback-yfinance-alpha-vantage" else (["yfinance"] if request.quote_strategy_id else [])
             state = _ManagedRun(
                 record=record,
                 events=deque(maxlen=self.event_limit),
@@ -232,7 +233,7 @@ class RunManager:
 
         with self._lock:
             state = self._state(run_id)
-            if state.record.status not in (RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED):
+            if state.record.status not in (RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED, RunStatus.PUBLISHING, RunStatus.INTERRUPTED):
                 state.cancel_event.set()
                 self._persist_locked(state.record)
             return self._copy_record(state.record)
@@ -288,7 +289,7 @@ class RunManager:
     ) -> RunRecord:
         with self._lock:
             state = self._state(run_id)
-            if state.record.status in (RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED):
+            if state.record.status in (RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED, RunStatus.INTERRUPTED, RunStatus.PUBLISHING):
                 return self._copy_record(state.record)
             state.cancel_event.set()
             state.record.status = RunStatus.CANCELLED
@@ -410,18 +411,20 @@ class RunManager:
         assert self._db_path is not None
         connector = self._store.connection() if self._store is not None else sqlite3.connect(self._db_path)
         with connector as connection:
-            rows = connection.execute(
-                "SELECT run_id, request_json, status, phase, current_agent, progress, "
-                "queued_at, started_at, finished_at, signal, report_id, error_code, "
-                "error_message, terminal_expires_at FROM web_runs"
-            ).fetchall()
+            rows = connection.execute("SELECT * FROM web_runs").fetchall()
         interrupted: list[RunRecord] = []
         for row in rows:
-            (
-                run_id, request_json, status, phase, current_agent, progress,
-                queued_at, started_at, finished_at, signal, report_id, error_code,
-                error_message, terminal_expires_at,
-            ) = row
+            values = dict(row)
+            run_id, request_json, status = values["run_id"], values["request_json"], values["status"]
+            phase, current_agent, progress = values.get("phase"), values.get("current_agent"), values.get("progress", 0)
+            queued_at, started_at, finished_at = values.get("queued_at"), values.get("started_at"), values.get("finished_at")
+            signal, report_id, error_code = values.get("signal"), values.get("report_id"), values.get("error_code")
+            error_message, terminal_expires_at = values.get("error_message"), values.get("terminal_expires_at")
+            provider_chain = values.get("effective_quote_provider_chain")
+            try:
+                provider_chain = json.loads(provider_chain) if provider_chain else []
+            except (TypeError, ValueError):
+                provider_chain = []
             try:
                 request = AnalysisRequest.model_validate(json.loads(request_json))
                 record = RunRecord(
@@ -438,6 +441,11 @@ class RunManager:
                     report_id=report_id,
                     error_code=error_code,
                     error_message=error_message,
+                    effective_quote_strategy_id=values.get("effective_quote_strategy_id"),
+                    effective_quote_provider_chain=provider_chain,
+                    data_snapshot_id=values.get("data_snapshot_id"),
+                    data_status=values.get("data_status"),
+                    reproducibility=values.get("reproducibility"),
                 )
             except (TypeError, ValueError, json.JSONDecodeError):
                 continue
@@ -465,13 +473,13 @@ class RunManager:
             with self._lock:
                 for record in interrupted:
                     state = self._records[record.run_id]
-                    state.record.status = RunStatus.FAILED
+                    state.record.status = RunStatus.INTERRUPTED
                     state.record.finished_at = now
                     state.record.error_code = "service_restart"
                     state.record.error_message = "analysis interrupted by web service restart"
                     state.terminal_expires_at = now + self.terminal_ttl
                     self._persist_locked(state.record)
-                    self._publish_locked(state, EventName.RUN_FAILED, {"status": "failed", "error_code": "service_restart", "error_message": state.record.error_message}, allow_terminal=True)
+                    self._publish_locked(state, EventName.RUN_INTERRUPTED, {"status": "interrupted", "error_code": "service_restart", "error_message": state.record.error_message}, allow_terminal=True)
 
     def _persist_locked(self, record: RunRecord) -> None:
         if self._db_path is None:
@@ -493,6 +501,11 @@ class RunManager:
             record.error_code,
             record.error_message,
             terminal_expires_at,
+            record.effective_quote_strategy_id,
+            json.dumps(record.effective_quote_provider_chain, ensure_ascii=False),
+            record.data_snapshot_id,
+            record.data_status,
+            record.reproducibility,
         )
         connector = self._store.connection() if self._store is not None else sqlite3.connect(self._db_path)
         with connector as connection:
@@ -501,8 +514,9 @@ class RunManager:
                 INSERT INTO web_runs (
                     run_id, request_json, status, phase, current_agent, progress,
                     queued_at, started_at, finished_at, signal, report_id, error_code,
-                    error_message, terminal_expires_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    error_message, terminal_expires_at, effective_quote_strategy_id,
+                    effective_quote_provider_chain, data_snapshot_id, data_status, reproducibility
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(run_id) DO UPDATE SET
                     request_json=excluded.request_json, status=excluded.status,
                     phase=excluded.phase, current_agent=excluded.current_agent,
@@ -510,10 +524,14 @@ class RunManager:
                     started_at=excluded.started_at, finished_at=excluded.finished_at,
                     signal=excluded.signal, report_id=excluded.report_id,
                     error_code=excluded.error_code, error_message=excluded.error_message,
-                    terminal_expires_at=excluded.terminal_expires_at
+                    terminal_expires_at=excluded.terminal_expires_at,
+                    effective_quote_strategy_id=excluded.effective_quote_strategy_id,
+                    effective_quote_provider_chain=excluded.effective_quote_provider_chain,
+                    data_snapshot_id=excluded.data_snapshot_id, data_status=excluded.data_status,
+                    reproducibility=excluded.reproducibility
                 """,
                 values,
-            )
+                )
 
     def _delete_persisted_locked(self, run_id: str) -> None:
         if self._db_path is None:

@@ -260,7 +260,11 @@ class QuoteService:
 
     def _cached(self, symbol: str, asset_type: str) -> QuoteSnapshot | None:
         row = self.repository.get_latest(symbol, asset_type)
-        return QuoteSnapshot(**{**row, "payload": _payload(row)}) if row else None
+        if not row:
+            return None
+        data = {**row, "payload": _payload(row)}
+        data.pop("payload_json", None)
+        return QuoteSnapshot(**data)
 
     def get_quote(self, symbol: str, asset_type: str = "stock") -> QuoteSnapshot:
         cached = self._cached(symbol, asset_type)
@@ -313,7 +317,7 @@ class QuoteService:
                         symbol=normalized,
                         quote=unavailable,
                         error=QuoteItemError(
-                            symbol=normalized, code=exc.code.value, message=exc.message
+                            symbol=normalized, code=exc.code.value, message=_diagnostic(exc.code)
                         ),
                     )
                 )
@@ -330,7 +334,7 @@ class QuoteService:
                         symbol=normalized,
                         quote=unavailable,
                         error=QuoteItemError(
-                            symbol=normalized, code="invalid_symbol", message=str(exc)
+                            symbol=normalized, code="invalid_symbol", message=_diagnostic(ProviderErrorCode.INVALID_SYMBOL)
                         ),
                     )
                 )
@@ -347,3 +351,14 @@ def _payload(row: dict[str, Any]) -> dict[str, Any]:
         return json.loads(value)
     except (TypeError, ValueError):
         return {}
+
+
+def _diagnostic(code: ProviderErrorCode) -> str:
+    return {
+        ProviderErrorCode.NOT_CONFIGURED: "行情数据源未配置",
+        ProviderErrorCode.RATE_LIMITED: "行情数据源请求频繁，请稍后重试",
+        ProviderErrorCode.TIMEOUT: "行情数据源请求超时",
+        ProviderErrorCode.NO_DATA: "暂未找到行情数据",
+        ProviderErrorCode.INVALID_SYMBOL: "资产代码无效",
+        ProviderErrorCode.PROVIDER_ERROR: "行情数据源暂时不可用",
+    }.get(code, "行情数据暂时不可用")
