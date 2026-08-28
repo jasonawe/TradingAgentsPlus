@@ -23,6 +23,8 @@ class RunStatus(str, Enum):
     COMPLETED = "completed"
     FAILED = "failed"
     CANCELLED = "cancelled"
+    PUBLISHING = "publishing"
+    INTERRUPTED = "interrupted"
 
 
 class EventName(str, Enum):
@@ -36,6 +38,7 @@ class EventName(str, Enum):
     RUN_COMPLETED = "run_completed"
     RUN_FAILED = "run_failed"
     RUN_CANCELLED = "run_cancelled"
+    RUN_INTERRUPTED = "run_interrupted"
 
 
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -52,6 +55,10 @@ class AnalysisRequest(BaseModel):
     analysts: list[AnalystType] = Field(min_length=1)
     research_depth: int
     output_language: str | None = Field(default=None, min_length=1, max_length=64)
+    provider: str | None = Field(default=None, min_length=1, max_length=64)
+    quick_model: str | None = Field(default=None, min_length=1, max_length=128)
+    deep_model: str | None = Field(default=None, min_length=1, max_length=128)
+    quote_strategy_id: str | None = Field(default=None, min_length=1, max_length=64)
 
     @field_validator("ticker", mode="before")
     @classmethod
@@ -115,6 +122,11 @@ class RunRecord(BaseModel):
     report_id: str | None = None
     error_code: str | None = None
     error_message: str | None = None
+    data_snapshot_id: str | None = None
+    data_status: str | None = None
+    reproducibility: str | None = None
+    effective_quote_strategy_id: str | None = None
+    effective_quote_provider_chain: list[str] = Field(default_factory=list)
 
 
 class HistoryRecord(BaseModel):
@@ -130,6 +142,12 @@ class HistoryRecord(BaseModel):
     generated_at: datetime | None = None
     signal: str | None = None
     report_id: str | None = None
+    rating: str | None = None
+    data_snapshot_id: str | None = None
+    data_status: str | None = None
+    reproducibility: str | None = None
+    quote_strategy_id: str | None = None
+    effective_quote_provider_chain: list[str] = Field(default_factory=list)
 
 
 class EventPayload(BaseModel):
@@ -216,6 +234,12 @@ class RunCancelledPayload(EventPayload):
     current_agent: str | None
 
 
+class RunInterruptedPayload(EventPayload):
+    status: Literal["interrupted"]
+    error_code: Literal["service_restart"] = "service_restart"
+    error_message: str
+
+
 _EVENT_PAYLOAD_MODELS: dict[EventName, type[EventPayload]] = {
     EventName.RUN_SNAPSHOT: RunSnapshotPayload,
     EventName.RUN_STARTED: RunStartedPayload,
@@ -227,6 +251,7 @@ _EVENT_PAYLOAD_MODELS: dict[EventName, type[EventPayload]] = {
     EventName.RUN_COMPLETED: RunCompletedPayload,
     EventName.RUN_FAILED: RunFailedPayload,
     EventName.RUN_CANCELLED: RunCancelledPayload,
+    EventName.RUN_INTERRUPTED: RunInterruptedPayload,
 }
 
 

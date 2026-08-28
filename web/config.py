@@ -36,7 +36,7 @@ def market_data_catalog(
 
     def resolved(key: str, env_key: str, default: Any):
         if env_key in os.environ and os.environ[env_key]:
-            return os.environ[env_key], "environment"
+            return os.environ[env_key], "env"
         item = settings.get(key)
         if isinstance(item, dict) and item.get("value") is not None:
             return item["value"], item.get("source", "sqlite")
@@ -79,17 +79,21 @@ def market_data_catalog(
         "providers": [
             {
                 "id": "yfinance",
+                "installed": yfinance_installed,
                 "available": yfinance_installed,
                 "configured": yfinance_installed,
                 "capabilities": ["quote", "candles", "identity"],
                 "status": "ready" if yfinance_installed else "not_installed",
+                "reason": None if yfinance_installed else "未安装 yfinance",
             },
             {
                 "id": "alpha_vantage",
+                "installed": True,
                 "available": alpha_configured,
                 "configured": alpha_configured,
                 "capabilities": ["quote", "identity"],
                 "status": "ready" if alpha_configured else "not_configured",
+                "reason": None if alpha_configured else "未配置 Alpha Vantage API Key",
             },
         ],
     }

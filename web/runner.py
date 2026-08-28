@@ -21,6 +21,7 @@ from tradingagents.graph.trading_graph import TradingAgentsGraph
 
 from .manager import RunManager
 from .models import EventName
+from .synthesis import generate_executive_summary, save_executive_summary
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +60,12 @@ class WebRunRunner:
             cfg["max_risk_discuss_rounds"] = request.research_depth
         if request.output_language:
             cfg["output_language"] = request.output_language
+        if request.provider:
+            cfg["llm_provider"] = request.provider
+        if request.quick_model:
+            cfg["quick_think_llm"] = request.quick_model
+        if request.deep_model:
+            cfg["deep_think_llm"] = request.deep_model
         analysts = [getattr(a, "value", str(a)) for a in request.analysts]
         graph = self.graph_factory(analysts, config=cfg, debug=False)
         phase = {"name": "Analyst Team", "index": 1, "phase_count": 5}
@@ -95,6 +102,21 @@ class WebRunRunner:
                 / self._safe_run_id_component(run_id)
             )
             graph.save_reports(final_state, request.ticker, save_path=report_dir)
+            summary_status = "unavailable"
+            try:
+                deep_llm = getattr(graph, "deep_thinking_llm", None)
+                if deep_llm is not None:
+                    summary = generate_executive_summary(
+                        deep_llm,
+                        ticker=request.ticker,
+                        output_language=request.output_language or cfg.get("output_language", "English"),
+                        final_state=final_state,
+                    )
+                    if summary:
+                        save_executive_summary(report_dir, summary)
+                        summary_status = "completed"
+            except Exception:
+                logger.warning("Executive summary generation failed for run %s", run_id, exc_info=True)
             (report_dir / "run.json").write_text(
                 json.dumps(
                     {
@@ -107,6 +129,18 @@ class WebRunRunner:
                         "research_depth": request.research_depth,
                         "generated_at": datetime.now(timezone.utc).isoformat(),
                         "signal": signal,
+                        "status": "completed",
+                        "provider": request.provider,
+                        "quick_model": request.quick_model,
+                        "deep_model": request.deep_model,
+                        "output_language": request.output_language,
+                        "summary_status": summary_status,
+                        "quote_strategy_id": request.quote_strategy_id,
+                        "effective_quote_strategy_id": request.quote_strategy_id,
+                        "effective_quote_provider_chain": (["yfinance"] if request.quote_strategy_id == "default-yfinance" else ["yfinance", "alpha_vantage"] if request.quote_strategy_id == "fallback-yfinance-alpha-vantage" else []),
+                        "data_snapshot_id": None,
+                        "data_status": "unknown",
+                        "reproducibility": "unknown",
                     },
                     indent=2,
                 ),

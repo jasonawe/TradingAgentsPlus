@@ -22,6 +22,10 @@ from .manager import ActiveRunError, EventBatch, RunManager
 from .models import AnalysisRequest, EventEnvelope, RunRecord
 from .runner import WebRunRunner
 from .config import OUTPUT_LANGUAGES, model_catalog, resolve_model_config
+from .config import QUOTE_STRATEGIES, market_data_catalog
+from .market_data import ProviderRouter, QuoteService
+from .providers import AlphaVantageProvider, YFinanceProvider
+from .market_models import ProviderError
 from .repositories import (
     AnalysisRunRepository,
     QuoteRepository,
@@ -71,6 +75,11 @@ def _config_view(config: dict[str, Any]) -> dict[str, Any]:
         "provider": configured["provider"],
         "model": configured["deep_model"],
     }
+
+
+def _watchlist_view(repo: WatchlistRepository) -> dict[str, Any]:
+    wl = repo.get_default()
+    return {"watchlist": {"id": wl["id"], "name": wl["name"], "version": wl["version"]}, "items": repo.list_items()}
 
 
 def _event_sse(event: EventEnvelope) -> str:
@@ -132,6 +141,15 @@ def create_app(
         "settings": SettingsRepository(store),
         "reports": ReportRepository(store),
     }
+    settings_repo = app.state.repositories["settings"]
+    providers = {"yfinance": YFinanceProvider(), "alpha_vantage": AlphaVantageProvider()}
+    app.state.market_router = ProviderRouter(providers)
+    app.state.market_service = QuoteService(
+        app.state.market_router,
+        app.state.repositories["quotes"],
+        settings=settings_repo,
+        config=active_config,
+    )
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(_request: Request, _exc: RequestValidationError) -> JSONResponse:
@@ -149,7 +167,126 @@ def create_app(
 
     @app.get("/api/config")
     def get_config() -> dict[str, Any]:
-        return _config_view(active_config)
+        value = _config_view(active_config)
+        value["market_data"] = market_data_catalog(active_config, settings_repo.all())
+        value["effective_quote_strategy_id"] = value["market_data"]["quote_strategy_id"]["value"]
+        value["effective_quote_provider_chain"] = value["market_data"]["quote_provider_chain"]["value"]
+        return value
+
+    @app.get("/api/watchlist")
+    def get_watchlist() -> dict[str, Any]:
+        return _watchlist_view(app.state.repositories["watchlist"])
+
+    @app.post("/api/watchlist/items")
+    def add_watchlist_item(payload: dict[str, Any]) -> dict[str, Any]:
+        repo = app.state.repositories["watchlist"]
+        try:
+            symbol = payload.get("symbol")
+            asset_type = payload.get("asset_type", "stock")
+            if not isinstance(symbol, str) or not symbol.strip():
+                raise ValueError("invalid symbol")
+            repo.add_item(symbol, asset_type=asset_type, note=payload.get("note"))
+            return _watchlist_view(repo)
+        except ValueError as exc:
+            if "duplicate" in str(exc):
+                raise _error(409, "关注列表中已存在该资产") from exc
+            raise _error(422, "关注列表参数无效") from exc
+
+    @app.patch("/api/watchlist/items/{item_id}")
+    def update_watchlist_item(item_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        repo = app.state.repositories["watchlist"]
+        if "symbol" in payload or "asset_type" in payload:
+            raise _error(422, "只能修改备注")
+        try:
+            version = int(payload.get("version"))
+            kwargs = {"expected_version": version}
+            if "note" in payload:
+                kwargs["note"] = payload["note"]
+            repo.update_item(item_id, **kwargs)
+            return _watchlist_view(repo)
+        except KeyError as exc:
+            raise _error(404, "关注项不存在") from exc
+        except RuntimeError as exc:
+            raise _error(409, "关注列表版本冲突，请刷新后重试") from exc
+        except (TypeError, ValueError) as exc:
+            raise _error(422, "关注列表参数无效") from exc
+
+    @app.delete("/api/watchlist/items/{item_id}", status_code=204)
+    def delete_watchlist_item(item_id: str, version: int = Query(..., ge=1)) -> Response:
+        repo = app.state.repositories["watchlist"]
+        try:
+            repo.delete_item(item_id, expected_version=version)
+        except KeyError as exc:
+            raise _error(404, "关注项不存在") from exc
+        except RuntimeError as exc:
+            raise _error(409, "关注列表版本冲突，请刷新后重试") from exc
+        return Response(status_code=204)
+
+    @app.post("/api/watchlist/reorder")
+    def reorder_watchlist(payload: dict[str, Any]) -> dict[str, Any]:
+        repo = app.state.repositories["watchlist"]
+        try:
+            ids = payload.get("item_ids")
+            version = int(payload.get("version"))
+            if not isinstance(ids, list) or any(not isinstance(i, str) for i in ids):
+                raise ValueError
+            repo.reorder(ids, expected_version=version)
+            return _watchlist_view(repo)
+        except KeyError as exc:
+            raise _error(404, "关注列表不存在") from exc
+        except RuntimeError as exc:
+            raise _error(409, "关注列表版本冲突，请刷新后重试") from exc
+        except (TypeError, ValueError) as exc:
+            raise _error(422, "排序参数无效") from exc
+
+    @app.get("/api/quotes")
+    def get_quotes(symbols: str = Query(...), asset_type: str = Query("stock")) -> dict[str, Any]:
+        values = [v.strip() for v in symbols.split(",") if v.strip()]
+        if not values or len(values) > 50:
+            raise _error(422, "symbols 最多支持 50 个资产")
+        try:
+            return app.state.market_service.get_quotes(values, asset_type).model_dump(mode="json")
+        except ValueError as exc:
+            raise _error(422, "行情参数无效") from exc
+
+    @app.get("/api/assets/{symbol}/candles")
+    def get_candles(symbol: str, interval: str = Query("1d"), start: date | None = None, end: date | None = None) -> dict[str, Any]:
+        if interval not in {"1d", "1h", "15m"}:
+            raise _error(422, "K线周期无效")
+        end_date = end or date.today()
+        start_date = start or date.fromordinal(end_date.toordinal() - 365)
+        if start_date > end_date or (end_date - start_date).days > 730:
+            raise _error(422, "日期范围最多 2 年")
+        try:
+            candles = app.state.market_router.get_candles(symbol, interval, start_date.isoformat(), end_date.isoformat(), app.state.market_service.strategy)
+            if len(candles) > 2000:
+                raise _error(422, "K线点数最多 2000")
+            return {"symbol": symbol.upper(), "interval": interval, "candles": [c.model_dump(mode="json") for c in candles]}
+        except ProviderError as exc:
+            raise _error(404 if exc.code.value == "no_data" else 502, "暂时无法获取行情数据") from exc
+
+    @app.get("/api/assets/{symbol}/identity")
+    def get_identity(symbol: str, asset_type: str = Query("stock")) -> dict[str, Any]:
+        try:
+            identity = app.state.market_router.get_identity(symbol, asset_type, app.state.market_service.strategy)
+            if not identity.name and not identity.exchange and not identity.currency:
+                raise _error(404, "未找到资产信息")
+            return identity.model_dump(mode="json")
+        except ProviderError as exc:
+            raise _error(404, "未找到资产信息") from exc
+
+    @app.get("/api/providers/market-data")
+    def market_provider_status() -> dict[str, Any]:
+        catalog = market_data_catalog(active_config, settings_repo.all())
+        return {"providers": catalog["providers"]}
+
+    @app.get("/api/settings")
+    def get_settings() -> dict[str, Any]:
+        catalog = market_data_catalog(active_config, settings_repo.all())
+        fields = {key: catalog[key] for key in ("quote_strategy_id", "quote_provider_chain", "quote_ttl_seconds")}
+        _, defaults = model_catalog(active_config)
+        fields["output_language"] = {"value": defaults["output_language"], "source": "default"}
+        return {"schema_version": 1, "fields": fields, "strategies": [{"id": k, "providers": v["providers"], "available": next((s["available"] for s in catalog["strategies"] if s["id"] == k), False)} for k, v in QUOTE_STRATEGIES.items()]}
 
     @app.get("/api/runs/active")
     def get_active_run() -> dict[str, Any]:
@@ -182,6 +319,10 @@ def create_app(
                 "deep_model": selected["deep_model"],
                 "output_language": language,
             })
+            strategy = request_data.quote_strategy_id or market_data_catalog(active_config, settings_repo.all())["quote_strategy_id"]["value"]
+            if strategy not in QUOTE_STRATEGIES:
+                raise ValueError("invalid analysis configuration")
+            request_data = request_data.model_copy(update={"quote_strategy_id": strategy})
         except ValueError as exc:
             raise _error(status.HTTP_422_UNPROCESSABLE_ENTITY, "invalid analysis configuration") from exc
         if runner is None:

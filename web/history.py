@@ -56,6 +56,20 @@ class _ReportEntry:
     analysis_date: str | None
     generated_at: str | None
     signal: str | None
+    status: str | None
+    asset_type: str | None
+    analysts: list[str]
+    research_depth: int | None
+    provider: str | None
+    quick_model: str | None
+    deep_model: str | None
+    output_language: str | None
+    summary_status: str | None
+    data_snapshot_id: str | None
+    data_status: str | None
+    reproducibility: str | None
+    quote_strategy_id: str | None
+    effective_quote_provider_chain: list[str]
 
 
 class ReportHistory:
@@ -113,6 +127,20 @@ class ReportHistory:
                 analysis_date=metadata["analysis_date"],
                 generated_at=metadata["generated_at"],
                 signal=metadata["signal"],
+                status=metadata["status"],
+                asset_type=metadata["asset_type"],
+                analysts=metadata["analysts"],
+                research_depth=metadata["research_depth"],
+                provider=metadata["provider"],
+                quick_model=metadata["quick_model"],
+                deep_model=metadata["deep_model"],
+                output_language=metadata["output_language"],
+                summary_status=metadata["summary_status"],
+                data_snapshot_id=metadata["data_snapshot_id"],
+                data_status=metadata["data_status"],
+                reproducibility=metadata["reproducibility"],
+                quote_strategy_id=metadata["quote_strategy_id"],
+                effective_quote_provider_chain=metadata["effective_quote_provider_chain"],
             ))
         self._index = {entry.report_id: entry for entry in entries}
         return self._list_records(entries)
@@ -141,6 +169,21 @@ class ReportHistory:
             "analysis_date": entry.analysis_date,
             "generated_at": entry.generated_at,
             "signal": entry.signal,
+            "rating": entry.signal,
+            "status": entry.status,
+            "asset_type": entry.asset_type,
+            "analysts": entry.analysts,
+            "research_depth": entry.research_depth,
+            "provider": entry.provider,
+            "quick_model": entry.quick_model,
+            "deep_model": entry.deep_model,
+            "output_language": entry.output_language,
+            "summary_status": entry.summary_status,
+            "data_snapshot_id": entry.data_snapshot_id,
+            "data_status": entry.data_status or "unknown",
+            "reproducibility": entry.reproducibility,
+            "quote_strategy_id": entry.quote_strategy_id,
+            "effective_quote_provider_chain": entry.effective_quote_provider_chain,
             "complete_report": complete,
         }
         for group, fields in _SECTION_PATHS.items():
@@ -148,6 +191,7 @@ class ReportHistory:
                 key: self._read_text(entry.path / relative, entry.root) or ""
                 for key, relative in fields.items()
             }
+        detail["executive_summary"] = self._read_text(entry.path / "executive_summary.md", entry.root) or ""
         return detail
 
     def resolve_path(self, path: str | Path, *, root: str | Path | None = None) -> Path | None:
@@ -170,6 +214,21 @@ class ReportHistory:
                 "analysis_date": entry.analysis_date,
                 "generated_at": entry.generated_at,
                 "signal": entry.signal,
+                "rating": entry.signal,
+                "status": entry.status,
+                "asset_type": entry.asset_type,
+                "analysts": entry.analysts,
+                "research_depth": entry.research_depth,
+                "provider": entry.provider,
+                "quick_model": entry.quick_model,
+                "deep_model": entry.deep_model,
+                "output_language": entry.output_language,
+                "summary_status": entry.summary_status,
+                "data_snapshot_id": entry.data_snapshot_id,
+                "data_status": entry.data_status or "unknown",
+                "reproducibility": entry.reproducibility,
+                "quote_strategy_id": entry.quote_strategy_id,
+                "effective_quote_provider_chain": entry.effective_quote_provider_chain,
                 "decision_preview": self._decision_preview(entry.path, entry.root),
             }
             for entry in ordered
@@ -220,7 +279,7 @@ class ReportHistory:
             return None
 
     @classmethod
-    def _metadata(cls, complete: Path, report_dir: Path, root: Path, sidecar: dict[str, Any]) -> dict[str, str | None]:
+    def _metadata(cls, complete: Path, report_dir: Path, root: Path, sidecar: dict[str, Any]) -> dict[str, Any]:
         text = cls._read_text(complete, root) or ""
         title = _TITLE_RE.search(text)
         generated = sidecar.get("generated_at")
@@ -241,6 +300,20 @@ class ReportHistory:
             "analysis_date": str(analysis_date) if analysis_date else None,
             "generated_at": str(generated) if generated else None,
             "signal": str(sidecar.get("signal")) if sidecar.get("signal") is not None else None,
+            "status": str(sidecar.get("status")) if sidecar.get("status") is not None else None,
+            "asset_type": str(sidecar.get("asset_type")) if sidecar.get("asset_type") is not None else None,
+            "analysts": [str(value) for value in sidecar.get("analysts", [])] if isinstance(sidecar.get("analysts", []), list) else [],
+            "research_depth": sidecar.get("research_depth") if isinstance(sidecar.get("research_depth"), int) else None,
+            "provider": str(sidecar.get("provider")) if sidecar.get("provider") is not None else None,
+            "quick_model": str(sidecar.get("quick_model")) if sidecar.get("quick_model") is not None else None,
+            "deep_model": str(sidecar.get("deep_model")) if sidecar.get("deep_model") is not None else None,
+            "output_language": str(sidecar.get("output_language")) if sidecar.get("output_language") is not None else None,
+            "summary_status": str(sidecar.get("summary_status")) if sidecar.get("summary_status") is not None else None,
+            "data_snapshot_id": str(sidecar.get("data_snapshot_id")) if sidecar.get("data_snapshot_id") is not None else None,
+            "data_status": str(sidecar.get("data_status")) if sidecar.get("data_status") is not None else None,
+            "reproducibility": str(sidecar.get("reproducibility")) if sidecar.get("reproducibility") is not None else None,
+            "quote_strategy_id": str(sidecar.get("quote_strategy_id") or sidecar.get("effective_quote_strategy_id")) if (sidecar.get("quote_strategy_id") or sidecar.get("effective_quote_strategy_id")) is not None else None,
+            "effective_quote_provider_chain": [str(value) for value in sidecar.get("effective_quote_provider_chain", [])] if isinstance(sidecar.get("effective_quote_provider_chain", []), list) else [],
         }
 
     @classmethod

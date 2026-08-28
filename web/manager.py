@@ -67,7 +67,7 @@ class RunManager:
     """
 
     _TERMINAL_STATUSES = frozenset(
-        (RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED)
+        (RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED, RunStatus.INTERRUPTED)
     )
     _WORKER_ERROR_MESSAGE = "analysis worker failed"
 
@@ -330,7 +330,7 @@ class RunManager:
     def _read_locked(self, state: _ManagedRun, cursor: int) -> EventBatch:
         retained = list(state.events)
         if not retained:
-            terminal = state.record.status in (RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED)
+            terminal = state.record.status in self._TERMINAL_STATUSES
             return EventBatch([], terminal=terminal)
         oldest = retained[0].seq
         stale = cursor < oldest - 1
@@ -347,7 +347,7 @@ class RunManager:
                 )
             )
         events.extend(event for event in retained if event.seq > cursor)
-        terminal = state.record.status in (RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED)
+        terminal = state.record.status in self._TERMINAL_STATUSES
         return EventBatch(events, stale=stale, terminal=terminal)
 
     def cleanup(self, *, now: datetime | None = None) -> None:
