@@ -8,9 +8,10 @@ import json
 import math
 import os
 import tempfile
+from collections.abc import Callable
 from datetime import date, datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 
 class SnapshotCorruptError(RuntimeError):

@@ -10,6 +10,7 @@ import os
 import re
 import traceback
 from collections.abc import Callable
+from contextlib import suppress
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,7 @@ from tradingagents.graph.trading_graph import TradingAgentsGraph
 
 from .manager import RunManager
 from .models import EventName
+from .snapshots import DataSnapshotRecorder, SnapshotStore
 
 try:
     from .synthesis import generate_executive_summary, save_executive_summary
@@ -106,7 +108,21 @@ class WebRunRunner:
                 / str(request.analysis_date)
                 / self._safe_run_id_component(run_id)
             )
-            graph.save_reports(final_state, request.ticker, save_path=report_dir)
+            self.manager.begin_publishing(run_id)
+            safe_run_id = self._safe_run_id_component(run_id)
+            temporary_dir = report_dir.parent / ".tmp" / safe_run_id
+            temporary_dir.parent.mkdir(parents=True, exist_ok=True)
+            graph.save_reports(final_state, request.ticker, save_path=temporary_dir)
+            snapshot_store = SnapshotStore(temporary_dir)
+            snapshot_recorder = DataSnapshotRecorder(snapshot_store, safe_run_id, provider_chain=state.record.effective_quote_provider_chain)
+            snapshot_recorder.record("analysis_state", final_state, provider=request.provider, request_fingerprint=f"{request.ticker}:{request.analysis_date}")
+            manifest = snapshot_recorder.finalize()
+            self.manager.set_data_metadata(
+                run_id,
+                data_snapshot_id=manifest["id"],
+                data_status="complete",
+                reproducibility="partial",
+            )
             summary_status = "unavailable"
             try:
                 deep_llm = getattr(graph, "deep_thinking_llm", None)
@@ -118,11 +134,11 @@ class WebRunRunner:
                         final_state=final_state,
                     )
                     if summary:
-                        save_executive_summary(report_dir, summary)
+                        save_executive_summary(temporary_dir, summary)
                         summary_status = "completed"
             except Exception:
                 logger.warning("Executive summary generation failed for run %s", run_id, exc_info=True)
-            (report_dir / "run.json").write_text(
+            (temporary_dir / "run.json").write_text(
                 json.dumps(
                     {
                         "run_id": run_id,
@@ -143,15 +159,23 @@ class WebRunRunner:
                         "quote_strategy_id": request.quote_strategy_id,
                         "effective_quote_strategy_id": request.quote_strategy_id,
                         "effective_quote_provider_chain": (["yfinance"] if request.quote_strategy_id == "default-yfinance" else ["yfinance", "alpha_vantage"] if request.quote_strategy_id == "fallback-yfinance-alpha-vantage" else []),
-                        "data_snapshot_id": None,
-                        "data_status": "unknown",
-                        "reproducibility": "unknown",
+                        "data_snapshot_id": manifest["id"],
+                        "data_status": "complete",
+                        "reproducibility": "partial",
                     },
                     indent=2,
                 ),
                 encoding="utf-8",
             )
-            self.manager.complete_run(run_id, signal=signal, report_id=report_id)
+            committed = temporary_dir / "COMMITTED"
+            committed.write_text("ok\n", encoding="utf-8")
+            report_dir.parent.mkdir(parents=True, exist_ok=True)
+            if report_dir.exists():
+                raise FileExistsError("report already exists")
+            temporary_dir.rename(report_dir)
+            with suppress(OSError):
+                temporary_dir.parent.rmdir()
+            self.manager.complete_publishing(run_id, signal=signal, report_id=report_id)
         except PropagationCancelled:
             self.manager.cancel_run(run_id, phase=phase["name"])
         except Exception:

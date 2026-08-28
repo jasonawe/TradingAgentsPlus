@@ -184,6 +184,53 @@ class RunManager:
             )
             return self._copy_record(state.record)
 
+    def begin_publishing(self, run_id: str) -> RunRecord:
+        """CAS running -> publishing; publishing is deliberately not cancellable."""
+        with self._lock:
+            state = self._state(run_id)
+            if state.record.status is RunStatus.PUBLISHING:
+                return self._copy_record(state.record)
+            if state.record.status is not RunStatus.RUNNING:
+                raise RuntimeError("run is not running")
+            state.record.status = RunStatus.PUBLISHING
+            self._persist_locked(state.record)
+            return self._copy_record(state.record)
+
+    def set_data_metadata(
+        self,
+        run_id: str,
+        *,
+        data_snapshot_id: str | None = None,
+        data_status: str | None = None,
+        reproducibility: str | None = None,
+    ) -> RunRecord:
+        with self._lock:
+            state = self._state(run_id)
+            if data_snapshot_id is not None:
+                state.record.data_snapshot_id = data_snapshot_id
+            if data_status is not None:
+                state.record.data_status = data_status
+            if reproducibility is not None:
+                state.record.reproducibility = reproducibility
+            self._persist_locked(state.record)
+            return self._copy_record(state.record)
+
+    def complete_publishing(self, run_id: str, *, signal: str | None, report_id: str) -> RunRecord:
+        with self._lock:
+            state = self._state(run_id)
+            if state.record.status is RunStatus.COMPLETED:
+                return self._copy_record(state.record)
+            if state.record.status is not RunStatus.PUBLISHING:
+                raise RuntimeError("run is not publishing")
+            state.record.status = RunStatus.COMPLETED
+            state.record.finished_at = self._clock()
+            state.record.signal = signal
+            state.record.report_id = report_id
+            self._finish_locked(state)
+            self._persist_locked(state.record)
+            self._publish_locked(state, EventName.RUN_COMPLETED, {"status": "completed", "signal": signal, "report_id": report_id}, allow_terminal=True)
+            return self._copy_record(state.record)
+
     def publish(
         self, run_id: str, event: EventName | str, payload: dict[str, Any]
     ) -> EventEnvelope | None:
