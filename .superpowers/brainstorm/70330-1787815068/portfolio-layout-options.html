@@ -1,0 +1,62 @@
+<h2>选择组合首页布局</h2>
+<p class="subtitle">面向个人投资者：先看持仓风险，再决定研究哪个标的</p>
+
+<div class="cards" style="grid-template-columns:repeat(3,minmax(0,1fr));align-items:start">
+  <div class="card" data-choice="portfolio-overview" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <span class="label">A · 总览型</span>
+      <h3>投资组合总览</h3>
+      <p>先看总资产、盈亏、风险等级，再按持仓表进入单标的分析。</p>
+    </div>
+    <div class="mockup" style="margin:0 16px 16px">
+      <div class="mockup-header">My portfolio <span style="float:right;color:#17805b">+8.4%</span></div>
+      <div class="mockup-body">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+          <div class="placeholder" style="height:46px"><small>Total value</small><br><b>$128,420</b></div>
+          <div class="placeholder" style="height:46px"><small>Today</small><br><b style="color:#17805b">+$842</b></div>
+          <div class="placeholder" style="height:46px"><small>Risk</small><br><b style="color:#b34b32">Medium</b></div>
+        </div>
+        <div class="mock-content" style="height:20px;margin-bottom:6px">AAPL &nbsp; 32% &nbsp; Buy</div>
+        <div class="mock-content" style="height:20px;margin-bottom:6px">NVDA &nbsp; 24% &nbsp; Watch</div>
+        <div class="mock-content" style="height:20px">688836.SS &nbsp; 18% &nbsp; Reduce</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="risk-actions" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <span class="label">B · 行动型</span>
+      <h3>风险行动清单</h3>
+      <p>把持仓按“需要行动、继续观察、暂无变化”分组，减少阅读成本。</p>
+    </div>
+    <div class="mockup" style="margin:0 16px 16px">
+      <div class="mockup-header">What needs attention?</div>
+      <div class="mockup-body">
+        <div class="mock-content" style="border-left:3px solid #b34b32;height:62px;margin-bottom:8px;padding:8px">688836.SS<br><b>Reduce 60-70%</b><br><small>Risk elevated · 2 reports</small></div>
+        <div class="mock-content" style="border-left:3px solid #c58a3b;height:62px;margin-bottom:8px;padding:8px">NVDA<br><b>Review earnings risk</b><br><small>Next catalyst · 3 days</small></div>
+        <div class="mock-content" style="border-left:3px solid #17805b;height:42px;padding:8px">AAPL &nbsp; <b>No action</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="watchlist-report" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <span class="label">C · 双栏型</span>
+      <h3>关注列表 + 最新报告</h3>
+      <p>左侧维护标的，右侧直接阅读最近一次综合研判，适合频繁复盘。</p>
+    </div>
+    <div class="mockup" style="margin:0 16px 16px">
+      <div class="mockup-header">Research desk</div>
+      <div class="mockup-body" style="display:grid;grid-template-columns:34% 1fr;gap:10px">
+        <div>
+          <div class="mock-content" style="height:30px;margin-bottom:6px;background:#dfece5">AAPL · Buy</div>
+          <div class="mock-content" style="height:30px;margin-bottom:6px">NVDA · Watch</div>
+          <div class="mock-content" style="height:30px">688836.SS · Sell</div>
+        </div>
+        <div class="placeholder" style="height:112px"><small>Latest briefing</small><br><b>688836.SS</b><br><br><span style="color:#b34b32">SELL</span> · confidence 78%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:22px">点击卡片选择最接近你日常使用方式的布局。</p>

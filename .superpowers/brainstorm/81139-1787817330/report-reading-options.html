@@ -1,0 +1,19 @@
+<h2>选择报告阅读层级</h2>
+<p class="subtitle">沿用 C 方案：左侧标的列表，右侧只展示当前报告的决策信息</p>
+
+<div class="cards" style="grid-template-columns:repeat(3,minmax(0,1fr));align-items:start">
+  <div class="card" data-choice="summary-first" onclick="toggleSelect(this)">
+    <div class="card-body"><span class="label">A · 结论优先</span><h3>综合研判置顶</h3><p>第一屏只给信号、置信度、行动建议和关键风险，详细报告默认收起。</p></div>
+    <div class="mockup" style="margin:0 16px 16px"><div class="mockup-header">688836.SS · Latest briefing</div><div class="mockup-body"><div style="display:flex;justify-content:space-between;align-items:end;margin-bottom:12px"><div><small>Decision</small><br><b style="font-size:24px;color:#b34b32">SELL</b></div><div style="text-align:right"><small>Confidence</small><br><b>78%</b></div></div><div class="mock-content" style="height:52px;padding:9px;border-left:3px solid #b34b32"><b>Action</b><br>Reduce 60-70%; set hard stop at 540-550</div><div style="margin-top:10px;color:#657078;font-size:11px">▸ View evidence and agent reports</div></div></div>
+  </div>
+  <div class="card" data-choice="evidence-tabs" onclick="toggleSelect(this)">
+    <div class="card-body"><span class="label">B · 证据型</span><h3>按证据分层</h3><p>综合研判、市场数据、新闻情绪和智能体报告分为可切换标签，适合核验依据。</p></div>
+    <div class="mockup" style="margin:0 16px 16px"><div class="mockup-header">688836.SS <span style="float:right;color:#b34b32">SELL</span></div><div class="mockup-body"><div style="display:flex;gap:5px;border-bottom:1px solid #ccd3cf;margin-bottom:12px"><div style="padding:6px 8px;border-bottom:2px solid #b34b32;font-weight:700;font-size:11px">Summary</div><div style="padding:6px 8px;color:#657078;font-size:11px">Evidence</div><div style="padding:6px 8px;color:#657078;font-size:11px">Agents</div></div><div class="placeholder" style="height:80px"><small>Key drivers</small><br>Trend weakening · earnings uncertainty<br>Support 540 · resistance 610</div></div></div>
+  </div>
+  <div class="card" data-choice="decision-workbench" onclick="toggleSelect(this)">
+    <div class="card-body"><span class="label">C · 决策台</span><h3>结论 + 条件 + 证据</h3><p>右侧上方显示行动条件，中间显示关键数据表，下方按需展开智能体原文。</p></div>
+    <div class="mockup" style="margin:0 16px 16px"><div class="mockup-header">Decision workbench</div><div class="mockup-body"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px"><div class="placeholder" style="height:55px"><small>Signal</small><br><b style="color:#b34b32">SELL</b></div><div class="placeholder" style="height:55px"><small>Re-entry</small><br><b>Q3 beat + MACD cross</b></div></div><div class="mock-content" style="height:72px;padding:8px"><b>Evidence snapshot</b><br><small>Price</small> 598 · <small>Trend</small> weakening<br><small>Risk</small> high · <small>Horizon</small> 1-4 weeks</div><div style="margin-top:10px;color:#657078;font-size:11px">▸ Expand detailed agent reasoning</div></div></div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:22px">点击你希望日常阅读报告时看到的层级。</p>

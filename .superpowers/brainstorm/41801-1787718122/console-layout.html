@@ -1,0 +1,80 @@
+<h2>TradingAgents 分析控制台</h2>
+<p class="subtitle">选择你更喜欢的首版信息布局</p>
+
+<div class="cards">
+  <div class="card" data-choice="workspace" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">A · 工作台布局</div>
+        <div class="mockup-body" style="padding:12px;background:#0e1622;color:#dce6f3">
+          <div style="display:grid;grid-template-columns:170px 1fr 230px;gap:8px;min-height:220px">
+            <div style="background:#172333;padding:10px;border:1px solid #2a3a4e">
+              <div style="font-size:11px;color:#8ea4bc">NEW ANALYSIS</div>
+              <div style="height:18px;background:#2b3d52;margin:12px 0"></div>
+              <div style="height:18px;background:#2b3d52;margin:8px 0"></div>
+              <div style="height:18px;background:#2b3d52;margin:8px 0"></div>
+              <div style="height:34px;background:#34b3a0;margin-top:18px"></div>
+            </div>
+            <div style="background:#101b29;padding:10px;border:1px solid #2a3a4e">
+              <div style="font-size:11px;color:#8ea4bc">LIVE RUN · NVDA</div>
+              <div style="height:7px;background:#25364a;margin:14px 0 16px"><div style="width:58%;height:7px;background:#34b3a0"></div></div>
+              <div style="display:grid;gap:8px">
+                <div style="padding:8px;background:#1c2b3b">✓ Market Analyst</div>
+                <div style="padding:8px;background:#1c2b3b">✓ News Analyst</div>
+                <div style="padding:8px;background:#203b43;color:#8fe1d2">● Research Manager</div>
+                <div style="padding:8px;background:#1c2b3b;color:#7b8ea5">○ Trader</div>
+              </div>
+            </div>
+            <div style="background:#172333;padding:10px;border:1px solid #2a3a4e">
+              <div style="font-size:11px;color:#8ea4bc">REPORT</div>
+              <div style="height:12px;background:#2b3d52;margin:14px 0 9px"></div>
+              <div style="height:9px;background:#24364a;margin:7px 0"></div>
+              <div style="height:9px;background:#24364a;margin:7px 0"></div>
+              <div style="height:9px;background:#24364a;margin:7px 0"></div>
+              <div style="height:30px;background:#223f43;margin-top:15px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>工作台布局</h3>
+      <p>配置、运行状态、报告和历史记录同时可见，适合重复分析和长任务跟踪。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="focus" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">B · 运行聚焦布局</div>
+        <div class="mockup-body" style="padding:12px;background:#0e1622;color:#dce6f3">
+          <div style="display:grid;grid-template-columns:1fr 210px;gap:8px;min-height:220px">
+            <div style="background:#101b29;padding:10px;border:1px solid #2a3a4e">
+              <div style="height:12px;background:#2b3d52;width:45%;margin-bottom:14px"></div>
+              <div style="height:7px;background:#25364a;margin:14px 0 16px"><div style="width:58%;height:7px;background:#34b3a0"></div></div>
+              <div style="height:92px;background:#1c2b3b;margin:8px 0"></div>
+              <div style="height:40px;background:#1c2b3b;margin:8px 0"></div>
+            </div>
+            <div style="background:#172333;padding:10px;border:1px solid #2a3a4e">
+              <div style="font-size:11px;color:#8ea4bc">ACTIVITY</div>
+              <div style="height:9px;background:#2b3d52;margin:14px 0 9px"></div>
+              <div style="height:9px;background:#24364a;margin:7px 0"></div>
+              <div style="height:9px;background:#24364a;margin:7px 0"></div>
+              <div style="height:9px;background:#24364a;margin:7px 0"></div>
+              <div style="height:9px;background:#24364a;margin:7px 0"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>运行聚焦布局</h3>
+      <p>运行期间突出进度和消息流，报告在完成后切换到主视图。</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>交互原则</h3>
+  <p>默认单用户本地运行；配置不在页面持久化密钥；运行记录从现有结果目录读取；长任务可取消，异常显示为可复制的诊断信息。</p>
+</div>
