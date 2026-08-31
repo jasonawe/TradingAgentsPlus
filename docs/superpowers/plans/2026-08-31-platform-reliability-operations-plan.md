@@ -43,7 +43,7 @@
 
 - [ ] **Step 3: Replace the deprecated Starlette status constant**
 
-  In `web/app.py`, replace `status.HTTP_422_UNPROCESSABLE_ENTITY` with `status.HTTP_422_UNPROCESSABLE_CONTENT`. Add a focused API test executed with `-W error::DeprecationWarning` so the global pytest warning filter cannot hide a project-owned warning.
+  In `web/app.py`, replace `status.HTTP_422_UNPROCESSABLE_ENTITY` with `status.HTTP_422_UNPROCESSABLE_CONTENT`. Add a focused API test executed with `-W error::starlette.exceptions.StarletteDeprecationWarning` so the global pytest warning filter cannot hide a project-owned warning.
 
 - [ ] **Step 4: Verify the quality baseline**
 
@@ -52,7 +52,7 @@
   ```bash
   ruff check .
   python -m compileall -q tradingagents cli web
-  pytest -q -W error::DeprecationWarning tests/test_web_storage.py tests/test_web_repositories.py tests/test_web_api.py
+  pytest -q -W 'error::starlette.exceptions.StarletteDeprecationWarning' tests/test_web_storage.py tests/test_web_repositories.py tests/test_web_api.py
   ```
 
   Expected: all commands pass with no project-owned deprecation warning.
@@ -148,7 +148,7 @@
 - Modify: `tradingagents/llm_clients/google_client.py`
 - Modify: `tradingagents/llm_clients/azure_client.py`
 - Modify: `tradingagents/llm_clients/bedrock_client.py`
-- Test: `tests/test_llm_clients.py`
+- Test: `tests/test_llm_timeout.py`
 - Test: `tests/test_web_manager.py`
 - Test: `tests/test_web_runner.py`
 - Test: `tests/test_web_api.py`

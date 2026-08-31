@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import re
 
-
 EXCHANGE_NAMES_ZH: dict[str, str] = {
     "SHH": "上海证券交易所",
     "SHZ": "深圳证券交易所",

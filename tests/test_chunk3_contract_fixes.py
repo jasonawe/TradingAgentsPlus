@@ -1,4 +1,5 @@
 import json
+
 from fastapi.testclient import TestClient
 
 from web.app import create_app
@@ -52,7 +53,7 @@ def test_output_language_environment_overrides_sqlite(tmp_path, monkeypatch):
 
 def test_run_effective_metadata_is_stored(tmp_path):
     manager = RunManager(db_path=tmp_path / "runs.sqlite3")
-    run = manager.start_run(_request(quote_strategy_id="fallback-yfinance-alpha-vantage"), run_id="meta")
+    manager.start_run(_request(quote_strategy_id="fallback-yfinance-alpha-vantage"), run_id="meta")
     stored = manager._store.connection()
     with stored as conn:
         record = conn.execute("SELECT effective_quote_strategy_id,effective_quote_provider_chain FROM web_runs WHERE run_id='meta'").fetchone()

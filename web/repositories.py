@@ -6,13 +6,14 @@ import json
 import sqlite3
 import uuid
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
-
-_UNSET = object()
 
 from cli.utils import is_valid_ticker_input, normalize_ticker_symbol
 
 from .storage import SQLiteStore
+
+_UNSET = object()
 
 
 def _now() -> str:
@@ -170,25 +171,34 @@ class QuoteRepository:
         with self.store.connection() as conn:
             for candle in candles:
                 symbol = normalize_ticker_symbol(str(candle.get("symbol") or ""))
-                if not symbol or not is_valid_ticker_input(str(candle.get("symbol") or "")): raise ValueError("invalid symbol")
-                if not candle.get("interval"): raise ValueError("invalid interval")
-                if candle["interval"] not in {"1d", "1h", "15m"}: raise ValueError("invalid interval")
+                if not symbol or not is_valid_ticker_input(str(candle.get("symbol") or "")):
+                    raise ValueError("invalid symbol")
+                if not candle.get("interval"):
+                    raise ValueError("invalid interval")
+                if candle["interval"] not in {"1d", "1h", "15m"}:
+                    raise ValueError("invalid interval")
                 try:
-                    from datetime import datetime
                     datetime.fromisoformat(str(candle.get("timestamp")).replace("Z", "+00:00"))
-                except (TypeError, ValueError): raise ValueError("invalid timestamp") from None
+                except (TypeError, ValueError):
+                    raise ValueError("invalid timestamp") from None
                 for key in ("open", "high", "low", "close", "volume"):
                     if candle.get(key) is not None:
-                        try: float(candle[key])
-                        except (TypeError, ValueError): raise ValueError(f"invalid {key}") from None
+                        try:
+                            float(candle[key])
+                        except (TypeError, ValueError):
+                            raise ValueError(f"invalid {key}") from None
                 conn.execute("INSERT OR REPLACE INTO market_candles(symbol,interval,timestamp,open,high,low,close,volume,source) VALUES (?,?,?,?,?,?,?,?,?)", (symbol, candle["interval"], candle["timestamp"], *(candle.get(k) for k in ("open","high","low","close","volume")), candle.get("source")))
 
     def get_candles(self, symbol: str, interval: str, *, asset_type: str = "stock") -> list[dict[str, Any]]:
         canonical = normalize_ticker_symbol(symbol)
-        if not canonical: raise ValueError("invalid symbol")
-        if not is_valid_ticker_input(str(symbol)): raise ValueError("invalid symbol")
-        if asset_type not in {"stock", "crypto"}: raise ValueError("invalid asset_type")
-        if interval not in {"1d", "1h", "15m"}: raise ValueError("invalid interval")
+        if not canonical:
+            raise ValueError("invalid symbol")
+        if not is_valid_ticker_input(str(symbol)):
+            raise ValueError("invalid symbol")
+        if asset_type not in {"stock", "crypto"}:
+            raise ValueError("invalid asset_type")
+        if interval not in {"1d", "1h", "15m"}:
+            raise ValueError("invalid interval")
         with self.store.connection() as conn:
             return [_row(row) for row in conn.execute("SELECT * FROM market_candles WHERE symbol=? AND interval=? ORDER BY timestamp", (canonical, interval)).fetchall()]
 
@@ -231,11 +241,13 @@ class SettingsRepository:
     ALLOWED = frozenset({"quote_ttl_seconds", "quote_strategy_id", "quote_provider_chain", "output_language"})
     def __init__(self, store: SQLiteStore) -> None: self.store = store
     def set(self, key: str, value: Any, *, source: str = "sqlite") -> None:
-        if key not in self.ALLOWED: return
+        if key not in self.ALLOWED:
+            return
         with self.store.connection() as conn:
             conn.execute("INSERT OR REPLACE INTO settings(key,value,source,updated_at) VALUES (?,?,?,?)", (key, str(value), source, _now()))
     def get(self, key: str) -> dict[str, str] | None:
-        if key not in self.ALLOWED: return None
+        if key not in self.ALLOWED:
+            return None
         try:
             with self.store.connection() as conn:
                 row = conn.execute("SELECT value,source FROM settings WHERE key=?", (key,)).fetchone()
@@ -271,8 +283,6 @@ class ReportRepository:
     def __init__(self, store: SQLiteStore) -> None: self.store = store
     @staticmethod
     def is_gate_ready(path) -> bool:
-        from pathlib import Path
-        import json
         root = Path(path)
         if not (root / "complete_report.md").is_file() or not (root / "COMMITTED").is_file():
             return False
@@ -282,5 +292,4 @@ class ReportRepository:
             return False
         return metadata.get("status") == "completed"
     def iter_ready(self, root):
-        from pathlib import Path
         return iter(sorted(path.parent for path in Path(root).rglob("complete_report.md") if self.is_gate_ready(path.parent)))

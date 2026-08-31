@@ -284,12 +284,10 @@ class ReportHistory:
         """Keep failed and temporary reports out while reading older completed reports."""
         if ".tmp" in report_dir.parts:
             return False
-        if sidecar.get("status") != "completed":
-            return False
         # New runs always have COMMITTED after the temp directory is renamed.
         # Older runs predate that marker, but their completed run.json remains a
         # valid publication record and must stay visible to users.
-        return True
+        return sidecar.get("status") == "completed"
 
     @classmethod
     def _read_text(cls, path: Path, root: Path) -> str | None:

@@ -121,4 +121,5 @@ def test_in_memory_manager_is_attached_to_app_store_and_persists(tmp_path):
     manager.shutdown()
     restored = RunManager(db_path=app.state.store.path)
     assert restored.get_run(run.run_id).run_id == "attached"
-    restored.shutdown(); app.state.store.close()
+    restored.shutdown()
+    app.state.store.close()

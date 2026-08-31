@@ -1,6 +1,12 @@
 import pytest
 
-from web.repositories import AnalysisRunRepository, QuoteRepository, ReportRepository, SnapshotRepository, WatchlistRepository
+from web.repositories import (
+    AnalysisRunRepository,
+    QuoteRepository,
+    ReportRepository,
+    SnapshotRepository,
+    WatchlistRepository,
+)
 from web.storage import SQLiteStore
 
 

@@ -161,7 +161,10 @@ def create_app(
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(_request: Request, _exc: RequestValidationError) -> JSONResponse:
-        return JSONResponse({"detail": "invalid analysis request"}, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        return JSONResponse(
+            {"detail": "invalid analysis request"},
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+        )
 
     if _STATIC_DIR.is_dir():
         app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
@@ -353,7 +356,10 @@ def create_app(
                 raise ValueError("invalid analysis configuration")
             request_data = request_data.model_copy(update={"quote_strategy_id": strategy})
         except ValueError as exc:
-            raise _error(status.HTTP_422_UNPROCESSABLE_ENTITY, "invalid analysis configuration") from exc
+            raise _error(
+                status.HTTP_422_UNPROCESSABLE_CONTENT,
+                "invalid analysis configuration",
+            ) from exc
         if runner is None:
             worker = WebRunRunner(active_manager, config=active_config).worker
         elif hasattr(runner, "worker"):
