@@ -31,6 +31,36 @@ def test_client_contract_covers_api_events_reconnect_and_safe_rendering():
     assert "executive_summary_html" in js
 
 
+def test_investment_ratings_use_shared_localized_formatter_at_display_boundaries():
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    js = (STATIC / "app.js").read_text(encoding="utf-8")
+
+    rating_script = '/static/rating-labels.js?v='
+    app_script = '/static/app.js?v='
+    assert rating_script in html
+    assert html.index(rating_script) < html.index(app_script)
+    assert 'function formatRating(value) { return window.formatInvestmentRating(value, state.language); }' in js
+
+    assert "const signal = formatRating(payload.signal);" in js
+    assert 'signal ? t("run.signal", { signal }) : t("run.reportGenerated")' in js
+    assert 'formatRating(report.rating || report.signal)' in js
+    assert 'formatRating(record.rating || record.signal)' in js
+    assert 'formatRating(analysis.rating || analysis.signal)' in js
+    assert "signalLabel" not in js
+
+    assert '<p>${escapeHtml(summary)}</p>' in js
+    assert '<dd>${escapeHtml(value)}</dd>' in js
+    assert '<span class="history-signal">${escapeHtml(status)}</span>' in js
+    assert '${escapeHtml(formatRating(analysis.rating || analysis.signal) || "已完成")}' in js
+
+    assert "renderReportMarkdown(formatRating" not in js
+    assert "formatRating(report.executive_summary" not in js
+    assert "formatRating(markdown" not in js
+    assert "formatRating(report.complete_report" not in js
+    assert "formatRating(report.report_id" not in js
+    assert 'window.location.href = `/api/history/${encodeURIComponent(report.report_id)}/download`' in js
+
+
 def test_css_has_narrow_viewport_layout_and_stable_activity_regions():
     css = (STATIC / "styles.css").read_text(encoding="utf-8")
     assert "@media (max-width:760px)" in css
