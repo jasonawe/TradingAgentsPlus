@@ -1,10 +1,12 @@
 import json
 import threading
+import warnings
 
 import pytest
 
 pytest.importorskip("fastapi")
 from fastapi.testclient import TestClient  # noqa: E402
+from starlette.exceptions import StarletteDeprecationWarning  # noqa: E402
 
 from web.app import create_app  # noqa: E402
 from web.history import ReportHistory  # noqa: E402
@@ -134,6 +136,14 @@ def test_validation_and_unknown_run_errors(harness):
         assert client.get("/api/runs/no-such").status_code == 404
         assert client.get("/api/runs/no-such/events").status_code == 404
         assert client.post("/api/runs/no-such/cancel").status_code == 404
+
+
+def test_validation_does_not_emit_starlette_status_deprecation(harness):
+    app, _manager, _runner, _tmp = harness
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", StarletteDeprecationWarning)
+        with TestClient(app) as client:
+            assert client.post("/api/runs", json=_request(ticker="../secret")).status_code == 422
 
 
 def test_sse_emits_envelopes_and_last_event_id_wins(harness):
