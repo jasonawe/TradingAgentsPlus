@@ -74,10 +74,12 @@
 - Modify: `web/models.py`
 - Modify: `web/repositories.py`
 - Modify: `web/config.py`
+- Modify: `web/app.py`
 - Modify: `tradingagents/default_config.py`
 - Test: `tests/test_web_storage.py`
 - Test: `tests/test_web_models.py`
 - Test: `tests/test_web_repositories.py`
+- Test: `tests/test_web_api.py`
 
 - [ ] **Step 1: Write failing migration/model tests**
 
@@ -96,7 +98,7 @@
 
 - [ ] **Step 2: Run focused tests and verify RED**
 
-  Run: `pytest -q tests/test_web_storage.py tests/test_web_models.py tests/test_web_repositories.py`
+  Run: `pytest -q tests/test_web_storage.py tests/test_web_models.py tests/test_web_repositories.py tests/test_web_api.py`
 
   Expected: FAIL because migration v2 and lifecycle models do not exist.
 
@@ -120,18 +122,18 @@
 
 - [ ] **Step 5: Implement timeout configuration resolution**
 
-  Add the three defaults and env mappings in `tradingagents/default_config.py`, add the same keys to `SettingsRepository.ALLOWED`, and add `resolve_run_lifecycle_config(config, settings)` in `web/config.py`. It must parse integers, reject invalid/range-violating values, and return the effective values plus source metadata. `create_app()` resolves these values once and passes them to `RunManager`; `start_run()` persists the resolved values and fixed `timeout_at` on each record.
+  Add the three defaults and env mappings in `tradingagents/default_config.py`, add the same keys to `SettingsRepository.ALLOWED`, and add `resolve_run_lifecycle_config(config, settings)` in `web/config.py`. It must parse integers, reject invalid/range-violating values, and return the effective values plus source metadata. The exact ranges are 300..86400 seconds for maximum run time, 5..60 seconds for heartbeat interval, and 30..600 seconds for heartbeat timeout. `create_app()` resolves these values once and passes them to `RunManager`; `start_run()` persists the resolved values and fixed `timeout_at` on each record. API integration tests prove an injected manager receives the resolved settings and invalid configuration fails application startup clearly.
 
 - [ ] **Step 6: Verify migration/model tests GREEN**
 
-  Run: `pytest -q tests/test_web_storage.py tests/test_web_models.py tests/test_web_repositories.py`
+  Run: `pytest -q tests/test_web_storage.py tests/test_web_models.py tests/test_web_repositories.py tests/test_web_api.py`
 
   Expected: all focused tests pass.
 
 - [ ] **Step 7: Commit the complete v2 storage contract**
 
   ```bash
-  git add web/migrations/002_reliability_operations.sql web/storage.py web/models.py web/repositories.py web/config.py tradingagents/default_config.py tests/test_web_storage.py tests/test_web_models.py tests/test_web_repositories.py
+  git add web/migrations/002_reliability_operations.sql web/storage.py web/models.py web/repositories.py web/config.py web/app.py tradingagents/default_config.py tests/test_web_storage.py tests/test_web_models.py tests/test_web_repositories.py tests/test_web_api.py
   git commit -m "feat: add reliability storage schema"
   ```
 
@@ -170,6 +172,7 @@
   - invalid publishing output is moved to the controlled orphan/quarantine directory;
   - run row plus terminal event are written atomically or repaired on startup;
   - every terminal state sets canonical `terminal_reason`, preserves compatibility `error_code`, clears current agent, and preserves non-completed progress;
+  - `get_run()`, Worker heartbeat writes, and watchdog checks first call the same deadline/lease CAS so a read or heartbeat cannot revive or expose an already-expired task;
   - shutdown stops the watchdog thread.
 
 - [ ] **Step 2: Write failing SSE/API/client tests**
@@ -181,7 +184,7 @@
   Run:
 
   ```bash
-  pytest -q tests/test_web_manager.py tests/test_web_runner.py tests/test_web_api.py tests/test_web_static.py
+  pytest -q tests/test_llm_timeout.py tests/test_web_manager.py tests/test_web_runner.py tests/test_web_api.py tests/test_web_static.py
   ```
 
   Expected: lifecycle and timeout assertions fail.
@@ -196,11 +199,13 @@
       # clear current_agent, release active_run_id, notify subscribers
   ```
 
-  Start a daemon watchdog with a stoppable event. Check `timeout_at` and heartbeat lease every configured interval. Keep publishing excluded from heartbeat timeout, but repair it during startup recovery. All worker completion/publication calls must reject terminal records.
+  Start a daemon watchdog with a stoppable event. Check `timeout_at` and heartbeat lease every configured interval, but only CAS `queued/running`; `publishing` is excluded from both wall-clock and heartbeat watchdog transitions and is repaired only during startup recovery. Factor expiry evaluation into one locked helper and call it from `get_run()`, heartbeat writes, and the watchdog before any normal state mutation. All worker completion/publication calls must reject terminal records. Register manager/watchdog shutdown through FastAPI lifespan so tests and production stop the thread deterministically.
 
 - [ ] **Step 5: Add worker heartbeat and remaining-deadline propagation**
 
-  Touch heartbeat when a graph chunk, phase, activity or agent update is received. Before creating `TradingAgentsGraph`, calculate the remaining run deadline and set Web-only `llm_request_timeout_seconds`; `TradingAgentsGraph._get_provider_kwargs()` forwards it as `timeout` to every LLM client. Update provider clients that do not already pass `timeout` so the SDK request timeout never exceeds the remaining deadline. CLI/programmatic configs without this key retain existing provider defaults. Add constructor-level tests for OpenAI, Anthropic, Google, Azure, and Bedrock kwargs. A timed-out worker returning later must observe the terminal CAS and skip report publication.
+  Add a Worker-owned `maybe_touch_heartbeat()` checkpoint. The same Worker thread calls it at start, before and after every external Provider/LLM call, while consuming graph chunks, and on phase/activity/agent updates; it persists only when the configured interval elapsed, so there is no independent fake-heartbeat thread. A blocked call therefore stops heartbeats and remains bounded by the wall-clock deadline.
+
+  Propagate a Web-only deadline supplier, not a timeout value calculated once. Immediately before every Provider or LLM request, a shared adapter computes `max(0, timeout_at-now)` and uses the smaller of that value and the provider's normal request cap. `TradingAgentsGraph` passes the supplier through its LLM wrappers; normalized OpenAI, Anthropic, Google, Azure and Bedrock invocation adapters resolve it per `invoke`, while CLI/programmatic configs without the supplier retain existing defaults. The dataflow vendor router uses the same supplier for yfinance/HTTP-backed tools so each external call is bounded by the then-current remaining time. Constructor/invocation tests cover all five LLM families plus at least one data Provider call. A timed-out Worker returning later must observe the terminal CAS and skip report publication.
 
 - [ ] **Step 6: Implement consistent SSE snapshots and browser terminal mapping**
 
@@ -211,7 +216,7 @@
   Run:
 
   ```bash
-  pytest -q tests/test_web_manager.py tests/test_web_runner.py tests/test_web_api.py tests/test_web_static.py
+  pytest -q tests/test_llm_timeout.py tests/test_web_manager.py tests/test_web_runner.py tests/test_web_api.py tests/test_web_static.py
   ```
 
   Expected: all lifecycle tests pass.
@@ -219,7 +224,7 @@
 - [ ] **Step 8: Commit task reliability**
 
   ```bash
-  git add web tradingagents/default_config.py tests
+  git add web tradingagents/default_config.py tradingagents/graph/trading_graph.py tradingagents/llm_clients tradingagents/dataflows tests
   git commit -m "feat: harden analysis task lifecycle"
   ```
 
@@ -228,7 +233,6 @@
 ### Task 4: Add report index, outbox, and rebuild path
 
 **Files:**
-- Modify: `web/migrations/002_reliability_operations.sql`
 - Modify: `web/repositories.py`
 - Modify: `web/history.py`
 - Modify: `web/runner.py`
@@ -237,6 +241,7 @@
 - Test: `tests/test_web_repositories.py`
 - Test: `tests/test_web_history.py`
 - Test: `tests/test_web_runner.py`
+- Test: `tests/test_web_api.py`
 
 - [ ] **Step 1: Write failing report-index tests**
 
@@ -247,13 +252,15 @@
   - `path_state=missing/unsafe` records are excluded;
   - completed publish upserts an index row;
   - forced index-upsert failure writes `report_index_outbox` and the overlay keeps the new report visible;
+  - immediately after an outbox-backed publish, list, detail, and Markdown download all resolve the report before the run can emit `run_completed`;
   - retry removes outbox after successful upsert;
   - startup rebuild imports legacy/web reports with stable IDs and no duplicates;
+  - pre-index Web reports with `run.json.status=completed` and `complete_report.md` but no historical `COMMITTED` marker remain readable as compatibility records, while every newly published/recovered run still requires the full three-file gate;
   - deleting a file changes path state on rebuild without scanning each API request.
 
 - [ ] **Step 2: Run focused report tests and verify RED**
 
-  Run: `pytest -q tests/test_web_storage.py tests/test_web_repositories.py tests/test_web_history.py tests/test_web_runner.py`
+  Run: `pytest -q tests/test_web_storage.py tests/test_web_repositories.py tests/test_web_history.py tests/test_web_runner.py tests/test_web_api.py`
 
   Expected: FAIL because report index APIs do not exist.
 
@@ -280,18 +287,18 @@
 
 - [ ] **Step 5: Integrate publication and outbox retry**
 
-  Required publication order: commit/rename report files -> upsert report index or durable outbox -> transition run to completed and publish `run_completed`. A successful terminal event therefore never precedes report visibility. On index failure, enqueue the exact metadata before completing; list/detail/download must read the index+outbox overlay. Preserve a bounded canonical-filesystem fallback for exact report-ID detail/download lookup if both index and outbox are unavailable. Retry on startup and a bounded 30-second background loop. Startup rebuild must also index publishing runs recovered as completed by Task 3.
+  Required publication order: commit/rename report files -> upsert report index or durable outbox -> transition run to completed and publish `run_completed`. A successful terminal event therefore never precedes report visibility. On index failure, enqueue the exact metadata before completing; list/detail/download must read the index+outbox overlay. Preserve a bounded canonical-filesystem fallback for exact report-ID detail/download lookup if both index and outbox are unavailable. Retry on startup and a bounded 30-second background loop. Bind that loop to FastAPI lifespan with a stop event and deterministic shutdown, just like the watchdog. Startup rebuild must also index publishing runs recovered as completed by Task 3.
 
 - [ ] **Step 6: Verify report-index tests GREEN**
 
-  Run: `pytest -q tests/test_web_storage.py tests/test_web_repositories.py tests/test_web_history.py tests/test_web_runner.py`
+  Run: `pytest -q tests/test_web_storage.py tests/test_web_repositories.py tests/test_web_history.py tests/test_web_runner.py tests/test_web_api.py`
 
   Expected: all focused tests pass.
 
 - [ ] **Step 7: Commit the indexed report read model**
 
   ```bash
-  git add web/repositories.py web/history.py web/runner.py web/app.py tests/test_web_storage.py tests/test_web_repositories.py tests/test_web_history.py tests/test_web_runner.py
+  git add web/repositories.py web/history.py web/runner.py web/app.py tests/test_web_storage.py tests/test_web_repositories.py tests/test_web_history.py tests/test_web_runner.py tests/test_web_api.py
   git commit -m "feat: add report index read model"
   ```
 
@@ -558,7 +565,15 @@
 - Modify: `.github/workflows/ci.yml`
 - Modify: `tests/test_web_browser.py`
 
-- [ ] **Step 1: Run all static and unit checks**
+- [ ] **Step 1: Update operational documentation**
+
+  Document timeout settings, new `timed_out` state, report pagination compatibility, provider-health fields, SQLite v2 migration, and fixed Chinese UI versus independently selectable report language.
+
+- [ ] **Step 2: Make CI enforce every installed check**
+
+  Update `.github/workflows/ci.yml` to run `python -m compileall -q tradingagents cli web`, `ruff check .`, `node --test web/static/*.test.js`, and pytest. Add a separate Playwright job that installs the `web` extra, runs `python -m playwright install --with-deps chromium`, sets `TRADINGAGENTS_PLAYWRIGHT=1`, and executes `pytest -q tests/test_web_browser.py`. Extend that test with real navigation, paging, timeout-terminal and quote-refresh interactions using intercepted deterministic APIs.
+
+- [ ] **Step 3: Run all static and unit checks**
 
   ```bash
   ruff check .
@@ -570,7 +585,7 @@
 
   Expected: Ruff/compile/Node checks pass; pytest passes with only explicitly optional dependency skips.
 
-- [ ] **Step 2: Run browser smoke tests**
+- [ ] **Step 4: Run browser smoke tests**
 
   ```bash
   TRADINGAGENTS_PLAYWRIGHT=1 pytest -q tests/test_web_browser.py
@@ -578,7 +593,7 @@
 
   Expected: pass when Chromium is installed; otherwise install with `python -m playwright install chromium` and rerun.
 
-- [ ] **Step 3: Run a clean-install and Web health smoke**
+- [ ] **Step 5: Run a clean-install and Web health smoke**
 
   Run this reproducible smoke script:
 
@@ -590,17 +605,15 @@
   "$smoke_dir/venv/bin/python" -m cli.main web --host 127.0.0.1 --port 8765 >"$smoke_dir/web.log" 2>&1 &
   smoke_pid=$!
   trap 'kill "$smoke_pid" 2>/dev/null || true' EXIT
+  ready=0
+  for attempt in 1 2 3 4 5 6 7 8 9 10; do
+    if curl --silent --fail http://127.0.0.1:8765/api/config >/dev/null; then ready=1; break; fi
+    sleep 1
+  done
+  test "$ready" -eq 1
   for path in / /api/config '/api/history?page=1&page_size=20' /api/providers/market-data /api/runs/active; do curl --fail "http://127.0.0.1:8765$path" >/dev/null; done
   kill "$smoke_pid"
   ```
-
-- [ ] **Step 4: Update operational documentation**
-
-  Document timeout settings, new `timed_out` state, report pagination compatibility, provider-health fields, SQLite v2 migration, and fixed Chinese UI versus independently selectable report language.
-
-- [ ] **Step 5: Make CI enforce every installed check**
-
-  Update `.github/workflows/ci.yml` to run `python -m compileall -q tradingagents cli web`, `ruff check .`, `node --test web/static/*.test.js`, and pytest. Add a separate Playwright job that installs the `web` extra, runs `python -m playwright install --with-deps chromium`, sets `TRADINGAGENTS_PLAYWRIGHT=1`, and executes `pytest -q tests/test_web_browser.py`. Extend that test with real navigation, paging, timeout-terminal and quote-refresh interactions using intercepted deterministic APIs.
 
 - [ ] **Step 6: Review final diff and verify no unrelated changes**
 
@@ -614,6 +627,6 @@
 - [ ] **Step 7: Commit integrated documentation/CI changes**
 
   ```bash
-  git add README.md .github/workflows/ci.yml
+  git add README.md .github/workflows/ci.yml tests/test_web_browser.py
   git commit -m "docs: document reliability operations"
   ```

@@ -144,6 +144,12 @@ def test_validation_does_not_emit_starlette_status_deprecation(harness):
         warnings.simplefilter("error", StarletteDeprecationWarning)
         with TestClient(app) as client:
             assert client.post("/api/runs", json=_request(ticker="../secret")).status_code == 422
+            invalid = client.post(
+                "/api/runs",
+                json=_request(provider="openai", quick_model="not-a-model"),
+            )
+            assert invalid.status_code == 422
+            assert invalid.json() == {"detail": "invalid analysis configuration"}
 
 
 def test_sse_emits_envelopes_and_last_event_id_wins(harness):

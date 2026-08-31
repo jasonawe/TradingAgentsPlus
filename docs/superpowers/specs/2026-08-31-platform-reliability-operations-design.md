@@ -48,7 +48,7 @@
 
 `RunManager` 保持现有单活动任务约束，但增加：
 
-1. Worker 在阶段切换、消息发布和每 15 秒（可配置）写入心跳。心跳只能由实际执行分析的 Worker 线程写入，不使用独立“假心跳”线程；心跳用于发现阶段之间的失活，不能阻止一个已经阻塞的模型调用。默认任务最大运行时间 2 小时，心跳超时阈值 180 秒，心跳间隔 15 秒；配置范围分别限制为 5 分钟至 24 小时、30 秒至 10 分钟、5 秒至 60 秒。
+1. Worker 在阶段切换、消息发布和每 15 秒（可配置）写入心跳。心跳只能由实际执行分析的 Worker 线程写入，不使用独立“假心跳”线程；心跳用于发现阶段之间的失活，不能阻止一个已经阻塞的模型调用。默认任务最大运行时间 2 小时，心跳超时阈值 180 秒，心跳间隔 15 秒；任务最大运行时间范围是 5 分钟至 24 小时，心跳间隔范围是 5 秒至 60 秒，心跳超时范围是 30 秒至 10 分钟。
 2. `RunManager` 启动一个生命周期绑定的 watchdog 线程，每 15 秒检查一次：固定的 `timeout_at` wall-clock deadline 是阻塞调用的最终上限，heartbeat lease 只处理已回到 Worker 控制面的失活。配置键为 `run_timeout_seconds`、`run_heartbeat_interval_seconds`、`run_heartbeat_timeout_seconds`，优先级为环境变量 > SQLite 设置 > `DEFAULT_CONFIG` > 默认值；本期不把这些字段加入 `AnalysisRequest`，避免破坏现有 extra=forbid 契约。创建任务时把最终值写入 `web_runs`，重启后沿用任务自身的值。Provider/LLM 调用接收剩余 deadline 并设置不超过该值的请求 timeout；Worker 从阻塞调用返回后必须通过终态 CAS，拒绝对 `timed_out` 任务 late complete/publish。读取状态、写心跳和 watchdog 都调用同一个 CAS 终态函数。`queued/running` 才能因 deadline 或 heartbeat 转为 `timed_out`；`publishing` 不会被 heartbeat 误杀，但服务启动恢复时会处理它。成功转换后只发布一次 `run_timed_out`。
 3. 终态统一校验：`completed` 必须满足 `COMMITTED`、`complete_report.md` 和 `run.json.status=completed`；SQLite 报告索引是最终一致的 read index，不作为文件发布 gate。`completed` 时 `progress=1.0`、`current_agent` 清空；文件 gate 不满足时转为 `failed`，`terminal_reason=publish_incomplete`。失败、取消、超时、中断的 `progress` 保留最后值，`current_agent` 清空，并且不得继续显示进行中状态。
 4. 服务启动恢复 `publishing`：若最终目录已存在完整 `COMMITTED`、`complete_report.md` 和 completed sidecar，则 CAS 为 `completed` 并补建索引；否则将该目录移入受控 orphan 区并 CAS 为 `failed`，`terminal_reason=publish_incomplete`。queued/running 统一 CAS 为 `interrupted`，保证任何重启后任务不会停留在非终态。
