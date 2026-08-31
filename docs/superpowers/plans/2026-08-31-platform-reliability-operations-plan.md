@@ -22,12 +22,14 @@
 - Modify: `tests/test_web_snapshots.py`
 - Modify: `tests/test_web_storage.py`
 - Modify: `web/history.py`
+- Modify: `web/app.py`
 - Modify: `web/markdown.py`
 - Modify: `web/market_localization.py`
 - Modify: `web/models.py`
 - Modify: `web/repositories.py`
 - Modify: `web/storage.py`
 - Modify: `cli/main.py`
+- Modify: `tests/test_web_api.py`
 
 - [ ] **Step 1: Record the failing lint baseline**
 
@@ -41,7 +43,7 @@
 
 - [ ] **Step 3: Replace the deprecated Starlette status constant**
 
-  In `web/app.py`, replace `status.HTTP_422_UNPROCESSABLE_ENTITY` with the non-deprecated constant supported by the installed Starlette/FastAPI version. Add or update a focused API test that executes validation without emitting the deprecation warning.
+  In `web/app.py`, replace `status.HTTP_422_UNPROCESSABLE_ENTITY` with `status.HTTP_422_UNPROCESSABLE_CONTENT`. Add a focused API test executed with `-W error::DeprecationWarning` so the global pytest warning filter cannot hide a project-owned warning.
 
 - [ ] **Step 4: Verify the quality baseline**
 
@@ -50,7 +52,7 @@
   ```bash
   ruff check .
   python -m compileall -q tradingagents cli web
-  pytest -q tests/test_web_storage.py tests/test_web_repositories.py tests/test_web_api.py
+  pytest -q -W error::DeprecationWarning tests/test_web_storage.py tests/test_web_repositories.py tests/test_web_api.py
   ```
 
   Expected: all commands pass with no project-owned deprecation warning.
@@ -71,6 +73,7 @@
 - Modify: `web/storage.py`
 - Modify: `web/models.py`
 - Modify: `web/repositories.py`
+- Modify: `web/config.py`
 - Modify: `tradingagents/default_config.py`
 - Test: `tests/test_web_storage.py`
 - Test: `tests/test_web_models.py`
@@ -84,7 +87,12 @@
   - old rows remain readable with NULL lifecycle fields;
   - a migration failure leaves `schema_version` and prior tables unchanged;
   - `RunStatus.TIMED_OUT`, `EventName.RUN_TIMED_OUT`, `RunTimedOutPayload`, and the new `RunRecord` fields serialize correctly;
-  - default timeout values are 7200/15/180 seconds and invalid configured values are clamped/rejected at the configuration boundary.
+  - v2 also creates the complete `reports`, `report_index_outbox`, and `provider_health` schemas from the approved spec, even though later tasks do not use them yet;
+  - default timeout values are 7200/15/180 seconds;
+  - environment keys are `TRADINGAGENTS_RUN_TIMEOUT_SECONDS`, `TRADINGAGENTS_RUN_HEARTBEAT_INTERVAL_SECONDS`, and `TRADINGAGENTS_RUN_HEARTBEAT_TIMEOUT_SECONDS`;
+  - precedence is environment > SQLite > `DEFAULT_CONFIG` > hard fallback;
+  - values outside the approved ranges are rejected with a configuration error rather than clamped;
+  - `AnalysisRequest` still rejects all three timeout fields because it remains `extra="forbid"`.
 
 - [ ] **Step 2: Run focused tests and verify RED**
 
@@ -94,7 +102,7 @@
 
 - [ ] **Step 3: Implement migration v2 and idempotent compatibility helpers**
 
-  Add v2 SQL for new tables and use `SQLiteStore` compatibility helpers to add columns only when missing. Migration execution must remain transactional and increment `schema_version` only after all statements succeed.
+  Add the final, complete v2 SQL for `reports`, `report_index_outbox`, and `provider_health`. Add a version-2 Python migration hook called from `_migrate()` after `BEGIN IMMEDIATE` and before SQL execution/version update. The hook receives the same connection, checks `PRAGMA table_info(web_runs)`, and conditionally adds every lifecycle column. Hook, SQL, and schema-version update therefore commit or roll back together. No later task may edit migration v2.
 
 - [ ] **Step 4: Extend models and repository projections**
 
@@ -110,11 +118,22 @@
 
   Extend `RunRecord`, run snapshot payload, repository upsert/load, and persisted JSON with heartbeat/deadline/reason/config fields. Preserve `error_code` as the compatibility alias for terminal reasons.
 
-- [ ] **Step 5: Verify migration/model tests GREEN**
+- [ ] **Step 5: Implement timeout configuration resolution**
+
+  Add the three defaults and env mappings in `tradingagents/default_config.py`, add the same keys to `SettingsRepository.ALLOWED`, and add `resolve_run_lifecycle_config(config, settings)` in `web/config.py`. It must parse integers, reject invalid/range-violating values, and return the effective values plus source metadata. `create_app()` resolves these values once and passes them to `RunManager`; `start_run()` persists the resolved values and fixed `timeout_at` on each record.
+
+- [ ] **Step 6: Verify migration/model tests GREEN**
 
   Run: `pytest -q tests/test_web_storage.py tests/test_web_models.py tests/test_web_repositories.py`
 
   Expected: all focused tests pass.
+
+- [ ] **Step 7: Commit the complete v2 storage contract**
+
+  ```bash
+  git add web/migrations/002_reliability_operations.sql web/storage.py web/models.py web/repositories.py web/config.py tradingagents/default_config.py tests/test_web_storage.py tests/test_web_models.py tests/test_web_repositories.py
+  git commit -m "feat: add reliability storage schema"
+  ```
 
 ### Task 3: Implement watchdog, heartbeats, monotonic progress, and recovery
 
@@ -123,6 +142,13 @@
 - Modify: `web/runner.py`
 - Modify: `web/app.py`
 - Modify: `web/static/app.js`
+- Modify: `tradingagents/graph/trading_graph.py`
+- Modify: `tradingagents/llm_clients/openai_client.py`
+- Modify: `tradingagents/llm_clients/anthropic_client.py`
+- Modify: `tradingagents/llm_clients/google_client.py`
+- Modify: `tradingagents/llm_clients/azure_client.py`
+- Modify: `tradingagents/llm_clients/bedrock_client.py`
+- Test: `tests/test_llm_clients.py`
 - Test: `tests/test_web_manager.py`
 - Test: `tests/test_web_runner.py`
 - Test: `tests/test_web_api.py`
@@ -139,12 +165,16 @@
   - terminal methods clear `current_agent` and completed forces progress 1;
   - queued/running restart becomes interrupted;
   - publishing restart completes only when the file gate is valid, otherwise becomes failed;
+  - publishing is excluded from both heartbeat and wall-clock watchdog transitions;
+  - normal `complete_publishing` with an incomplete file gate becomes `failed/publish_incomplete`;
+  - invalid publishing output is moved to the controlled orphan/quarantine directory;
   - run row plus terminal event are written atomically or repaired on startup;
+  - every terminal state sets canonical `terminal_reason`, preserves compatibility `error_code`, clears current agent, and preserves non-completed progress;
   - shutdown stops the watchdog thread.
 
 - [ ] **Step 2: Write failing SSE/API/client tests**
 
-  Assert `RunRecord` exposes heartbeat/deadline/reason, `run_timed_out` has the documented payload, the snapshot contains `snapshot_seq` and `replay_from_seq=snapshot_seq+1`, and the browser treats timed out as terminal even through the status polling fallback.
+  Assert `RunRecord` exposes heartbeat/deadline/reason, `run_timed_out` has the documented payload, a synthetic `run_snapshot` SSE block has no `id:` line, and its payload contains `snapshot_seq` plus `replay_from_seq=snapshot_seq+1`. The browser must set `lastSeq=snapshot_seq` before replay. The polling fallback treats every status outside `queued/running/publishing` as terminal, including unknown future terminal values.
 
 - [ ] **Step 3: Run lifecycle tests and verify RED**
 
@@ -170,7 +200,7 @@
 
 - [ ] **Step 5: Add worker heartbeat and remaining-deadline propagation**
 
-  Touch heartbeat when a graph chunk, phase, activity or agent update is received. Calculate remaining seconds before provider/graph calls where a timeout option exists; never extend `timeout_at`. A timed-out worker returning later must observe the terminal CAS and skip report publication.
+  Touch heartbeat when a graph chunk, phase, activity or agent update is received. Before creating `TradingAgentsGraph`, calculate the remaining run deadline and set Web-only `llm_request_timeout_seconds`; `TradingAgentsGraph._get_provider_kwargs()` forwards it as `timeout` to every LLM client. Update provider clients that do not already pass `timeout` so the SDK request timeout never exceeds the remaining deadline. CLI/programmatic configs without this key retain existing provider defaults. Add constructor-level tests for OpenAI, Anthropic, Google, Azure, and Bedrock kwargs. A timed-out worker returning later must observe the terminal CAS and skip report publication.
 
 - [ ] **Step 6: Implement consistent SSE snapshots and browser terminal mapping**
 
@@ -229,7 +259,7 @@
 
 - [ ] **Step 3: Implement ReportIndexRepository**
 
-  Add explicit methods:
+  Do not modify migration v2 in this task; consume the tables created by Task 2. Add explicit methods:
 
   ```python
   upsert(metadata)
@@ -242,6 +272,7 @@
   ```
 
   Parameterize SQL, enforce root/path allowlists, normalize `rating/signal`, serialize list fields as JSON, and merge outbox rows by report ID before filtering/sorting/counting.
+  Validate the approved allowed values, truncate `decision_preview` to 512 Unicode characters, sort NULL `generated_at` last/oldest, and always use `report_id` as the stable tie-breaker.
 
 - [ ] **Step 4: Make ReportHistory an indexed read model**
 
@@ -249,13 +280,20 @@
 
 - [ ] **Step 5: Integrate publication and outbox retry**
 
-  After the report directory is committed and the run is completed, upsert its metadata. On failure, enqueue the exact metadata. Retry on startup and a bounded 30-second background loop owned by app/manager lifecycle.
+  Required publication order: commit/rename report files -> upsert report index or durable outbox -> transition run to completed and publish `run_completed`. A successful terminal event therefore never precedes report visibility. On index failure, enqueue the exact metadata before completing; list/detail/download must read the index+outbox overlay. Preserve a bounded canonical-filesystem fallback for exact report-ID detail/download lookup if both index and outbox are unavailable. Retry on startup and a bounded 30-second background loop. Startup rebuild must also index publishing runs recovered as completed by Task 3.
 
 - [ ] **Step 6: Verify report-index tests GREEN**
 
   Run: `pytest -q tests/test_web_storage.py tests/test_web_repositories.py tests/test_web_history.py tests/test_web_runner.py`
 
   Expected: all focused tests pass.
+
+- [ ] **Step 7: Commit the indexed report read model**
+
+  ```bash
+  git add web/repositories.py web/history.py web/runner.py web/app.py tests/test_web_storage.py tests/test_web_repositories.py tests/test_web_history.py tests/test_web_runner.py
+  git commit -m "feat: add report index read model"
+  ```
 
 ### Task 5: Add compatible pagination API and report-library controls
 
@@ -276,12 +314,15 @@
   - any new parameter returns `{items,page,page_size,total,has_next}`;
   - page/page_size bounds and invalid date/sort return 422;
   - ticker exact match ignores query; query matches ticker/preview;
+  - status and asset_type filters validate allowlists and filter server-side;
   - date bounds are inclusive on `analysis_date`;
-  - stable ordering uses report ID; empty/out-of-range pages return 200 and empty items.
+  - both ascending and descending sorts place NULL generated times last and use report ID as tie-breaker;
+  - outbox overlay is deduplicated before filters, sorting and total counting;
+  - empty/out-of-range pages return 200 and empty items.
 
 - [ ] **Step 2: Write failing UI tests**
 
-  Require report library page state, previous/next controls, total count, empty page handling, request sequencing, and normalization of both the legacy list and envelope.
+  Require report library page state, previous/next controls, total count, empty page handling, request sequencing, and normalization of both the legacy list and envelope. Existing search/asset/status/sort controls must map directly to server parameters; changing a filter resets page to 1; the client must not re-filter a paged response as if it were the full dataset. Add `timed_out/分析超时` to the status filter.
 
 - [ ] **Step 3: Run tests and verify RED**
 
@@ -315,7 +356,6 @@
 ### Task 6: Persist and expose provider health
 
 **Files:**
-- Modify: `web/migrations/002_reliability_operations.sql`
 - Modify: `web/repositories.py`
 - Modify: `web/market_models.py`
 - Modify: `web/market_data.py`
@@ -335,6 +375,10 @@
   - at exactly 300 seconds all window counters including consecutive failures reset;
   - persisted state survives repository recreation;
   - error messages are redacted and length bounded.
+  - request/failure counters, window start, success/failure times, latency, and error code persist and appear in the API projection;
+  - fallback attempts are recorded against the provider actually invoked;
+  - `NO_DATA` and `INVALID_SYMBOL` are symbol outcomes and do not degrade provider health;
+  - `NOT_CONFIGURED` maps to not_configured; RATE_LIMITED/TIMEOUT/PROVIDER_ERROR count as transient failures; only an explicitly permanent adapter/configuration failure records error.
 
 - [ ] **Step 2: Run tests and verify RED**
 
@@ -356,11 +400,21 @@
 
   Expected: all focused tests pass.
 
+- [ ] **Step 6: Commit provider health persistence**
+
+  ```bash
+  git add web/repositories.py web/market_models.py web/market_data.py web/app.py tests/test_web_repositories.py tests/test_web_market_data.py tests/test_web_api.py
+  git commit -m "feat: persist market provider health"
+  ```
+
 ### Task 7: Normalize cache age and make 5-second refresh resilient
 
 **Files:**
+- Create: `web/static/quote-refresh.js`
+- Create: `web/static/quote-refresh.test.js`
 - Modify: `web/market_models.py`
 - Modify: `web/market_data.py`
+- Modify: `web/static/index.html`
 - Modify: `web/static/app.js`
 - Modify: `web/static/styles.css`
 - Test: `tests/test_web_market_data.py`
@@ -369,7 +423,7 @@
 
 - [ ] **Step 1: Write failing freshness matrix tests**
 
-  Cover live success, provider-delayed success, provider failure with fresh cache, provider failure with stale cache, total unavailable, fallback success, missing quote time, and ensure cache hits never change quote time. Preserve existing `fresh/delayed/stale/unavailable` and old `cache_status=fresh/stale` handling while adding `provider_status` and `stale_seconds`.
+  Cover live success, provider-delayed success, provider failure with fresh cache, provider failure with stale cache, cache miss, total unavailable, fallback success, and missing quote time. Ensure cache hits never change original `quote_time` or `fetched_at`. Preserve old `fresh/stale` cache-status inputs while normalizing new responses to `live/hit/miss` plus compatible stale semantics. Verify `cache_status`, `provider_status`, and `stale_seconds` project through `QuoteSnapshot -> QuoteItem -> /api/quotes`.
 
 - [ ] **Step 2: Write failing JavaScript timer tests**
 
@@ -466,7 +520,15 @@
 
 - [ ] **Step 5: Add stable API keys without removing labels**
 
-  Add optional `label_key`, `status_key`, `exchange_key`, or equivalent stable fields where useful. Preserve current `label`, raw rating, raw exchange and raw provider fields for compatibility.
+  Add these exact compatibility fields:
+
+  - `/api/config.analyst_options[*].label_key = analysts.<key>`;
+  - `/api/providers/market-data.providers[*].status_key = provider_status.<status>`;
+  - `/api/quotes.items[*].freshness_key = freshness.<freshness>` and `cache_status_key = cache_status.<cache_status>`;
+  - serialized run records add `status_key = run_status.<status>`;
+  - asset identity adds `exchange_key` only for a known exchange mapping, otherwise null.
+
+  Preserve existing label, raw rating, raw exchange, raw provider, status, freshness and cache-status fields.
 
 - [ ] **Step 6: Verify i18n tests GREEN**
 
@@ -492,8 +554,9 @@
 ### Task 9: Validate the integrated platform
 
 **Files:**
-- Modify if needed: `README.md`
-- Modify if needed: `.github/workflows/ci.yml`
+- Modify: `README.md`
+- Modify: `.github/workflows/ci.yml`
+- Modify: `tests/test_web_browser.py`
 
 - [ ] **Step 1: Run all static and unit checks**
 
@@ -517,13 +580,29 @@
 
 - [ ] **Step 3: Run a clean-install and Web health smoke**
 
-  Build/install in a temporary environment, verify `python -m cli.main --help`, start the Web console on an ephemeral port, and check `/`, `/api/config`, `/api/history?page=1&page_size=20`, `/api/providers/market-data`, and `/api/runs/active` return valid responses.
+  Run this reproducible smoke script:
+
+  ```bash
+  smoke_dir="$(mktemp -d)"
+  python -m venv "$smoke_dir/venv"
+  "$smoke_dir/venv/bin/pip" install .
+  "$smoke_dir/venv/bin/python" -m cli.main --help
+  "$smoke_dir/venv/bin/python" -m cli.main web --host 127.0.0.1 --port 8765 >"$smoke_dir/web.log" 2>&1 &
+  smoke_pid=$!
+  trap 'kill "$smoke_pid" 2>/dev/null || true' EXIT
+  for path in / /api/config '/api/history?page=1&page_size=20' /api/providers/market-data /api/runs/active; do curl --fail "http://127.0.0.1:8765$path" >/dev/null; done
+  kill "$smoke_pid"
+  ```
 
 - [ ] **Step 4: Update operational documentation**
 
   Document timeout settings, new `timed_out` state, report pagination compatibility, provider-health fields, SQLite v2 migration, and fixed Chinese UI versus independently selectable report language.
 
-- [ ] **Step 5: Review final diff and verify no unrelated changes**
+- [ ] **Step 5: Make CI enforce every installed check**
+
+  Update `.github/workflows/ci.yml` to run `python -m compileall -q tradingagents cli web`, `ruff check .`, `node --test web/static/*.test.js`, and pytest. Add a separate Playwright job that installs the `web` extra, runs `python -m playwright install --with-deps chromium`, sets `TRADINGAGENTS_PLAYWRIGHT=1`, and executes `pytest -q tests/test_web_browser.py`. Extend that test with real navigation, paging, timeout-terminal and quote-refresh interactions using intercepted deterministic APIs.
+
+- [ ] **Step 6: Review final diff and verify no unrelated changes**
 
   ```bash
   git diff --check
@@ -532,7 +611,7 @@
 
   Expected: only intended implementation, tests, migration and docs remain.
 
-- [ ] **Step 6: Commit integrated documentation/CI changes**
+- [ ] **Step 7: Commit integrated documentation/CI changes**
 
   ```bash
   git add README.md .github/workflows/ci.yml
