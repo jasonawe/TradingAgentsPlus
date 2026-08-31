@@ -32,6 +32,7 @@ class RunStatus(str, Enum):
     CANCELLED = "cancelled"
     PUBLISHING = "publishing"
     INTERRUPTED = "interrupted"
+    TIMED_OUT = "timed_out"
 
 
 class EventName(str, Enum):
@@ -46,6 +47,7 @@ class EventName(str, Enum):
     RUN_FAILED = "run_failed"
     RUN_CANCELLED = "run_cancelled"
     RUN_INTERRUPTED = "run_interrupted"
+    RUN_TIMED_OUT = "run_timed_out"
 
 
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -134,6 +136,12 @@ class RunRecord(BaseModel):
     reproducibility: str | None = None
     effective_quote_strategy_id: str | None = None
     effective_quote_provider_chain: list[str] = Field(default_factory=list)
+    last_heartbeat_at: datetime | None = None
+    timeout_at: datetime | None = None
+    terminal_reason: str | None = None
+    run_timeout_seconds: int | None = None
+    run_heartbeat_interval_seconds: int | None = None
+    run_heartbeat_timeout_seconds: int | None = None
 
     @model_validator(mode="after")
     def effective_metadata_from_request(self):
@@ -141,6 +149,10 @@ class RunRecord(BaseModel):
             self.effective_quote_strategy_id = self.request.quote_strategy_id
         if not self.effective_quote_provider_chain and self.effective_quote_strategy_id:
             self.effective_quote_provider_chain = ["yfinance", "alpha_vantage"] if self.effective_quote_strategy_id == "fallback-yfinance-alpha-vantage" else ["yfinance"]
+        if self.terminal_reason is not None:
+            self.error_code = self.terminal_reason
+        elif self.error_code is not None:
+            self.terminal_reason = self.error_code
         return self
 
 
@@ -255,6 +267,19 @@ class RunInterruptedPayload(EventPayload):
     error_message: str
 
 
+class RunTimedOutPayload(EventPayload):
+    status: Literal["timed_out"]
+    progress: float = Field(ge=0.0, le=1.0)
+    terminal_reason: str
+    error_code: str | None = None
+    error_message: str
+
+    @model_validator(mode="after")
+    def mirror_terminal_reason(self):
+        self.error_code = self.terminal_reason
+        return self
+
+
 _EVENT_PAYLOAD_MODELS: dict[EventName, type[EventPayload]] = {
     EventName.RUN_SNAPSHOT: RunSnapshotPayload,
     EventName.RUN_STARTED: RunStartedPayload,
@@ -267,6 +292,7 @@ _EVENT_PAYLOAD_MODELS: dict[EventName, type[EventPayload]] = {
     EventName.RUN_FAILED: RunFailedPayload,
     EventName.RUN_CANCELLED: RunCancelledPayload,
     EventName.RUN_INTERRUPTED: RunInterruptedPayload,
+    EventName.RUN_TIMED_OUT: RunTimedOutPayload,
 }
 
 

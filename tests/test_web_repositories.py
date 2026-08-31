@@ -4,6 +4,7 @@ from web.repositories import (
     AnalysisRunRepository,
     QuoteRepository,
     ReportRepository,
+    SettingsRepository,
     SnapshotRepository,
     WatchlistRepository,
 )
@@ -124,4 +125,42 @@ def test_run_and_report_repositories_have_minimal_adapters(tmp_path):
     reports = ReportRepository(store)
     assert reports.is_gate_ready(report_dir)
     assert list(reports.iter_ready(tmp_path / "reports")) == [report_dir]
+    store.close()
+
+
+def test_run_repository_round_trips_lifecycle_fields_and_json_lists(tmp_path):
+    store = SQLiteStore(tmp_path / "web.sqlite3")
+    repo = AnalysisRunRepository(store)
+    repo.upsert(
+        {
+            "run_id": "lifecycle",
+            "request_json": "{}",
+            "status": "timed_out",
+            "progress": 0.45,
+            "error_code": "heartbeat_timeout",
+            "last_heartbeat_at": "2026-08-27T00:00:00+00:00",
+            "timeout_at": "2026-08-27T02:00:00+00:00",
+            "run_timeout_seconds": 7200,
+            "run_heartbeat_interval_seconds": 15,
+            "run_heartbeat_timeout_seconds": 180,
+            "effective_quote_provider_chain": ["yfinance", "alpha_vantage"],
+        }
+    )
+    record = repo.get("lifecycle")
+    assert record["terminal_reason"] == record["error_code"] == "heartbeat_timeout"
+    assert record["effective_quote_provider_chain"] == ["yfinance", "alpha_vantage"]
+    assert repo.list(status="timed_out")[0] == record
+    store.close()
+
+
+def test_settings_allow_run_lifecycle_configuration(tmp_path):
+    store = SQLiteStore(tmp_path / "web.sqlite3")
+    repo = SettingsRepository(store)
+    for key, value in (
+        ("run_timeout_seconds", 3600),
+        ("run_heartbeat_interval_seconds", 20),
+        ("run_heartbeat_timeout_seconds", 120),
+    ):
+        repo.set(key, value)
+        assert repo.get(key) == {"value": str(value), "source": "sqlite"}
     store.close()

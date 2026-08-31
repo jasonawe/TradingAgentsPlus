@@ -78,6 +78,7 @@ class RunManager:
         clock: Callable[[], datetime] | None = None,
         db_path: str | Path | None = None,
         store: SQLiteStore | None = None,
+        lifecycle_config: dict[str, Any] | None = None,
     ) -> None:
         if event_limit < 1:
             raise ValueError("event_limit must be positive")
@@ -88,6 +89,12 @@ class RunManager:
         self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="tradingagents-web")
         self._records: dict[str, _ManagedRun] = {}
         self._active_run_id: str | None = None
+        self.lifecycle_config: dict[str, dict[str, int | str]] = {}
+        self.configure_lifecycle(lifecycle_config or {
+            "run_timeout_seconds": {"value": 7200, "source": "hard_fallback"},
+            "run_heartbeat_interval_seconds": {"value": 15, "source": "hard_fallback"},
+            "run_heartbeat_timeout_seconds": {"value": 180, "source": "hard_fallback"},
+        })
         self._db_path = Path(db_path) if db_path is not None else None
         self._store = store
         if self._store is None and self._db_path is not None:
@@ -104,6 +111,28 @@ class RunManager:
     def active_run_id(self) -> str | None:
         with self._lock:
             return self._active_run_id
+
+    def configure_lifecycle(self, lifecycle_config: dict[str, Any]) -> None:
+        """Set validated values used by subsequently created runs."""
+
+        ranges = {
+            "run_timeout_seconds": (300, 86400),
+            "run_heartbeat_interval_seconds": (5, 60),
+            "run_heartbeat_timeout_seconds": (30, 600),
+        }
+        normalized: dict[str, dict[str, int | str]] = {}
+        for key, (minimum, maximum) in ranges.items():
+            item = lifecycle_config[key]
+            if isinstance(item, dict):
+                value = int(item["value"])
+                source = str(item.get("source") or "configured")
+            else:
+                value = int(item)
+                source = "configured"
+            if value < minimum or value > maximum:
+                raise ValueError(f"invalid {key}: expected {minimum}..{maximum}")
+            normalized[key] = {"value": value, "source": source}
+        self.lifecycle_config = normalized
 
     def start_run(
         self,
@@ -126,7 +155,24 @@ class RunManager:
             identifier = run_id or f"run-{uuid.uuid4().hex}"
             if identifier in self._records:
                 raise ValueError("run_id already exists")
-            record = RunRecord(run_id=identifier, request=request, queued_at=self._clock())
+            now = self._clock()
+            run_timeout = int(self.lifecycle_config["run_timeout_seconds"]["value"])
+            heartbeat_interval = int(
+                self.lifecycle_config["run_heartbeat_interval_seconds"]["value"]
+            )
+            heartbeat_timeout = int(
+                self.lifecycle_config["run_heartbeat_timeout_seconds"]["value"]
+            )
+            record = RunRecord(
+                run_id=identifier,
+                request=request,
+                queued_at=now,
+                last_heartbeat_at=now,
+                timeout_at=now + timedelta(seconds=run_timeout),
+                run_timeout_seconds=run_timeout,
+                run_heartbeat_interval_seconds=heartbeat_interval,
+                run_heartbeat_timeout_seconds=heartbeat_timeout,
+            )
             record.effective_quote_strategy_id = request.quote_strategy_id
             record.effective_quote_provider_chain = ["yfinance", "alpha_vantage"] if request.quote_strategy_id == "fallback-yfinance-alpha-vantage" else (["yfinance"] if request.quote_strategy_id else [])
             state = _ManagedRun(
@@ -510,6 +556,12 @@ class RunManager:
                     data_snapshot_id=values.get("data_snapshot_id"),
                     data_status=values.get("data_status"),
                     reproducibility=values.get("reproducibility"),
+                    last_heartbeat_at=values.get("last_heartbeat_at"),
+                    timeout_at=values.get("timeout_at"),
+                    terminal_reason=values.get("terminal_reason"),
+                    run_timeout_seconds=values.get("run_timeout_seconds"),
+                    run_heartbeat_interval_seconds=values.get("run_heartbeat_interval_seconds"),
+                    run_heartbeat_timeout_seconds=values.get("run_heartbeat_timeout_seconds"),
                 )
             except (TypeError, ValueError, json.JSONDecodeError):
                 continue
@@ -570,6 +622,12 @@ class RunManager:
             record.data_snapshot_id,
             record.data_status,
             record.reproducibility,
+            self._format_datetime(record.last_heartbeat_at),
+            self._format_datetime(record.timeout_at),
+            record.terminal_reason,
+            record.run_timeout_seconds,
+            record.run_heartbeat_interval_seconds,
+            record.run_heartbeat_timeout_seconds,
         )
         connector = self._store.connection() if self._store is not None else sqlite3.connect(self._db_path)
         with connector as connection:
@@ -580,7 +638,9 @@ class RunManager:
                     queued_at, started_at, finished_at, signal, report_id, error_code,
                     error_message, terminal_expires_at, effective_quote_strategy_id,
                     effective_quote_provider_chain, data_snapshot_id, data_status, reproducibility
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    , last_heartbeat_at, timeout_at, terminal_reason, run_timeout_seconds,
+                    run_heartbeat_interval_seconds, run_heartbeat_timeout_seconds
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(run_id) DO UPDATE SET
                     request_json=excluded.request_json, status=excluded.status,
                     phase=excluded.phase, current_agent=excluded.current_agent,
@@ -592,7 +652,12 @@ class RunManager:
                     effective_quote_strategy_id=excluded.effective_quote_strategy_id,
                     effective_quote_provider_chain=excluded.effective_quote_provider_chain,
                     data_snapshot_id=excluded.data_snapshot_id, data_status=excluded.data_status,
-                    reproducibility=excluded.reproducibility
+                    reproducibility=excluded.reproducibility,
+                    last_heartbeat_at=excluded.last_heartbeat_at, timeout_at=excluded.timeout_at,
+                    terminal_reason=excluded.terminal_reason,
+                    run_timeout_seconds=excluded.run_timeout_seconds,
+                    run_heartbeat_interval_seconds=excluded.run_heartbeat_interval_seconds,
+                    run_heartbeat_timeout_seconds=excluded.run_heartbeat_timeout_seconds
                 """,
                 values,
                 )

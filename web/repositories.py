@@ -238,7 +238,15 @@ class SnapshotRepository:
 
 
 class SettingsRepository:
-    ALLOWED = frozenset({"quote_ttl_seconds", "quote_strategy_id", "quote_provider_chain", "output_language"})
+    ALLOWED = frozenset({
+        "quote_ttl_seconds",
+        "quote_strategy_id",
+        "quote_provider_chain",
+        "output_language",
+        "run_timeout_seconds",
+        "run_heartbeat_interval_seconds",
+        "run_heartbeat_timeout_seconds",
+    })
     def __init__(self, store: SQLiteStore) -> None: self.store = store
     def set(self, key: str, value: Any, *, source: str = "sqlite") -> None:
         if key not in self.ALLOWED:
@@ -264,19 +272,45 @@ class SettingsRepository:
 class AnalysisRunRepository:
     def __init__(self, store: SQLiteStore) -> None: self.store = store
     def upsert(self, record: dict[str, Any]) -> None:
-        fields = ("run_id", "request_json", "status", "phase", "current_agent", "progress", "queued_at", "started_at", "finished_at", "signal", "report_id", "error_code", "error_message", "terminal_expires_at", "effective_quote_strategy_id", "effective_quote_provider_chain", "data_snapshot_id", "data_status", "reproducibility")
+        fields = ("run_id", "request_json", "status", "phase", "current_agent", "progress", "queued_at", "started_at", "finished_at", "signal", "report_id", "error_code", "error_message", "terminal_expires_at", "effective_quote_strategy_id", "effective_quote_provider_chain", "data_snapshot_id", "data_status", "reproducibility", "last_heartbeat_at", "timeout_at", "terminal_reason", "run_timeout_seconds", "run_heartbeat_interval_seconds", "run_heartbeat_timeout_seconds")
         encoded = dict(record)
+        if encoded.get("terminal_reason") is None and encoded.get("error_code") is not None:
+            encoded["terminal_reason"] = encoded["error_code"]
+        elif encoded.get("terminal_reason") is not None:
+            encoded["error_code"] = encoded["terminal_reason"]
         if isinstance(encoded.get("effective_quote_provider_chain"), list):
             encoded["effective_quote_provider_chain"] = json.dumps(encoded["effective_quote_provider_chain"], ensure_ascii=False)
         with self.store.connection() as conn:
             conn.execute(f"INSERT INTO web_runs ({','.join(fields)}) VALUES ({','.join('?' for _ in fields)}) ON CONFLICT(run_id) DO UPDATE SET " + ','.join(f"{f}=excluded.{f}" for f in fields[1:]), tuple(encoded.get(f) for f in fields))
     def get(self, run_id: str) -> dict[str, Any] | None:
         with self.store.connection() as conn:
-            return _row(conn.execute("SELECT * FROM web_runs WHERE run_id=?", (run_id,)).fetchone())
+            row = conn.execute("SELECT * FROM web_runs WHERE run_id=?", (run_id,)).fetchone()
+        return self._decode(row)
     def list(self, status: str | None = None) -> list[dict[str, Any]]:
         with self.store.connection() as conn:
             rows = conn.execute("SELECT * FROM web_runs" + (" WHERE status=?" if status else ""), (status,) if status else ()).fetchall()
-        return [_row(row) for row in rows]
+        return [self._decode(row) for row in rows]
+
+    @staticmethod
+    def _decode(row) -> dict[str, Any] | None:
+        value = _row(row)
+        if value is None:
+            return None
+        for key in ("effective_quote_provider_chain",):
+            encoded = value.get(key)
+            if not encoded:
+                value[key] = []
+            elif isinstance(encoded, str):
+                try:
+                    decoded = json.loads(encoded)
+                except (TypeError, ValueError):
+                    decoded = []
+                value[key] = decoded if isinstance(decoded, list) else []
+        if value.get("terminal_reason") is None and value.get("error_code") is not None:
+            value["terminal_reason"] = value["error_code"]
+        elif value.get("terminal_reason") is not None:
+            value["error_code"] = value["terminal_reason"]
+        return value
 
 
 class ReportRepository:

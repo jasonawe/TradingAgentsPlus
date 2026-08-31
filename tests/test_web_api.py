@@ -1,6 +1,7 @@
 import json
 import threading
 import warnings
+from datetime import datetime, timezone
 
 import pytest
 
@@ -11,6 +12,9 @@ from starlette.exceptions import StarletteDeprecationWarning  # noqa: E402
 from web.app import create_app  # noqa: E402
 from web.history import ReportHistory  # noqa: E402
 from web.manager import RunManager  # noqa: E402
+from web.models import AnalysisRequest  # noqa: E402
+from web.repositories import SettingsRepository  # noqa: E402
+from web.storage import SQLiteStore  # noqa: E402
 
 
 def _request(**overrides):
@@ -150,6 +154,62 @@ def test_validation_does_not_emit_starlette_status_deprecation(harness):
             )
             assert invalid.status_code == 422
             assert invalid.json() == {"detail": "invalid analysis configuration"}
+
+
+def test_create_app_injects_lifecycle_config_and_start_run_freezes_it(tmp_path):
+    store = SQLiteStore(tmp_path / "runs.sqlite3")
+    SettingsRepository(store).set("run_timeout_seconds", 3600)
+    fixed_now = datetime(2026, 8, 27, tzinfo=timezone.utc)
+    manager = RunManager(store=store, clock=lambda: fixed_now)
+    app = create_app(
+        manager=manager,
+        config={
+            "results_dir": str(tmp_path),
+            "project_dir": str(tmp_path),
+            "run_timeout_seconds": 5400,
+            "run_heartbeat_interval_seconds": 20,
+            "run_heartbeat_timeout_seconds": 120,
+        },
+    )
+    assert manager.lifecycle_config["run_timeout_seconds"] == {
+        "value": 3600,
+        "source": "sqlite",
+    }
+    request = AnalysisRequest(
+        ticker="AAPL",
+        analysis_date="2026-08-27",
+        analysts=["market"],
+        research_depth=1,
+    )
+    run = manager.start_run(request, run_id="lifecycle")
+    assert run.last_heartbeat_at == fixed_now
+    assert run.timeout_at == datetime(2026, 8, 27, 1, tzinfo=timezone.utc)
+    assert (run.run_timeout_seconds, run.run_heartbeat_interval_seconds, run.run_heartbeat_timeout_seconds) == (3600, 20, 120)
+    with store.connection() as conn:
+        stored = conn.execute(
+            "SELECT timeout_at,run_timeout_seconds,run_heartbeat_interval_seconds,"
+            "run_heartbeat_timeout_seconds FROM web_runs WHERE run_id='lifecycle'"
+        ).fetchone()
+    assert tuple(stored) == (run.timeout_at.isoformat(), 3600, 20, 120)
+    assert app.state.manager is manager
+    manager.shutdown()
+    store.close()
+
+
+def test_create_app_rejects_invalid_lifecycle_configuration(tmp_path):
+    manager = RunManager()
+    try:
+        with pytest.raises(ValueError, match="run_timeout_seconds"):
+            create_app(
+                manager=manager,
+                config={
+                    "results_dir": str(tmp_path),
+                    "project_dir": str(tmp_path),
+                    "run_timeout_seconds": 299,
+                },
+            )
+    finally:
+        manager.shutdown()
 
 
 def test_sse_emits_envelopes_and_last_event_id_wins(harness):

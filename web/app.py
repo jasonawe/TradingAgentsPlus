@@ -24,6 +24,7 @@ from .config import (
     market_data_catalog,
     model_catalog,
     resolve_model_config,
+    resolve_run_lifecycle_config,
 )
 from .history import ReportHistory, ReportNotFound
 from .manager import ActiveRunError, EventBatch, RunManager
@@ -129,10 +130,16 @@ def create_app(
         store = SQLiteStore(manager._db_path)
     else:
         store = SQLiteStore(run_db_path)
-    active_manager = manager or RunManager(store=store)
+    settings_repo = SettingsRepository(store)
+    lifecycle_config = resolve_run_lifecycle_config(
+        config if config is not None else {}, settings_repo.all()
+    )
+    active_manager = manager or RunManager(store=store, lifecycle_config=lifecycle_config)
     if manager is not None and getattr(manager, "_store", None) is None:
         manager._store = store
         manager._db_path = store.path
+    if manager is not None:
+        manager.configure_lifecycle(lifecycle_config)
     active_history = history or ReportHistory(
         results_dir=active_config.get("results_dir"), cwd=active_config.get("project_dir")
     )
@@ -146,10 +153,9 @@ def create_app(
         "quotes": QuoteRepository(store),
         "runs": AnalysisRunRepository(store),
         "snapshots": SnapshotRepository(store),
-        "settings": SettingsRepository(store),
+        "settings": settings_repo,
         "reports": ReportRepository(store),
     }
-    settings_repo = app.state.repositories["settings"]
     providers = {"yfinance": YFinanceProvider(), "alpha_vantage": AlphaVantageProvider()}
     app.state.market_router = ProviderRouter(providers)
     app.state.market_service = QuoteService(

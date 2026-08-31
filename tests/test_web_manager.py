@@ -91,7 +91,7 @@ def test_direct_db_path_uses_full_store_migration_and_replays_restart_interrupt(
     manager.shutdown()
     restored = RunManager(db_path=database)
     with restored._store.connection() as conn:
-        assert conn.execute("SELECT version FROM schema_version").fetchone()[0] == 1
+        assert conn.execute("SELECT version FROM schema_version").fetchone()[0] == 2
         assert conn.execute("SELECT id FROM watchlists WHERE id='default'").fetchone() is not None
         assert conn.execute("SELECT COUNT(*) FROM web_run_events WHERE run_id='queued-restart'").fetchone()[0] >= 1
     events = restored.read_events("queued-restart", 0).events

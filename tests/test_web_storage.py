@@ -1,4 +1,5 @@
 import sqlite3
+from pathlib import Path
 
 import pytest
 
@@ -13,11 +14,65 @@ def test_store_migrates_schema_and_preserves_existing_web_runs(tmp_path):
         )
         conn.execute("INSERT INTO web_runs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ("r1", "{}", "completed", None, None, 1.0, None, None, None, "BUY", "rep", None, None, None))
     store = SQLiteStore(db)
-    assert store.schema_version == 1
+    assert store.schema_version == 2
     with store.connection() as conn:
-        assert conn.execute("SELECT report_id FROM web_runs WHERE run_id='r1'").fetchone()[0] == "rep"
+        row = conn.execute(
+            "SELECT report_id,last_heartbeat_at,timeout_at,terminal_reason,"
+            "run_timeout_seconds,run_heartbeat_interval_seconds,"
+            "run_heartbeat_timeout_seconds FROM web_runs WHERE run_id='r1'"
+        ).fetchone()
+        assert tuple(row) == ("rep", None, None, None, None, None, None)
         tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-        assert {"schema_version", "web_runs", "watchlists", "watchlist_items", "market_quotes", "market_candles", "analysis_data_snapshots", "settings", "web_run_events"} <= tables
+        assert {
+            "schema_version",
+            "web_runs",
+            "watchlists",
+            "watchlist_items",
+            "market_quotes",
+            "market_candles",
+            "analysis_data_snapshots",
+            "settings",
+            "web_run_events",
+            "reports",
+            "report_index_outbox",
+            "provider_health",
+        } <= tables
+    store.close()
+
+
+def test_v2_schema_matches_the_reliability_contract(tmp_path):
+    store = SQLiteStore(tmp_path / "web.sqlite3")
+    expected = {
+        "reports": {
+            "report_id", "run_id", "ticker", "asset_type", "analysis_date",
+            "generated_at", "status", "rating", "signal", "output_language",
+            "summary_status", "decision_preview", "data_snapshot_id", "provider",
+            "quick_model", "deep_model", "analysts_json", "research_depth",
+            "data_status", "reproducibility", "quote_strategy_id",
+            "effective_quote_provider_chain", "root_name", "relative_path", "source",
+            "index_status", "path_state", "updated_at",
+        },
+        "report_index_outbox": {
+            "report_id", "root_name", "relative_path", "payload_json", "attempts",
+            "last_error", "updated_at",
+        },
+        "provider_health": {
+            "provider", "status", "window_started_at", "request_count",
+            "failure_count", "consecutive_failures", "last_success_at",
+            "last_failure_at", "last_latency_ms", "last_error_code",
+            "last_error_message", "updated_at",
+        },
+    }
+    with store.connection() as conn:
+        for table, columns in expected.items():
+            assert {row[1] for row in conn.execute(f"PRAGMA table_info({table})")} == columns
+        indexes = {row[1] for row in conn.execute("PRAGMA index_list(reports)")}
+        assert {
+            "idx_reports_generated",
+            "idx_reports_ticker",
+            "idx_reports_status",
+            "idx_reports_analysis_date",
+        } <= indexes
     store.close()
 
 
@@ -35,6 +90,31 @@ def test_failed_migration_rolls_back(tmp_path):
     with sqlite3.connect(bad) as conn:
         assert conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='broken'").fetchone() is None
         assert conn.execute("SELECT version FROM schema_version").fetchone()[0] == 0
+
+
+def test_v2_python_hook_and_sql_roll_back_as_one_transaction(tmp_path):
+    migration_dir = tmp_path / "migrations"
+    migration_dir.mkdir()
+    source_v1 = Path(__file__).parents[1] / "web" / "migrations" / "001_personal_platform.sql"
+    (migration_dir / source_v1.name).write_text(source_v1.read_text(encoding="utf-8"), encoding="utf-8")
+    v1_store = SQLiteStore(tmp_path / "web.sqlite3", migrations_dir=migration_dir)
+    assert v1_store.schema_version == 1
+    v1_store.close()
+
+    (migration_dir / "002_reliability_operations.sql").write_text(
+        "CREATE TABLE should_rollback (value TEXT); THIS IS INVALID;",
+        encoding="utf-8",
+    )
+    with pytest.raises(sqlite3.Error):
+        SQLiteStore(tmp_path / "web.sqlite3", migrations_dir=migration_dir)
+
+    with sqlite3.connect(tmp_path / "web.sqlite3") as conn:
+        assert conn.execute("SELECT version FROM schema_version").fetchone()[0] == 1
+        columns = {row[1] for row in conn.execute("PRAGMA table_info(web_runs)")}
+        assert "last_heartbeat_at" not in columns
+        assert conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='should_rollback'"
+        ).fetchone() is None
 
 
 def test_migration_parser_handles_semicolons_in_strings_and_comments(tmp_path):

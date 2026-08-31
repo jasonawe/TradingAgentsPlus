@@ -116,6 +116,7 @@ class SQLiteStore:
                     sql = migration.read_text(encoding="utf-8")
                     conn.execute("BEGIN IMMEDIATE")
                     try:
+                        self._run_python_migration_hook(conn, version)
                         # Feed complete statements to sqlite without splitting
                         # semicolons inside quoted strings or comments.
                         statement = ""
@@ -134,6 +135,29 @@ class SQLiteStore:
                     current = version
             finally:
                 conn.close()
+
+    @staticmethod
+    def _run_python_migration_hook(conn: sqlite3.Connection, version: int) -> None:
+        """Run compatibility changes that cannot be expressed idempotently in SQL."""
+
+        if version != 2:
+            return
+        if not conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='web_runs'"
+        ).fetchone():
+            return
+        existing = {row[1] for row in conn.execute("PRAGMA table_info(web_runs)")}
+        lifecycle_columns = {
+            "last_heartbeat_at": "TEXT",
+            "timeout_at": "TEXT",
+            "terminal_reason": "TEXT",
+            "run_timeout_seconds": "INTEGER",
+            "run_heartbeat_interval_seconds": "INTEGER",
+            "run_heartbeat_timeout_seconds": "INTEGER",
+        }
+        for name, kind in lifecycle_columns.items():
+            if name not in existing:
+                conn.execute(f"ALTER TABLE web_runs ADD COLUMN {name} {kind}")
 
     @property
     def schema_version(self) -> int:

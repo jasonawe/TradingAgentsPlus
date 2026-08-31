@@ -8,6 +8,9 @@ _TRADINGAGENTS_HOME = os.path.join(os.path.expanduser("~"), ".tradingagents")
 # of the existing default, so users can keep writing plain strings in
 # their .env file.
 _ENV_OVERRIDES = {
+    "TRADINGAGENTS_RUN_TIMEOUT_SECONDS": "run_timeout_seconds",
+    "TRADINGAGENTS_RUN_HEARTBEAT_INTERVAL_SECONDS": "run_heartbeat_interval_seconds",
+    "TRADINGAGENTS_RUN_HEARTBEAT_TIMEOUT_SECONDS": "run_heartbeat_timeout_seconds",
     "TRADINGAGENTS_QUOTE_TTL_SECONDS": "quote_ttl_seconds",
     "TRADINGAGENTS_QUOTE_STRATEGY": "quote_strategy_id",
     "TRADINGAGENTS_LLM_PROVIDER":         "llm_provider",
@@ -76,6 +79,9 @@ DEFAULT_CONFIG = _apply_env_overrides({
     "data_cache_dir": os.getenv("TRADINGAGENTS_CACHE_DIR", os.path.join(_TRADINGAGENTS_HOME, "cache")),
     "quote_ttl_seconds": 60,
     "quote_strategy_id": "default-yfinance",
+    "run_timeout_seconds": 7200,
+    "run_heartbeat_interval_seconds": 15,
+    "run_heartbeat_timeout_seconds": 180,
     "memory_log_path": os.getenv("TRADINGAGENTS_MEMORY_LOG_PATH", os.path.join(_TRADINGAGENTS_HOME, "memory", "trading_memory.md")),
     # Optional cap on the number of resolved memory log entries. When set,
     # the oldest resolved entries are pruned once this limit is exceeded.
