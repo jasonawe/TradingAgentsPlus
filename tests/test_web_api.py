@@ -176,7 +176,7 @@ def test_history_detail_and_download_are_allowlisted(harness):
         encoding="utf-8",
     )
     (report_dir / "run.json").write_text(
-        json.dumps({"report_id": "run-1", "ticker": "NVDA", "generated_at": "2026-08-26T10:00:00+00:00", "status": "completed"}),
+        json.dumps({"report_id": "run-1", "ticker": "NVDA", "generated_at": "2026-08-26T10:00:00+00:00", "status": "completed", "signal": "Underweight"}),
         encoding="utf-8",
     )
     (report_dir / "COMMITTED").write_text("ok\n", encoding="utf-8")
@@ -184,8 +184,12 @@ def test_history_detail_and_download_are_allowlisted(harness):
         listing = client.get("/api/history")
         assert listing.status_code == 200
         assert listing.json()[0]["report_id"] == "run-1"
+        assert listing.json()[0]["signal"] == "Underweight"
+        assert listing.json()[0]["rating"] == "Underweight"
         detail = client.get("/api/history/run-1")
         assert detail.status_code == 200
+        assert detail.json()["signal"] == "Underweight"
+        assert detail.json()["rating"] == "Underweight"
         assert detail.json()["complete_report"].startswith("# report\n")
         assert "<table>" in detail.json()["complete_report_html"]
         assert "<hr>" in detail.json()["complete_report_html"]
