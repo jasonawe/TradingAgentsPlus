@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from web.storage import SQLiteStore
 
+from web.config import _parse_integer_setting
 from web.models import (
     AnalysisRequest,
     EventEnvelope,
@@ -124,10 +125,10 @@ class RunManager:
         for key, (minimum, maximum) in ranges.items():
             item = lifecycle_config[key]
             if isinstance(item, dict):
-                value = int(item["value"])
+                value = _parse_integer_setting(key, item["value"])
                 source = str(item.get("source") or "configured")
             else:
-                value = int(item)
+                value = _parse_integer_setting(key, item)
                 source = "configured"
             if value < minimum or value > maximum:
                 raise ValueError(f"invalid {key}: expected {minimum}..{maximum}")
@@ -378,7 +379,8 @@ class RunManager:
                 return self._copy_record(state.record)
             state.record.status = RunStatus.FAILED
             state.record.finished_at = self._clock()
-            state.record.error_code = self._sanitize_code(error_code)
+            state.record.terminal_reason = self._sanitize_code(error_code)
+            state.record.error_code = state.record.terminal_reason
             state.record.error_message = self._sanitize_error(error_message)
             self._finish_locked(state)
             self._persist_locked(state.record)
@@ -591,7 +593,8 @@ class RunManager:
                     state = self._records[record.run_id]
                     state.record.status = RunStatus.INTERRUPTED
                     state.record.finished_at = now
-                    state.record.error_code = "service_restart"
+                    state.record.terminal_reason = "service_restart"
+                    state.record.error_code = state.record.terminal_reason
                     state.record.error_message = "analysis interrupted by web service restart"
                     state.terminal_expires_at = now + self.terminal_ttl
                     self._persist_locked(state.record)

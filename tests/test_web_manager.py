@@ -49,6 +49,27 @@ def test_sqlite_persists_terminal_run_metadata_across_manager_instances(tmp_path
     restored.shutdown()
 
 
+def test_terminal_reason_is_canonical_for_failed_and_restarted_runs(tmp_path):
+    database = tmp_path / "terminal-reason.sqlite3"
+    manager = RunManager(db_path=database)
+    failed = manager.start_run(request(), run_id="failed-run")
+    manager.begin_run(failed.run_id)
+    failed = manager.fail_run(
+        failed.run_id,
+        error_code="provider_error",
+        error_message="provider failed",
+    )
+    assert failed.terminal_reason == failed.error_code == "provider_error"
+
+    manager.start_run(request("MSFT"), run_id="restart-run")
+    manager.shutdown()
+
+    restored = RunManager(db_path=database)
+    interrupted = restored.get_run("restart-run")
+    assert interrupted.terminal_reason == interrupted.error_code == "service_restart"
+    restored.shutdown()
+
+
 def test_sqlite_persists_live_progress_snapshot_across_manager_instances(tmp_path):
     database = tmp_path / "progress.sqlite3"
     manager = RunManager(db_path=database)

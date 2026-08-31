@@ -45,6 +45,18 @@ _RUN_LIFECYCLE_SETTINGS = {
 }
 
 
+def _parse_integer_setting(key: str, raw: Any) -> int:
+    if isinstance(raw, bool):
+        raise ValueError(f"invalid {key}: expected integer")
+    if isinstance(raw, int):
+        return raw
+    if isinstance(raw, str):
+        value = raw.strip()
+        if value and value.lstrip("+-").isdigit():
+            return int(value)
+    raise ValueError(f"invalid {key}: expected integer")
+
+
 def resolve_run_lifecycle_config(
     config: dict[str, Any], settings: dict[str, Any] | None = None
 ) -> dict[str, dict[str, int | str]]:
@@ -66,12 +78,7 @@ def resolve_run_lifecycle_config(
             raw, source = DEFAULT_CONFIG[key], "default_config"
         else:
             raw, source = hard_fallback, "hard_fallback"
-        if isinstance(raw, bool):
-            raise ValueError(f"invalid {key}: expected integer")
-        try:
-            value = int(raw)
-        except (TypeError, ValueError) as exc:
-            raise ValueError(f"invalid {key}: expected integer") from exc
+        value = _parse_integer_setting(key, raw)
         if value < minimum or value > maximum:
             raise ValueError(f"invalid {key}: expected {minimum}..{maximum}")
         resolved[key] = {"value": value, "source": source}

@@ -268,6 +268,8 @@ def test_run_lifecycle_environment_names_are_registered():
         ("run_heartbeat_timeout_seconds", 29),
         ("run_heartbeat_timeout_seconds", 601),
         ("run_timeout_seconds", "not-an-int"),
+        ("run_timeout_seconds", 86400.9),
+        ("run_heartbeat_interval_seconds", "15.5"),
     ],
 )
 def test_run_lifecycle_config_rejects_invalid_values(monkeypatch, key, value):
