@@ -67,7 +67,13 @@ class RunManager:
     """
 
     _TERMINAL_STATUSES = frozenset(
-        (RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED, RunStatus.INTERRUPTED)
+        (
+            RunStatus.COMPLETED,
+            RunStatus.FAILED,
+            RunStatus.CANCELLED,
+            RunStatus.INTERRUPTED,
+            RunStatus.TIMED_OUT,
+        )
     )
     _WORKER_ERROR_MESSAGE = "analysis worker failed"
 
@@ -344,7 +350,10 @@ class RunManager:
 
         with self._lock:
             state = self._state(run_id)
-            if state.record.status not in (RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED, RunStatus.PUBLISHING, RunStatus.INTERRUPTED):
+            if (
+                state.record.status not in self._TERMINAL_STATUSES
+                and state.record.status is not RunStatus.PUBLISHING
+            ):
                 state.cancel_event.set()
                 self._persist_locked(state.record)
             return self._copy_record(state.record)
@@ -356,7 +365,7 @@ class RunManager:
     def complete_run(self, run_id: str, *, signal: str | None, report_id: str) -> RunRecord:
         with self._lock:
             state = self._state(run_id)
-            if state.record.status in (RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED):
+            if state.record.status in self._TERMINAL_STATUSES:
                 return self._copy_record(state.record)
             state.record.status = RunStatus.COMPLETED
             state.record.finished_at = self._clock()
@@ -375,7 +384,7 @@ class RunManager:
     def fail_run(self, run_id: str, *, error_code: str, error_message: str) -> RunRecord:
         with self._lock:
             state = self._state(run_id)
-            if state.record.status in (RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED):
+            if state.record.status in self._TERMINAL_STATUSES:
                 return self._copy_record(state.record)
             state.record.status = RunStatus.FAILED
             state.record.finished_at = self._clock()
@@ -401,7 +410,10 @@ class RunManager:
     ) -> RunRecord:
         with self._lock:
             state = self._state(run_id)
-            if state.record.status in (RunStatus.COMPLETED, RunStatus.FAILED, RunStatus.CANCELLED, RunStatus.INTERRUPTED, RunStatus.PUBLISHING):
+            if (
+                state.record.status in self._TERMINAL_STATUSES
+                or state.record.status is RunStatus.PUBLISHING
+            ):
                 return self._copy_record(state.record)
             state.cancel_event.set()
             state.record.status = RunStatus.CANCELLED

@@ -70,6 +70,40 @@ def test_terminal_reason_is_canonical_for_failed_and_restarted_runs(tmp_path):
     restored.shutdown()
 
 
+def test_persisted_timed_out_run_rejects_late_events_and_transitions(tmp_path):
+    database = tmp_path / "timed-out-terminal.sqlite3"
+    manager = RunManager(db_path=database)
+    run = manager.start_run(request(), run_id="timed-out-run")
+    manager.begin_run(run.run_id)
+    with manager._store.connection() as conn:
+        conn.execute(
+            "UPDATE web_runs SET status='timed_out',terminal_reason='heartbeat_timeout',"
+            "error_code='heartbeat_timeout' WHERE run_id=?",
+            (run.run_id,),
+        )
+    manager.shutdown()
+
+    restored = RunManager(db_path=database)
+    before = restored.get_run(run.run_id)
+    assert before.status is RunStatus.TIMED_OUT
+    assert restored.read_events(run.run_id, 0).terminal is True
+    assert restored.publish(
+        run.run_id,
+        EventName.MESSAGE,
+        {"message_type": "late", "text": "ignored"},
+    ) is None
+    assert restored.complete_run(run.run_id, signal="BUY", report_id="late") == before
+    assert restored.fail_run(
+        run.run_id,
+        error_code="late_failure",
+        error_message="ignored",
+    ) == before
+    assert restored.cancel_run(run.run_id) == before
+    restored.request_cancel(run.run_id)
+    assert restored.is_cancelled(run.run_id) is False
+    restored.shutdown()
+
+
 def test_sqlite_persists_live_progress_snapshot_across_manager_instances(tmp_path):
     database = tmp_path / "progress.sqlite3"
     manager = RunManager(db_path=database)
