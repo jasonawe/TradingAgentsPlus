@@ -51,10 +51,12 @@ class WebRunRunner:
         *,
         graph_factory: Callable[..., Any] = TradingAgentsGraph,
         config: dict[str, Any] | None = None,
+        report_history: Any | None = None,
     ) -> None:
         self.manager = manager
         self.graph_factory = graph_factory
         self.config = config
+        self.report_history = report_history
 
     def worker(self, run_id: str) -> None:
         state = self.manager._state(run_id)  # guarded by manager methods below
@@ -189,6 +191,8 @@ class WebRunRunner:
             temporary_dir.rename(report_dir)
             with suppress(OSError):
                 temporary_dir.parent.rmdir()
+            if self.report_history is not None:
+                self.report_history.index_report(report_dir)
             self.manager.complete_publishing(
                 run_id,
                 signal=signal,

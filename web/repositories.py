@@ -6,7 +6,7 @@ import json
 import sqlite3
 import uuid
 from datetime import datetime, timezone
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from cli.utils import is_valid_ticker_input, normalize_ticker_symbol
@@ -311,6 +311,398 @@ class AnalysisRunRepository:
         elif value.get("terminal_reason") is not None:
             value["error_code"] = value["terminal_reason"]
         return value
+
+
+class ReportIndexRepository:
+    """SQLite read index for report metadata with a durable outbox overlay."""
+
+    ROOT_NAMES = frozenset({"web_reports", "results_reports", "cwd_reports"})
+    STATUSES = frozenset(
+        {"completed", "failed", "cancelled", "interrupted", "timed_out"}
+    )
+    SOURCES = frozenset({"web", "legacy"})
+    INDEX_STATUSES = frozenset({"indexed", "pending", "error"})
+    PATH_STATES = frozenset({"valid", "missing", "unsafe"})
+    ASSET_TYPES = frozenset({"stock", "crypto"})
+    SORTS = frozenset({"generated_at_desc", "generated_at_asc"})
+    _FIELDS = (
+        "report_id",
+        "run_id",
+        "ticker",
+        "asset_type",
+        "analysis_date",
+        "generated_at",
+        "status",
+        "rating",
+        "signal",
+        "output_language",
+        "summary_status",
+        "decision_preview",
+        "data_snapshot_id",
+        "provider",
+        "quick_model",
+        "deep_model",
+        "analysts_json",
+        "research_depth",
+        "data_status",
+        "reproducibility",
+        "quote_strategy_id",
+        "effective_quote_provider_chain",
+        "root_name",
+        "relative_path",
+        "source",
+        "index_status",
+        "path_state",
+        "updated_at",
+    )
+
+    def __init__(self, store: SQLiteStore) -> None:
+        self.store = store
+
+    def upsert(self, metadata: dict[str, Any]) -> dict[str, Any]:
+        normalized = self._normalize(metadata)
+        with self.store.connection() as conn:
+            self._upsert_connection(conn, normalized)
+        return self._decode(normalized)
+
+    def enqueue(self, metadata: dict[str, Any], error: Any) -> dict[str, Any]:
+        normalized = self._normalize(
+            {
+                **metadata,
+                "index_status": "pending",
+                "updated_at": _now(),
+            }
+        )
+        payload = self._payload(normalized)
+        message = " ".join(str(error or "index update failed").split())[:512]
+        with self.store.connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO report_index_outbox(
+                    report_id,root_name,relative_path,payload_json,attempts,last_error,updated_at
+                ) VALUES (?,?,?,?,0,?,?)
+                ON CONFLICT(report_id) DO UPDATE SET
+                    root_name=excluded.root_name,
+                    relative_path=excluded.relative_path,
+                    payload_json=excluded.payload_json,
+                    last_error=excluded.last_error,
+                    updated_at=excluded.updated_at
+                """,
+                (
+                    normalized["report_id"],
+                    normalized["root_name"],
+                    normalized["relative_path"],
+                    json.dumps(payload, ensure_ascii=False, separators=(",", ":")),
+                    message,
+                    normalized["updated_at"],
+                ),
+            )
+        return self._decode(normalized)
+
+    def retry_outbox(self, limit: int = 50) -> int:
+        if isinstance(limit, bool) or not isinstance(limit, int) or limit < 1:
+            raise ValueError("invalid outbox limit")
+        with self.store.connection() as conn:
+            rows = conn.execute(
+                "SELECT report_id,payload_json FROM report_index_outbox "
+                "ORDER BY updated_at,report_id LIMIT ?",
+                (limit,),
+            ).fetchall()
+        completed = 0
+        for row in rows:
+            try:
+                payload = json.loads(row["payload_json"])
+                self.upsert(payload)
+                with self.store.connection() as conn:
+                    conn.execute(
+                        "DELETE FROM report_index_outbox WHERE report_id=?",
+                        (row["report_id"],),
+                    )
+                completed += 1
+            except Exception as exc:
+                message = " ".join(str(exc).split())[:512]
+                with self.store.connection() as conn:
+                    conn.execute(
+                        "UPDATE report_index_outbox SET attempts=attempts+1,last_error=?,updated_at=? "
+                        "WHERE report_id=?",
+                        (message, _now(), row["report_id"]),
+                    )
+        return completed
+
+    def rebuild(
+        self,
+        records: list[dict[str, Any]],
+        *,
+        root_names: set[str] | frozenset[str] | None = None,
+    ) -> int:
+        normalized = [self._normalize(record) for record in records]
+        roots = set(root_names or (record["root_name"] for record in normalized))
+        if not roots.issubset(self.ROOT_NAMES):
+            raise ValueError("invalid report root")
+        with self.store.connection() as conn:
+            if roots:
+                placeholders = ",".join("?" for _ in roots)
+                conn.execute(
+                    f"UPDATE reports SET path_state='missing',updated_at=? "
+                    f"WHERE root_name IN ({placeholders})",
+                    (_now(), *sorted(roots)),
+                )
+            for record in normalized:
+                self._upsert_connection(conn, record)
+        return len(normalized)
+
+    def get(self, report_id: str) -> dict[str, Any] | None:
+        where = "combined.report_id=? AND combined.path_state='valid'"
+        with self.store.connection() as conn:
+            row = conn.execute(
+                f"{self._combined_cte()} SELECT * FROM combined WHERE {where} LIMIT 1",
+                (report_id,),
+            ).fetchone()
+        return self._decode(row) if row else None
+
+    def list_legacy_shape(self) -> list[dict[str, Any]]:
+        with self.store.connection() as conn:
+            rows = conn.execute(
+                f"{self._combined_cte()} SELECT * FROM combined "
+                "WHERE path_state='valid' "
+                "ORDER BY generated_at IS NULL ASC, generated_at DESC, report_id ASC"
+            ).fetchall()
+        return [self._decode(row) for row in rows]
+
+    def search(
+        self,
+        *,
+        page: int = 1,
+        page_size: int = 20,
+        query: str | None = None,
+        ticker: str | None = None,
+        status: str | None = None,
+        asset_type: str | None = None,
+        date_from: str | None = None,
+        date_to: str | None = None,
+        sort: str = "generated_at_desc",
+    ) -> dict[str, Any]:
+        if isinstance(page, bool) or not isinstance(page, int) or not 1 <= page <= 100000:
+            raise ValueError("invalid page")
+        if (
+            isinstance(page_size, bool)
+            or not isinstance(page_size, int)
+            or not 1 <= page_size <= 100
+        ):
+            raise ValueError("invalid page size")
+        if status is not None and status not in self.STATUSES:
+            raise ValueError("invalid status")
+        if asset_type is not None and asset_type not in self.ASSET_TYPES:
+            raise ValueError("invalid asset type")
+        if sort not in self.SORTS:
+            raise ValueError("invalid sort")
+        filters = ["path_state='valid'"]
+        parameters: list[Any] = []
+        exact_ticker = (ticker or "").strip()
+        search_query = (query or "").strip()
+        if exact_ticker:
+            filters.append("ticker = ? COLLATE NOCASE")
+            parameters.append(exact_ticker)
+        elif search_query:
+            filters.append(
+                "(LOWER(COALESCE(ticker,'')) LIKE ? OR "
+                "LOWER(COALESCE(decision_preview,'')) LIKE ?)"
+            )
+            pattern = f"%{search_query.lower()}%"
+            parameters.extend((pattern, pattern))
+        if status:
+            filters.append("status=?")
+            parameters.append(status)
+        if asset_type:
+            filters.append("asset_type=?")
+            parameters.append(asset_type)
+        if date_from:
+            filters.append("analysis_date>=?")
+            parameters.append(str(date_from))
+        if date_to:
+            filters.append("analysis_date<=?")
+            parameters.append(str(date_to))
+        where = " AND ".join(filters)
+        direction = "DESC" if sort == "generated_at_desc" else "ASC"
+        order = (
+            f"generated_at IS NULL ASC, generated_at {direction}, report_id ASC"
+        )
+        offset = (page - 1) * page_size
+        cte = self._combined_cte()
+        with self.store.connection() as conn:
+            total = int(
+                conn.execute(
+                    f"{cte} SELECT COUNT(*) FROM combined WHERE {where}",
+                    tuple(parameters),
+                ).fetchone()[0]
+            )
+            rows = conn.execute(
+                f"{cte} SELECT * FROM combined WHERE {where} ORDER BY {order} "
+                "LIMIT ? OFFSET ?",
+                (*parameters, page_size, offset),
+            ).fetchall()
+        items = [self._decode(row) for row in rows]
+        return {
+            "items": items,
+            "page": page,
+            "page_size": page_size,
+            "total": total,
+            "has_next": offset + len(items) < total,
+        }
+
+    @classmethod
+    def _combined_cte(cls) -> str:
+        outbox_fields = []
+        for field in cls._FIELDS:
+            if field == "report_id":
+                outbox_fields.append("report_id")
+            elif field in {"root_name", "relative_path"}:
+                outbox_fields.append(field)
+            else:
+                outbox_fields.append(
+                    f"json_extract(payload_json, '$.{field}') AS {field}"
+                )
+        fields = ",".join(cls._FIELDS)
+        return (
+            "WITH combined AS ("
+            f"SELECT {fields} FROM reports WHERE report_id NOT IN "
+            "(SELECT report_id FROM report_index_outbox) UNION ALL "
+            f"SELECT {','.join(outbox_fields)} FROM report_index_outbox)"
+        )
+
+    @classmethod
+    def _normalize(cls, metadata: dict[str, Any]) -> dict[str, Any]:
+        value = dict(metadata)
+        report_id = str(value.get("report_id") or "").strip()
+        if not report_id:
+            raise ValueError("invalid report id")
+        root_name = str(value.get("root_name") or "")
+        if root_name not in cls.ROOT_NAMES:
+            raise ValueError("invalid report root")
+        relative_path = str(value.get("relative_path") or "")
+        path = PurePosixPath(relative_path)
+        if (
+            not relative_path
+            or "\\" in relative_path
+            or path.is_absolute()
+            or any(part in {"", ".", ".."} for part in path.parts)
+            or path.as_posix() != relative_path
+        ):
+            raise ValueError("invalid report path")
+        status = str(value.get("status") or "completed")
+        source = str(value.get("source") or "web")
+        index_status = str(value.get("index_status") or "indexed")
+        path_state = str(value.get("path_state") or "valid")
+        if status not in cls.STATUSES:
+            raise ValueError("invalid report status")
+        if source not in cls.SOURCES:
+            raise ValueError("invalid report source")
+        if index_status not in cls.INDEX_STATUSES:
+            raise ValueError("invalid index status")
+        if path_state not in cls.PATH_STATES:
+            raise ValueError("invalid path state")
+        asset_type = value.get("asset_type")
+        if asset_type is not None and asset_type not in cls.ASSET_TYPES:
+            raise ValueError("invalid asset type")
+        rating = value.get("rating")
+        if rating is None:
+            rating = value.get("signal")
+        rating = str(rating) if rating is not None else None
+        analysts = value.get("analysts", [])
+        if not isinstance(analysts, list):
+            analysts = []
+        providers = value.get("effective_quote_provider_chain", [])
+        if not isinstance(providers, list):
+            providers = []
+        preview = " ".join(str(value.get("decision_preview") or "").split())[:512]
+        return {
+            "report_id": report_id,
+            "run_id": cls._text(value.get("run_id")),
+            "ticker": cls._text(value.get("ticker")),
+            "asset_type": asset_type,
+            "analysis_date": cls._text(value.get("analysis_date")),
+            "generated_at": cls._text(value.get("generated_at")),
+            "status": status,
+            "rating": rating,
+            "signal": rating,
+            "output_language": cls._text(value.get("output_language")),
+            "summary_status": cls._text(value.get("summary_status")),
+            "decision_preview": preview,
+            "data_snapshot_id": cls._text(value.get("data_snapshot_id")),
+            "provider": cls._text(value.get("provider")),
+            "quick_model": cls._text(value.get("quick_model")),
+            "deep_model": cls._text(value.get("deep_model")),
+            "analysts_json": json.dumps(
+                [str(item) for item in analysts], ensure_ascii=False
+            ),
+            "research_depth": value.get("research_depth")
+            if isinstance(value.get("research_depth"), int)
+            else None,
+            "data_status": cls._text(value.get("data_status")),
+            "reproducibility": cls._text(value.get("reproducibility")),
+            "quote_strategy_id": cls._text(value.get("quote_strategy_id")),
+            "effective_quote_provider_chain": json.dumps(
+                [str(item) for item in providers], ensure_ascii=False
+            ),
+            "root_name": root_name,
+            "relative_path": relative_path,
+            "source": source,
+            "index_status": index_status,
+            "path_state": path_state,
+            "updated_at": cls._text(value.get("updated_at")) or _now(),
+        }
+
+    @classmethod
+    def _upsert_connection(
+        cls, conn: sqlite3.Connection, normalized: dict[str, Any]
+    ) -> None:
+        fields = cls._FIELDS
+        updates = ",".join(
+            f"{field}=excluded.{field}" for field in fields if field != "report_id"
+        )
+        conn.execute(
+            f"INSERT INTO reports ({','.join(fields)}) VALUES "
+            f"({','.join('?' for _ in fields)}) "
+            f"ON CONFLICT(report_id) DO UPDATE SET {updates}",
+            tuple(normalized.get(field) for field in fields),
+        )
+
+    @classmethod
+    def _payload(cls, normalized: dict[str, Any]) -> dict[str, Any]:
+        payload = dict(normalized)
+        payload["analysts"] = cls._json_list(payload.get("analysts_json"))
+        payload["effective_quote_provider_chain"] = cls._json_list(
+            payload.get("effective_quote_provider_chain")
+        )
+        return payload
+
+    @classmethod
+    def _decode(cls, row: Any) -> dict[str, Any]:
+        value = dict(row)
+        value["analysts"] = cls._json_list(value.pop("analysts_json", None))
+        value["effective_quote_provider_chain"] = cls._json_list(
+            value.get("effective_quote_provider_chain")
+        )
+        value["rating"] = value.get("rating") or value.get("signal")
+        value["signal"] = value["rating"]
+        value["data_status"] = value.get("data_status") or "unknown"
+        return value
+
+    @staticmethod
+    def _json_list(value: Any) -> list[str]:
+        if isinstance(value, list):
+            return [str(item) for item in value]
+        if not value:
+            return []
+        try:
+            decoded = json.loads(value)
+        except (TypeError, ValueError):
+            return []
+        return [str(item) for item in decoded] if isinstance(decoded, list) else []
+
+    @staticmethod
+    def _text(value: Any) -> str | None:
+        return str(value) if value is not None and str(value) != "" else None
 
 
 class ReportRepository:

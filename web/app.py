@@ -6,11 +6,12 @@ import copy
 import json
 import os
 import re
+import threading
 from collections.abc import Iterator
 from contextlib import asynccontextmanager
 from datetime import date, datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import FastAPI, Header, HTTPException, Query, Request, status
 from fastapi.exceptions import RequestValidationError
@@ -36,6 +37,7 @@ from .providers import AlphaVantageProvider, YFinanceProvider
 from .repositories import (
     AnalysisRunRepository,
     QuoteRepository,
+    ReportIndexRepository,
     ReportRepository,
     SettingsRepository,
     SnapshotRepository,
@@ -132,6 +134,7 @@ def create_app(
     else:
         store = SQLiteStore(run_db_path)
     settings_repo = SettingsRepository(store)
+    report_index_repo = ReportIndexRepository(store)
     lifecycle_config = resolve_run_lifecycle_config(
         config if config is not None else {}, settings_repo.all()
     )
@@ -143,14 +146,37 @@ def create_app(
         manager.configure_lifecycle(lifecycle_config)
     active_manager.set_report_root(Path(active_config.get("results_dir") or ".") / "web_reports")
     active_history = history or ReportHistory(
-        results_dir=active_config.get("results_dir"), cwd=active_config.get("project_dir")
+        results_dir=active_config.get("results_dir"),
+        cwd=active_config.get("project_dir"),
+        repository=report_index_repo,
     )
+    if history is not None:
+        active_history.attach_repository(report_index_repo)
+    report_index_stop = threading.Event()
+
+    def retry_report_index() -> None:
+        while not report_index_stop.wait(30.0):
+            try:
+                active_history.retry_outbox(limit=50)
+            except Exception:
+                continue
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
+        retry_thread = threading.Thread(
+            target=retry_report_index,
+            name="tradingagents-report-index",
+            daemon=True,
+        )
         try:
+            active_history.rebuild_index()
+            active_history.retry_outbox(limit=50)
+            retry_thread.start()
             yield
         finally:
+            report_index_stop.set()
+            if retry_thread.is_alive():
+                retry_thread.join(timeout=5.0)
             active_manager.shutdown()
 
     app = FastAPI(title="TradingAgents Web Console", lifespan=lifespan)
@@ -164,7 +190,8 @@ def create_app(
         "runs": AnalysisRunRepository(store),
         "snapshots": SnapshotRepository(store),
         "settings": settings_repo,
-        "reports": ReportRepository(store),
+        "reports": report_index_repo,
+        "report_gate": ReportRepository(store),
     }
     providers = {"yfinance": YFinanceProvider(), "alpha_vantage": AlphaVantageProvider()}
     app.state.market_router = ProviderRouter(providers)
@@ -377,7 +404,11 @@ def create_app(
                 "invalid analysis configuration",
             ) from exc
         if runner is None:
-            worker = WebRunRunner(active_manager, config=active_config).worker
+            worker = WebRunRunner(
+                active_manager,
+                config=active_config,
+                report_history=active_history,
+            ).worker
         elif hasattr(runner, "worker"):
             worker = runner.worker
         else:
@@ -447,8 +478,52 @@ def create_app(
             raise _error(status.HTTP_404_NOT_FOUND, "run not found") from exc
 
     @app.get("/api/history")
-    def list_history() -> list[dict[str, Any]]:
-        return active_history.list_reports()
+    def list_history(
+        request: Request,
+        page: int | None = Query(default=None, ge=1, le=100000),
+        page_size: int | None = Query(default=None, ge=1, le=100),
+        query: str | None = Query(default=None),
+        ticker: str | None = Query(default=None),
+        status_filter: str | None = Query(default=None, alias="status"),
+        asset_type: str | None = Query(default=None),
+        date_from: Annotated[date | None, Query()] = None,
+        date_to: Annotated[date | None, Query()] = None,
+        sort: str | None = Query(default=None),
+    ) -> Any:
+        if not request.query_params:
+            return active_history.list_reports()
+        if (
+            status_filter is not None
+            and status_filter not in ReportIndexRepository.STATUSES
+        ):
+            raise _error(
+                status.HTTP_422_UNPROCESSABLE_CONTENT, "invalid report status"
+            )
+        if (
+            asset_type is not None
+            and asset_type not in ReportIndexRepository.ASSET_TYPES
+        ):
+            raise _error(
+                status.HTTP_422_UNPROCESSABLE_CONTENT, "invalid asset type"
+            )
+        selected_sort = sort or "generated_at_desc"
+        if selected_sort not in ReportIndexRepository.SORTS:
+            raise _error(
+                status.HTTP_422_UNPROCESSABLE_CONTENT, "invalid report sort"
+            )
+        if date_from is not None and date_to is not None and date_from > date_to:
+            raise _error(status.HTTP_422_UNPROCESSABLE_CONTENT, "invalid date range")
+        return active_history.search_reports(
+            page=page or 1,
+            page_size=page_size or 20,
+            query=query,
+            ticker=ticker,
+            status=status_filter,
+            asset_type=asset_type,
+            date_from=date_from.isoformat() if date_from is not None else None,
+            date_to=date_to.isoformat() if date_to is not None else None,
+            sort=selected_sort,
+        )
 
     @app.get("/api/history/{report_id}")
     def history_detail(report_id: str) -> dict[str, Any]:

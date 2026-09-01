@@ -36,6 +36,14 @@ class FakeGraph:
         (path / "complete_report.md").write_text("report", encoding="utf-8")
 
 
+class TrackingHistory:
+    def __init__(self):
+        self.indexed = []
+
+    def index_report(self, path):
+        self.indexed.append(Path(path))
+
+
 def test_runner_streams_events_and_writes_sidecar(tmp_path):
     manager = RunManager()
     run = manager.start_run(request(), run_id="run-1")
@@ -187,3 +195,25 @@ def test_runner_rejects_publication_after_deadline_expiry(tmp_path):
     record = manager.get_run(run.run_id)
     assert record.status is RunStatus.TIMED_OUT
     assert not (tmp_path / "web_reports" / "AAPL" / "2026-08-26" / run.run_id).exists()
+
+
+def test_runner_indexes_committed_report_before_terminal_completion(tmp_path, monkeypatch):
+    manager = RunManager()
+    run = manager.start_run(request(), run_id="run-index-order")
+    manager.begin_run(run.run_id)
+    history = TrackingHistory()
+    original_complete = manager.complete_publishing
+
+    def complete(*args, **kwargs):
+        assert history.indexed
+        assert (history.indexed[0] / "COMMITTED").is_file()
+        return original_complete(*args, **kwargs)
+
+    monkeypatch.setattr(manager, "complete_publishing", complete)
+    WebRunRunner(
+        manager,
+        graph_factory=FakeGraph,
+        config={"results_dir": str(tmp_path)},
+        report_history=history,
+    ).worker(run.run_id)
+    assert manager.get_run(run.run_id).status is RunStatus.COMPLETED

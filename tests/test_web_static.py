@@ -222,3 +222,15 @@ def test_client_snapshot_replay_and_future_terminal_status_fallback():
     assert "ACTIVE_RUN_STATUSES.has(record.status)" in js
     assert 'case "run_timed_out"' in js
     assert '"error.timedOut": "分析超时"' in js
+
+
+def test_report_library_uses_server_pagination_and_request_sequencing():
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    js = (STATIC / "app.js").read_text(encoding="utf-8")
+    for token in ("library-prev", "library-next", "library-total"):
+        assert f'id="{token}"' in html
+    for token in ("pageSize", "hasNext", "requestSeq", "loadLibraryPage", "URLSearchParams"):
+        assert token in js
+    assert "response.items || response" in js
+    assert "state.library.page = 1" in js
+    assert "client must not re-filter" not in js

@@ -321,6 +321,61 @@ def test_history_detail_and_download_are_allowlisted(harness):
         assert client.get("/api/history/unknown/download").status_code == 404
 
 
+def test_history_pagination_filters_and_preserves_legacy_response(harness):
+    app, _manager, _runner, tmp_path = harness
+    root = tmp_path / "results" / "web_reports"
+    for report_id, ticker, generated, status in (
+        ("r1", "AAPL", "2026-08-28T10:00:00+00:00", "completed"),
+        ("r2", "MSFT", "2026-08-27T10:00:00+00:00", "completed"),
+        ("r3", "AAPL", "2026-08-26T10:00:00+00:00", "timed_out"),
+    ):
+        report_dir = root / ticker / "2026-08-27" / report_id
+        report_dir.mkdir(parents=True)
+        (report_dir / "complete_report.md").write_text(
+            f"# Trading Analysis Report: {ticker}\n\n## V. Portfolio Manager Decision\n\n{ticker} growth",
+            encoding="utf-8",
+        )
+        (report_dir / "run.json").write_text(
+            json.dumps({"report_id": report_id, "ticker": ticker, "generated_at": generated, "analysis_date": "2026-08-27", "asset_type": "stock", "status": status}),
+            encoding="utf-8",
+        )
+        (report_dir / "COMMITTED").write_text("ok\n", encoding="utf-8")
+
+    with TestClient(app) as client:
+        legacy = client.get("/api/history")
+        assert isinstance(legacy.json(), list)
+        page = client.get("/api/history?page=1&page_size=1&query=growth&asset_type=stock&status=completed&sort=generated_at_desc")
+        assert page.status_code == 200
+        assert page.json()["page"] == 1
+        assert page.json()["page_size"] == 1
+        assert page.json()["total"] == 2
+        assert page.json()["has_next"] is True
+        assert [item["report_id"] for item in page.json()["items"]] == ["r1"]
+        exact = client.get("/api/history?page=1&ticker=msft&query=AAPL")
+        assert [item["report_id"] for item in exact.json()["items"]] == ["r2"]
+        empty = client.get("/api/history?page=99&page_size=20")
+        assert empty.status_code == 200
+        assert empty.json()["items"] == []
+        assert empty.json()["has_next"] is False
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        "page=0",
+        "page_size=101",
+        "status=running",
+        "asset_type=bond",
+        "sort=random",
+        "date_from=2026-08-28&date_to=2026-08-27",
+    ],
+)
+def test_history_pagination_rejects_invalid_parameters(harness, query):
+    app, _manager, _runner, _tmp = harness
+    with TestClient(app) as client:
+        assert client.get(f"/api/history?{query}").status_code == 422
+
+
 def _sse_data(text):
     for block in text.split("\n\n"):
         line = next((line for line in block.splitlines() if line.startswith("data: ")), None)

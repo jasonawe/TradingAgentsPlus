@@ -3,6 +3,7 @@ import pytest
 from web.repositories import (
     AnalysisRunRepository,
     QuoteRepository,
+    ReportIndexRepository,
     ReportRepository,
     SettingsRepository,
     SnapshotRepository,
@@ -163,4 +164,102 @@ def test_settings_allow_run_lifecycle_configuration(tmp_path):
     ):
         repo.set(key, value)
         assert repo.get(key) == {"value": str(value), "source": "sqlite"}
+    store.close()
+
+
+def _report_metadata(report_id="r1", **overrides):
+    value = {
+        "report_id": report_id,
+        "run_id": report_id,
+        "ticker": "AAPL",
+        "asset_type": "stock",
+        "analysis_date": "2026-08-27",
+        "generated_at": "2026-08-27T10:00:00+00:00",
+        "status": "completed",
+        "rating": "Hold",
+        "decision_preview": "维持持有",
+        "analysts": ["market", "news"],
+        "effective_quote_provider_chain": ["yfinance"],
+        "root_name": "web_reports",
+        "relative_path": f"AAPL/2026-08-27/{report_id}",
+        "source": "web",
+        "index_status": "indexed",
+        "path_state": "valid",
+    }
+    value.update(overrides)
+    return value
+
+
+def test_report_index_round_trips_metadata_and_rejects_unsafe_paths(tmp_path):
+    store = SQLiteStore(tmp_path / "web.sqlite3")
+    repo = ReportIndexRepository(store)
+    repo.upsert(_report_metadata(decision_preview="结论" * 400))
+
+    record = repo.get("r1")
+    assert record["rating"] == record["signal"] == "Hold"
+    assert record["analysts"] == ["market", "news"]
+    assert record["effective_quote_provider_chain"] == ["yfinance"]
+    assert len(record["decision_preview"]) == 512
+
+    with pytest.raises(ValueError, match="root"):
+        repo.upsert(_report_metadata("bad-root", root_name="outside"))
+    with pytest.raises(ValueError, match="path"):
+        repo.upsert(_report_metadata("bad-path", relative_path="../../secret"))
+    with pytest.raises(ValueError, match="status"):
+        repo.upsert(_report_metadata("bad-status", status="running"))
+    store.close()
+
+
+def test_report_index_outbox_overlays_before_filter_sort_and_retry(tmp_path, monkeypatch):
+    store = SQLiteStore(tmp_path / "web.sqlite3")
+    repo = ReportIndexRepository(store)
+    repo.upsert(_report_metadata("old", generated_at=None, ticker="MSFT"))
+    repo.upsert(_report_metadata("same", decision_preview="旧结论"))
+    repo.enqueue(
+        _report_metadata(
+            "same",
+            ticker="AAPL",
+            decision_preview="新结论包含增长",
+            generated_at="2026-08-28T10:00:00+00:00",
+        ),
+        "database busy",
+    )
+
+    page = repo.search(
+        page=1,
+        page_size=10,
+        query="增长",
+        ticker=None,
+        status="completed",
+        asset_type="stock",
+        date_from=None,
+        date_to=None,
+        sort="generated_at_desc",
+    )
+    assert page["total"] == 1
+    assert [item["report_id"] for item in page["items"]] == ["same"]
+    assert page["items"][0]["decision_preview"] == "新结论包含增长"
+    assert page["items"][0]["analysts"] == ["market", "news"]
+    assert page["items"][0]["effective_quote_provider_chain"] == ["yfinance"]
+
+    assert repo.retry_outbox(limit=10) == 1
+    assert repo.get("same")["decision_preview"] == "新结论包含增长"
+    with store.connection() as conn:
+        assert conn.execute("SELECT COUNT(*) FROM report_index_outbox").fetchone()[0] == 0
+    store.close()
+
+
+def test_report_index_sort_keeps_null_generated_time_last_with_stable_tie_breaker(tmp_path):
+    store = SQLiteStore(tmp_path / "web.sqlite3")
+    repo = ReportIndexRepository(store)
+    for report_id, generated in (
+        ("b", "2026-08-27T10:00:00+00:00"),
+        ("a", "2026-08-27T10:00:00+00:00"),
+        ("z", None),
+    ):
+        repo.upsert(_report_metadata(report_id, generated_at=generated))
+    descending = repo.search(page=1, page_size=10, sort="generated_at_desc")
+    ascending = repo.search(page=1, page_size=10, sort="generated_at_asc")
+    assert [item["report_id"] for item in descending["items"]] == ["a", "b", "z"]
+    assert [item["report_id"] for item in ascending["items"]] == ["a", "b", "z"]
     store.close()

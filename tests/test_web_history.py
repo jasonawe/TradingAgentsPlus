@@ -4,6 +4,8 @@ from pathlib import Path
 import pytest
 
 from web.history import ReportHistory, ReportNotFound
+from web.repositories import ReportIndexRepository
+from web.storage import SQLiteStore
 
 
 def write_report(root: Path, relative: str, *, sidecar: dict | None = None, complete: str | None = None, sections: dict[str, str] | None = None) -> Path:
@@ -138,3 +140,75 @@ def test_completed_legacy_web_report_without_marker_remains_visible(tmp_path):
     records = ReportHistory(results_dir=tmp_path / "results", cwd=tmp_path).list_reports()
 
     assert [record["report_id"] for record in records] == ["run-old"]
+
+
+def test_indexed_history_rebuilds_once_and_marks_deleted_files_missing(tmp_path):
+    results = tmp_path / "results"
+    report_dir = write_report(
+        results / "web_reports",
+        "AAPL/2026-08-27/run-indexed",
+        sidecar={"report_id": "run-indexed", "ticker": "AAPL"},
+    )
+    repo = ReportIndexRepository(SQLiteStore(tmp_path / "history.sqlite3"))
+    history = ReportHistory(results_dir=results, cwd=tmp_path, repository=repo)
+
+    assert history.rebuild_index() == 1
+    assert [item["report_id"] for item in history.list_reports()] == ["run-indexed"]
+    (report_dir / "complete_report.md").unlink()
+    assert [item["report_id"] for item in history.list_reports()] == ["run-indexed"]
+    history.rebuild_index()
+    assert history.list_reports() == []
+
+
+def test_outbox_backed_report_is_immediately_readable(tmp_path, monkeypatch):
+    results = tmp_path / "results"
+    report_dir = write_report(
+        results / "web_reports",
+        "AAPL/2026-08-27/run-outbox",
+        sidecar={"report_id": "run-outbox", "ticker": "AAPL"},
+    )
+    repo = ReportIndexRepository(SQLiteStore(tmp_path / "history.sqlite3"))
+    history = ReportHistory(results_dir=results, cwd=tmp_path, repository=repo)
+    monkeypatch.setattr(repo, "upsert", lambda _metadata: (_ for _ in ()).throw(RuntimeError("busy")))
+
+    history.index_report(report_dir)
+
+    assert history.list_reports()[0]["report_id"] == "run-outbox"
+    assert history.get_report("run-outbox")["ticker"] == "AAPL"
+
+
+def test_new_web_publication_requires_full_gate_before_indexing(tmp_path):
+    results = tmp_path / "results"
+    report_dir = write_report(
+        results / "web_reports",
+        "AAPL/2026-08-27/run-incomplete",
+        sidecar={"report_id": "run-incomplete", "ticker": "AAPL"},
+    )
+    (report_dir / "COMMITTED").unlink()
+    history = ReportHistory(
+        results_dir=results,
+        cwd=tmp_path,
+        repository=ReportIndexRepository(SQLiteStore(tmp_path / "history.sqlite3")),
+    )
+
+    with pytest.raises(ValueError, match="incomplete"):
+        history.index_report(report_dir)
+
+
+def test_exact_detail_falls_back_to_cached_canonical_path_when_index_fails(
+    tmp_path, monkeypatch
+):
+    results = tmp_path / "results"
+    report_dir = write_report(
+        results / "web_reports",
+        "AAPL/2026-08-27/run-fallback",
+        sidecar={"report_id": "run-fallback", "ticker": "AAPL"},
+    )
+    repo = ReportIndexRepository(SQLiteStore(tmp_path / "history.sqlite3"))
+    history = ReportHistory(results_dir=results, cwd=tmp_path, repository=repo)
+    monkeypatch.setattr(repo, "upsert", lambda _metadata: (_ for _ in ()).throw(RuntimeError("down")))
+    monkeypatch.setattr(repo, "enqueue", lambda *_args: (_ for _ in ()).throw(RuntimeError("down")))
+    history.index_report(report_dir)
+    monkeypatch.setattr(repo, "get", lambda _report_id: (_ for _ in ()).throw(RuntimeError("down")))
+
+    assert history.get_report("run-fallback")["ticker"] == "AAPL"
