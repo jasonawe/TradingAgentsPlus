@@ -36,7 +36,7 @@
 **Files:**
 - No source changes expected.
 
-- [ ] Restart the local web service.
+- [x] Restart the local web service.
 - [x] Inspect `/`, `/analysis`, `/active`, `/reports`, `/settings`, and a report route at desktop and mobile widths.
 - [x] Confirm there are no blank header gaps, overlaps, missing controls, or broken navigation.
 - [x] Run `git diff --check`, commit, and push the scoped change.
