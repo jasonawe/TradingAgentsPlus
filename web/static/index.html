@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
     <title>TradingAgents | 个人投资研究平台</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260901-asset-detail-1" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260901-modal-confirm-1" />
   </head>
   <body>
     <header class="masthead">
@@ -103,12 +103,13 @@
       <section id="report-view" class="view" aria-labelledby="report-title" hidden>
         <section id="report-panel" class="report-panel"><div class="report-heading"><div><h2 id="report-title" data-i18n="report.decisionReport">决策报告</h2><dl id="report-meta" class="report-meta"></dl></div><div class="report-actions"><button id="report-back-library" class="button button-secondary" type="button" data-i18n="actions.backReports">返回报告库</button><button id="download-report" class="button button-secondary" type="button" data-i18n="actions.downloadMarkdown">下载 Markdown</button><button id="new-analysis" class="button button-primary" type="button"><span data-i18n="actions.newAnalysis">新建分析</span> <span aria-hidden="true">&#8594;</span></button></div></div><section id="executive-summary" class="executive-summary" hidden><div class="summary-heading"><p class="kicker" data-i18n="report.executiveSummary">综合研判</p><span class="summary-badge" data-i18n="report.deepModelSummary">深度模型综合</span></div><div id="executive-summary-content" class="summary-content"></div></section><details id="detail-report" class="detail-report"><summary data-i18n="report.showDetails">展开详细智能体报告</summary><div id="report-content" class="report-content"></div></details></section>
       </section>
+      <div id="modal-root" class="modal-root" aria-hidden="true"></div>
     </main>
-    <script src="/static/i18n.js?v=20260901-asset-detail-1" defer></script>
+    <script src="/static/i18n.js?v=20260901-modal-confirm-1" defer></script>
     <script src="/static/rating-labels.js?v=20260901-rating-localization-2" defer></script>
     <script src="/static/kline-chart.js?v=20260901-watchlist-chart-1" defer></script>
     <script src="/static/watchlist-chart.js?v=20260901-watchlist-chart-1" defer></script>
         <script src="/static/quote-refresh.js?v=20260901-market-health-1" defer></script>
-    <script src="/static/app.js?v=20260901-asset-detail-1" defer></script>
+    <script src="/static/app.js?v=20260901-modal-confirm-1" defer></script>
   </body>
 </html>

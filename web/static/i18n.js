@@ -91,6 +91,8 @@
     "watchlist.confirmRemove": "确定要移除 {value} 吗？",
     "actions.backWatchlist": "返回关注",
     "asset.detailTitle": "资产详情",
+    "modal.confirmTitle": "请确认操作",
+    "modal.confirmRemoveTitle": "移除关注",
     "asset.kLineChart": "K 线走势",
     "asset.kLineLoading": "正在加载 K 线…",
     "asset.kLineRange": "{from} – {to}",
