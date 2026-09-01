@@ -6,8 +6,10 @@ import threading
 import time
 from collections.abc import Callable
 from concurrent.futures import Future, TimeoutError as FutureTimeout
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Any
+from typing import cast
 
 from .market_models import (
     AssetIdentity,
@@ -372,35 +374,42 @@ class QuoteService:
     def get_quotes(self, symbols: list[str], asset_type: str = "stock") -> BulkQuoteResponse:
         if len(symbols) > self.MAX_SYMBOLS:
             raise ValueError("maximum 50 symbols")
-        items: list[QuoteItem] = []
-        for symbol in symbols:
+        # Pre-allocate so order matches the input ``symbols`` regardless of which upstream
+        # call returns last. Sequential lookups (single symbol) skip the executor entirely
+        # to keep the existing tight path unchanged.
+        items: list[QuoteItem | None] = [None] * len(symbols)
+
+        def fetch_one(idx: int, symbol: str) -> None:
+            normalized = str(symbol).upper()
             try:
-                items.append(QuoteItem(symbol=symbol, quote=self.get_quote(symbol, asset_type)))
+                snapshot = self.get_quote(symbol, asset_type)
+                items[idx] = QuoteItem(symbol=normalized, quote=snapshot)
+                return
             except ProviderError as exc:
-                normalized = str(symbol).upper()
+                provider_status = (
+                    "not_configured"
+                    if exc.code is ProviderErrorCode.NOT_CONFIGURED
+                    else "degraded"
+                )
                 unavailable = QuoteSnapshot(
                     symbol=normalized,
                     asset_type=asset_type,
                     fetched_at=self.clock(),
                     freshness="unavailable",
                     cache_status="miss",
-                    provider_status=(
-                        "not_configured"
-                        if exc.code is ProviderErrorCode.NOT_CONFIGURED
-                        else "degraded"
+                    provider_status=provider_status,
+                )
+                items[idx] = QuoteItem(
+                    symbol=normalized,
+                    quote=unavailable,
+                    error=QuoteItemError(
+                        symbol=normalized,
+                        code=exc.code.value,
+                        message=_diagnostic(exc.code),
                     ),
                 )
-                items.append(
-                    QuoteItem(
-                        symbol=normalized,
-                        quote=unavailable,
-                        error=QuoteItemError(
-                            symbol=normalized, code=exc.code.value, message=_diagnostic(exc.code)
-                        ),
-                    )
-                )
+                return
             except ValueError:
-                normalized = str(symbol).upper()
                 unavailable = QuoteSnapshot(
                     symbol=normalized,
                     asset_type=asset_type,
@@ -409,16 +418,37 @@ class QuoteService:
                     cache_status="miss",
                     provider_status="ready",
                 )
-                items.append(
-                    QuoteItem(
+                items[idx] = QuoteItem(
+                    symbol=normalized,
+                    quote=unavailable,
+                    error=QuoteItemError(
                         symbol=normalized,
-                        quote=unavailable,
-                        error=QuoteItemError(
-                            symbol=normalized, code="invalid_symbol", message=_diagnostic(ProviderErrorCode.INVALID_SYMBOL)
-                        ),
-                    )
+                        code="invalid_symbol",
+                        message=_diagnostic(ProviderErrorCode.INVALID_SYMBOL),
+                    ),
                 )
-        return BulkQuoteResponse(items=items, partial=any(item.error is not None for item in items))
+
+        if len(symbols) <= 1:
+            for idx, symbol in enumerate(symbols):
+                fetch_one(idx, symbol)
+        else:
+            # yfinance HTTP I/O releases the GIL, so a bounded thread pool parallelises
+            # upstream fetches without ordering surprises. ``max_workers`` is capped at 8
+            # to keep upstream rate-limits predictable for free-tier providers.
+            max_workers = min(len(symbols), 8)
+            with ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="quote-bulk") as executor:
+                futures = [
+                    executor.submit(fetch_one, idx, symbol)
+                    for idx, symbol in enumerate(symbols)
+                ]
+                for fut in futures:
+                    # ``fetch_one`` swallows the expected error classes; this ``result()``
+                    # surfaces anything unexpected (e.g. a DB write failure inside get_quote).
+                    fut.result()
+        return BulkQuoteResponse(
+            items=cast(list[QuoteItem], items),
+            partial=any(item.error is not None for item in items if item is not None),
+        )
 
 
 def _payload(row: dict[str, Any]) -> dict[str, Any]:

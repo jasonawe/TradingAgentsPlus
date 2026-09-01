@@ -163,6 +163,41 @@ class SQLiteStore:
                     "WHERE watchlist_items.watchlist_id=watchlists.id)"
                 )
             return
+        if version == 4:
+            if not conn.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='web_runs'"
+            ).fetchone():
+                return
+            existing = {row[1] for row in conn.execute("PRAGMA table_info(web_runs)")}
+            recovery_columns = {
+                "worker_heartbeat_at": "TEXT",
+                "last_activity_at": "TEXT",
+                "active_operation": "TEXT",
+                "active_provider": "TEXT",
+                "active_model": "TEXT",
+                "active_attempt": "INTEGER",
+                "failed_phase": "TEXT",
+                "failed_agent": "TEXT",
+                "failed_provider": "TEXT",
+                "failed_model": "TEXT",
+                "retryable": "INTEGER NOT NULL DEFAULT 0",
+                "parent_run_id": "TEXT",
+                "attempt_number": "INTEGER NOT NULL DEFAULT 1",
+                "resume_checkpoint_id": "TEXT",
+                "lease_owner_token": "TEXT",
+                "checkpoint_signature": "TEXT",
+                "checkpoint_retained_until": "TEXT",
+            }
+            for name, kind in recovery_columns.items():
+                if name not in existing:
+                    conn.execute(f"ALTER TABLE web_runs ADD COLUMN {name} {kind}")
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_web_runs_parent ON web_runs(parent_run_id)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_web_runs_retryable ON web_runs(retryable)"
+            )
+            return
         if version != 2:
             return
         if not conn.execute(

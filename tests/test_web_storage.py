@@ -14,14 +14,29 @@ def test_store_migrates_schema_and_preserves_existing_web_runs(tmp_path):
         )
         conn.execute("INSERT INTO web_runs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ("r1", "{}", "completed", None, None, 1.0, None, None, None, "BUY", "rep", None, None, None))
     store = SQLiteStore(db)
-    assert store.schema_version == 3
+    assert store.schema_version == 4
     with store.connection() as conn:
         row = conn.execute(
-            "SELECT report_id,last_heartbeat_at,timeout_at,terminal_reason,"
+            "SELECT report_id,worker_heartbeat_at,last_activity_at,timeout_at,terminal_reason,"
             "run_timeout_seconds,run_heartbeat_interval_seconds,"
-            "run_heartbeat_timeout_seconds FROM web_runs WHERE run_id='r1'"
+            "run_heartbeat_timeout_seconds,retryable,attempt_number FROM web_runs WHERE run_id='r1'"
         ).fetchone()
-        assert tuple(row) == ("rep", None, None, None, None, None, None)
+        assert tuple(row) == ("rep", None, None, None, None, None, None, None, 0, 1)
+        # The new analysis_run_artifacts table and indexes must exist.
+        artifact_cols = {row[1] for row in conn.execute("PRAGMA table_info(analysis_run_artifacts)")}
+        assert {
+            "run_id",
+            "artifact_key",
+            "artifact_type",
+            "phase",
+            "agent",
+            "title",
+            "content_markdown",
+            "status",
+            "sequence",
+            "created_at",
+            "updated_at",
+        } <= artifact_cols
         tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         assert {
             "schema_version",
@@ -100,12 +115,15 @@ def test_v3_reorders_existing_watchlist_items_newest_first(tmp_path):
 
     source_v3 = source_dir / "003_watchlist_newest_first.sql"
     (migration_dir / source_v3.name).write_text(source_v3.read_text(encoding="utf-8"), encoding="utf-8")
+    # Add the v4 migration source so the legacy fixture upgrades cleanly.
+    source_v4 = source_dir / "004_analysis_timeout_recovery.sql"
+    (migration_dir / source_v4.name).write_text(source_v4.read_text(encoding="utf-8"), encoding="utf-8")
     upgraded = SQLiteStore(db, migrations_dir=migration_dir)
     with upgraded.connection() as conn:
         rows = conn.execute(
             "SELECT symbol,position FROM watchlist_items ORDER BY position,id"
         ).fetchall()
-    assert upgraded.schema_version == 3
+    assert upgraded.schema_version == 4
     assert [tuple(row) for row in rows] == [("MSFT", 0), ("AAPL", 1)]
     upgraded.close()
 
@@ -172,9 +190,17 @@ def test_legacy_snapshots_table_is_renamed_without_parallel_storage(tmp_path):
         conn.execute("CREATE TABLE snapshots (run_id TEXT PRIMARY KEY, manifest_json TEXT NOT NULL, manifest_hash TEXT, status TEXT NOT NULL, created_at TEXT NOT NULL, completed_at TEXT)")
         conn.execute("INSERT INTO snapshots VALUES ('r1','{}','h','recording','now',NULL)")
     store = SQLiteStore(db)
+    # Schema must upgrade cleanly even when web_runs never existed on disk.
+    assert store.schema_version == 4
     with store.connection() as conn:
         assert conn.execute("SELECT run_id FROM analysis_data_snapshots").fetchone()[0] == "r1"
         assert conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='snapshots'").fetchone() is None
+        assert "analysis_run_artifacts" in {
+            row[0]
+            for row in conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'"
+            )
+        }
     store.close()
 
 

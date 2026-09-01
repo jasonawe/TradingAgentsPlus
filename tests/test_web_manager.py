@@ -81,36 +81,58 @@ def test_sqlite_persists_terminal_run_metadata_across_manager_instances(tmp_path
 
 
 def test_terminal_reason_is_canonical_for_failed_and_restarted_runs(tmp_path):
+    from web.error_codes import TerminalReason
+
     database = tmp_path / "terminal-reason.sqlite3"
     manager = RunManager(db_path=database)
     failed = manager.start_run(request(), run_id="failed-run")
     manager.begin_run(failed.run_id)
     failed = manager.fail_run(
         failed.run_id,
-        error_code="provider_error",
-        error_message="provider failed",
+        error_code="model_timeout",
+        error_message="model timed out",
+        failed_phase="Research Team",
+        failed_agent="Bear Researcher",
+        failed_provider="openai",
+        failed_model="gpt-5.5",
     )
-    assert failed.terminal_reason == failed.error_code == "provider_error"
+    assert failed.terminal_reason == failed.error_code == "model_timeout"
+    assert failed.failed_phase == "Research Team"
+    assert failed.failed_agent == "Bear Researcher"
+    assert failed.failed_provider == "openai"
+    assert failed.failed_model == "gpt-5.5"
+    assert failed.retryable is True
 
     manager.start_run(request("MSFT"), run_id="restart-run")
     manager.shutdown()
 
     restored = RunManager(db_path=database)
     interrupted = restored.get_run("restart-run")
-    assert interrupted.terminal_reason == interrupted.error_code == "service_restart"
+    assert (
+        interrupted.terminal_reason
+        == interrupted.error_code
+        == TerminalReason.SERVICE_RESTARTED.value
+    )
+    assert interrupted.retryable is True
     restored.shutdown()
 
 
 def test_persisted_timed_out_run_rejects_late_events_and_transitions(tmp_path):
+    from web.error_codes import TerminalReason
+
     database = tmp_path / "timed-out-terminal.sqlite3"
     manager = RunManager(db_path=database)
     run = manager.start_run(request(), run_id="timed-out-run")
     manager.begin_run(run.run_id)
     with manager._store.connection() as conn:
         conn.execute(
-            "UPDATE web_runs SET status='timed_out',terminal_reason='heartbeat_timeout',"
-            "error_code='heartbeat_timeout' WHERE run_id=?",
-            (run.run_id,),
+            "UPDATE web_runs SET status='timed_out',terminal_reason=?,"
+            "error_code=? WHERE run_id=?",
+            (
+                TerminalReason.RUN_DEADLINE_EXCEEDED.value,
+                TerminalReason.RUN_DEADLINE_EXCEEDED.value,
+                run.run_id,
+            ),
         )
     manager.shutdown()
 
@@ -222,24 +244,50 @@ def test_progress_events_update_the_persisted_run_snapshot():
     assert snapshot.progress == 0.1
 
 
-def test_heartbeat_is_worker_owned_throttled_and_only_updates_queued_or_running():
+def test_activity_heartbeat_is_throttled_and_only_updates_queued_or_running():
+    """``heartbeat()`` is the activity heartbeat, not the worker lease.
+
+    It updates ``last_activity_at`` and must not refresh ``worker_heartbeat_at``
+    on its own; that field is the lease thread's responsibility.
+    """
+
+    from web.error_codes import TerminalReason
+
     clock = MutableClock(datetime(2026, 8, 31, tzinfo=timezone.utc))
     manager = RunManager(clock=clock, lifecycle_config=lifecycle_config())
     run = manager.start_run(request(), run_id="heartbeat")
 
     clock.advance(4)
-    assert manager.heartbeat(run.run_id).last_heartbeat_at == run.last_heartbeat_at
+    assert manager.heartbeat(run.run_id).last_activity_at == run.last_activity_at
     clock.advance(1)
-    assert manager.heartbeat(run.run_id).last_heartbeat_at == clock.value
+    assert manager.heartbeat(run.run_id).last_activity_at == clock.value
+    # ``worker_heartbeat_at`` keeps the original queued timestamp because the
+    # activity heartbeat is throttled and never renews the lease.
     manager.begin_run(run.run_id)
     clock.advance(5)
-    assert manager.heartbeat(run.run_id).last_heartbeat_at == clock.value
+    assert manager.heartbeat(run.run_id).last_activity_at == clock.value
 
     manager.cancel_run(run.run_id)
     clock.advance(5)
     terminal = manager.heartbeat(run.run_id)
     assert terminal.status is RunStatus.CANCELLED
-    assert terminal.last_heartbeat_at == clock.value - timedelta(seconds=5)
+    assert terminal.last_activity_at == clock.value - timedelta(seconds=5)
+    manager.shutdown()
+
+
+def test_worker_lease_renewal_only_accepts_the_issuing_token():
+    """A stale Worker cannot resurrect a task by writing the old timestamp."""
+
+    from web.lease import generate_owner_token
+
+    clock = MutableClock(datetime(2026, 8, 31, tzinfo=timezone.utc))
+    manager = RunManager(clock=clock, lifecycle_config=lifecycle_config())
+    run = manager.start_run(request(), run_id="lease")
+    manager.begin_run(run.run_id)
+    # No active lease thread → manager holds no token yet.
+    assert manager.renew_worker_lease(run.run_id, "anything") is False
+    # Even with the right token shape, without a live lease we should reject.
+    assert manager.renew_worker_lease(run.run_id, generate_owner_token()) is False
     manager.shutdown()
 
 
@@ -269,12 +317,22 @@ def test_progress_is_clamped_monotonic_and_late_lower_update_is_not_published():
 
 
 @pytest.mark.parametrize(
-    ("expire_by", "expected_message"),
-    [("wall", "deadline"), ("lease", "heartbeat")],
+    ("expire_by", "expected_status", "expected_reason", "expected_message"),
+    [
+        ("wall", RunStatus.TIMED_OUT, "run_deadline_exceeded", "分析超过最长运行时间"),
+        ("lease", RunStatus.INTERRUPTED, "worker_lease_expired", "分析执行器失去连接"),
+    ],
 )
-def test_expiry_checks_cas_to_timed_out_once_before_reads_and_heartbeats(
-    expire_by, expected_message
+def test_expiry_distinguishes_wall_deadline_from_lease_heartbeat(
+    expire_by, expected_status, expected_reason, expected_message
 ):
+    """Two distinct terminal paths: deadline vs. worker-lease expiry.
+
+    Before the recovery design these were conflated as ``heartbeat_timeout``.
+    The new design treats the fixed deadline as ``timed_out`` and the
+    Worker-lease expiry as ``interrupted``.
+    """
+
     clock = MutableClock(datetime(2026, 8, 31, tzinfo=timezone.utc))
     manager = RunManager(clock=clock, lifecycle_config=lifecycle_config())
     run = manager.start_run(request(), run_id=f"timeout-{expire_by}")
@@ -291,17 +349,21 @@ def test_expiry_checks_cas_to_timed_out_once_before_reads_and_heartbeats(
         clock.advance(31)
 
     expired = manager.heartbeat(run.run_id)
-    assert expired.status is RunStatus.TIMED_OUT
+    assert expired.status is expected_status
     assert expired.progress == 0.45
     assert expired.current_agent is None
-    assert expired.terminal_reason == expired.error_code == "heartbeat_timeout"
+    assert expired.terminal_reason == expired.error_code == expected_reason
     assert expected_message in (expired.error_message or "")
     assert manager.get_run(run.run_id) == expired
     assert manager.complete_run(run.run_id, signal="BUY", report_id="late") == expired
     events = manager.read_events(run.run_id).events
-    timed_out = [event for event in events if event.event is EventName.RUN_TIMED_OUT]
-    assert len(timed_out) == 1
-    assert timed_out[0].payload.progress == 0.45
+    terminal_event = (
+        EventName.RUN_TIMED_OUT if expected_status is RunStatus.TIMED_OUT else EventName.RUN_INTERRUPTED
+    )
+    terminal = [event for event in events if event.event is terminal_event]
+    assert len(terminal) == 1
+    if expected_status is RunStatus.TIMED_OUT:
+        assert terminal[0].payload.progress == 0.45
     manager.shutdown()
 
 

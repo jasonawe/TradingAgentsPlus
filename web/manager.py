@@ -19,7 +19,16 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from web.storage import SQLiteStore
 
+import contextlib
+
 from web.config import _parse_integer_setting
+from web.error_codes import (
+    RETRYABLE_REASONS,
+    TERMINAL_STATUS_BY_REASON,
+    USER_MESSAGES,
+    TerminalReason,
+)
+from web.lease import WorkerLease
 from web.models import (
     AnalysisRequest,
     EventEnvelope,
@@ -58,6 +67,7 @@ class _ManagedRun:
     next_seq: int = 1
     terminal_expires_at: datetime | None = None
     future: Future[Any] | None = None
+    lease: WorkerLease | None = None
 
 
 class RunManager:
@@ -197,6 +207,8 @@ class RunManager:
                 request=request,
                 queued_at=now,
                 last_heartbeat_at=now,
+                worker_heartbeat_at=now,
+                last_activity_at=now,
                 timeout_at=now + timedelta(seconds=run_timeout),
                 run_timeout_seconds=run_timeout,
                 run_heartbeat_interval_seconds=heartbeat_interval,
@@ -218,6 +230,11 @@ class RunManager:
             return self._copy_record(record)
 
     def _run_worker(self, run_id: str, worker: Callable[[str], Any]) -> Any:
+        # ``state.future`` is the executor future created by ``start_run``
+        # for this very call; the lease uses it as the liveness source.
+        with self._lock:
+            state = self._state(run_id)
+            self._start_lease_locked(state, future=state.future)
         try:
             record = self.begin_run(run_id)
             if record.status is not RunStatus.RUNNING:
@@ -228,7 +245,7 @@ class RunManager:
             # or credentials from worker exceptions.
             self.fail_run(
                 run_id,
-                error_code="worker_error",
+                error_code=TerminalReason.WORKER_ERROR.value,
                 error_message=self._WORKER_ERROR_MESSAGE,
             )
             return None
@@ -329,7 +346,12 @@ class RunManager:
             )
 
     def heartbeat(self, run_id: str) -> RunRecord:
-        """Persist a Worker activity checkpoint at the configured interval."""
+        """Record analysis activity (chunk / phase / agent / progress / report).
+
+        Updates ``last_activity_at`` so the UI can show "model processing,
+        last activity at ..." without falsely refreshing the liveness lease.
+        Worker-lease renewal is handled separately by ``renew_worker_lease``.
+        """
 
         with self._lock:
             state = self._state(run_id)
@@ -338,11 +360,92 @@ class RunManager:
                 return self._copy_record(state.record)
             now = self._clock()
             interval = max(0, state.record.run_heartbeat_interval_seconds or 0)
-            previous = state.record.last_heartbeat_at
+            previous = state.record.last_activity_at
             if previous is None or (now - previous).total_seconds() >= interval:
-                state.record.last_heartbeat_at = now
+                state.record.last_activity_at = now
+                # Mirror to the legacy alias only when the lease thread
+                # has not populated ``worker_heartbeat_at`` yet (e.g.
+                # before the worker future actually starts). This keeps
+                # older clients that read ``last_heartbeat_at`` accurate.
+                if state.record.worker_heartbeat_at is None:
+                    state.record.worker_heartbeat_at = now
                 self._persist_locked(state.record)
             return self._copy_record(state.record)
+
+    def renew_worker_lease(self, run_id: str, owner_token: str) -> bool:
+        """Called by the ``WorkerLease`` thread to keep the worker heartbeat fresh.
+
+        Accepts the renewal only when the stored ``lease_owner_token`` matches
+        ``owner_token``. Returns False (without mutating the record) for a
+        stale lease so an old Worker cannot resurrect a terminated task.
+        """
+
+        with self._lock:
+            try:
+                state = self._state(run_id)
+            except KeyError:
+                return False
+            if state.record.status not in (RunStatus.QUEUED, RunStatus.RUNNING):
+                return False
+            expected = state.lease.owner_token if state.lease is not None else None
+            if expected is None or expected != owner_token:
+                return False
+            now = self._clock()
+            state.record.worker_heartbeat_at = now
+            state.record.last_heartbeat_at = now
+            self._persist_locked(state.record)
+            return True
+
+    def record_activity(
+        self,
+        run_id: str,
+        *,
+        operation: str | None = None,
+        provider: str | None = None,
+        model: str | None = None,
+        attempt: int | None = None,
+    ) -> RunRecord:
+        """Update the live ``active_operation`` / ``active_provider`` snapshot.
+
+        Safe to call from any worker callback. Does not touch lease state.
+        """
+
+        with self._lock:
+            try:
+                state = self._state(run_id)
+            except KeyError:
+                raise KeyError(f"unknown run: {run_id}") from None
+            self._check_expired_locked(state)
+            if state.record.status not in (RunStatus.QUEUED, RunStatus.RUNNING):
+                return self._copy_record(state.record)
+            now = self._clock()
+            state.record.last_activity_at = now
+            if operation is not None:
+                state.record.active_operation = operation
+            if provider is not None:
+                state.record.active_provider = provider
+            if model is not None:
+                state.record.active_model = model
+            if attempt is not None:
+                state.record.active_attempt = attempt
+            self._persist_locked(state.record)
+            return self._copy_record(state.record)
+
+    def clear_activity(self, run_id: str) -> None:
+        """Reset active_operation/provider/model/attempt after an operation ends."""
+
+        with self._lock:
+            try:
+                state = self._state(run_id)
+            except KeyError:
+                return
+            if state.record.status not in (RunStatus.QUEUED, RunStatus.RUNNING):
+                return
+            state.record.active_operation = None
+            state.record.active_provider = None
+            state.record.active_model = None
+            state.record.active_attempt = None
+            self._persist_locked(state.record)
 
     def remaining_deadline(self, run_id: str) -> float:
         with self._lock:
@@ -424,13 +527,6 @@ class RunManager:
                 (event.run_id, event.seq, event.event.value, event.timestamp.isoformat(), json.dumps(event.payload.model_dump(mode="json"), ensure_ascii=False, separators=(",", ":"))),
             )
 
-    def get_run(self, run_id: str) -> RunRecord:
-        with self._lock:
-            self.cleanup()
-            state = self._state(run_id)
-            self._check_expired_locked(state)
-            return self._copy_record(state.record)
-
     def request_cancel(self, run_id: str) -> RunRecord:
         """Set the cooperative cancellation flag without forcing a terminal state."""
 
@@ -467,12 +563,27 @@ class RunManager:
                 report_id=report_id,
             )
 
-    def fail_run(self, run_id: str, *, error_code: str, error_message: str) -> RunRecord:
+    def fail_run(
+        self,
+        run_id: str,
+        *,
+        error_code: str,
+        error_message: str,
+        failed_phase: str | None = None,
+        failed_agent: str | None = None,
+        failed_provider: str | None = None,
+        failed_model: str | None = None,
+        active_attempt: int | None = None,
+        retryable: bool = False,
+    ) -> RunRecord:
         with self._lock:
             state = self._state(run_id)
             self._check_expired_locked(state)
             if state.record.status in self._TERMINAL_STATUSES:
                 return self._copy_record(state.record)
+            self._stop_lease_locked(state)
+            if active_attempt is not None:
+                state.record.active_attempt = active_attempt
             return self._transition_terminal_locked(
                 state,
                 allowed={RunStatus.QUEUED, RunStatus.RUNNING, RunStatus.PUBLISHING},
@@ -480,7 +591,18 @@ class RunManager:
                 event=EventName.RUN_FAILED,
                 terminal_reason=error_code,
                 error_message=error_message,
+                failed_phase=failed_phase or state.record.phase,
+                failed_agent=failed_agent or state.record.current_agent,
+                failed_provider=failed_provider or state.record.active_provider,
+                failed_model=failed_model or state.record.active_model,
+                retryable=retryable or error_code in RETRYABLE_REASONS,
             )
+
+    def fail_run_classified(self, run_id: str, info: Any) -> RunRecord:
+        """Convenience wrapper around :class:`ProviderErrorInfo`."""
+
+        kwargs = info.to_failure_kwargs() if hasattr(info, "to_failure_kwargs") else {}
+        return self.fail_run(run_id, **kwargs)
 
     def cancel_run(
         self, run_id: str, *, phase: str | None = None, current_agent: str | None = None
@@ -581,6 +703,32 @@ class RunManager:
             self._active_run_id = None
         state.condition.notify_all()
 
+    def _stop_lease_locked(self, state: _ManagedRun) -> None:
+        """Tear down the WorkerLease for ``state`` if one is running.
+
+        Called inside any terminal transition so the background thread does
+        not outlive its run record.
+        """
+
+        lease = state.lease
+        if lease is None:
+            return
+        lease.stop(timeout=2.0)
+        # Best-effort detach so a late renewal cannot mutate the row.
+        state.lease = None
+
+    def _start_lease_locked(self, state: _ManagedRun, future: Future[Any]) -> WorkerLease:
+        interval = state.record.run_heartbeat_interval_seconds or 15
+        lease = WorkerLease(
+            run_id=state.record.run_id,
+            manager=self,
+            interval_seconds=float(interval),
+            future=future,
+        )
+        state.lease = lease
+        lease.start()
+        return lease
+
     def _start_watchdog(self) -> None:
         interval = self._watchdog_interval_override
         if interval is None:
@@ -612,32 +760,37 @@ class RunManager:
         if state.record.status not in (RunStatus.QUEUED, RunStatus.RUNNING):
             return False
         now = self._clock()
-        reason = None
-        message = None
+        # 1) Fixed deadline is the ultimate upper bound.
         if state.record.timeout_at is not None and now >= state.record.timeout_at:
-            reason = "heartbeat_timeout"
-            message = "analysis deadline expired"
-        else:
-            heartbeat_timeout = state.record.run_heartbeat_timeout_seconds
-            heartbeat_at = state.record.last_heartbeat_at
-            if (
-                heartbeat_timeout is not None
-                and heartbeat_at is not None
-                and (now - heartbeat_at).total_seconds() >= heartbeat_timeout
-            ):
-                reason = "heartbeat_timeout"
-                message = "analysis heartbeat expired"
-        if reason is None:
-            return False
-        self._transition_terminal_locked(
-            state,
-            allowed={RunStatus.QUEUED, RunStatus.RUNNING},
-            status=RunStatus.TIMED_OUT,
-            event=EventName.RUN_TIMED_OUT,
-            terminal_reason=reason,
-            error_message=message,
-        )
-        return True
+            self._stop_lease_locked(state)
+            self._transition_terminal_locked(
+                state,
+                allowed={RunStatus.QUEUED, RunStatus.RUNNING},
+                status=RunStatus.TIMED_OUT,
+                event=EventName.RUN_TIMED_OUT,
+                terminal_reason=TerminalReason.RUN_DEADLINE_EXCEEDED.value,
+                error_message=USER_MESSAGES[TerminalReason.RUN_DEADLINE_EXCEEDED.value],
+            )
+            return True
+        # 2) Worker liveness — only the lease-driven heartbeat counts.
+        lease_timeout = state.record.run_heartbeat_timeout_seconds
+        heartbeat_at = state.record.worker_heartbeat_at
+        if (
+            lease_timeout is not None
+            and heartbeat_at is not None
+            and (now - heartbeat_at).total_seconds() >= lease_timeout
+        ):
+            self._stop_lease_locked(state)
+            self._transition_terminal_locked(
+                state,
+                allowed={RunStatus.QUEUED, RunStatus.RUNNING},
+                status=RunStatus.INTERRUPTED,
+                event=EventName.RUN_INTERRUPTED,
+                terminal_reason=TerminalReason.WORKER_LEASE_EXPIRED.value,
+                error_message=USER_MESSAGES[TerminalReason.WORKER_LEASE_EXPIRED.value],
+            )
+            return True
+        return False
 
     def _transition_terminal_locked(
         self,
@@ -650,6 +803,11 @@ class RunManager:
         error_message: str | None = None,
         signal: str | None = None,
         report_id: str | None = None,
+        failed_phase: str | None = None,
+        failed_agent: str | None = None,
+        failed_provider: str | None = None,
+        failed_model: str | None = None,
+        retryable: bool = False,
     ) -> RunRecord:
         if state.record.status in self._TERMINAL_STATUSES:
             return self._copy_record(state.record)
@@ -657,16 +815,40 @@ class RunManager:
             return self._copy_record(state.record)
         state.record.status = status
         state.record.finished_at = self._clock()
-        state.record.terminal_reason = self._sanitize_code(terminal_reason)
-        state.record.error_code = state.record.terminal_reason
+        sanitized = self._sanitize_code(terminal_reason)
+        # Map known reasons to the right status; ignore caller drift so the
+        # audit trail stays consistent.
+        mapped_status = TERMINAL_STATUS_BY_REASON.get(sanitized)
+        if mapped_status is not None and mapped_status != status.value:
+            with contextlib.suppress(ValueError):
+                status = RunStatus(mapped_status)
+        state.record.terminal_reason = sanitized
+        state.record.error_code = sanitized
         state.record.error_message = (
             self._sanitize_error(error_message) if error_message is not None else None
         )
         state.record.current_agent = None
+        state.record.active_operation = None
+        state.record.active_provider = None
+        state.record.active_model = None
+        state.record.active_attempt = None
+        if failed_phase is not None:
+            state.record.failed_phase = failed_phase
+        elif state.record.phase is not None and state.record.failed_phase is None:
+            state.record.failed_phase = state.record.phase
+        if failed_agent is not None:
+            state.record.failed_agent = failed_agent
+        if failed_provider is not None:
+            state.record.failed_provider = failed_provider
+        if failed_model is not None:
+            state.record.failed_model = failed_model
+        state.record.retryable = bool(retryable) or sanitized in RETRYABLE_REASONS
         if status is RunStatus.COMPLETED:
             state.record.progress = 1.0
             state.record.signal = signal
             state.record.report_id = report_id
+            state.record.retryable = False
+        self._stop_lease_locked(state)
         self._finish_locked(state)
         payload = self._terminal_payload(state.record, event)
         envelope = EventEnvelope(
@@ -699,8 +881,10 @@ class RunManager:
         if event is EventName.RUN_INTERRUPTED:
             return {
                 "status": "interrupted",
-                "error_code": "service_restart",
+                "error_code": record.error_code or "service_restart",
+                "terminal_reason": record.terminal_reason or record.error_code,
                 "error_message": record.error_message or "analysis interrupted",
+                "retryable": record.retryable,
             }
         if event is EventName.RUN_TIMED_OUT:
             return {
@@ -708,12 +892,19 @@ class RunManager:
                 "progress": record.progress,
                 "terminal_reason": record.terminal_reason,
                 "error_code": record.error_code,
-                "error_message": record.error_message or "analysis heartbeat expired",
+                "error_message": record.error_message or "analysis exceeded its deadline",
+                "retryable": record.retryable,
             }
         return {
             "status": "failed",
             "error_code": record.error_code or "unknown_error",
+            "terminal_reason": record.terminal_reason or record.error_code,
             "error_message": record.error_message or "analysis failed",
+            "failed_phase": record.failed_phase,
+            "failed_agent": record.failed_agent,
+            "failed_provider": record.failed_provider,
+            "failed_model": record.failed_model,
+            "retryable": record.retryable,
         }
 
     def _state(self, run_id: str) -> _ManagedRun:
@@ -721,6 +912,183 @@ class RunManager:
             return self._records[run_id]
         except KeyError:
             raise KeyError(f"unknown run: {run_id}") from None
+
+    def attach_artifact_repository(self, repo: Any) -> None:
+        """Attach a repository used to populate per-stage artifact counts.
+
+        Setting this is optional; runs without an attached repository will
+        simply report zero counts instead of failing.
+        """
+
+        self._artifact_repository = repo
+
+    def _populate_artifact_counts(self, record: RunRecord) -> None:
+        repo = getattr(self, "_artifact_repository", None)
+        if repo is None:
+            return
+        try:
+            counts = repo.counts(record.run_id)
+        except Exception:
+            return
+        record.artifact_count = counts["artifact_count"]
+        record.completed_artifact_count = counts["completed_artifact_count"]
+        record.has_partial_results = counts["partial_artifact_count"] > 0
+
+    def get_run(self, run_id: str) -> RunRecord:
+        with self._lock:
+            self.cleanup()
+            state = self._state(run_id)
+            self._check_expired_locked(state)
+            record = self._copy_record(state.record)
+            self._populate_artifact_counts(record)
+            return record
+
+    def list_runs_for_ticker(self, ticker: str, *, limit: int = 20) -> list[RunRecord]:
+        """Return the most-recent runs for ``ticker`` ordered by queued_at desc.
+
+        Ticker comparison is case-insensitive against the request ticker. The
+        caller is responsible for paging — this method does not enforce paging
+        beyond the ``limit`` cap so the UI can render a small, predictable
+        list of recent activity for an asset-detail page.
+        """
+        target = (ticker or "").strip().upper()
+        if not target:
+            return []
+        with self._lock:
+            self.cleanup()
+            records = [self._copy_record(state.record) for state in self._records.values()]
+        matches = [
+            record for record in records
+            if record.request.ticker.strip().upper() == target
+        ]
+        matches.sort(
+            key=lambda record: record.queued_at or record.started_at or datetime.min.replace(tzinfo=timezone.utc),
+            reverse=True,
+        )
+        for record in matches:
+            self._populate_artifact_counts(record)
+        return matches[: max(1, limit)]
+
+    def list_artifacts(self, run_id: str) -> list[Any]:
+        repo = getattr(self, "_artifact_repository", None)
+        if repo is None:
+            return []
+        return [record.to_dict() for record in repo.list_for_run(run_id)]
+
+    # ------------------------------------------------------------------
+    # Phase 2: retry-from-checkpoint
+    # ------------------------------------------------------------------
+
+    def can_retry(self, run_id: str) -> tuple[bool, str]:
+        """Return (True, "") if a retry is allowed; otherwise (False, reason)."""
+
+        with self._lock:
+            try:
+                state = self._state(run_id)
+            except KeyError:
+                return False, "run_not_found"
+            if state.record.status not in {
+                RunStatus.FAILED,
+                RunStatus.TIMED_OUT,
+                RunStatus.INTERRUPTED,
+            }:
+                return False, "run_not_retryable"
+            if not state.record.retryable:
+                return False, "reason_not_retryable"
+            if state.record.resume_checkpoint_id is None:
+                return False, "checkpoint_unavailable"
+            if self._active_run_id is not None:
+                return False, "another_run_active"
+            return True, ""
+
+    def set_checkpoint_retained_until(
+        self,
+        run_id: str,
+        *,
+        retained_until: str | None,
+        signature: str | None = None,
+    ) -> RunRecord:
+        """Record when the LangGraph checkpoint for this run expires."""
+
+        with self._lock:
+            try:
+                state = self._state(run_id)
+            except KeyError:
+                raise KeyError(f"unknown run: {run_id}") from None
+            parsed = None
+            if retained_until is not None:
+                try:
+                    parsed = datetime.fromisoformat(retained_until)
+                except ValueError:
+                    parsed = None
+            state.record.checkpoint_retained_until = parsed
+            if signature is not None:
+                # Stash the signature alongside the run so the resume API
+                # can verify compatibility later. We do not persist
+                # ``checkpoint_signature`` directly here because the
+                # SQL column is added by migration 004.
+                state.record.resume_checkpoint_id = signature
+            self._persist_locked(state.record)
+            return self._copy_record(state.record)
+
+    def retry_run(
+        self,
+        parent_run_id: str,
+        request: AnalysisRequest,
+        *,
+        worker: Callable[[str], Any] | None = None,
+    ) -> RunRecord:
+        """Create a new run that resumes from the parent's checkpoint."""
+
+        with self._lock:
+            self.cleanup()
+            if self._active_run_id is not None:
+                raise ActiveRunError("an analysis run is already active")
+            parent = self._state(parent_run_id).record
+            if parent.status not in {RunStatus.FAILED, RunStatus.TIMED_OUT, RunStatus.INTERRUPTED}:
+                raise RuntimeError("run is not in a retryable state")
+            if not parent.retryable:
+                raise RuntimeError("run is not marked retryable")
+            if parent.resume_checkpoint_id is None:
+                raise RuntimeError("checkpoint_unavailable")
+            identifier = f"run-{uuid.uuid4().hex}"
+            now = self._clock()
+            run_timeout = int(self.lifecycle_config["run_timeout_seconds"]["value"])
+            heartbeat_interval = int(
+                self.lifecycle_config["run_heartbeat_interval_seconds"]["value"]
+            )
+            heartbeat_timeout = int(
+                self.lifecycle_config["run_heartbeat_timeout_seconds"]["value"]
+            )
+            record = RunRecord(
+                run_id=identifier,
+                request=request,
+                queued_at=now,
+                last_heartbeat_at=now,
+                worker_heartbeat_at=now,
+                last_activity_at=now,
+                timeout_at=now + timedelta(seconds=run_timeout),
+                run_timeout_seconds=run_timeout,
+                run_heartbeat_interval_seconds=heartbeat_interval,
+                run_heartbeat_timeout_seconds=heartbeat_timeout,
+                parent_run_id=parent.run_id,
+                attempt_number=int(parent.attempt_number or 1) + 1,
+                resume_checkpoint_id=parent.resume_checkpoint_id,
+            )
+            record.effective_quote_strategy_id = request.quote_strategy_id
+            record.effective_quote_provider_chain = ["yfinance", "alpha_vantage"] if request.quote_strategy_id == "fallback-yfinance-alpha-vantage" else (["yfinance"] if request.quote_strategy_id else [])
+            state = _ManagedRun(
+                record=record,
+                events=deque(maxlen=self.event_limit),
+                condition=threading.Condition(self._lock),
+                cancel_event=threading.Event(),
+            )
+            self._records[identifier] = state
+            self._active_run_id = identifier
+            self._persist_locked(record)
+            if worker is not None:
+                state.future = self._executor.submit(self._run_worker, identifier, worker)
+            return self._copy_record(record)
 
     def _init_db(self) -> None:
         assert self._db_path is not None
@@ -769,6 +1137,15 @@ class RunManager:
                 provider_chain = json.loads(provider_chain) if provider_chain else []
             except (TypeError, ValueError):
                 provider_chain = []
+            # last_heartbeat_at is a legacy alias for worker_heartbeat_at:
+            # pre-migration rows only wrote last_heartbeat_at so we mirror
+            # it to worker_heartbeat_at when the latter is missing.
+            legacy_heartbeat = values.get("worker_heartbeat_at") or values.get("last_heartbeat_at")
+            retained_until_raw = values.get("checkpoint_retained_until")
+            try:
+                retained_until = datetime.fromisoformat(retained_until_raw) if retained_until_raw else None
+            except (TypeError, ValueError):
+                retained_until = None
             try:
                 request = AnalysisRequest.model_validate(json.loads(request_json))
                 record = RunRecord(
@@ -796,6 +1173,21 @@ class RunManager:
                     run_timeout_seconds=values.get("run_timeout_seconds"),
                     run_heartbeat_interval_seconds=values.get("run_heartbeat_interval_seconds"),
                     run_heartbeat_timeout_seconds=values.get("run_heartbeat_timeout_seconds"),
+                    worker_heartbeat_at=legacy_heartbeat,
+                    last_activity_at=values.get("last_activity_at"),
+                    active_operation=values.get("active_operation"),
+                    active_provider=values.get("active_provider"),
+                    active_model=values.get("active_model"),
+                    active_attempt=values.get("active_attempt"),
+                    failed_phase=values.get("failed_phase"),
+                    failed_agent=values.get("failed_agent"),
+                    failed_provider=values.get("failed_provider"),
+                    failed_model=values.get("failed_model"),
+                    retryable=bool(values.get("retryable")),
+                    parent_run_id=values.get("parent_run_id"),
+                    attempt_number=values.get("attempt_number") or 1,
+                    resume_checkpoint_id=values.get("resume_checkpoint_id"),
+                    checkpoint_retained_until=retained_until,
                 )
             except (TypeError, ValueError, json.JSONDecodeError):
                 continue
@@ -824,13 +1216,23 @@ class RunManager:
                 if record.status is RunStatus.PUBLISHING:
                     self._recover_publishing_locked(state)
                 else:
+                    # Service-restart recovery. ``retryable`` is set later
+                    # by the retry endpoint based on actual checkpoint
+                    # availability; we tag the reason here so the audit
+                    # trail distinguishes this from worker-lease expiry.
+                    state.record.terminal_reason = TerminalReason.SERVICE_RESTARTED.value
+                    state.record.error_code = TerminalReason.SERVICE_RESTARTED.value
+                    state.record.error_message = USER_MESSAGES[
+                        TerminalReason.SERVICE_RESTARTED.value
+                    ]
                     self._transition_terminal_locked(
                         state,
                         allowed={RunStatus.QUEUED, RunStatus.RUNNING},
                         status=RunStatus.INTERRUPTED,
                         event=EventName.RUN_INTERRUPTED,
-                        terminal_reason="service_restart",
-                        error_message="analysis interrupted by web service restart",
+                        terminal_reason=TerminalReason.SERVICE_RESTARTED.value,
+                        error_message=USER_MESSAGES[TerminalReason.SERVICE_RESTARTED.value],
+                        retryable=True,
                     )
             for state in self._records.values():
                 self._normalize_loaded_terminal_locked(state)
@@ -841,11 +1243,11 @@ class RunManager:
         if status not in self._TERMINAL_STATUSES:
             return
         defaults = {
-            RunStatus.COMPLETED: "completed",
+            RunStatus.COMPLETED: TerminalReason.COMPLETED.value,
             RunStatus.FAILED: "failed",
-            RunStatus.CANCELLED: "cancelled",
-            RunStatus.INTERRUPTED: "service_restart",
-            RunStatus.TIMED_OUT: "heartbeat_timeout",
+            RunStatus.CANCELLED: TerminalReason.CANCELLED.value,
+            RunStatus.INTERRUPTED: TerminalReason.SERVICE_RESTARTED.value,
+            RunStatus.TIMED_OUT: TerminalReason.RUN_DEADLINE_EXCEEDED.value,
         }
         if status is RunStatus.FAILED:
             reason = state.record.terminal_reason or state.record.error_code or defaults[status]
@@ -950,6 +1352,7 @@ class RunManager:
     ) -> None:
         state = self._records.get(record.run_id)
         terminal_expires_at = state.terminal_expires_at.isoformat() if state and state.terminal_expires_at else None
+        lease_token = state.lease.owner_token if state is not None and state.lease is not None else None
         values = (
             record.run_id,
             json.dumps(record.request.model_dump(mode="json"), ensure_ascii=False, separators=(",", ":")),
@@ -970,12 +1373,27 @@ class RunManager:
             record.data_snapshot_id,
             record.data_status,
             record.reproducibility,
-            self._format_datetime(record.last_heartbeat_at),
+            self._format_datetime(record.worker_heartbeat_at),
             self._format_datetime(record.timeout_at),
             record.terminal_reason,
             record.run_timeout_seconds,
             record.run_heartbeat_interval_seconds,
             record.run_heartbeat_timeout_seconds,
+            self._format_datetime(record.last_activity_at),
+            record.active_operation,
+            record.active_provider,
+            record.active_model,
+            record.active_attempt,
+            record.failed_phase,
+            record.failed_agent,
+            record.failed_provider,
+            record.failed_model,
+            1 if record.retryable else 0,
+            record.parent_run_id,
+            record.attempt_number,
+            record.resume_checkpoint_id,
+            lease_token,
+            record.checkpoint_retained_until.isoformat() if record.checkpoint_retained_until else None,
         )
         connection.execute(
             """
@@ -983,10 +1401,17 @@ class RunManager:
                     run_id, request_json, status, phase, current_agent, progress,
                     queued_at, started_at, finished_at, signal, report_id, error_code,
                     error_message, terminal_expires_at, effective_quote_strategy_id,
-                    effective_quote_provider_chain, data_snapshot_id, data_status, reproducibility
-                    , last_heartbeat_at, timeout_at, terminal_reason, run_timeout_seconds,
-                    run_heartbeat_interval_seconds, run_heartbeat_timeout_seconds
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    effective_quote_provider_chain, data_snapshot_id, data_status, reproducibility,
+                    worker_heartbeat_at, timeout_at, terminal_reason, run_timeout_seconds,
+                    run_heartbeat_interval_seconds, run_heartbeat_timeout_seconds,
+                    last_activity_at, active_operation, active_provider, active_model,
+                    active_attempt, failed_phase, failed_agent, failed_provider, failed_model,
+                    retryable, parent_run_id, attempt_number, resume_checkpoint_id,
+                    lease_owner_token, checkpoint_retained_until
+                ) VALUES (
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                )
                 ON CONFLICT(run_id) DO UPDATE SET
                     request_json=excluded.request_json, status=excluded.status,
                     phase=excluded.phase, current_agent=excluded.current_agent,
@@ -999,11 +1424,27 @@ class RunManager:
                     effective_quote_provider_chain=excluded.effective_quote_provider_chain,
                     data_snapshot_id=excluded.data_snapshot_id, data_status=excluded.data_status,
                     reproducibility=excluded.reproducibility,
-                    last_heartbeat_at=excluded.last_heartbeat_at, timeout_at=excluded.timeout_at,
+                    worker_heartbeat_at=excluded.worker_heartbeat_at,
+                    timeout_at=excluded.timeout_at,
                     terminal_reason=excluded.terminal_reason,
                     run_timeout_seconds=excluded.run_timeout_seconds,
                     run_heartbeat_interval_seconds=excluded.run_heartbeat_interval_seconds,
-                    run_heartbeat_timeout_seconds=excluded.run_heartbeat_timeout_seconds
+                    run_heartbeat_timeout_seconds=excluded.run_heartbeat_timeout_seconds,
+                    last_activity_at=excluded.last_activity_at,
+                    active_operation=excluded.active_operation,
+                    active_provider=excluded.active_provider,
+                    active_model=excluded.active_model,
+                    active_attempt=excluded.active_attempt,
+                    failed_phase=excluded.failed_phase,
+                    failed_agent=excluded.failed_agent,
+                    failed_provider=excluded.failed_provider,
+                    failed_model=excluded.failed_model,
+                    retryable=excluded.retryable,
+                    parent_run_id=excluded.parent_run_id,
+                    attempt_number=excluded.attempt_number,
+                    resume_checkpoint_id=excluded.resume_checkpoint_id,
+                    lease_owner_token=excluded.lease_owner_token,
+                    checkpoint_retained_until=excluded.checkpoint_retained_until
                 """,
             values,
         )

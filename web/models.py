@@ -143,6 +143,31 @@ class RunRecord(BaseModel):
     run_timeout_seconds: int | None = None
     run_heartbeat_interval_seconds: int | None = None
     run_heartbeat_timeout_seconds: int | None = None
+    # Lease vs. activity split: worker_heartbeat_at is renewed by the
+    # in-process WorkerLease thread (independent of analysis activity);
+    # last_activity_at is updated whenever a chunk, phase change, agent
+    # status, progress, report artifact, or external request boundary is
+    # observed. ``last_heartbeat_at`` is kept as a backward-compatible
+    # alias for worker_heartbeat_at when loading pre-migration rows.
+    worker_heartbeat_at: datetime | None = None
+    last_activity_at: datetime | None = None
+    active_operation: str | None = None
+    active_provider: str | None = None
+    active_model: str | None = None
+    active_attempt: int | None = None
+    failed_phase: str | None = None
+    failed_agent: str | None = None
+    failed_provider: str | None = None
+    failed_model: str | None = None
+    retryable: bool = False
+    parent_run_id: str | None = None
+    attempt_number: int = 1
+    resume_checkpoint_id: str | None = None
+    checkpoint_retained_until: datetime | None = None
+    # Live counters populated alongside the run (not persisted on the row).
+    artifact_count: int = 0
+    completed_artifact_count: int = 0
+    has_partial_results: bool = False
 
     @computed_field
     @property
@@ -260,7 +285,13 @@ class RunCompletedPayload(EventPayload):
 class RunFailedPayload(EventPayload):
     status: Literal["failed"]
     error_code: str
+    terminal_reason: str | None = None
     error_message: str
+    failed_phase: str | None = None
+    failed_agent: str | None = None
+    failed_provider: str | None = None
+    failed_model: str | None = None
+    retryable: bool = False
 
 
 class RunCancelledPayload(EventPayload):
@@ -271,8 +302,10 @@ class RunCancelledPayload(EventPayload):
 
 class RunInterruptedPayload(EventPayload):
     status: Literal["interrupted"]
-    error_code: Literal["service_restart"] = "service_restart"
+    error_code: str = "service_restart"
+    terminal_reason: str | None = None
     error_message: str
+    retryable: bool = False
 
 
 class RunTimedOutPayload(EventPayload):
@@ -281,6 +314,7 @@ class RunTimedOutPayload(EventPayload):
     terminal_reason: str
     error_code: str | None = None
     error_message: str
+    retryable: bool = False
 
     @model_validator(mode="after")
     def mirror_terminal_reason(self):

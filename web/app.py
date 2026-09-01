@@ -20,6 +20,7 @@ from fastapi.staticfiles import StaticFiles
 
 from tradingagents.default_config import DEFAULT_CONFIG
 
+from .artifacts import ArtifactRepository
 from .config import (
     OUTPUT_LANGUAGES,
     QUOTE_STRATEGIES,
@@ -28,6 +29,7 @@ from .config import (
     resolve_model_config,
     resolve_run_lifecycle_config,
 )
+from .error_codes import USER_MESSAGES, TerminalReason
 from .history import ReportHistory, ReportNotFound
 from .manager import ActiveRunError, EventBatch, RunManager
 from .market_data import ProviderRouter, QuoteService
@@ -186,6 +188,9 @@ def create_app(
     app.state.history = active_history
     app.state.store = store
     provider_health_repo = ProviderHealthRepository(store)
+    artifact_repository = ArtifactRepository(store)
+    active_manager.attach_artifact_repository(artifact_repository)
+    app.state.artifact_repository = artifact_repository
     app.state.repositories = {
         "watchlist": WatchlistRepository(store),
         "quotes": QuoteRepository(store),
@@ -195,6 +200,7 @@ def create_app(
         "reports": report_index_repo,
         "report_gate": ReportRepository(store),
         "provider_health": provider_health_repo,
+        "artifacts": artifact_repository,
     }
     providers = {"yfinance": YFinanceProvider(), "alpha_vantage": AlphaVantageProvider()}
     app.state.market_router = ProviderRouter(providers, health=provider_health_repo)
@@ -231,6 +237,10 @@ def create_app(
 
     @app.get("/reports/{report_id}", response_class=HTMLResponse, include_in_schema=False)
     def report_index(report_id: str) -> Response:
+        return _console_entry()
+
+    @app.get("/assets/{symbol}", response_class=HTMLResponse, include_in_schema=False)
+    def asset_index(symbol: str) -> Response:
         return _console_entry()
 
     @app.get("/api/config")
@@ -351,6 +361,37 @@ def create_app(
         except ProviderError as exc:
             raise _error(404, "未找到资产信息") from exc
 
+    @app.get("/api/assets/{symbol}/runs")
+    def list_asset_runs(symbol: str, limit: int = Query(20, ge=1, le=100)) -> dict[str, Any]:
+        records = active_manager.list_runs_for_ticker(symbol, limit=limit)
+        return {
+            "symbol": symbol.upper(),
+            "items": [
+                {
+                    "run_id": record.run_id,
+                    "status": record.status.value if hasattr(record.status, "value") else str(record.status),
+                    "phase": record.phase,
+                    "current_agent": record.current_agent,
+                    "progress": record.progress,
+                    "queued_at": record.queued_at,
+                    "started_at": record.started_at,
+                    "finished_at": record.finished_at,
+                    "signal": record.signal,
+                    "report_id": record.report_id,
+                    "error_code": record.error_code,
+                    "error_message": record.error_message,
+                    "failed_phase": record.failed_phase,
+                    "failed_agent": record.failed_agent,
+                    "retryable": record.retryable,
+                    "analysis_date": record.request.analysis_date,
+                    "asset_type": record.request.asset_type,
+                    "provider": record.request.provider,
+                    "research_depth": record.request.research_depth,
+                }
+                for record in records
+            ],
+        }
+
     @app.get("/api/providers/market-data")
     def market_provider_status() -> dict[str, Any]:
         catalog = market_data_catalog(active_config, settings_repo.all())
@@ -425,6 +466,7 @@ def create_app(
                 active_manager,
                 config=active_config,
                 report_history=active_history,
+                artifact_repository=getattr(app.state, "artifact_repository", None),
             ).worker
         elif hasattr(runner, "worker"):
             worker = runner.worker
@@ -493,6 +535,71 @@ def create_app(
             return _record_json(active_manager.request_cancel(run_id))
         except KeyError as exc:
             raise _error(status.HTTP_404_NOT_FOUND, "run not found") from exc
+
+    @app.get("/api/runs/{run_id}/artifacts")
+    def list_run_artifacts(run_id: str) -> dict[str, Any]:
+        """Return per-stage artifacts for one run, ordered by sequence."""
+
+        try:
+            record = active_manager.get_run(run_id)
+        except KeyError as exc:
+            raise _error(status.HTTP_404_NOT_FOUND, "run not found") from exc
+        artifacts = active_manager.list_artifacts(run_id)
+        return {
+            "run_id": record.run_id,
+            "status": record.status.value,
+            "artifact_count": record.artifact_count,
+            "completed_artifact_count": record.completed_artifact_count,
+            "has_partial_results": record.has_partial_results,
+            "artifacts": artifacts,
+        }
+
+    @app.post("/api/runs/{run_id}/retry", status_code=status.HTTP_202_ACCEPTED)
+    def retry_run(run_id: str) -> JSONResponse:
+        """Create a new run that resumes from the parent's checkpoint.
+
+        Returns 409 if the parent is not retryable, has no compatible
+        checkpoint, or another run is already active. The browser falls
+        back to a fresh "重新分析" action in those cases.
+        """
+
+        try:
+            allowed, reason = active_manager.can_retry(run_id)
+        except KeyError as exc:
+            raise _error(status.HTTP_404_NOT_FOUND, "run not found") from exc
+        if not allowed:
+            raise _error(
+                status.HTTP_409_CONFLICT,
+                USER_MESSAGES.get(reason, "retry not available"),
+            )
+        parent_record = active_manager.get_run(run_id)
+        if parent_record.resume_checkpoint_id is None:
+            raise _error(
+                status.HTTP_409_CONFLICT,
+                USER_MESSAGES.get(TerminalReason.WORKER_ERROR.value, "checkpoint unavailable"),
+            )
+        if runner is None:
+            worker = WebRunRunner(
+                active_manager,
+                config=active_config,
+                report_history=active_history,
+                artifact_repository=getattr(app.state, "artifact_repository", None),
+            ).worker
+        elif hasattr(runner, "worker"):
+            worker = runner.worker
+        else:
+            worker = runner
+        try:
+            record = active_manager.retry_run(
+                parent_run_id=run_id,
+                request=parent_record.request,
+                worker=worker,
+            )
+        except ActiveRunError as exc:
+            raise _error(status.HTTP_409_CONFLICT, str(exc)) from exc
+        except RuntimeError as exc:
+            raise _error(status.HTTP_409_CONFLICT, "checkpoint_unavailable") from exc
+        return JSONResponse(_record_json(record), status_code=status.HTTP_202_ACCEPTED)
 
     @app.get("/api/history")
     def list_history(
