@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 import sqlite3
 import threading
 import uuid
@@ -27,6 +28,7 @@ from web.models import (
     RunSnapshotPayload,
     RunStatus,
 )
+from web.repositories import ReportRepository
 
 
 class ActiveRunError(RuntimeError):
@@ -76,6 +78,13 @@ class RunManager:
         )
     )
     _WORKER_ERROR_MESSAGE = "analysis worker failed"
+    _TERMINAL_EVENT_BY_STATUS = {
+        RunStatus.COMPLETED: EventName.RUN_COMPLETED,
+        RunStatus.FAILED: EventName.RUN_FAILED,
+        RunStatus.CANCELLED: EventName.RUN_CANCELLED,
+        RunStatus.INTERRUPTED: EventName.RUN_INTERRUPTED,
+        RunStatus.TIMED_OUT: EventName.RUN_TIMED_OUT,
+    }
 
     def __init__(
         self,
@@ -86,6 +95,8 @@ class RunManager:
         db_path: str | Path | None = None,
         store: SQLiteStore | None = None,
         lifecycle_config: dict[str, Any] | None = None,
+        report_root: str | Path | None = None,
+        watchdog_interval: float | None = None,
     ) -> None:
         if event_limit < 1:
             raise ValueError("event_limit must be positive")
@@ -96,6 +107,11 @@ class RunManager:
         self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="tradingagents-web")
         self._records: dict[str, _ManagedRun] = {}
         self._active_run_id: str | None = None
+        self._report_root = Path(report_root) if report_root is not None else None
+        self._watchdog_interval_override = watchdog_interval
+        self._watchdog_stop = threading.Event()
+        self._watchdog_thread: threading.Thread | None = None
+        self._shutdown = False
         self.lifecycle_config: dict[str, dict[str, int | str]] = {}
         self.configure_lifecycle(lifecycle_config or {
             "run_timeout_seconds": {"value": 7200, "source": "hard_fallback"},
@@ -113,11 +129,17 @@ class RunManager:
         elif self._store is not None:
             self._db_path = self._store.path
             self._load_persisted_runs()
+        self._start_watchdog()
 
     @property
     def active_run_id(self) -> str | None:
         with self._lock:
+            self._check_all_expired_locked()
             return self._active_run_id
+
+    def set_report_root(self, report_root: str | Path) -> None:
+        with self._lock:
+            self._report_root = Path(report_root)
 
     def configure_lifecycle(self, lifecycle_config: dict[str, Any]) -> None:
         """Set validated values used by subsequently created runs."""
@@ -216,6 +238,7 @@ class RunManager:
 
         with self._lock:
             state = self._state(run_id)
+            self._check_expired_locked(state)
             if state.record.status is RunStatus.RUNNING:
                 return self._copy_record(state.record)
             if state.record.status is not RunStatus.QUEUED:
@@ -241,6 +264,7 @@ class RunManager:
         """CAS running -> publishing; publishing is deliberately not cancellable."""
         with self._lock:
             state = self._state(run_id)
+            self._check_expired_locked(state)
             if state.record.status is RunStatus.PUBLISHING:
                 return self._copy_record(state.record)
             if state.record.status is not RunStatus.RUNNING:
@@ -268,27 +292,81 @@ class RunManager:
             self._persist_locked(state.record)
             return self._copy_record(state.record)
 
-    def complete_publishing(self, run_id: str, *, signal: str | None, report_id: str) -> RunRecord:
+    def complete_publishing(
+        self,
+        run_id: str,
+        *,
+        signal: str | None,
+        report_id: str,
+        report_dir: str | Path | None = None,
+    ) -> RunRecord:
         with self._lock:
             state = self._state(run_id)
             if state.record.status is RunStatus.COMPLETED:
                 return self._copy_record(state.record)
+            if state.record.status in self._TERMINAL_STATUSES:
+                return self._copy_record(state.record)
             if state.record.status is not RunStatus.PUBLISHING:
                 raise RuntimeError("run is not publishing")
-            state.record.status = RunStatus.COMPLETED
-            state.record.finished_at = self._clock()
-            state.record.signal = signal
-            state.record.report_id = report_id
-            self._finish_locked(state)
-            self._persist_locked(state.record)
-            self._publish_locked(state, EventName.RUN_COMPLETED, {"status": "completed", "signal": signal, "report_id": report_id}, allow_terminal=True)
+            resolved_report_dir = Path(report_dir) if report_dir is not None else self._report_dir_for(state.record, report_id)
+            if resolved_report_dir is None or not ReportRepository.is_gate_ready(resolved_report_dir):
+                return self._transition_terminal_locked(
+                    state,
+                    allowed={RunStatus.PUBLISHING},
+                    status=RunStatus.FAILED,
+                    event=EventName.RUN_FAILED,
+                    terminal_reason="publish_incomplete",
+                    error_message="report publication is incomplete",
+                )
+            return self._transition_terminal_locked(
+                state,
+                allowed={RunStatus.PUBLISHING},
+                status=RunStatus.COMPLETED,
+                event=EventName.RUN_COMPLETED,
+                terminal_reason="completed",
+                signal=signal,
+                report_id=report_id,
+            )
+
+    def heartbeat(self, run_id: str) -> RunRecord:
+        """Persist a Worker activity checkpoint at the configured interval."""
+
+        with self._lock:
+            state = self._state(run_id)
+            self._check_expired_locked(state)
+            if state.record.status not in (RunStatus.QUEUED, RunStatus.RUNNING):
+                return self._copy_record(state.record)
+            now = self._clock()
+            interval = max(0, state.record.run_heartbeat_interval_seconds or 0)
+            previous = state.record.last_heartbeat_at
+            if previous is None or (now - previous).total_seconds() >= interval:
+                state.record.last_heartbeat_at = now
+                self._persist_locked(state.record)
+            return self._copy_record(state.record)
+
+    def remaining_deadline(self, run_id: str) -> float:
+        with self._lock:
+            state = self._state(run_id)
+            self._check_expired_locked(state)
+            if state.record.status in self._TERMINAL_STATUSES:
+                return 0.0
+            if state.record.timeout_at is None:
+                return float("inf")
+            return max(0.0, (state.record.timeout_at - self._clock()).total_seconds())
+
+    def check_expired(self, run_id: str) -> RunRecord:
+        with self._lock:
+            state = self._state(run_id)
+            self._check_expired_locked(state)
             return self._copy_record(state.record)
 
     def publish(
         self, run_id: str, event: EventName | str, payload: dict[str, Any]
     ) -> EventEnvelope | None:
         with self._lock:
-            return self._publish_locked(self._state(run_id), EventName(event), payload)
+            state = self._state(run_id)
+            self._check_expired_locked(state)
+            return self._publish_locked(state, EventName(event), payload)
 
     def _publish_locked(
         self,
@@ -300,6 +378,12 @@ class RunManager:
     ) -> EventEnvelope | None:
         if state.record.status in self._TERMINAL_STATUSES and not allow_terminal:
             return None
+        if event is EventName.PROGRESS:
+            progress = min(1.0, max(0.0, float(payload.get("progress", 0.0))))
+            if progress < state.record.progress:
+                return None
+            payload = dict(payload)
+            payload["progress"] = progress
         envelope = EventEnvelope(
             run_id=state.record.run_id,
             seq=state.next_seq,
@@ -343,13 +427,16 @@ class RunManager:
     def get_run(self, run_id: str) -> RunRecord:
         with self._lock:
             self.cleanup()
-            return self._copy_record(self._state(run_id).record)
+            state = self._state(run_id)
+            self._check_expired_locked(state)
+            return self._copy_record(state.record)
 
     def request_cancel(self, run_id: str) -> RunRecord:
         """Set the cooperative cancellation flag without forcing a terminal state."""
 
         with self._lock:
             state = self._state(run_id)
+            self._check_expired_locked(state)
             if (
                 state.record.status not in self._TERMINAL_STATUSES
                 and state.record.status is not RunStatus.PUBLISHING
@@ -360,93 +447,78 @@ class RunManager:
 
     def is_cancelled(self, run_id: str) -> bool:
         with self._lock:
-            return self._state(run_id).cancel_event.is_set()
+            state = self._state(run_id)
+            self._check_expired_locked(state)
+            return state.cancel_event.is_set()
 
     def complete_run(self, run_id: str, *, signal: str | None, report_id: str) -> RunRecord:
         with self._lock:
             state = self._state(run_id)
+            self._check_expired_locked(state)
             if state.record.status in self._TERMINAL_STATUSES:
                 return self._copy_record(state.record)
-            state.record.status = RunStatus.COMPLETED
-            state.record.finished_at = self._clock()
-            state.record.signal = signal
-            state.record.report_id = report_id
-            self._finish_locked(state)
-            self._persist_locked(state.record)
-            self._publish_locked(
+            return self._transition_terminal_locked(
                 state,
-                EventName.RUN_COMPLETED,
-                {"status": "completed", "signal": signal, "report_id": report_id},
-                allow_terminal=True,
+                allowed={RunStatus.QUEUED, RunStatus.RUNNING, RunStatus.PUBLISHING},
+                status=RunStatus.COMPLETED,
+                event=EventName.RUN_COMPLETED,
+                terminal_reason="completed",
+                signal=signal,
+                report_id=report_id,
             )
-            return self._copy_record(state.record)
 
     def fail_run(self, run_id: str, *, error_code: str, error_message: str) -> RunRecord:
         with self._lock:
             state = self._state(run_id)
+            self._check_expired_locked(state)
             if state.record.status in self._TERMINAL_STATUSES:
                 return self._copy_record(state.record)
-            state.record.status = RunStatus.FAILED
-            state.record.finished_at = self._clock()
-            state.record.terminal_reason = self._sanitize_code(error_code)
-            state.record.error_code = state.record.terminal_reason
-            state.record.error_message = self._sanitize_error(error_message)
-            self._finish_locked(state)
-            self._persist_locked(state.record)
-            self._publish_locked(
+            return self._transition_terminal_locked(
                 state,
-                EventName.RUN_FAILED,
-                {
-                    "status": "failed",
-                    "error_code": state.record.error_code,
-                    "error_message": state.record.error_message,
-                },
-                allow_terminal=True,
+                allowed={RunStatus.QUEUED, RunStatus.RUNNING, RunStatus.PUBLISHING},
+                status=RunStatus.FAILED,
+                event=EventName.RUN_FAILED,
+                terminal_reason=error_code,
+                error_message=error_message,
             )
-            return self._copy_record(state.record)
 
     def cancel_run(
         self, run_id: str, *, phase: str | None = None, current_agent: str | None = None
     ) -> RunRecord:
         with self._lock:
             state = self._state(run_id)
+            self._check_expired_locked(state)
             if (
                 state.record.status in self._TERMINAL_STATUSES
                 or state.record.status is RunStatus.PUBLISHING
             ):
                 return self._copy_record(state.record)
-            state.cancel_event.set()
-            state.record.status = RunStatus.CANCELLED
-            state.record.finished_at = self._clock()
             if phase is not None:
                 state.record.phase = phase
-            if current_agent is not None:
-                state.record.current_agent = current_agent
-            self._finish_locked(state)
-            self._persist_locked(state.record)
-            self._publish_locked(
+            state.cancel_event.set()
+            return self._transition_terminal_locked(
                 state,
-                EventName.RUN_CANCELLED,
-                {
-                    "status": "cancelled",
-                    "phase": state.record.phase or "",
-                    "current_agent": state.record.current_agent,
-                },
-                allow_terminal=True,
+                allowed={RunStatus.QUEUED, RunStatus.RUNNING},
+                status=RunStatus.CANCELLED,
+                event=EventName.RUN_CANCELLED,
+                terminal_reason="cancelled",
             )
-            return self._copy_record(state.record)
 
     def read_events(self, run_id: str, cursor: int = 0) -> EventBatch:
         with self._lock:
-            return self._read_locked(self._state(run_id), max(0, cursor))
+            state = self._state(run_id)
+            self._check_expired_locked(state)
+            return self._read_locked(state, max(0, cursor))
 
     def wait_for_events(self, run_id: str, cursor: int = 0, timeout: float = 15.0) -> EventBatch:
         with self._lock:
             state = self._state(run_id)
+            self._check_expired_locked(state)
             batch = self._read_locked(state, max(0, cursor))
             if batch.events or batch.terminal:
                 return batch
             state.condition.wait(timeout=max(0.0, timeout))
+            self._check_expired_locked(state)
             batch = self._read_locked(state, max(0, cursor))
             if not batch.events and not batch.terminal:
                 return EventBatch([], timed_out=True)
@@ -461,16 +533,21 @@ class RunManager:
         stale = cursor < oldest - 1
         events: list[EventEnvelope] = []
         if stale:
-            snapshot_seq = max(1, oldest - 1)
+            snapshot_seq = state.next_seq - 1
             events.append(
                 EventEnvelope(
                     run_id=state.record.run_id,
-                    seq=snapshot_seq,
+                    seq=max(1, snapshot_seq),
                     timestamp=self._clock(),
                     event=EventName.RUN_SNAPSHOT,
-                    payload=RunSnapshotPayload(run=self._copy_record(state.record), replay_from_seq=cursor),
+                    payload=RunSnapshotPayload(
+                        run=self._copy_record(state.record),
+                        snapshot_seq=snapshot_seq,
+                        replay_from_seq=snapshot_seq + 1,
+                    ),
                 )
             )
+            cursor = snapshot_seq
         events.extend(event for event in retained if event.seq > cursor)
         terminal = state.record.status in self._TERMINAL_STATUSES
         return EventBatch(events, stale=stale, terminal=terminal)
@@ -488,6 +565,14 @@ class RunManager:
                 self._delete_persisted_locked(run_id)
 
     def shutdown(self, wait: bool = True) -> None:
+        with self._lock:
+            if self._shutdown:
+                return
+            self._shutdown = True
+            self._watchdog_stop.set()
+            watchdog = self._watchdog_thread
+        if watchdog is not None and watchdog is not threading.current_thread():
+            watchdog.join(timeout=5.0)
         self._executor.shutdown(wait=wait, cancel_futures=not wait)
 
     def _finish_locked(self, state: _ManagedRun) -> None:
@@ -495,6 +580,141 @@ class RunManager:
         if self._active_run_id == state.record.run_id:
             self._active_run_id = None
         state.condition.notify_all()
+
+    def _start_watchdog(self) -> None:
+        interval = self._watchdog_interval_override
+        if interval is None:
+            interval = float(
+                self.lifecycle_config["run_heartbeat_interval_seconds"]["value"]
+            )
+        interval = max(0.01, float(interval))
+        self._watchdog_thread = threading.Thread(
+            target=self._watchdog_loop,
+            args=(interval,),
+            name="tradingagents-run-watchdog",
+            daemon=True,
+        )
+        self._watchdog_thread.start()
+
+    def _watchdog_loop(self, interval: float) -> None:
+        while not self._watchdog_stop.wait(interval):
+            try:
+                with self._lock:
+                    self._check_all_expired_locked()
+            except Exception:
+                continue
+
+    def _check_all_expired_locked(self) -> None:
+        for state in tuple(self._records.values()):
+            self._check_expired_locked(state)
+
+    def _check_expired_locked(self, state: _ManagedRun) -> bool:
+        if state.record.status not in (RunStatus.QUEUED, RunStatus.RUNNING):
+            return False
+        now = self._clock()
+        reason = None
+        message = None
+        if state.record.timeout_at is not None and now >= state.record.timeout_at:
+            reason = "heartbeat_timeout"
+            message = "analysis deadline expired"
+        else:
+            heartbeat_timeout = state.record.run_heartbeat_timeout_seconds
+            heartbeat_at = state.record.last_heartbeat_at
+            if (
+                heartbeat_timeout is not None
+                and heartbeat_at is not None
+                and (now - heartbeat_at).total_seconds() >= heartbeat_timeout
+            ):
+                reason = "heartbeat_timeout"
+                message = "analysis heartbeat expired"
+        if reason is None:
+            return False
+        self._transition_terminal_locked(
+            state,
+            allowed={RunStatus.QUEUED, RunStatus.RUNNING},
+            status=RunStatus.TIMED_OUT,
+            event=EventName.RUN_TIMED_OUT,
+            terminal_reason=reason,
+            error_message=message,
+        )
+        return True
+
+    def _transition_terminal_locked(
+        self,
+        state: _ManagedRun,
+        *,
+        allowed: set[RunStatus],
+        status: RunStatus,
+        event: EventName,
+        terminal_reason: str,
+        error_message: str | None = None,
+        signal: str | None = None,
+        report_id: str | None = None,
+    ) -> RunRecord:
+        if state.record.status in self._TERMINAL_STATUSES:
+            return self._copy_record(state.record)
+        if state.record.status not in allowed:
+            return self._copy_record(state.record)
+        state.record.status = status
+        state.record.finished_at = self._clock()
+        state.record.terminal_reason = self._sanitize_code(terminal_reason)
+        state.record.error_code = state.record.terminal_reason
+        state.record.error_message = (
+            self._sanitize_error(error_message) if error_message is not None else None
+        )
+        state.record.current_agent = None
+        if status is RunStatus.COMPLETED:
+            state.record.progress = 1.0
+            state.record.signal = signal
+            state.record.report_id = report_id
+        self._finish_locked(state)
+        payload = self._terminal_payload(state.record, event)
+        envelope = EventEnvelope(
+            run_id=state.record.run_id,
+            seq=state.next_seq,
+            timestamp=self._clock(),
+            event=event,
+            payload=payload,
+        )
+        self._persist_terminal_locked(state.record, envelope)
+        state.next_seq += 1
+        state.events.append(envelope)
+        state.condition.notify_all()
+        return self._copy_record(state.record)
+
+    @staticmethod
+    def _terminal_payload(record: RunRecord, event: EventName) -> dict[str, Any]:
+        if event is EventName.RUN_COMPLETED:
+            return {
+                "status": "completed",
+                "signal": record.signal,
+                "report_id": record.report_id,
+            }
+        if event is EventName.RUN_CANCELLED:
+            return {
+                "status": "cancelled",
+                "phase": record.phase or "",
+                "current_agent": None,
+            }
+        if event is EventName.RUN_INTERRUPTED:
+            return {
+                "status": "interrupted",
+                "error_code": "service_restart",
+                "error_message": record.error_message or "analysis interrupted",
+            }
+        if event is EventName.RUN_TIMED_OUT:
+            return {
+                "status": "timed_out",
+                "progress": record.progress,
+                "terminal_reason": record.terminal_reason,
+                "error_code": record.error_code,
+                "error_message": record.error_message or "analysis heartbeat expired",
+            }
+        return {
+            "status": "failed",
+            "error_code": record.error_code or "unknown_error",
+            "error_message": record.error_message or "analysis failed",
+        }
 
     def _state(self, run_id: str) -> _ManagedRun:
         try:
@@ -536,7 +756,7 @@ class RunManager:
         connector = self._store.connection() if self._store is not None else sqlite3.connect(self._db_path)
         with connector as connection:
             rows = connection.execute("SELECT * FROM web_runs").fetchall()
-        interrupted: list[RunRecord] = []
+        recoverable: list[RunRecord] = []
         for row in rows:
             values = dict(row)
             run_id, request_json, status = values["run_id"], values["request_json"], values["status"]
@@ -596,25 +816,138 @@ class RunManager:
                 except (TypeError, ValueError, json.JSONDecodeError):
                     continue
             self._records[record.run_id] = state
-            if record.status in (RunStatus.QUEUED, RunStatus.RUNNING):
-                interrupted.append(record)
-        if interrupted:
-            now = self._clock()
-            with self._lock:
-                for record in interrupted:
-                    state = self._records[record.run_id]
-                    state.record.status = RunStatus.INTERRUPTED
-                    state.record.finished_at = now
-                    state.record.terminal_reason = "service_restart"
-                    state.record.error_code = state.record.terminal_reason
-                    state.record.error_message = "analysis interrupted by web service restart"
-                    state.terminal_expires_at = now + self.terminal_ttl
-                    self._persist_locked(state.record)
-                    self._publish_locked(state, EventName.RUN_INTERRUPTED, {"status": "interrupted", "error_code": "service_restart", "error_message": state.record.error_message}, allow_terminal=True)
+            if record.status in (RunStatus.QUEUED, RunStatus.RUNNING, RunStatus.PUBLISHING):
+                recoverable.append(record)
+        with self._lock:
+            for record in recoverable:
+                state = self._records[record.run_id]
+                if record.status is RunStatus.PUBLISHING:
+                    self._recover_publishing_locked(state)
+                else:
+                    self._transition_terminal_locked(
+                        state,
+                        allowed={RunStatus.QUEUED, RunStatus.RUNNING},
+                        status=RunStatus.INTERRUPTED,
+                        event=EventName.RUN_INTERRUPTED,
+                        terminal_reason="service_restart",
+                        error_message="analysis interrupted by web service restart",
+                    )
+            for state in self._records.values():
+                self._normalize_loaded_terminal_locked(state)
+                self._repair_terminal_event_locked(state)
+
+    def _normalize_loaded_terminal_locked(self, state: _ManagedRun) -> None:
+        status = state.record.status
+        if status not in self._TERMINAL_STATUSES:
+            return
+        defaults = {
+            RunStatus.COMPLETED: "completed",
+            RunStatus.FAILED: "failed",
+            RunStatus.CANCELLED: "cancelled",
+            RunStatus.INTERRUPTED: "service_restart",
+            RunStatus.TIMED_OUT: "heartbeat_timeout",
+        }
+        if status is RunStatus.FAILED:
+            reason = state.record.terminal_reason or state.record.error_code or defaults[status]
+        else:
+            reason = defaults[status]
+        state.record.terminal_reason = self._sanitize_code(reason)
+        state.record.error_code = state.record.terminal_reason
+        state.record.current_agent = None
+        if status is RunStatus.COMPLETED:
+            state.record.progress = 1.0
+            state.record.report_id = state.record.report_id or state.record.run_id
+        if state.record.finished_at is None:
+            state.record.finished_at = self._clock()
+        if state.terminal_expires_at is None:
+            state.terminal_expires_at = self._clock() + self.terminal_ttl
+        self._persist_locked(state.record)
+
+    def _recover_publishing_locked(self, state: _ManagedRun) -> None:
+        report_id = state.record.report_id or state.record.run_id
+        report_dir = self._report_dir_for(state.record, report_id)
+        if report_dir is not None and ReportRepository.is_gate_ready(report_dir):
+            try:
+                metadata = json.loads((report_dir / "run.json").read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                metadata = {}
+            self._transition_terminal_locked(
+                state,
+                allowed={RunStatus.PUBLISHING},
+                status=RunStatus.COMPLETED,
+                event=EventName.RUN_COMPLETED,
+                terminal_reason="completed",
+                signal=metadata.get("signal"),
+                report_id=str(metadata.get("report_id") or report_id),
+            )
+            return
+        if report_dir is not None and report_dir.exists():
+            self._quarantine_report(report_dir, state.record.run_id)
+        temporary_dir = self._temporary_report_dir_for(state.record)
+        if temporary_dir is not None and temporary_dir.exists():
+            self._quarantine_report(temporary_dir, state.record.run_id)
+        self._transition_terminal_locked(
+            state,
+            allowed={RunStatus.PUBLISHING},
+            status=RunStatus.FAILED,
+            event=EventName.RUN_FAILED,
+            terminal_reason="publish_incomplete",
+            error_message="report publication is incomplete after service restart",
+        )
+
+    def _repair_terminal_event_locked(self, state: _ManagedRun) -> None:
+        if state.record.status not in self._TERMINAL_STATUSES:
+            return
+        expected = self._TERMINAL_EVENT_BY_STATUS[state.record.status]
+        if any(event.event is expected for event in state.events):
+            return
+        event = EventEnvelope(
+            run_id=state.record.run_id,
+            seq=state.next_seq,
+            timestamp=state.record.finished_at or self._clock(),
+            event=expected,
+            payload=self._terminal_payload(state.record, expected),
+        )
+        self._persist_terminal_locked(state.record, event)
+        state.next_seq += 1
+        state.events.append(event)
+
+    def _report_dir_for(
+        self, record: RunRecord, report_id: str | None = None
+    ) -> Path | None:
+        if self._report_root is None:
+            return None
+        return (
+            self._report_root
+            / record.request.ticker
+            / str(record.request.analysis_date)
+            / (report_id or record.run_id)
+        )
+
+    def _temporary_report_dir_for(self, record: RunRecord) -> Path | None:
+        final_dir = self._report_dir_for(record)
+        if final_dir is None:
+            return None
+        return final_dir.parent / ".tmp" / record.run_id
+
+    def _quarantine_report(self, report_dir: Path, run_id: str) -> None:
+        if self._report_root is None:
+            return
+        orphan_root = self._report_root / ".orphaned"
+        orphan_root.mkdir(parents=True, exist_ok=True)
+        target = orphan_root / f"{run_id}-{uuid.uuid4().hex[:8]}"
+        shutil.move(str(report_dir), str(target))
 
     def _persist_locked(self, record: RunRecord) -> None:
         if self._db_path is None:
             return
+        connector = self._store.connection() if self._store is not None else sqlite3.connect(self._db_path)
+        with connector as connection:
+            self._upsert_record_connection(connection, record)
+
+    def _upsert_record_connection(
+        self, connection: sqlite3.Connection, record: RunRecord
+    ) -> None:
         state = self._records.get(record.run_id)
         terminal_expires_at = state.terminal_expires_at.isoformat() if state and state.terminal_expires_at else None
         values = (
@@ -644,10 +977,8 @@ class RunManager:
             record.run_heartbeat_interval_seconds,
             record.run_heartbeat_timeout_seconds,
         )
-        connector = self._store.connection() if self._store is not None else sqlite3.connect(self._db_path)
-        with connector as connection:
-            connection.execute(
-                """
+        connection.execute(
+            """
                 INSERT INTO web_runs (
                     run_id, request_json, status, phase, current_agent, progress,
                     queued_at, started_at, finished_at, signal, report_id, error_code,
@@ -674,8 +1005,32 @@ class RunManager:
                     run_heartbeat_interval_seconds=excluded.run_heartbeat_interval_seconds,
                     run_heartbeat_timeout_seconds=excluded.run_heartbeat_timeout_seconds
                 """,
-                values,
-                )
+            values,
+        )
+
+    def _persist_terminal_locked(
+        self, record: RunRecord, event: EventEnvelope
+    ) -> None:
+        if self._db_path is None:
+            return
+        connector = self._store.connection() if self._store is not None else sqlite3.connect(self._db_path)
+        with connector as connection:
+            self._upsert_record_connection(connection, record)
+            connection.execute(
+                "INSERT OR IGNORE INTO web_run_events(run_id,seq,event,timestamp,payload_json) "
+                "VALUES (?,?,?,?,?)",
+                (
+                    event.run_id,
+                    event.seq,
+                    event.event.value,
+                    event.timestamp.isoformat(),
+                    json.dumps(
+                        event.payload.model_dump(mode="json"),
+                        ensure_ascii=False,
+                        separators=(",", ":"),
+                    ),
+                ),
+            )
 
     def _delete_persisted_locked(self, run_id: str) -> None:
         if self._db_path is None:

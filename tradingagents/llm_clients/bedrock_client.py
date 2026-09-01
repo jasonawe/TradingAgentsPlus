@@ -1,7 +1,12 @@
 import os
 from typing import Any
 
-from .base_client import BaseLLMClient, normalize_content
+from .base_client import (
+    BaseLLMClient,
+    configure_deadline_policy,
+    invoke_with_deadline,
+    normalize_content,
+)
 from .validators import validate_model
 
 # Bedrock has no global default region; us-west-2 hosts the broadest model set.
@@ -32,7 +37,9 @@ def _bedrock_class():
         """ChatBedrockConverse with normalized (string) content output."""
 
         def invoke(self, input, config=None, **kwargs):
-            return normalize_content(super().invoke(input, config, **kwargs))
+            return normalize_content(
+                invoke_with_deadline(self, super().invoke, input, config, **kwargs)
+            )
 
     _BEDROCK_CLASS = NormalizedChatBedrockConverse
     return _BEDROCK_CLASS
@@ -69,7 +76,13 @@ class BedrockClient(BaseLLMClient):
         for key in ("temperature", "max_tokens", "max_retries", "callbacks"):
             if key in self.kwargs:
                 llm_kwargs[key] = self.kwargs[key]
-        return chat_cls(**llm_kwargs)
+        llm = chat_cls(**llm_kwargs)
+        return configure_deadline_policy(
+            llm,
+            deadline_supplier=self.kwargs.get("deadline_supplier"),
+            timeout_cap=self.kwargs.get("timeout"),
+            checkpoint=self.kwargs.get("external_request_checkpoint"),
+        )
 
     def validate_model(self) -> bool:
         """Validate model for Bedrock (any model ID accepted)."""

@@ -203,7 +203,22 @@ def test_report_view_is_separate_from_live_progress_and_supports_interruptions()
     assert '$("report-back-library").addEventListener' in js
     assert 'id="settings-view"' in html
     assert '"run_interrupted"' in js
-    assert '"completed", "interrupted", "failed", "cancelled"' in js
+    assert '"run_timed_out"' in js
+    assert "ACTIVE_RUN_STATUSES" in js
     assert 'switchView("active")' in js
     assert 'switchView("report")' in js
     assert 'switchView("active")' in js
+
+
+def test_client_snapshot_replay_and_future_terminal_status_fallback():
+    js = (STATIC / "app.js").read_text(encoding="utf-8")
+    assert "payload.snapshot_seq" in js
+    assert "state.lastSeq = Number(payload.snapshot_seq)" in js
+    assert "!ACTIVE_RUN_STATUSES.has(record.status)" in js
+    assert 'new Set(["queued", "running", "publishing"])' in js
+    assert '["queued", "running"].includes(active.status)' not in js
+    assert '["queued", "running"].includes(record.status)' not in js
+    assert "ACTIVE_RUN_STATUSES.has(active.status)" in js
+    assert "ACTIVE_RUN_STATUSES.has(record.status)" in js
+    assert 'case "run_timed_out"' in js
+    assert '"error.timedOut": "分析超时"' in js

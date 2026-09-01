@@ -1,6 +1,8 @@
+import json
 import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 import pytest
 
@@ -16,6 +18,35 @@ def request(ticker="AAPL"):
         analysts=["market"],
         research_depth=1,
     )
+
+
+class MutableClock:
+    def __init__(self, value: datetime):
+        self.value = value
+
+    def __call__(self) -> datetime:
+        return self.value
+
+    def advance(self, seconds: float) -> None:
+        self.value += timedelta(seconds=seconds)
+
+
+def lifecycle_config(*, interval=5, lease=30, wall=300):
+    return {
+        "run_timeout_seconds": wall,
+        "run_heartbeat_interval_seconds": interval,
+        "run_heartbeat_timeout_seconds": lease,
+    }
+
+
+def write_report_gate(path: Path, *, status="completed") -> None:
+    path.mkdir(parents=True, exist_ok=True)
+    (path / "complete_report.md").write_text("# report\n", encoding="utf-8")
+    (path / "run.json").write_text(
+        json.dumps({"status": status, "report_id": path.name}),
+        encoding="utf-8",
+    )
+    (path / "COMMITTED").write_text("ok\n", encoding="utf-8")
 
 
 def test_only_one_active_run_and_atomic_begin():
@@ -119,7 +150,7 @@ def test_sqlite_persists_live_progress_snapshot_across_manager_instances(tmp_pat
     restored = RunManager(db_path=database)
     record = restored.get_run(run.run_id)
     assert record.phase == "Analyst Team"
-    assert record.current_agent == "Market Analyst"
+    assert record.current_agent is None
     assert record.progress == 0.1
     restored.shutdown()
 
@@ -191,6 +222,262 @@ def test_progress_events_update_the_persisted_run_snapshot():
     assert snapshot.progress == 0.1
 
 
+def test_heartbeat_is_worker_owned_throttled_and_only_updates_queued_or_running():
+    clock = MutableClock(datetime(2026, 8, 31, tzinfo=timezone.utc))
+    manager = RunManager(clock=clock, lifecycle_config=lifecycle_config())
+    run = manager.start_run(request(), run_id="heartbeat")
+
+    clock.advance(4)
+    assert manager.heartbeat(run.run_id).last_heartbeat_at == run.last_heartbeat_at
+    clock.advance(1)
+    assert manager.heartbeat(run.run_id).last_heartbeat_at == clock.value
+    manager.begin_run(run.run_id)
+    clock.advance(5)
+    assert manager.heartbeat(run.run_id).last_heartbeat_at == clock.value
+
+    manager.cancel_run(run.run_id)
+    clock.advance(5)
+    terminal = manager.heartbeat(run.run_id)
+    assert terminal.status is RunStatus.CANCELLED
+    assert terminal.last_heartbeat_at == clock.value - timedelta(seconds=5)
+    manager.shutdown()
+
+
+def test_progress_is_clamped_monotonic_and_late_lower_update_is_not_published():
+    manager = RunManager()
+    run = manager.start_run(request(), run_id="monotonic-progress")
+    manager.begin_run(run.run_id)
+
+    upper = manager.publish(
+        run.run_id,
+        EventName.PROGRESS,
+        {"progress": 2.0, "phase": "Research", "current_agent": "Bull"},
+    )
+    assert upper is not None and upper.payload.progress == 1.0
+    event_count = len(manager.read_events(run.run_id).events)
+    assert manager.publish(
+        run.run_id,
+        EventName.PROGRESS,
+        {"progress": 0.4, "phase": "Old", "current_agent": "Late"},
+    ) is None
+    snapshot = manager.get_run(run.run_id)
+    assert snapshot.progress == 1.0
+    assert snapshot.phase == "Research"
+    assert snapshot.current_agent == "Bull"
+    assert len(manager.read_events(run.run_id).events) == event_count
+    manager.shutdown()
+
+
+@pytest.mark.parametrize(
+    ("expire_by", "expected_message"),
+    [("wall", "deadline"), ("lease", "heartbeat")],
+)
+def test_expiry_checks_cas_to_timed_out_once_before_reads_and_heartbeats(
+    expire_by, expected_message
+):
+    clock = MutableClock(datetime(2026, 8, 31, tzinfo=timezone.utc))
+    manager = RunManager(clock=clock, lifecycle_config=lifecycle_config())
+    run = manager.start_run(request(), run_id=f"timeout-{expire_by}")
+    manager.begin_run(run.run_id)
+    manager.publish(
+        run.run_id,
+        EventName.PROGRESS,
+        {"progress": 0.45, "phase": "Research", "current_agent": "Bull"},
+    )
+    if expire_by == "wall":
+        manager._records[run.run_id].record.timeout_at = clock.value + timedelta(seconds=1)
+        clock.advance(2)
+    else:
+        clock.advance(31)
+
+    expired = manager.heartbeat(run.run_id)
+    assert expired.status is RunStatus.TIMED_OUT
+    assert expired.progress == 0.45
+    assert expired.current_agent is None
+    assert expired.terminal_reason == expired.error_code == "heartbeat_timeout"
+    assert expected_message in (expired.error_message or "")
+    assert manager.get_run(run.run_id) == expired
+    assert manager.complete_run(run.run_id, signal="BUY", report_id="late") == expired
+    events = manager.read_events(run.run_id).events
+    timed_out = [event for event in events if event.event is EventName.RUN_TIMED_OUT]
+    assert len(timed_out) == 1
+    assert timed_out[0].payload.progress == 0.45
+    manager.shutdown()
+
+
+def test_publishing_is_excluded_from_wall_and_heartbeat_expiry(tmp_path):
+    clock = MutableClock(datetime(2026, 8, 31, tzinfo=timezone.utc))
+    manager = RunManager(
+        clock=clock,
+        lifecycle_config=lifecycle_config(),
+        report_root=tmp_path / "web_reports",
+    )
+    run = manager.start_run(request(), run_id="publishing-exempt")
+    manager.begin_run(run.run_id)
+    manager.begin_publishing(run.run_id)
+    clock.advance(1000)
+
+    assert manager.check_expired(run.run_id).status is RunStatus.PUBLISHING
+    assert manager.heartbeat(run.run_id).status is RunStatus.PUBLISHING
+    assert not any(
+        event.event is EventName.RUN_TIMED_OUT
+        for event in manager.read_events(run.run_id).events
+    )
+    manager.shutdown()
+
+
+@pytest.mark.parametrize(
+    ("transition", "status", "reason", "progress"),
+    [
+        ("complete", RunStatus.COMPLETED, "completed", 1.0),
+        ("fail", RunStatus.FAILED, "provider_error", 0.35),
+        ("cancel", RunStatus.CANCELLED, "cancelled", 0.35),
+    ],
+)
+def test_terminal_transition_normalizes_reason_agent_and_progress(
+    transition, status, reason, progress
+):
+    manager = RunManager()
+    run = manager.start_run(request(), run_id=f"terminal-{transition}")
+    manager.begin_run(run.run_id)
+    manager.publish(
+        run.run_id,
+        EventName.PROGRESS,
+        {"progress": 0.35, "phase": "Research", "current_agent": "Bull"},
+    )
+    if transition == "complete":
+        record = manager.complete_run(run.run_id, signal="BUY", report_id="report")
+    elif transition == "fail":
+        record = manager.fail_run(
+            run.run_id, error_code="provider_error", error_message="failed"
+        )
+    else:
+        record = manager.cancel_run(run.run_id)
+    assert record.status is status
+    assert record.terminal_reason == record.error_code == reason
+    assert record.current_agent is None
+    assert record.progress == progress
+    manager.shutdown()
+
+
+def test_complete_publishing_requires_the_committed_report_gate(tmp_path):
+    report_root = tmp_path / "web_reports"
+    manager = RunManager(report_root=report_root)
+    run = manager.start_run(request(), run_id="incomplete-publication")
+    manager.begin_run(run.run_id)
+    manager.begin_publishing(run.run_id)
+    report_dir = report_root / "AAPL" / "2026-08-26" / run.run_id
+    report_dir.mkdir(parents=True)
+    (report_dir / "complete_report.md").write_text("# incomplete", encoding="utf-8")
+
+    failed = manager.complete_publishing(
+        run.run_id, signal="BUY", report_id=run.run_id, report_dir=report_dir
+    )
+    assert failed.status is RunStatus.FAILED
+    assert failed.terminal_reason == failed.error_code == "publish_incomplete"
+    assert failed.current_agent is None
+    assert manager.read_events(run.run_id).events[-1].event is EventName.RUN_FAILED
+    manager.shutdown()
+
+
+@pytest.mark.parametrize("scenario", ["valid", "invalid_final", "invalid_temporary"])
+def test_restart_recovers_or_quarantines_publishing_runs(tmp_path, scenario):
+    database = tmp_path / "recovery.sqlite3"
+    report_root = tmp_path / "web_reports"
+    manager = RunManager(db_path=database, report_root=report_root)
+    run = manager.start_run(request(), run_id=f"publish-{scenario}")
+    manager.begin_run(run.run_id)
+    manager.begin_publishing(run.run_id)
+    report_dir = report_root / "AAPL" / "2026-08-26" / run.run_id
+    if scenario == "valid":
+        write_report_gate(report_dir)
+    elif scenario == "invalid_temporary":
+        report_dir = report_dir.parent / ".tmp" / run.run_id
+        report_dir.mkdir(parents=True)
+        (report_dir / "partial.txt").write_text("partial", encoding="utf-8")
+    else:
+        report_dir.mkdir(parents=True)
+        (report_dir / "partial.txt").write_text("partial", encoding="utf-8")
+    manager.shutdown()
+
+    restored = RunManager(db_path=database, report_root=report_root)
+    record = restored.get_run(run.run_id)
+    if scenario == "valid":
+        assert record.status is RunStatus.COMPLETED
+        assert record.progress == 1.0
+        assert record.report_id == run.run_id
+        assert report_dir.is_dir()
+    else:
+        assert record.status is RunStatus.FAILED
+        assert record.terminal_reason == "publish_incomplete"
+        assert not report_dir.exists()
+        assert any((report_root / ".orphaned").iterdir())
+    restored.shutdown()
+
+
+def test_restart_repairs_a_missing_terminal_event_atomically(tmp_path):
+    database = tmp_path / "repair.sqlite3"
+    manager = RunManager(db_path=database)
+    run = manager.start_run(request(), run_id="repair-terminal")
+    manager.begin_run(run.run_id)
+    manager.fail_run(run.run_id, error_code="provider_error", error_message="failed")
+    with manager._store.connection() as conn:
+        conn.execute(
+            "DELETE FROM web_run_events WHERE run_id=? AND event='run_failed'",
+            (run.run_id,),
+        )
+    manager.shutdown()
+
+    restored = RunManager(db_path=database)
+    events = restored.read_events(run.run_id).events
+    assert sum(event.event is EventName.RUN_FAILED for event in events) == 1
+    with restored._store.connection() as conn:
+        row = conn.execute(
+            "SELECT status,terminal_reason,error_code FROM web_runs WHERE run_id=?",
+            (run.run_id,),
+        ).fetchone()
+        terminal_count = conn.execute(
+            "SELECT COUNT(*) FROM web_run_events WHERE run_id=? AND event='run_failed'",
+            (run.run_id,),
+        ).fetchone()[0]
+    assert tuple(row) == ("failed", "provider_error", "provider_error")
+    assert terminal_count == 1
+    restored.shutdown()
+
+
+def test_stale_snapshot_uses_latest_real_cut_and_replays_only_later_events():
+    manager = RunManager(event_limit=2)
+    run = manager.start_run(request(), run_id="snapshot-cut")
+    manager.begin_run(run.run_id)
+    for text in ("one", "two", "three"):
+        manager.publish(
+            run.run_id,
+            EventName.MESSAGE,
+            {"message_type": "log", "text": text},
+        )
+    batch = manager.read_events(run.run_id, 0)
+    snapshot = batch.events[0]
+    assert snapshot.event is EventName.RUN_SNAPSHOT
+    assert snapshot.payload.snapshot_seq == 4
+    assert snapshot.payload.replay_from_seq == 5
+    assert batch.events == [snapshot]
+    manager.publish(
+        run.run_id,
+        EventName.MESSAGE,
+        {"message_type": "log", "text": "later"},
+    )
+    assert [event.seq for event in manager.read_events(run.run_id, 4).events] == [5]
+    manager.shutdown()
+
+
+def test_shutdown_stops_the_daemon_watchdog_thread():
+    manager = RunManager(watchdog_interval=0.01)
+    thread = manager._watchdog_thread
+    assert thread is not None and thread.daemon and thread.is_alive()
+    manager.shutdown()
+    assert not thread.is_alive()
+
+
 def test_subscriber_cursors_are_independent_and_replay_is_ordered():
     manager = RunManager(event_limit=4)
     run = manager.start_run(request())
@@ -212,7 +499,8 @@ def test_stale_cursor_returns_snapshot_before_retained_events():
     assert batch.stale is True
     assert batch.events[0].event is EventName.RUN_SNAPSHOT
     assert batch.events[0].payload.run.run_id == run.run_id
-    assert [event.seq for event in batch.events[1:]] == [3, 4]
+    assert batch.events[0].payload.snapshot_seq == 4
+    assert batch.events[1:] == []
 
 
 def test_terminal_records_expire_and_terminal_cancel_is_idempotent():

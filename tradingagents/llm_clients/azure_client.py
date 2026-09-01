@@ -3,7 +3,12 @@ from typing import Any
 
 from langchain_openai import AzureChatOpenAI
 
-from .base_client import BaseLLMClient, normalize_content
+from .base_client import (
+    BaseLLMClient,
+    configure_deadline_policy,
+    invoke_with_deadline,
+    normalize_content,
+)
 
 _PASSTHROUGH_KWARGS = (
     "timeout", "max_retries", "api_key", "reasoning_effort", "temperature",
@@ -15,7 +20,9 @@ class NormalizedAzureChatOpenAI(AzureChatOpenAI):
     """AzureChatOpenAI with normalized content output."""
 
     def invoke(self, input, config=None, **kwargs):
-        return normalize_content(super().invoke(input, config, **kwargs))
+        return normalize_content(
+            invoke_with_deadline(self, super().invoke, input, config, **kwargs)
+        )
 
 
 class AzureOpenAIClient(BaseLLMClient):
@@ -44,7 +51,13 @@ class AzureOpenAIClient(BaseLLMClient):
             if key in self.kwargs:
                 llm_kwargs[key] = self.kwargs[key]
 
-        return NormalizedAzureChatOpenAI(**llm_kwargs)
+        llm = NormalizedAzureChatOpenAI(**llm_kwargs)
+        return configure_deadline_policy(
+            llm,
+            deadline_supplier=self.kwargs.get("deadline_supplier"),
+            timeout_cap=self.kwargs.get("timeout"),
+            checkpoint=self.kwargs.get("external_request_checkpoint"),
+        )
 
     def validate_model(self) -> bool:
         """Azure accepts any deployed model name."""

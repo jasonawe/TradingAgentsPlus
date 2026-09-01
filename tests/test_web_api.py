@@ -12,7 +12,7 @@ from starlette.exceptions import StarletteDeprecationWarning  # noqa: E402
 from web.app import create_app  # noqa: E402
 from web.history import ReportHistory  # noqa: E402
 from web.manager import RunManager  # noqa: E402
-from web.models import AnalysisRequest  # noqa: E402
+from web.models import AnalysisRequest, EventName  # noqa: E402
 from web.repositories import SettingsRepository  # noqa: E402
 from web.storage import SQLiteStore  # noqa: E402
 
@@ -235,6 +235,46 @@ def test_sse_emits_envelopes_and_last_event_id_wins(harness):
         assert message["payload"]["text"] == "hello"
         runner.release.set()
     manager.shutdown()
+
+
+def test_sse_snapshot_has_no_id_and_exposes_locked_replay_cut(tmp_path):
+    manager = RunManager(event_limit=2)
+    app = create_app(
+        manager=manager,
+        config={"results_dir": str(tmp_path), "project_dir": str(tmp_path)},
+    )
+    run = manager.start_run(AnalysisRequest(**_request()), run_id="snapshot-sse")
+    manager.begin_run(run.run_id)
+    for text in ("one", "two", "three"):
+        manager.publish(
+            run.run_id,
+            EventName.MESSAGE,
+            {"message_type": "status", "text": text},
+        )
+    manager.fail_run(run.run_id, error_code="test_failure", error_message="failed")
+
+    with TestClient(app) as client:
+        response = client.get(f"/api/runs/{run.run_id}/events?after_seq=0")
+    snapshot_block = next(
+        block for block in response.text.split("\n\n") if "event: run_snapshot" in block
+    )
+    assert "id: " not in snapshot_block
+    payload = next(_sse_data(snapshot_block))
+    assert payload["payload"]["snapshot_seq"] == 5
+    assert payload["payload"]["replay_from_seq"] == 6
+
+
+def test_fastapi_lifespan_stops_manager_watchdog(tmp_path):
+    manager = RunManager(watchdog_interval=0.01)
+    thread = manager._watchdog_thread
+    app = create_app(
+        manager=manager,
+        config={"results_dir": str(tmp_path), "project_dir": str(tmp_path)},
+    )
+    with TestClient(app) as client:
+        assert client.get("/api/config").status_code == 200
+        assert thread is not None and thread.is_alive()
+    assert not thread.is_alive()
 
 
 def test_history_detail_and_download_are_allowlisted(harness):

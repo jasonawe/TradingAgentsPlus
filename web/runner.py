@@ -21,7 +21,7 @@ from tradingagents.graph.propagation import PropagationCancelled
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 
 from .manager import RunManager
-from .models import EventName
+from .models import EventName, RunStatus
 from .snapshots import DataSnapshotRecorder, SnapshotStore
 
 try:
@@ -60,6 +60,11 @@ class WebRunRunner:
         state = self.manager._state(run_id)  # guarded by manager methods below
         request = state.record.request
         cfg = copy.deepcopy(self.config if self.config is not None else DEFAULT_CONFIG)
+        report_root = Path(cfg["results_dir"]) / "web_reports"
+        self.manager.set_report_root(report_root)
+        cfg["deadline_supplier"] = lambda: self.manager.remaining_deadline(run_id)
+        cfg["external_request_checkpoint"] = lambda: self.manager.heartbeat(run_id)
+        cfg.setdefault("provider_timeout_seconds", 60.0)
         # Environment overlays in DEFAULT_CONFIG win over the request's depth.
         if not os.environ.get("TRADINGAGENTS_MAX_DEBATE_ROUNDS"):
             cfg["max_debate_rounds"] = request.research_depth
@@ -74,6 +79,7 @@ class WebRunRunner:
         if request.deep_model:
             cfg["deep_think_llm"] = request.deep_model
         analysts = [getattr(a, "value", str(a)) for a in request.analysts]
+        self._heartbeat(run_id)
         graph = self.graph_factory(analysts, config=cfg, debug=False)
         phase = {"name": "Analyst Team", "index": 1, "phase_count": 5}
         analyst_statuses: dict[str, str] = {}
@@ -87,8 +93,10 @@ class WebRunRunner:
         )
 
         def on_chunk(chunk: dict[str, Any]) -> None:
+            self._heartbeat(run_id)
             self._publish_chunk(run_id, chunk, analysts, phase, completed_analysts, analyst_statuses)
 
+        publishing = False
         try:
             result = graph.propagate(
                 request.ticker,
@@ -97,7 +105,10 @@ class WebRunRunner:
                 on_chunk=on_chunk,
                 should_cancel=lambda: self.manager.is_cancelled(run_id),
             )
+            self._heartbeat(run_id)
             final_state, signal = result
+            if self.manager.check_expired(run_id).status is not RunStatus.RUNNING:
+                return
             if self.manager.is_cancelled(run_id):
                 raise PropagationCancelled()
             report_id = run_id
@@ -108,7 +119,10 @@ class WebRunRunner:
                 / str(request.analysis_date)
                 / self._safe_run_id_component(run_id)
             )
-            self.manager.begin_publishing(run_id)
+            publishing_record = self.manager.begin_publishing(run_id)
+            if publishing_record.status is not RunStatus.PUBLISHING:
+                return
+            publishing = True
             safe_run_id = self._safe_run_id_component(run_id)
             temporary_dir = report_dir.parent / ".tmp" / safe_run_id
             temporary_dir.parent.mkdir(parents=True, exist_ok=True)
@@ -175,16 +189,28 @@ class WebRunRunner:
             temporary_dir.rename(report_dir)
             with suppress(OSError):
                 temporary_dir.parent.rmdir()
-            self.manager.complete_publishing(run_id, signal=signal, report_id=report_id)
+            self.manager.complete_publishing(
+                run_id,
+                signal=signal,
+                report_id=report_id,
+                report_dir=report_dir,
+            )
         except PropagationCancelled:
             self.manager.cancel_run(run_id, phase=phase["name"])
         except Exception:
             logger.error("Web analysis failed for run %s\n%s", run_id, traceback.format_exc())
             self.manager.fail_run(
                 run_id,
-                error_code="worker_error",
-                error_message="analysis worker failed",
+                error_code="publish_incomplete" if publishing else "worker_error",
+                error_message=(
+                    "report publication is incomplete"
+                    if publishing
+                    else "analysis worker failed"
+                ),
             )
+
+    def _heartbeat(self, run_id: str) -> None:
+        self.manager.heartbeat(run_id)
 
     def _publish_chunk(
         self,
@@ -195,6 +221,7 @@ class WebRunRunner:
         completed_analysts: set[str] | None = None,
         analyst_statuses: dict[str, str] | None = None,
     ) -> None:
+        self._heartbeat(run_id)
         completed_analysts = completed_analysts if completed_analysts is not None else set()
         analyst_statuses = analyst_statuses if analyst_statuses is not None else {}
         for key, (agent, analyst_key) in _ANALYSTS.items():
@@ -236,6 +263,7 @@ class WebRunRunner:
             self.manager.publish(run_id, EventName.ACTIVITY, {"activity_type": "graph_update", "name": "graph", "summary": self._shorten(chunk)})
 
     def _publish_phase(self, run_id: str, phase: dict[str, Any], *, status: str) -> None:
+        self._heartbeat(run_id)
         self.manager.publish(
             run_id,
             EventName.PHASE_CHANGED,
@@ -254,6 +282,7 @@ class WebRunRunner:
         completed: set[str],
         previous: dict[str, str],
     ) -> None:
+        self._heartbeat(run_id)
         active_assigned = False
         for _analyst_key, (agent, selected_key) in _ANALYSTS.items():
             if selected_key not in analysts:

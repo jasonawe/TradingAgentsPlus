@@ -7,6 +7,7 @@ import json
 import os
 import re
 from collections.abc import Iterator
+from contextlib import asynccontextmanager
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -94,9 +95,9 @@ def _watchlist_view(repo: WatchlistRepository) -> dict[str, Any]:
 def _event_sse(event: EventEnvelope) -> str:
     payload = event.model_dump(mode="json")
     # ``event`` is the SSE event type; the JSON envelope retains all metadata.
+    event_id = "" if event.event.value == "run_snapshot" else f"id: {event.seq}\n"
     return (
-        f"id: {event.seq}\n"
-        f"event: {event.event.value}\n"
+        f"{event_id}event: {event.event.value}\n"
         f"data: {json.dumps(payload, ensure_ascii=False, separators=(',', ':'))}\n\n"
     )
 
@@ -140,10 +141,19 @@ def create_app(
         manager._db_path = store.path
     if manager is not None:
         manager.configure_lifecycle(lifecycle_config)
+    active_manager.set_report_root(Path(active_config.get("results_dir") or ".") / "web_reports")
     active_history = history or ReportHistory(
         results_dir=active_config.get("results_dir"), cwd=active_config.get("project_dir")
     )
-    app = FastAPI(title="TradingAgents Web Console")
+
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI):
+        try:
+            yield
+        finally:
+            active_manager.shutdown()
+
+    app = FastAPI(title="TradingAgents Web Console", lifespan=lifespan)
     app.state.manager = active_manager
     app.state.config = active_config
     app.state.history = active_history
@@ -409,10 +419,10 @@ def create_app(
                     return
                 if batch.events:
                     for event in batch.events:
-                        # Snapshot events use a synthetic sequence before the
-                        # retained range; never move the subscriber backwards.
                         yield _event_sse(event)
-                        if event.seq > cursor:
+                        if event.event.value == "run_snapshot":
+                            cursor = event.payload.snapshot_seq
+                        elif event.seq > cursor:
                             cursor = event.seq
                     if batch.terminal and not any(event.seq > cursor for event in batch.events):
                         return

@@ -202,6 +202,7 @@ class EventPayload(BaseModel):
 
 class RunSnapshotPayload(EventPayload):
     run: RunRecord
+    snapshot_seq: int = Field(default=0, ge=0)
     replay_from_seq: int | None
 
 

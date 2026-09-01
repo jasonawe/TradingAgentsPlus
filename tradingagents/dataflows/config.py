@@ -23,6 +23,9 @@ def set_config(config: dict):
     global _config
     initialize_config()
     incoming = deepcopy(config)
+    for key in ("deadline_supplier", "external_request_checkpoint"):
+        if key not in incoming:
+            _config.pop(key, None)
     for key, value in incoming.items():
         if isinstance(value, dict) and isinstance(_config.get(key), dict):
             _config[key].update(value)
@@ -35,6 +38,22 @@ def get_config() -> dict:
     if _config is None:
         initialize_config()
     return deepcopy(_config)
+
+
+def get_request_timeout(normal_timeout: float) -> float:
+    """Cap one data-provider request by the current Web run deadline."""
+
+    config = get_config()
+    supplier = config.get("deadline_supplier")
+    if not callable(supplier):
+        return float(normal_timeout)
+    return min(float(normal_timeout), max(0.0, float(supplier())))
+
+
+def external_request_checkpoint() -> None:
+    checkpoint = get_config().get("external_request_checkpoint")
+    if callable(checkpoint):
+        checkpoint()
 
 
 # Initialize with default config
