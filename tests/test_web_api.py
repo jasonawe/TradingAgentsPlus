@@ -83,7 +83,7 @@ def test_index_and_config_are_public_and_redacted(harness):
     assert "must-not-leak" not in json.dumps(payload)
 
 
-@pytest.mark.parametrize("path", ["/", "/analysis", "/active", "/reports", "/settings", "/reports/run-1"])
+@pytest.mark.parametrize("path", ["/", "/analysis", "/active", "/reports", "/settings", "/reports/run-1", "/assets/688836.SS"])
 def test_console_routes_serve_the_single_page_entrypoint(harness, path):
     app, _manager, _runner, _tmp = harness
     with TestClient(app) as client:
@@ -397,3 +397,82 @@ def _sse_data(text):
         line = next((line for line in block.splitlines() if line.startswith("data: ")), None)
         if line:
             yield json.loads(line[6:])
+
+
+def test_list_runs_for_ticker_filters_orders_and_caps(tmp_path):
+    manager = RunManager()
+    try:
+        # Add a failed NVDA run directly into the manager's records
+        # via a synthetic flow that doesn't trip the single-active policy.
+        nvda_a = manager.start_run(AnalysisRequest(**_request(ticker="NVDA")), run_id="run-nvda-a")
+        manager.begin_run(nvda_a.run_id)
+        manager.fail_run(
+            nvda_a.run_id,
+            error_code="model_timeout",
+            error_message="model timed out",
+            failed_phase="Risk Management",
+            failed_agent="Aggressive Analyst",
+        )
+
+        # Only NVDA so far — case-insensitive lookup.
+        results = manager.list_runs_for_ticker("nvda")
+        assert [r.run_id for r in results] == ["run-nvda-a"]
+        assert results[0].request.ticker == "NVDA"
+        assert results[0].failed_agent == "Aggressive Analyst"
+
+        # Empty ticker yields no records.
+        assert manager.list_runs_for_ticker("") == []
+
+        # Limit caps the result list.
+        assert len(manager.list_runs_for_ticker("NVDA", limit=0)) == 1  # floor of 1
+    finally:
+        manager.shutdown()
+
+
+def test_list_runs_for_ticker_isolates_tickers(tmp_path):
+    """Two managers keep their runs isolated."""
+    manager_a = RunManager()
+    manager_b = RunManager()
+    try:
+        record = manager_a.start_run(AnalysisRequest(**_request(ticker="AAPL")), run_id="run-aapl-only")
+        manager_a.begin_run(record.run_id)
+        manager_a.fail_run(record.run_id, error_code="provider_error", error_message="x")
+        # B should see nothing for AAPL.
+        assert manager_b.list_runs_for_ticker("AAPL") == []
+        # A should see its own.
+        assert [r.run_id for r in manager_a.list_runs_for_ticker("AAPL")] == ["run-aapl-only"]
+    finally:
+        manager_a.shutdown()
+        manager_b.shutdown()
+
+
+def test_asset_runs_endpoint_returns_only_matching_ticker(harness):
+    app, manager, runner, _tmp = harness
+    nvda = manager.start_run(AnalysisRequest(**_request(ticker="NVDA")), run_id="run-nvda-detail")
+    manager.begin_run(nvda.run_id)
+    manager.fail_run(
+        nvda.run_id,
+        error_code="model_timeout",
+        error_message="request_timed_out",
+        failed_phase="Risk Management",
+        failed_agent="Aggressive Analyst",
+    )
+    aapl = manager.start_run(AnalysisRequest(**_request(ticker="AAPL")), run_id="run-aapl-detail")
+    manager.begin_run(aapl.run_id)
+    runner.release.set()
+    try:
+        with TestClient(app) as client:
+            response = client.get("/api/assets/NVDA/runs?limit=10")
+            assert response.status_code == 200
+            body = response.json()
+            assert body["symbol"] == "NVDA"
+            run_ids = [item["run_id"] for item in body["items"]]
+            assert "run-nvda-detail" in run_ids
+            assert "run-aapl-detail" not in run_ids
+            failed = next(item for item in body["items"] if item["run_id"] == "run-nvda-detail")
+            assert failed["status"] == "failed"
+            assert failed["failed_agent"] == "Aggressive Analyst"
+            assert failed["retryable"] is True
+            assert failed["provider"] is None  # _request helper omits provider
+    finally:
+        manager.shutdown()

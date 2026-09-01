@@ -104,7 +104,7 @@ def test_primary_views_use_compact_headers_without_redundant_page_intros():
     assert ".settings-card h2 { margin:0 0 18px; font-family:Georgia,serif; font-weight:400; font-size:20px" in css
     assert ".run-header h2" in css and "font-size:24px" in css
     assert ".report-heading h2" in css and "font-size:24px" in css
-    assert '/static/styles.css?v=20260901-active-state-1' in html
+    assert '/static/styles.css?v=20260901-asset-detail-1' in html
 
 
 def test_active_view_hidden_states_override_layout_display_rules():

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
     <title>TradingAgents | 个人投资研究平台</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260901-active-state-1" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260901-asset-detail-1" />
   </head>
   <body>
     <header class="masthead">
@@ -68,13 +68,47 @@
         <div id="run-grid" class="run-grid" hidden><aside class="timeline-panel"><div class="panel-heading"><span class="kicker" data-i18n="run.deskProgress">分析进度</span><span id="progress-label">0%</span></div><div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div><ol id="phase-timeline" class="phase-timeline"></ol><div class="current-agent"><span class="status-pulse"></span><div><small data-i18n="run.currentlyWorking">当前工作代理</small><strong id="current-agent" data-i18n="run.preparing">正在准备分析……</strong></div></div></aside><section class="activity-panel"><div class="panel-heading"><span class="kicker" data-i18n="run.fieldNotes">过程记录</span><span id="event-count">0 条事件</span></div><div id="activity-feed" class="activity-feed" aria-live="polite"></div></section></div>
         <section id="terminal-panel" class="terminal-panel" hidden></section>
       </section>
+      <section id="asset-detail-view" class="view" aria-labelledby="asset-detail-title" hidden>
+        <h1 id="asset-detail-title" class="visually-hidden" data-i18n="asset.detailTitle">资产详情</h1>
+        <div class="asset-detail-header">
+          <div class="asset-detail-heading">
+            <h2 id="asset-detail-symbol">…</h2>
+            <span id="asset-detail-name" class="muted">—</span>
+            <span id="asset-detail-asset-type" class="asset-type-badge">—</span>
+          </div>
+          <div class="asset-detail-quote">
+            <div id="asset-detail-price" class="asset-price">—</div>
+            <div id="asset-detail-change" class="asset-change"></div>
+            <div id="asset-detail-quote-meta" class="muted"></div>
+          </div>
+          <div class="asset-detail-actions">
+            <button id="asset-detail-back" class="button button-secondary" type="button" data-i18n="actions.backWatchlist">返回关注</button>
+            <button id="asset-detail-run" class="button button-primary" type="button" data-i18n="actions.startAnalysis">开始分析</button>
+          </div>
+        </div>
+        <section class="asset-detail-panel">
+          <div class="panel-heading"><span class="kicker" data-i18n="asset.kLineChart">K 线走势</span><div id="asset-kline-intervals" class="kline-intervals" role="group" aria-label="K 线区间"><button type="button" class="kline-interval is-active" data-asset-kline-days="30">1M</button><button type="button" class="kline-interval" data-asset-kline-days="90">3M</button><button type="button" class="kline-interval" data-asset-kline-days="180">6M</button><button type="button" class="kline-interval" data-asset-kline-days="365">1Y</button></div></div>
+          <div id="asset-kline-chart" class="asset-kline-chart" aria-live="polite"></div>
+          <p id="asset-kline-status" class="muted"></p>
+        </section>
+        <section class="asset-detail-panel">
+          <div class="section-heading"><h2 data-i18n="asset.reportsTitle">分析报告</h2></div>
+          <div id="asset-reports-list" class="asset-reports-list"><p class="muted" data-i18n="asset.reportsLoading">正在加载报告…</p></div>
+        </section>
+        <section class="asset-detail-panel">
+          <div class="section-heading"><h2 data-i18n="asset.runsTitle">分析任务</h2></div>
+          <div id="asset-runs-list" class="asset-runs-list"><p class="muted" data-i18n="asset.runsLoading">正在加载分析任务…</p></div>
+        </section>
+      </section>
       <section id="report-view" class="view" aria-labelledby="report-title" hidden>
         <section id="report-panel" class="report-panel"><div class="report-heading"><div><h2 id="report-title" data-i18n="report.decisionReport">决策报告</h2><dl id="report-meta" class="report-meta"></dl></div><div class="report-actions"><button id="report-back-library" class="button button-secondary" type="button" data-i18n="actions.backReports">返回报告库</button><button id="download-report" class="button button-secondary" type="button" data-i18n="actions.downloadMarkdown">下载 Markdown</button><button id="new-analysis" class="button button-primary" type="button"><span data-i18n="actions.newAnalysis">新建分析</span> <span aria-hidden="true">&#8594;</span></button></div></div><section id="executive-summary" class="executive-summary" hidden><div class="summary-heading"><p class="kicker" data-i18n="report.executiveSummary">综合研判</p><span class="summary-badge" data-i18n="report.deepModelSummary">深度模型综合</span></div><div id="executive-summary-content" class="summary-content"></div></section><details id="detail-report" class="detail-report"><summary data-i18n="report.showDetails">展开详细智能体报告</summary><div id="report-content" class="report-content"></div></details></section>
       </section>
     </main>
-    <script src="/static/i18n.js?v=20260901-zh-resources-1" defer></script>
+    <script src="/static/i18n.js?v=20260901-asset-detail-1" defer></script>
     <script src="/static/rating-labels.js?v=20260901-rating-localization-2" defer></script>
-    <script src="/static/quote-refresh.js?v=20260901-market-health-1" defer></script>
-    <script src="/static/app.js?v=20260901-zh-resources-1" defer></script>
+    <script src="/static/kline-chart.js?v=20260901-watchlist-chart-1" defer></script>
+    <script src="/static/watchlist-chart.js?v=20260901-watchlist-chart-1" defer></script>
+        <script src="/static/quote-refresh.js?v=20260901-market-health-1" defer></script>
+    <script src="/static/app.js?v=20260901-asset-detail-1" defer></script>
   </body>
 </html>
