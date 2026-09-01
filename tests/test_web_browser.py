@@ -230,6 +230,14 @@ def test_real_browser_navigation_paging_timeout_and_quote_refresh(tmp_path):
             page.locator(".asset-identity").get_by_text(
                 "资产名称：招商证券", exact=True
             ).wait_for(timeout=5000)
+            page.locator('[data-view="active"]').click()
+            page.wait_for_url(f"{base_url}/active")
+            assert page.locator("#active-empty").is_visible()
+            assert page.locator("#run-header").is_hidden()
+            assert page.locator("#run-grid").is_hidden()
+
+            page.locator('[data-view="setup"]').click()
+            page.wait_for_url(f"{base_url}/")
             initial_quotes = len(quote_requests)
             page.locator("#refresh-quotes").click()
             page.wait_for_timeout(200)

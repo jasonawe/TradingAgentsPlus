@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
     <title>TradingAgents | 个人投资研究平台</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260901-compact-headers-1" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260901-active-state-1" />
   </head>
   <body>
     <header class="masthead">
@@ -64,8 +64,8 @@
       <section id="active-view" class="view" aria-labelledby="active-title" hidden>
         <h1 id="active-title" class="visually-hidden" data-i18n="active.title">进行中的分析任务</h1>
         <div id="active-empty" class="empty-state" hidden><strong data-i18n="active.emptyTitle">当前没有进行中的分析任务</strong><p data-i18n="active.emptyBody">开始一次分析后，任务进度会显示在这里。</p><button id="active-new-analysis" class="button button-primary" type="button" data-i18n="actions.newAnalysis">新建分析</button></div>
-        <div id="run-header" class="run-header"><div><h2 id="run-title" data-i18n="run.inProgress">分析进行中</h2><p id="run-subtitle" class="lede"></p><p id="elapsed-time" class="elapsed-time" aria-live="polite">已用时 00:00</p></div><div class="run-actions"><button id="back-history" class="button button-secondary" type="button" data-i18n="actions.backHistory">返回历史</button><button id="cancel-run" class="button button-secondary" type="button" data-i18n="actions.cancelRun">取消运行</button></div></div>
-        <div id="run-grid" class="run-grid"><aside class="timeline-panel"><div class="panel-heading"><span class="kicker" data-i18n="run.deskProgress">分析进度</span><span id="progress-label">0%</span></div><div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div><ol id="phase-timeline" class="phase-timeline"></ol><div class="current-agent"><span class="status-pulse"></span><div><small data-i18n="run.currentlyWorking">当前工作代理</small><strong id="current-agent" data-i18n="run.preparing">正在准备分析……</strong></div></div></aside><section class="activity-panel"><div class="panel-heading"><span class="kicker" data-i18n="run.fieldNotes">过程记录</span><span id="event-count">0 条事件</span></div><div id="activity-feed" class="activity-feed" aria-live="polite"></div></section></div>
+        <div id="run-header" class="run-header" hidden><div><h2 id="run-title" data-i18n="run.inProgress">分析进行中</h2><p id="run-subtitle" class="lede"></p><p id="elapsed-time" class="elapsed-time" aria-live="polite">已用时 00:00</p></div><div class="run-actions"><button id="back-history" class="button button-secondary" type="button" data-i18n="actions.backHistory">返回历史</button><button id="cancel-run" class="button button-secondary" type="button" data-i18n="actions.cancelRun">取消运行</button></div></div>
+        <div id="run-grid" class="run-grid" hidden><aside class="timeline-panel"><div class="panel-heading"><span class="kicker" data-i18n="run.deskProgress">分析进度</span><span id="progress-label">0%</span></div><div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div><ol id="phase-timeline" class="phase-timeline"></ol><div class="current-agent"><span class="status-pulse"></span><div><small data-i18n="run.currentlyWorking">当前工作代理</small><strong id="current-agent" data-i18n="run.preparing">正在准备分析……</strong></div></div></aside><section class="activity-panel"><div class="panel-heading"><span class="kicker" data-i18n="run.fieldNotes">过程记录</span><span id="event-count">0 条事件</span></div><div id="activity-feed" class="activity-feed" aria-live="polite"></div></section></div>
         <section id="terminal-panel" class="terminal-panel" hidden></section>
       </section>
       <section id="report-view" class="view" aria-labelledby="report-title" hidden>
