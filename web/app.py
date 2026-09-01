@@ -36,6 +36,7 @@ from .models import AnalysisRequest, EventEnvelope, RunRecord
 from .providers import AlphaVantageProvider, YFinanceProvider
 from .repositories import (
     AnalysisRunRepository,
+    ProviderHealthRepository,
     QuoteRepository,
     ReportIndexRepository,
     ReportRepository,
@@ -184,6 +185,7 @@ def create_app(
     app.state.config = active_config
     app.state.history = active_history
     app.state.store = store
+    provider_health_repo = ProviderHealthRepository(store)
     app.state.repositories = {
         "watchlist": WatchlistRepository(store),
         "quotes": QuoteRepository(store),
@@ -192,9 +194,10 @@ def create_app(
         "settings": settings_repo,
         "reports": report_index_repo,
         "report_gate": ReportRepository(store),
+        "provider_health": provider_health_repo,
     }
     providers = {"yfinance": YFinanceProvider(), "alpha_vantage": AlphaVantageProvider()}
-    app.state.market_router = ProviderRouter(providers)
+    app.state.market_router = ProviderRouter(providers, health=provider_health_repo)
     app.state.market_service = QuoteService(
         app.state.market_router,
         app.state.repositories["quotes"],
@@ -351,7 +354,19 @@ def create_app(
     @app.get("/api/providers/market-data")
     def market_provider_status() -> dict[str, Any]:
         catalog = market_data_catalog(active_config, settings_repo.all())
-        return {"providers": catalog["providers"]}
+        health = {item["provider"]: item for item in provider_health_repo.list()}
+        return {
+            "providers": [
+                {
+                    **provider,
+                    "status": health.get(provider["id"], {}).get(
+                        "status", provider["status"]
+                    ),
+                    "health": health.get(provider["id"]),
+                }
+                for provider in catalog["providers"]
+            ]
+        }
 
     @app.get("/api/settings")
     def get_settings() -> dict[str, Any]:
@@ -361,7 +376,7 @@ def create_app(
         source = "env" if os.getenv("TRADINGAGENTS_OUTPUT_LANGUAGE") else (settings_repo.get("output_language") or {}).get("source", "default")
         fields["output_language"] = {"value": defaults["output_language"], "source": source}
         fields["effective_output_language"] = fields["output_language"]
-        return {"schema_version": 1, "fields": fields, "strategies": [{"id": k, "providers": v["providers"], "available": next((s["available"] for s in catalog["strategies"] if s["id"] == k), False)} for k, v in QUOTE_STRATEGIES.items()]}
+        return {"schema_version": 1, "fields": fields, "strategies": [{"id": k, "providers": v["providers"], "available": next((s["available"] for s in catalog["strategies"] if s["id"] == k), False)} for k, v in QUOTE_STRATEGIES.items()], "provider_health": {item["provider"]: item for item in provider_health_repo.list()}}
 
     @app.get("/api/runs/active")
     def get_active_run() -> dict[str, Any]:

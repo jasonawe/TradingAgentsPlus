@@ -111,9 +111,22 @@ def test_watchlist_is_separate_from_analysis_and_refreshes_quotes_periodically()
     assert 'id="analysis-form"' not in setup_fragment
     assert 'class="history-section"' not in setup_fragment
     assert "QUOTE_REFRESH_MS = 5000" in js
-    assert "setInterval" in js
-    assert "quoteRefreshTimer" in js
+    assert '/static/quote-refresh.js?v=' in html
+    assert "QuoteRefreshController" in js
     assert "aria-busy" in html + js
+
+
+def test_quote_refresh_controller_and_freshness_labels_are_wired():
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    js = (STATIC / "app.js").read_text(encoding="utf-8")
+    controller = (STATIC / "quote-refresh.js").read_text(encoding="utf-8")
+    assert "AbortController" in controller
+    assert "4000" in controller
+    assert "[5000, 10000, 20000, 40000, 60000]" in controller
+    assert "sequence" in controller
+    for label in ("实时", "延迟", "缓存", "已过期", "不可用"):
+        assert label in js
+    assert html.index("quote-refresh.js") < html.index("app.js")
 
 
 def test_client_restores_an_active_run_after_page_reload():

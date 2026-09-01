@@ -372,3 +372,91 @@ def test_provider_workers_are_daemon_and_bounded():
     import threading
     workers = [t for t in threading.enumerate() if t.name.startswith("market-provider")]
     assert workers and all(t.daemon for t in workers) and len(workers) <= 8
+
+
+def test_router_records_health_for_each_actual_fallback_attempt(tmp_path):
+    from web.repositories import ProviderHealthRepository
+    from web.storage import SQLiteStore
+
+    class P:
+        def __init__(self, error=None, source=None):
+            self.error = error
+            self.source = source
+
+        def supports(self, *args):
+            return True
+
+        def get_quote(self, symbol, asset_type):
+            if self.error:
+                raise self.error
+            return quote(symbol, source=self.source)
+
+    health = ProviderHealthRepository(SQLiteStore(tmp_path / "health.sqlite3"))
+    router = ProviderRouter(
+        {
+            "first": P(ProviderError(ProviderErrorCode.TIMEOUT, "slow")),
+            "second": P(source="second"),
+        },
+        strategies={"fallback": ("first", "second")},
+        health=health,
+    )
+    assert router.get_quote("AAPL", "stock", "fallback", retries=0).source == "second"
+    assert health.get("first")["failure_count"] == 1
+    assert health.get("second")["status"] == "ready"
+    assert health.get("second")["request_count"] == 1
+
+
+def test_quote_freshness_matrix_preserves_cache_timestamps_and_reports_age(tmp_path):
+    from web.repositories import QuoteRepository
+    from web.storage import SQLiteStore
+
+    store = SQLiteStore(tmp_path / "quotes.sqlite3")
+    repo = QuoteRepository(store)
+    now = [datetime(2026, 8, 27, 12, 0, tzinfo=timezone.utc)]
+
+    class Provider:
+        fail = False
+        delayed = False
+
+        def supports(self, *args):
+            return True
+
+        def get_quote(self, symbol, asset_type):
+            if self.fail:
+                raise ProviderError(ProviderErrorCode.TIMEOUT, "offline")
+            return quote(
+                symbol,
+                fetched_at=now[0],
+                freshness="delayed" if self.delayed else "fresh",
+                source="provider",
+            )
+
+    provider = Provider()
+    service = QuoteService(
+        ProviderRouter({"yfinance": provider}),
+        repo,
+        clock=lambda: now[0],
+        ttl_seconds=60,
+        retries=0,
+    )
+    live = service.get_quote("AAPL")
+    assert live.cache_status == "live" and live.provider_status == "ready"
+    original_fetched_at = live.fetched_at
+    now[0] += timedelta(seconds=30)
+    hit = service.get_quote("AAPL")
+    assert hit.cache_status == "hit" and hit.fetched_at == original_fetched_at
+    assert hit.stale_seconds == 30
+    now[0] += timedelta(seconds=40)
+    provider.fail = True
+    stale = service.get_quote("AAPL")
+    assert stale.cache_status == "hit" and stale.freshness == "stale"
+    assert stale.fetched_at == original_fetched_at and stale.stale_seconds == 70
+    unavailable = QuoteService(
+        ProviderRouter({"yfinance": provider}),
+        QuoteRepository(SQLiteStore(tmp_path / "empty.sqlite3")),
+        clock=lambda: now[0],
+        retries=0,
+    ).get_quotes(["MSFT"]).items[0].quote
+    assert unavailable.cache_status == "miss"
+    assert unavailable.provider_status == "degraded"
+    assert unavailable.freshness == "unavailable"

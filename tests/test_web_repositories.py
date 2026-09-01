@@ -2,6 +2,7 @@ import pytest
 
 from web.repositories import (
     AnalysisRunRepository,
+    ProviderHealthRepository,
     QuoteRepository,
     ReportIndexRepository,
     ReportRepository,
@@ -263,3 +264,59 @@ def test_report_index_sort_keeps_null_generated_time_last_with_stable_tie_breake
     assert [item["report_id"] for item in descending["items"]] == ["a", "b", "z"]
     assert [item["report_id"] for item in ascending["items"]] == ["a", "b", "z"]
     store.close()
+
+
+class MutableClock:
+    def __init__(self, value):
+        self.value = value
+
+    def __call__(self):
+        return self.value
+
+
+def test_provider_health_persists_window_failures_and_resets_at_five_minutes(tmp_path):
+    from datetime import datetime, timedelta, timezone
+
+    store = SQLiteStore(tmp_path / "health.sqlite3")
+    clock = MutableClock(datetime(2026, 8, 27, tzinfo=timezone.utc))
+    repo = ProviderHealthRepository(store, clock=clock)
+    assert repo.mark_not_configured("alpha_vantage", "missing key")["status"] == "not_configured"
+
+    for _ in range(3):
+        repo.record_failure("yfinance", "timeout", "token=secret provider down", 120.5)
+    degraded = repo.get("yfinance")
+    assert degraded["status"] == "degraded"
+    assert degraded["request_count"] == degraded["failure_count"] == 3
+    assert degraded["consecutive_failures"] == 3
+    assert "secret" not in degraded["last_error_message"]
+    assert len(degraded["last_error_message"]) <= 512
+
+    ready = repo.record_success("yfinance", 20.0)
+    assert ready["status"] == "ready"
+    assert ready["consecutive_failures"] == 0
+    persisted = ProviderHealthRepository(store, clock=clock).get("yfinance")
+    assert persisted["last_latency_ms"] == 20.0
+
+    clock.value += timedelta(seconds=300)
+    reset = repo.record_success("yfinance", 10.0)
+    assert reset["request_count"] == 1
+    assert reset["failure_count"] == 0
+    assert reset["consecutive_failures"] == 0
+    store.close()
+
+
+def test_provider_health_symbol_outcomes_do_not_degrade_and_permanent_error_does(tmp_path):
+    from datetime import datetime, timezone
+
+    repo = ProviderHealthRepository(
+        SQLiteStore(tmp_path / "health.sqlite3"),
+        clock=lambda: datetime(2026, 8, 27, tzinfo=timezone.utc),
+    )
+    for code in ("no_data", "invalid_symbol"):
+        record = repo.record_failure("yfinance", code, code, 1.0)
+        assert record["status"] == "ready"
+        assert record["failure_count"] == 0
+    permanent = repo.record_failure(
+        "yfinance", "provider_error", "invalid adapter", 2.0, permanent=True
+    )
+    assert permanent["status"] == "error"

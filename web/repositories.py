@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import uuid
+from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -703,6 +704,219 @@ class ReportIndexRepository:
     @staticmethod
     def _text(value: Any) -> str | None:
         return str(value) if value is not None and str(value) != "" else None
+
+
+class ProviderHealthRepository:
+    """Persist a rolling five-minute health window per market provider."""
+
+    WINDOW_SECONDS = 300
+    STATUSES = frozenset({"not_configured", "ready", "degraded", "error"})
+    SYMBOL_OUTCOMES = frozenset({"no_data", "invalid_symbol"})
+    TRANSIENT_FAILURES = frozenset({"rate_limited", "timeout", "provider_error"})
+
+    def __init__(
+        self,
+        store: SQLiteStore,
+        *,
+        clock: Callable[[], datetime] | None = None,
+    ) -> None:
+        self.store = store
+        self.clock = clock or (lambda: datetime.now(timezone.utc))
+
+    def record_success(self, provider: str, latency_ms: float | None = None) -> dict[str, Any]:
+        now = self._now()
+        with self.store.connection() as conn:
+            current = self._rotated(self._get_connection(conn, provider), now)
+            current.update(
+                status="ready",
+                request_count=current["request_count"] + 1,
+                consecutive_failures=0,
+                last_success_at=now,
+                last_latency_ms=self._latency(latency_ms),
+                last_error_code=None,
+                last_error_message=None,
+                updated_at=now,
+            )
+            self._upsert_connection(conn, provider, current)
+        return self.get(provider)
+
+    def record_failure(
+        self,
+        provider: str,
+        error_code: str,
+        error_message: Any,
+        latency_ms: float | None = None,
+        *,
+        permanent: bool = False,
+    ) -> dict[str, Any]:
+        from .market_models import redact
+
+        code = str(error_code or "provider_error")
+        if code == "not_configured":
+            return self.mark_not_configured(
+                provider,
+                error_message,
+                latency_ms=latency_ms,
+                count_request=True,
+            )
+        now = self._now()
+        with self.store.connection() as conn:
+            current = self._rotated(self._get_connection(conn, provider), now)
+            request_count = current["request_count"] + 1
+            symbol_outcome = code in self.SYMBOL_OUTCOMES
+            failure_count = current["failure_count"] + (0 if symbol_outcome else 1)
+            consecutive = 0 if symbol_outcome else current["consecutive_failures"] + 1
+            if permanent:
+                health_status = "error"
+            elif symbol_outcome:
+                health_status = "ready"
+            else:
+                ratio = failure_count / max(1, request_count)
+                health_status = (
+                    "degraded" if consecutive >= 3 or ratio > 0.5 else "ready"
+                )
+            current.update(
+                status=health_status,
+                request_count=request_count,
+                failure_count=failure_count,
+                consecutive_failures=consecutive,
+                last_failure_at=now,
+                last_latency_ms=self._latency(latency_ms),
+                last_error_code=code,
+                last_error_message=redact(error_message),
+                updated_at=now,
+            )
+            self._upsert_connection(conn, provider, current)
+        return self.get(provider)
+
+    def mark_not_configured(
+        self,
+        provider: str,
+        message: Any,
+        *,
+        latency_ms: float | None = None,
+        count_request: bool = False,
+    ) -> dict[str, Any]:
+        from .market_models import redact
+
+        now = self._now()
+        with self.store.connection() as conn:
+            current = self._rotated(self._get_connection(conn, provider), now)
+            current.update(
+                status="not_configured",
+                request_count=current["request_count"] + int(count_request),
+                consecutive_failures=0,
+                last_failure_at=now if count_request else current.get("last_failure_at"),
+                last_latency_ms=self._latency(latency_ms),
+                last_error_code="not_configured",
+                last_error_message=redact(message),
+                updated_at=now,
+            )
+            self._upsert_connection(conn, provider, current)
+        return self.get(provider)
+
+    def get(self, provider: str) -> dict[str, Any] | None:
+        with self.store.connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM provider_health WHERE provider=?", (provider,)
+            ).fetchone()
+        return _row(row)
+
+    def list(self) -> list[dict[str, Any]]:
+        with self.store.connection() as conn:
+            rows = conn.execute(
+                "SELECT * FROM provider_health ORDER BY provider"
+            ).fetchall()
+        return [_row(row) for row in rows]
+
+    def _rotated(self, current: dict[str, Any] | None, now: str) -> dict[str, Any]:
+        value = current or self._empty(now)
+        started = self._parse(value.get("window_started_at"))
+        current_time = self._parse(now)
+        if started is None or current_time is None or (current_time - started).total_seconds() >= self.WINDOW_SECONDS:
+            value.update(
+                window_started_at=now,
+                request_count=0,
+                failure_count=0,
+                consecutive_failures=0,
+            )
+        return value
+
+    @staticmethod
+    def _empty(now: str) -> dict[str, Any]:
+        return {
+            "status": "not_configured",
+            "window_started_at": now,
+            "request_count": 0,
+            "failure_count": 0,
+            "consecutive_failures": 0,
+            "last_success_at": None,
+            "last_failure_at": None,
+            "last_latency_ms": None,
+            "last_error_code": None,
+            "last_error_message": None,
+            "updated_at": now,
+        }
+
+    @classmethod
+    def _get_connection(
+        cls, conn: sqlite3.Connection, provider: str
+    ) -> dict[str, Any] | None:
+        return _row(
+            conn.execute(
+                "SELECT * FROM provider_health WHERE provider=?", (provider,)
+            ).fetchone()
+        )
+
+    @staticmethod
+    def _upsert_connection(
+        conn: sqlite3.Connection, provider: str, value: dict[str, Any]
+    ) -> None:
+        fields = (
+            "provider",
+            "status",
+            "window_started_at",
+            "request_count",
+            "failure_count",
+            "consecutive_failures",
+            "last_success_at",
+            "last_failure_at",
+            "last_latency_ms",
+            "last_error_code",
+            "last_error_message",
+            "updated_at",
+        )
+        record = {**value, "provider": provider}
+        conn.execute(
+            f"INSERT INTO provider_health ({','.join(fields)}) VALUES "
+            f"({','.join('?' for _ in fields)}) ON CONFLICT(provider) DO UPDATE SET "
+            + ",".join(
+                f"{field}=excluded.{field}" for field in fields if field != "provider"
+            ),
+            tuple(record.get(field) for field in fields),
+        )
+
+    def _now(self) -> str:
+        value = self.clock()
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc).isoformat()
+
+    @staticmethod
+    def _parse(value: str | None) -> datetime | None:
+        if not value:
+            return None
+        try:
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(timezone.utc)
+
+    @staticmethod
+    def _latency(value: float | None) -> float | None:
+        return max(0.0, float(value)) if value is not None else None
 
 
 class ReportRepository:

@@ -81,7 +81,9 @@ class QuoteSnapshot(BaseModel):
     market_status: str | None = None
     exchange: str | None = None
     raw_summary: str | None = None
-    cache_status: Literal["live", "hit", "stale"] | None = None
+    cache_status: Literal["live", "hit", "miss", "stale"] | None = None
+    provider_status: Literal["ready", "degraded", "not_configured", "error"] | None = None
+    stale_seconds: int | None = None
     payload: dict[str, Any] = Field(default_factory=dict)
 
     @field_validator("symbol", mode="before")
@@ -177,6 +179,9 @@ class QuoteItem(BaseModel):
     fetched_at: datetime | None = None
     freshness: Freshness | None = None
     is_delayed: bool = False
+    cache_status: str | None = None
+    provider_status: str | None = None
+    stale_seconds: int | None = None
     quote: QuoteSnapshot | None = None
     error: QuoteItemError | None = None
 
@@ -200,6 +205,9 @@ class QuoteItem(BaseModel):
             self.fetched_at = self.quote.fetched_at
             self.freshness = self.quote.freshness
             self.is_delayed = self.quote.is_delayed
+            self.cache_status = self.quote.cache_status
+            self.provider_status = self.quote.provider_status
+            self.stale_seconds = self.quote.stale_seconds
         return self
 
 

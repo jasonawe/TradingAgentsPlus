@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import queue
 import threading
+import time
 from collections.abc import Callable
 from concurrent.futures import Future, TimeoutError as FutureTimeout
 from datetime import datetime, timezone
@@ -66,10 +67,15 @@ class ProviderRouter:
     }
 
     def __init__(
-        self, providers: dict[str, Any], *, strategies: dict[str, tuple[str, ...]] | None = None
+        self,
+        providers: dict[str, Any],
+        *,
+        strategies: dict[str, tuple[str, ...]] | None = None,
+        health: Any | None = None,
     ):
         self.providers = providers
         self.strategies = strategies or self.STRATEGIES
+        self.health = health
 
     def chain(self, strategy: str) -> tuple[Any, ...]:
         names = self.strategies.get(strategy)
@@ -97,6 +103,7 @@ class ProviderRouter:
                 last = ProviderError(
                     ProviderErrorCode.NOT_CONFIGURED, f"provider {name} unavailable"
                 )
+                self._record_failure(name, last, 0.0)
                 continue
             try:
                 capability = {
@@ -110,12 +117,14 @@ class ProviderRouter:
                         ProviderErrorCode.NOT_CONFIGURED,
                         f"provider {name} does not support {capability}",
                     )
+                    self._record_failure(name, last, 0.0)
                     continue
                 fn = getattr(provider, method, None)
                 if not callable(fn):
                     last = ProviderError(
                         ProviderErrorCode.NOT_CONFIGURED, f"provider {name} unavailable"
                     )
+                    self._record_failure(name, last, 0.0)
                     continue
                 if method == "get_quote" or method == "get_identity":
 
@@ -127,20 +136,39 @@ class ProviderRouter:
                         return fn(symbol, *args)
 
                 for attempt in range(max(0, retries) + 1):
+                    started = time.monotonic()
                     try:
                         future = _BOUNDED_EXECUTOR.submit(call)
-                        return future.result(timeout=timeout_seconds)
+                        result = future.result(timeout=timeout_seconds)
+                        self._record_success(
+                            name, (time.monotonic() - started) * 1000
+                        )
+                        return result
                     except FutureTimeout as exc:
                         future.cancel()
+                        error = ProviderError(
+                            ProviderErrorCode.TIMEOUT,
+                            "provider request timed out",
+                        )
+                        self._record_failure(
+                            name, error, (time.monotonic() - started) * 1000
+                        )
                         if attempt < retries:
                             continue
-                        raise ProviderError(
-                            ProviderErrorCode.TIMEOUT, "provider request timed out"
-                        ) from exc
+                        raise error from exc
                     except ProviderError as exc:
+                        self._record_failure(
+                            name, exc, (time.monotonic() - started) * 1000
+                        )
                         if attempt < retries and exc.code in TRANSIENT:
                             continue
                         raise
+                    except Exception as exc:
+                        error = ProviderError(ProviderErrorCode.PROVIDER_ERROR, str(exc))
+                        self._record_failure(
+                            name, error, (time.monotonic() - started) * 1000
+                        )
+                        raise error from exc
             except ProviderError as exc:
                 last = exc
                 if exc.code not in TRANSIENT:
@@ -150,6 +178,37 @@ class ProviderRouter:
             except Exception as exc:
                 last = ProviderError(ProviderErrorCode.PROVIDER_ERROR, str(exc))
         raise last or ProviderError(ProviderErrorCode.NO_DATA, "no provider available")
+
+    def _record_success(self, provider: str, latency_ms: float) -> None:
+        if self.health is None:
+            return
+        try:
+            self.health.record_success(provider, latency_ms)
+        except Exception:
+            return
+
+    def _record_failure(
+        self, provider: str, error: ProviderError, latency_ms: float
+    ) -> None:
+        if self.health is None:
+            return
+        try:
+            if error.code is ProviderErrorCode.NOT_CONFIGURED:
+                self.health.mark_not_configured(
+                    provider,
+                    error.message,
+                    latency_ms=latency_ms,
+                    count_request=True,
+                )
+            else:
+                self.health.record_failure(
+                    provider,
+                    error.code.value,
+                    error.message,
+                    latency_ms,
+                )
+        except Exception:
+            return
 
     def get_quote(
         self,
@@ -269,13 +328,15 @@ class QuoteService:
     def get_quote(self, symbol: str, asset_type: str = "stock") -> QuoteSnapshot:
         cached = self._cached(symbol, asset_type)
         now = self.clock().astimezone(timezone.utc)
+        if cached:
+            cached.stale_seconds = self._quote_age(cached, now)
         if (
             cached
-            and cached.fetched_at
-            and (now - cached.fetched_at).total_seconds() <= self.ttl_seconds
+            and cached.stale_seconds is not None
+            and cached.stale_seconds <= self.ttl_seconds
         ):
             cached.cache_status = "hit"
-            cached.fetched_at = now
+            cached.provider_status = "ready"
             return cached
         try:
             fresh = self.router.get_quote(
@@ -286,16 +347,27 @@ class QuoteService:
                 retries=self.retries,
             )
             fresh.cache_status = "live"
+            fresh.provider_status = "ready"
+            fresh.stale_seconds = self._quote_age(fresh, now)
             self.repository.upsert_quote(fresh.model_dump(mode="json"))
             return fresh
         except ProviderError:
             if cached:
-                age = (now - cached.fetched_at).total_seconds()
+                age = cached.stale_seconds or 0
                 cached.freshness = "stale" if age > self.ttl_seconds else cached.freshness
                 cached.is_delayed = True
-                cached.cache_status = "stale"
+                cached.cache_status = "hit"
+                cached.provider_status = "degraded"
+                cached.stale_seconds = self._quote_age(cached, now)
                 return cached
             raise
+
+    @staticmethod
+    def _quote_age(quote: QuoteSnapshot, now: datetime) -> int | None:
+        observed = quote.as_of or quote.fetched_at
+        if observed is None:
+            return None
+        return max(0, int((now - observed).total_seconds()))
 
     def get_quotes(self, symbols: list[str], asset_type: str = "stock") -> BulkQuoteResponse:
         if len(symbols) > self.MAX_SYMBOLS:
@@ -311,6 +383,12 @@ class QuoteService:
                     asset_type=asset_type,
                     fetched_at=self.clock(),
                     freshness="unavailable",
+                    cache_status="miss",
+                    provider_status=(
+                        "not_configured"
+                        if exc.code is ProviderErrorCode.NOT_CONFIGURED
+                        else "degraded"
+                    ),
                 )
                 items.append(
                     QuoteItem(
@@ -328,6 +406,8 @@ class QuoteService:
                     asset_type=asset_type,
                     fetched_at=self.clock(),
                     freshness="unavailable",
+                    cache_status="miss",
+                    provider_status="ready",
                 )
                 items.append(
                     QuoteItem(

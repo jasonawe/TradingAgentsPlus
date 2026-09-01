@@ -376,6 +376,19 @@ def test_history_pagination_rejects_invalid_parameters(harness, query):
         assert client.get(f"/api/history?{query}").status_code == 422
 
 
+def test_market_provider_health_is_exposed_in_provider_and_settings_views(harness):
+    app, _manager, _runner, _tmp = harness
+    health = app.state.repositories["provider_health"]
+    health.record_failure("yfinance", "timeout", "down", 25.0)
+    with TestClient(app) as client:
+        providers = client.get("/api/providers/market-data").json()["providers"]
+        yfinance = next(item for item in providers if item["id"] == "yfinance")
+        assert yfinance["health"]["failure_count"] == 1
+        assert yfinance["health"]["last_latency_ms"] == 25.0
+        settings = client.get("/api/settings").json()
+        assert settings["provider_health"]["yfinance"]["failure_count"] == 1
+
+
 def _sse_data(text):
     for block in text.split("\n\n"):
         line = next((line for line in block.splitlines() if line.startswith("data: ")), None)
