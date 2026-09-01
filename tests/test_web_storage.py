@@ -14,7 +14,7 @@ def test_store_migrates_schema_and_preserves_existing_web_runs(tmp_path):
         )
         conn.execute("INSERT INTO web_runs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ("r1", "{}", "completed", None, None, 1.0, None, None, None, "BUY", "rep", None, None, None))
     store = SQLiteStore(db)
-    assert store.schema_version == 2
+    assert store.schema_version == 3
     with store.connection() as conn:
         row = conn.execute(
             "SELECT report_id,last_heartbeat_at,timeout_at,terminal_reason,"
@@ -74,6 +74,40 @@ def test_v2_schema_matches_the_reliability_contract(tmp_path):
             "idx_reports_analysis_date",
         } <= indexes
     store.close()
+
+
+def test_v3_reorders_existing_watchlist_items_newest_first(tmp_path):
+    migration_dir = tmp_path / "migrations"
+    migration_dir.mkdir()
+    source_dir = Path(__file__).parents[1] / "web" / "migrations"
+    for name in ("001_personal_platform.sql", "002_reliability_operations.sql"):
+        source = source_dir / name
+        (migration_dir / name).write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
+
+    db = tmp_path / "web.sqlite3"
+    v2_store = SQLiteStore(db, migrations_dir=migration_dir)
+    with v2_store.connection() as conn:
+        conn.executemany(
+            "INSERT INTO watchlist_items("
+            "id,watchlist_id,symbol,asset_type,position,created_at,updated_at"
+            ") VALUES (?,?,?,?,?,?,?)",
+            [
+                ("old", "default", "AAPL", "stock", 0, "2026-08-01T00:00:00+00:00", "2026-08-01T00:00:00+00:00"),
+                ("new", "default", "MSFT", "stock", 1, "2026-08-02T00:00:00+00:00", "2026-08-02T00:00:00+00:00"),
+            ],
+        )
+    v2_store.close()
+
+    source_v3 = source_dir / "003_watchlist_newest_first.sql"
+    (migration_dir / source_v3.name).write_text(source_v3.read_text(encoding="utf-8"), encoding="utf-8")
+    upgraded = SQLiteStore(db, migrations_dir=migration_dir)
+    with upgraded.connection() as conn:
+        rows = conn.execute(
+            "SELECT symbol,position FROM watchlist_items ORDER BY position,id"
+        ).fetchall()
+    assert upgraded.schema_version == 3
+    assert [tuple(row) for row in rows] == [("MSFT", 0), ("AAPL", 1)]
+    upgraded.close()
 
 
 def test_failed_migration_rolls_back(tmp_path):

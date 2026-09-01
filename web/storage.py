@@ -140,6 +140,29 @@ class SQLiteStore:
     def _run_python_migration_hook(conn: sqlite3.Connection, version: int) -> None:
         """Run compatibility changes that cannot be expressed idempotently in SQL."""
 
+        if version == 3:
+            tables = {
+                row[0]
+                for row in conn.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table'"
+                )
+            }
+            if {"watchlists", "watchlist_items"} <= tables:
+                conn.execute(
+                    "WITH ranked_items AS ("
+                    "SELECT id,ROW_NUMBER() OVER ("
+                    "PARTITION BY watchlist_id ORDER BY created_at DESC,id DESC"
+                    ")-1 AS new_position FROM watchlist_items"
+                    ") UPDATE watchlist_items SET position=("
+                    "SELECT new_position FROM ranked_items "
+                    "WHERE ranked_items.id=watchlist_items.id)"
+                )
+                conn.execute(
+                    "UPDATE watchlists SET version=version+1,updated_at=CURRENT_TIMESTAMP "
+                    "WHERE EXISTS (SELECT 1 FROM watchlist_items "
+                    "WHERE watchlist_items.watchlist_id=watchlists.id)"
+                )
+            return
         if version != 2:
             return
         if not conn.execute(

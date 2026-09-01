@@ -64,9 +64,13 @@ class WatchlistRepository:
         now = _now()
         with self.store.connection() as conn:
             self._ensure_watchlist(conn, watchlist_id, now)
-            position = conn.execute("SELECT COALESCE(MAX(position), -1)+1 FROM watchlist_items WHERE watchlist_id=?", (watchlist_id,)).fetchone()[0]
             try:
-                conn.execute("INSERT INTO watchlist_items(id,watchlist_id,symbol,asset_type,note,position,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)", (f"item-{uuid.uuid4().hex}", watchlist_id, canonical, asset_type, note, position, now, now))
+                conn.execute(
+                    "UPDATE watchlist_items SET position=position+1 "
+                    "WHERE watchlist_id=?",
+                    (watchlist_id,),
+                )
+                conn.execute("INSERT INTO watchlist_items(id,watchlist_id,symbol,asset_type,note,position,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)", (f"item-{uuid.uuid4().hex}", watchlist_id, canonical, asset_type, note, 0, now, now))
             except Exception as exc:
                 if "UNIQUE" in str(exc).upper():
                     raise ValueError("duplicate symbol") from exc

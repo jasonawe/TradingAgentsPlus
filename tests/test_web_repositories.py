@@ -23,13 +23,15 @@ def test_default_watchlist_is_idempotent_and_symbols_are_canonical(tmp_path):
     assert repo.add_item("msft", asset_type="stock")["symbol"] == "MSFT"
     with pytest.raises(ValueError, match="asset_type"):
         repo.add_item("GOOG", asset_type="bond")
-    assert repo.list_items()[0]["symbol"] == "AAPL"
+    assert [item["symbol"] for item in repo.list_items()] == ["MSFT", "AAPL"]
+    assert [item["position"] for item in repo.list_items()] == [0, 1]
     try:
         repo.add_item(" AAPL ", asset_type="stock")
     except ValueError:
         pass
     else:
         raise AssertionError("duplicate symbol should fail")
+    assert [item["symbol"] for item in repo.list_items()] == ["MSFT", "AAPL"]
     store.close()
 
 
