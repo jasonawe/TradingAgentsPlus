@@ -79,6 +79,33 @@ def test_css_uses_fluid_container_and_intermediate_responsive_breakpoints():
     assert ".library-toolbar { grid-template-columns:1fr 1fr" in css
 
 
+def test_primary_views_use_compact_headers_without_redundant_page_intros():
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    css = (STATIC / "styles.css").read_text(encoding="utf-8")
+
+    for heading_id in (
+        "setup-title",
+        "analysis-page-title",
+        "library-title",
+        "settings-title",
+        "active-title",
+    ):
+        assert f'id="{heading_id}" class="visually-hidden"' in html
+
+    assert "analysis-page-header" not in html
+    assert "active-page-header" not in html
+    assert "view-subtitle" not in html
+    assert 'class="compact-page-actions"' in html
+    assert 'class="section-actions"' in html
+    assert ".visually-hidden" in css
+    assert ".form-title" in css and "font-size:20px" in css
+    assert ".watchlist-panel h2 { margin:0; font-family:Georgia,serif; font-size:20px" in css
+    assert ".watchlist-panel .section-heading h2 { font-size:20px; }" in css
+    assert ".settings-card h2 { margin:0 0 18px; font-family:Georgia,serif; font-weight:400; font-size:20px" in css
+    assert ".run-header h2" in css and "font-size:24px" in css
+    assert ".report-heading h2" in css and "font-size:24px" in css
+
+
 def test_markdown_report_supports_tables_and_watchlist_uses_compact_rows():
     css = (STATIC / "styles.css").read_text(encoding="utf-8")
     js = (STATIC / "app.js").read_text(encoding="utf-8")
