@@ -8,6 +8,7 @@ def test_static_console_assets_exist_and_are_self_contained():
     css = (STATIC / "styles.css").read_text(encoding="utf-8")
     js = (STATIC / "app.js").read_text(encoding="utf-8")
     assert '/static/app.js?v=' in html
+    assert '/static/i18n.js?v=' in html
     assert '/static/styles.css?v=' in html
     assert "https://" not in html + css + js
     assert 'id="analysis-form"' in html
@@ -51,7 +52,7 @@ def test_investment_ratings_use_shared_localized_formatter_at_display_boundaries
     assert '<p>${escapeHtml(summary)}</p>' in js
     assert '<dd>${escapeHtml(value)}</dd>' in js
     assert '<span class="history-signal">${escapeHtml(status)}</span>' in js
-    assert '${escapeHtml(formatRating(analysis.rating || analysis.signal) || "已完成")}' in js
+    assert 'formatRating(analysis.rating || analysis.signal) || t("status.completed")' in js
 
     assert "renderReportMarkdown(formatRating" not in js
     assert "formatRating(report.executive_summary" not in js
@@ -88,12 +89,12 @@ def test_markdown_report_supports_tables_and_watchlist_uses_compact_rows():
     assert ".asset-identity" in css
     assert "watchlist-analysis" in js
     assert "latestAnalysisFor" in js
-    assert "asset_name" in js
-    assert "exchange" in js
-    assert "资产名称" in js
-    assert "交易市场" in js
-    assert "asset_name_zh" in js
-    assert "exchange_name_zh" in js
+    resources = (STATIC / "i18n.js").read_text(encoding="utf-8")
+    assert "i18n.assetIdentity(quote)" in js
+    assert "asset_name_zh" in resources
+    assert "exchange_name_zh" in resources
+    assert "资产名称" in resources
+    assert "交易市场" in resources
     assert "cleanSummary" in js
 
 
@@ -118,14 +119,14 @@ def test_watchlist_is_separate_from_analysis_and_refreshes_quotes_periodically()
 
 def test_quote_refresh_controller_and_freshness_labels_are_wired():
     html = (STATIC / "index.html").read_text(encoding="utf-8")
-    js = (STATIC / "app.js").read_text(encoding="utf-8")
     controller = (STATIC / "quote-refresh.js").read_text(encoding="utf-8")
     assert "AbortController" in controller
     assert "4000" in controller
     assert "[5000, 10000, 20000, 40000, 60000]" in controller
     assert "sequence" in controller
+    resources = (STATIC / "i18n.js").read_text(encoding="utf-8")
     for label in ("实时", "延迟", "缓存", "已过期", "不可用"):
-        assert label in js
+        assert label in resources
     assert html.index("quote-refresh.js") < html.index("app.js")
 
 
@@ -195,7 +196,11 @@ def test_client_uses_chinese_product_chrome_and_keeps_report_language_selection(
 def test_localized_client_does_not_leave_user_facing_literals_outside_dictionary():
     html = (STATIC / "index.html").read_text(encoding="utf-8")
     js = (STATIC / "app.js").read_text(encoding="utf-8")
-    assert "const I18N" in js
+    resources = (STATIC / "i18n.js").read_text(encoding="utf-8")
+    assert "const I18N" not in js
+    assert "window.TradingAgentsI18n" in js
+    assert 'locale: "zh-CN"' in resources
+    assert html.index("i18n.js") < html.index("app.js")
     assert "applyTranslations" in js
     assert "data-i18n=" in html
     for token in ("Loading history...", "No briefings saved yet.", "Start analysis"):
@@ -234,7 +239,7 @@ def test_client_snapshot_replay_and_future_terminal_status_fallback():
     assert "ACTIVE_RUN_STATUSES.has(active.status)" in js
     assert "ACTIVE_RUN_STATUSES.has(record.status)" in js
     assert 'case "run_timed_out"' in js
-    assert '"error.timedOut": "分析超时"' in js
+    assert '"error.timedOut": "分析超时"' in (STATIC / "i18n.js").read_text(encoding="utf-8")
 
 
 def test_report_library_uses_server_pagination_and_request_sequencing():

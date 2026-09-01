@@ -230,15 +230,20 @@ tradingagents web --host 0.0.0.0 --port 8000
 
 For example, open `http://192.168.112.100:8000` when `192.168.112.100` is the host machine's LAN address. Only do this on a trusted network because the console has no login layer.
 
-关注列表行情是只读市场快照；平台不连接券商、不执行交易，也不管理真实持仓。当前默认使用 `yfinance`，配置 `ALPHA_VANTAGE_API_KEY` 后可在需要时回退到 Alpha Vantage。每条行情会记录来源、时间和新鲜度（`fresh`、`delayed`、`stale` 或 `unavailable`）。Polygon、Twelve Data、Tushare、AKShare 等供应商可以在同一 Provider 契约后扩展接入。
+关注列表行情是只读市场快照；平台不连接券商、不执行交易，也不管理真实持仓。当前默认使用 `yfinance`，配置 `ALPHA_VANTAGE_API_KEY` 后可在需要时回退到 Alpha Vantage。每条行情会记录来源、报价时间、抓取时间、缓存状态（`live`、`hit`、`miss`、`stale`）、数据新鲜度（`fresh`、`delayed`、`stale`、`unavailable`）和过期秒数。设置诊断页会展示每个实际尝试过的供应商健康状态、成功/失败次数、最近错误和延迟；前端请求使用 4 秒超时与 5/10/20/40/60 秒退避，并在页面不可见时暂停刷新。Polygon、Twelve Data、Tushare、AKShare 等供应商可以在同一 Provider 契约后扩展接入。
 
-运行元数据和事件记录持久化到配置结果目录下的 SQLite（默认文件名为 `web_runs.sqlite3`），实时事件通过内存 SSE 推送。关闭或刷新浏览器后可以重新连接正在运行的任务；如果 Web 服务本身重启，尚未完成的任务会标记为“已中断”，因为 SQLite 只能保存状态，不能恢复已经发出的模型请求。已完成报告会保存到 `TRADINGAGENTS_RESULTS_DIR` 指定的目录（默认 `~/.tradingagents/logs/web_reports`），并可从报告库重新打开或下载。报告级 `data_status` 与每个行情数据集的 `freshness` 分开记录。
+运行元数据、事件、关注列表、行情缓存、供应商健康状态和报告索引统一持久化到配置结果目录下的 SQLite（默认文件名为 `web_runs.sqlite3`，现有数据库启动时自动迁移）。实时事件通过内存 SSE 推送。关闭或刷新浏览器后可以重新连接正在运行的任务；如果 Web 服务本身重启，尚未完成的任务会标记为“已中断”，因为 SQLite 只能保存状态，不能恢复已经发出的模型请求。
+
+任务默认最长运行 7200 秒，工作线程每 15 秒写入一次心跳，180 秒没有有效心跳会进入 `timed_out` 终态。可以用 `TRADINGAGENTS_RUN_TIMEOUT_SECONDS`、`TRADINGAGENTS_RUN_HEARTBEAT_INTERVAL_SECONDS` 和 `TRADINGAGENTS_RUN_HEARTBEAT_TIMEOUT_SECONDS` 调整；合法范围分别为 300-86400、5-60 和 30-600 秒。终态发布使用条件更新和最终状态校验，避免完成、取消和超时互相覆盖。
+
+已完成报告仍保存在 `TRADINGAGENTS_RESULTS_DIR` 指定的目录（默认 `~/.tradingagents/logs/web_reports`），SQLite 只保存可筛选、可分页的报告索引和待重试 outbox。`GET /api/history` 默认返回兼容的旧列表；传入 `page`/`page_size` 后返回分页对象，支持标的、资产类型、状态、日期、关键词和排序筛选。索引缺失时会从磁盘报告重建，详情接口仍可兼容读取旧报告。报告级 `data_status` 与每个行情数据集的 `freshness` 分开记录。
 
 To run the optional browser smoke tests locally, install the test extra and the Playwright browser once:
 
 ```bash
 pip install -e ".[dev,web]"
 python -m playwright install chromium
+TRADINGAGENTS_PLAYWRIGHT=1 pytest -q tests/test_web_browser.py
 ```
 
 ### Markets and tickers

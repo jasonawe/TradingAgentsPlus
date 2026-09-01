@@ -78,6 +78,7 @@ def test_index_and_config_are_public_and_redacted(harness):
     }
     assert len(payload["providers"]) >= 3
     assert len(payload["output_languages"]) == 11
+    assert payload["analyst_options"][0]["label_key"] == "analysts.market"
     assert "OPENAI_API_KEY" not in json.dumps(payload)
     assert "must-not-leak" not in json.dumps(payload)
 
@@ -383,6 +384,8 @@ def test_market_provider_health_is_exposed_in_provider_and_settings_views(harnes
     with TestClient(app) as client:
         providers = client.get("/api/providers/market-data").json()["providers"]
         yfinance = next(item for item in providers if item["id"] == "yfinance")
+        assert yfinance["status"] == "degraded"
+        assert yfinance["status_key"] == "provider_status.degraded"
         assert yfinance["health"]["failure_count"] == 1
         assert yfinance["health"]["last_latency_ms"] == 25.0
         settings = client.get("/api/settings").json()

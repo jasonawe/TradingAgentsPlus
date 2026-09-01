@@ -72,10 +72,10 @@ def _config_view(config: dict[str, Any]) -> dict[str, Any]:
     return {
         "supported_asset_types": ["stock", "crypto"],
         "analyst_options": [
-            {"key": "market", "label": "Market Analyst"},
-            {"key": "social", "label": "Sentiment Analyst"},
-            {"key": "news", "label": "News Analyst"},
-            {"key": "fundamentals", "label": "Fundamentals Analyst"},
+            {"key": "market", "label": "Market Analyst", "label_key": "analysts.market"},
+            {"key": "social", "label": "Sentiment Analyst", "label_key": "analysts.social"},
+            {"key": "news", "label": "News Analyst", "label_key": "analysts.news"},
+            {"key": "fundamentals", "label": "Fundamentals Analyst", "label_key": "analysts.fundamentals"},
         ],
         "research_depths": [1, 3, 5],
         "default_date": date.today().isoformat(),
@@ -355,18 +355,20 @@ def create_app(
     def market_provider_status() -> dict[str, Any]:
         catalog = market_data_catalog(active_config, settings_repo.all())
         health = {item["provider"]: item for item in provider_health_repo.list()}
-        return {
-            "providers": [
+        providers = []
+        for provider in catalog["providers"]:
+            provider_status = health.get(provider["id"], {}).get(
+                "status", provider["status"]
+            )
+            providers.append(
                 {
                     **provider,
-                    "status": health.get(provider["id"], {}).get(
-                        "status", provider["status"]
-                    ),
+                    "status": provider_status,
+                    "status_key": f"provider_status.{provider_status}",
                     "health": health.get(provider["id"]),
                 }
-                for provider in catalog["providers"]
-            ]
-        }
+            )
+        return {"providers": providers}
 
     @app.get("/api/settings")
     def get_settings() -> dict[str, Any]:

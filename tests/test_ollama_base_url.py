@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib
+import warnings
 
 import pytest
 
@@ -33,7 +34,14 @@ def _reload_client():
 
 
 def _base_url(mod, provider, **kwargs):
-    return str(mod.OpenAIClient(model="m", provider=provider, **kwargs).get_llm().openai_api_base)
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message=r"Model '.+' is not in the known model list",
+            category=RuntimeWarning,
+        )
+        llm = mod.OpenAIClient(model="m", provider=provider, **kwargs).get_llm()
+    return str(llm.openai_api_base)
 
 
 def test_resolver_returns_default_when_env_unset(monkeypatch):

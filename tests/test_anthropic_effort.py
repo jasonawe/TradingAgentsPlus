@@ -6,6 +6,8 @@ minimum version so future ``claude-{opus,sonnet}-X-Y`` releases inherit
 support automatically.
 """
 
+import warnings
+
 import pytest
 
 from tradingagents.llm_clients import anthropic_client as mod
@@ -20,6 +22,16 @@ def _capture_kwargs(monkeypatch):
     return captured
 
 
+def _get_llm(client):
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message=r"Model '.+' is not in the known model list",
+            category=RuntimeWarning,
+        )
+        return client.get_llm()
+
+
 @pytest.mark.unit
 class TestEffortGate:
     @pytest.mark.parametrize(
@@ -32,7 +44,7 @@ class TestEffortGate:
     )
     def test_unsupported_models_do_not_receive_effort(self, monkeypatch, model):
         captured = _capture_kwargs(monkeypatch)
-        mod.AnthropicClient(model=model, effort="medium", api_key="x").get_llm()
+        _get_llm(mod.AnthropicClient(model=model, effort="medium", api_key="x"))
         assert "effort" not in captured["kwargs"]
 
     @pytest.mark.parametrize(
@@ -44,7 +56,7 @@ class TestEffortGate:
     )
     def test_current_opus_and_sonnet_receive_effort(self, monkeypatch, model):
         captured = _capture_kwargs(monkeypatch)
-        mod.AnthropicClient(model=model, effort="high", api_key="x").get_llm()
+        _get_llm(mod.AnthropicClient(model=model, effort="high", api_key="x"))
         assert captured["kwargs"]["effort"] == "high"
 
     @pytest.mark.parametrize(
@@ -54,7 +66,7 @@ class TestEffortGate:
     def test_future_opus_sonnet_inherit_effort_via_pattern(self, monkeypatch, model):
         """Forward-compat: new Opus/Sonnet versions don't need a code change."""
         captured = _capture_kwargs(monkeypatch)
-        mod.AnthropicClient(model=model, effort="low", api_key="x").get_llm()
+        _get_llm(mod.AnthropicClient(model=model, effort="low", api_key="x"))
         assert captured["kwargs"]["effort"] == "low"
 
     @pytest.mark.parametrize(
@@ -64,22 +76,26 @@ class TestEffortGate:
     )
     def test_claude_5_family_receives_effort(self, monkeypatch, model):
         captured = _capture_kwargs(monkeypatch)
-        mod.AnthropicClient(model=model, effort="high", api_key="x").get_llm()
+        _get_llm(mod.AnthropicClient(model=model, effort="high", api_key="x"))
         assert captured["kwargs"]["effort"] == "high"
 
     def test_mythos_preview_receives_effort(self, monkeypatch):
         captured = _capture_kwargs(monkeypatch)
-        mod.AnthropicClient(
-            model="claude-mythos-preview", effort="medium", api_key="x"
-        ).get_llm()
+        _get_llm(
+            mod.AnthropicClient(
+                model="claude-mythos-preview", effort="medium", api_key="x"
+            )
+        )
         assert captured["kwargs"]["effort"] == "medium"
 
     def test_unknown_anthropic_model_does_not_receive_effort(self, monkeypatch):
         """Default is conservative — unknown models don't get effort to avoid 400s."""
         captured = _capture_kwargs(monkeypatch)
-        mod.AnthropicClient(
-            model="claude-experimental-x", effort="medium", api_key="x"
-        ).get_llm()
+        _get_llm(
+            mod.AnthropicClient(
+                model="claude-experimental-x", effort="medium", api_key="x"
+            )
+        )
         assert "effort" not in captured["kwargs"]
 
     def test_other_kwargs_still_forwarded_when_effort_skipped(self, monkeypatch):

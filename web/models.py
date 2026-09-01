@@ -11,6 +11,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    computed_field,
     field_serializer,
     field_validator,
     model_validator,
@@ -142,6 +143,12 @@ class RunRecord(BaseModel):
     run_timeout_seconds: int | None = None
     run_heartbeat_interval_seconds: int | None = None
     run_heartbeat_timeout_seconds: int | None = None
+
+    @computed_field
+    @property
+    def status_key(self) -> str:
+        status = getattr(self.status, "value", self.status)
+        return f"run_status.{status}"
 
     @model_validator(mode="after")
     def effective_metadata_from_request(self):

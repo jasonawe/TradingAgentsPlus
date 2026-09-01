@@ -193,6 +193,7 @@ def test_timed_out_run_and_payload_serialize_terminal_reason_alias():
         run_heartbeat_timeout_seconds=180,
     )
     dumped = run.model_dump(mode="json")
+    assert dumped["status_key"] == "run_status.timed_out"
     assert dumped["terminal_reason"] == dumped["error_code"] == "heartbeat_timeout"
     assert dumped["run_timeout_seconds"] == 7200
     event = EventEnvelope(

@@ -460,3 +460,37 @@ def test_quote_freshness_matrix_preserves_cache_timestamps_and_reports_age(tmp_p
     assert unavailable.cache_status == "miss"
     assert unavailable.provider_status == "degraded"
     assert unavailable.freshness == "unavailable"
+
+
+def test_quote_and_identity_models_add_stable_localization_keys():
+    snapshot = quote("AAPL", freshness="stale")
+    snapshot.cache_status = "hit"
+    snapshot.provider_status = "degraded"
+    item = __import__("web.market_models", fromlist=["QuoteItem"]).QuoteItem(
+        symbol="AAPL", quote=snapshot
+    )
+    dumped = item.model_dump(mode="json")
+    assert dumped["freshness"] == "stale"
+    assert dumped["freshness_key"] == "freshness.stale"
+    assert dumped["cache_status"] == "hit"
+    assert dumped["cache_status_key"] == "cache_status.hit"
+    assert dumped["provider_status"] == "degraded"
+    assert dumped["provider_status_key"] == "provider_status.degraded"
+
+    identity = AssetIdentity(
+        symbol="600999.SS",
+        asset_type="stock",
+        name="China Merchants Securities Co., Ltd.",
+        exchange="SHH",
+    ).model_dump(mode="json")
+    assert identity["name"] == "China Merchants Securities Co., Ltd."
+    assert identity["name_zh"] == "招商证券"
+    assert identity["exchange"] == "SHH"
+    assert identity["exchange_name_zh"] == "上海证券交易所"
+    assert identity["exchange_key"] == "exchange.shh"
+
+    unknown = AssetIdentity(
+        symbol="EXAMPLE", asset_type="stock", exchange="XYZ"
+    ).model_dump(mode="json")
+    assert unknown["exchange"] == "XYZ"
+    assert unknown["exchange_key"] is None

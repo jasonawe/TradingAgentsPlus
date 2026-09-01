@@ -26,6 +26,8 @@
     const key = raw.toLowerCase().replace(/[\s_-]+/g, "");
     const rating = Object.prototype.hasOwnProperty.call(RATING_LABELS, key) ? RATING_LABELS[key] : null;
     if (!rating) return raw;
-    return uiLanguage === "zh" ? `${rating.zh}（${rating.en}）` : rating.en;
+    return String(uiLanguage).toLowerCase().startsWith("zh")
+      ? `${rating.zh}（${rating.en}）`
+      : rating.en;
   };
 });

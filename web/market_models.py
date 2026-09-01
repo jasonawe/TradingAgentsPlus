@@ -7,7 +7,11 @@ from typing import Any, Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from .market_localization import localized_asset_name, localized_exchange_name
+from .market_localization import (
+    exchange_label_key,
+    localized_asset_name,
+    localized_exchange_name,
+)
 
 
 def _utc(value: datetime | str | None) -> datetime | None:
@@ -138,6 +142,7 @@ class AssetIdentity(BaseModel):
     name_zh: str | None = None
     exchange: str | None = None
     exchange_name_zh: str | None = None
+    exchange_key: str | None = None
     currency: str | None = None
 
     @field_validator("asset_type")
@@ -151,6 +156,7 @@ class AssetIdentity(BaseModel):
     def localize_display_names(self):
         self.name_zh = localized_asset_name(self.symbol, self.name)
         self.exchange_name_zh = localized_exchange_name(self.exchange)
+        self.exchange_key = exchange_label_key(self.exchange)
         return self
 
 
@@ -178,9 +184,12 @@ class QuoteItem(BaseModel):
     quote_time: datetime | None = None
     fetched_at: datetime | None = None
     freshness: Freshness | None = None
+    freshness_key: str | None = None
     is_delayed: bool = False
     cache_status: str | None = None
+    cache_status_key: str | None = None
     provider_status: str | None = None
+    provider_status_key: str | None = None
     stale_seconds: int | None = None
     quote: QuoteSnapshot | None = None
     error: QuoteItemError | None = None
@@ -208,6 +217,17 @@ class QuoteItem(BaseModel):
             self.cache_status = self.quote.cache_status
             self.provider_status = self.quote.provider_status
             self.stale_seconds = self.quote.stale_seconds
+        freshness = getattr(self.freshness, "value", self.freshness)
+        self.freshness = Freshness(freshness) if freshness else None
+        self.freshness_key = f"freshness.{freshness}" if freshness else None
+        self.cache_status_key = (
+            f"cache_status.{self.cache_status}" if self.cache_status else None
+        )
+        self.provider_status_key = (
+            f"provider_status.{self.provider_status}"
+            if self.provider_status
+            else None
+        )
         return self
 
 
