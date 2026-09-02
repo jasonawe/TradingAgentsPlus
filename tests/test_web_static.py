@@ -51,7 +51,8 @@ def test_investment_ratings_use_shared_localized_formatter_at_display_boundaries
     assert "signalLabel" not in js
 
     assert '<p>${escapeHtml(summary)}</p>' in js
-    assert '<dd>${escapeHtml(value)}</dd>' in js
+    assert 'data-key="${dataKey}">${escapeHtml(t(label))}</dt>' in js
+    assert '<dd${ddClass ? ` class="${ddClass}"` : ""}>${escapeHtml(value)}</dd>' in js
     assert '<span class="signal-chip is-${escapeHtml(statusKey)}">${escapeHtml(status)}</span>' in js
     assert '<button type="button" class="library-row" data-report-id=' in js
     assert 'formatRating(analysis.rating || analysis.signal) || t("status.completed")' in js
@@ -146,8 +147,8 @@ def test_foundation_uses_modern_saas_tokens_and_sidebar_shell():
     assert "https://" not in html  # self-contained
 
     # Cache versions are pinned
-    assert "/static/styles.css?v=20260901-ui-sidebar-btn-bottom-9" in html
-    assert "/static/app.js?v=20260901-ui-sidebar-btn-bottom-9" in html
+    assert "/static/styles.css?v=20260901-ui-report-meta-densify-10" in html
+    assert "/static/app.js?v=20260901-ui-report-meta-densify-10" in html
 
     # Responsive shell collapses below 768px
     assert "@media (max-width: 768px)" in css

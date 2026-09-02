@@ -295,12 +295,15 @@ table.data .num { font-family: var(--mono); font-weight: 600; text-align: right;
 
 /* ---------- Report detail ---------- */
 .report-panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 28px; box-shadow: var(--shadow-1); }
-.report-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+.report-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
 .report-heading h2 { margin: 0 0 8px; font-size: 22px; font-weight: 700; letter-spacing: -.01em; color: var(--ink); }
-.report-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 0; }
-.report-meta div { display: flex; flex-direction: column; gap: 2px; }
-.report-meta dt { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
-.report-meta dd { margin: 0; font-size: 13px; color: var(--ink); }
+.report-meta { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 20px; row-gap: 14px; margin: 0; }
+.report-meta div { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 10px 14px; background: var(--panel-2); border-radius: var(--r-md); border: 1px solid var(--line); }
+.report-meta div:has(dt[data-key="snapshot"]) { grid-column: 1 / -1; }
+.report-meta dt { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+.report-meta dd { margin: 0; font-size: 13px; color: var(--ink); overflow-wrap: anywhere; }
+.report-meta dd.mono { font-family: var(--mono); font-size: 12px; }
+.report-meta dd.signal { font-weight: 600; }
 .report-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .executive-summary { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: var(--r-lg); padding: 24px; margin-bottom: 24px; }
 .summary-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 12px; }
