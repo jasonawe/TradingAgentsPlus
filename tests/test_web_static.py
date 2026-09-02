@@ -378,3 +378,11 @@ def test_watchlist_form_explains_symbol_suffixes_per_asset_type():
     assert ".field-hint" in css
     assert ".field-hint code" in css
 
+def test_show_active_handles_runs_list_contract():
+    """Plan 1 Chunk 3: front-end /active view must consume the {runs:[...]} list."""
+    js = (STATIC / "app.js").read_text(encoding="utf-8")
+    assert "pickActiveRun" in js
+    assert ".runs" in js  # new contract consumer
+    assert ").run;" not in js  # legacy single-run accessor gone
+
+
