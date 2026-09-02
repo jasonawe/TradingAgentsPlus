@@ -17,7 +17,7 @@
         }
       })();
     </script>
-    <link rel="stylesheet" href="/static/styles.css?v=20260901-ui-report-meta-densify-10" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260901-ui-watchlist-refresh-right-11" />
   </head>
   <body>
     <div class="app-shell">
@@ -64,7 +64,7 @@
       <section id="setup-view" class="view active" aria-labelledby="setup-title">
         <h1 id="setup-title" class="visually-hidden" data-i18n="watchlist.title">我的关注</h1>
         <section id="watchlist-panel" class="watchlist-panel" aria-labelledby="watchlist-title">
-          <div class="section-heading"><h2 id="watchlist-title" data-i18n="watchlist.marketTitle">资产行情</h2><div class="section-actions"><span class="refresh-hint" data-i18n="watchlist.refreshHint">每 5 秒自动刷新</span><button id="refresh-quotes" class="button button-secondary" type="button" data-i18n="actions.refreshQuotes">刷新行情</button></div></div>
+          <div class="section-heading"><h2 id="watchlist-title" data-i18n="watchlist.marketTitle">资产行情</h2><span class="refresh-hint" data-i18n="watchlist.refreshHint">每 5 秒自动刷新</span><button id="refresh-quotes" class="button button-secondary" type="button" data-i18n="actions.refreshQuotes">刷新行情</button></div>
           <form id="watchlist-form" class="watchlist-form">
             <label class="field"><span data-i18n="watchlist.addSymbol">添加标的</span><input id="watchlist-symbol" autocomplete="off" data-i18n-placeholder="form.tickerPlaceholder" placeholder="例如 AAPL 或 BTC-USD" maxlength="32" /></label>
             <label class="field"><span data-i18n="watchlist.type">类型</span><select id="watchlist-asset-type"><option value="stock" data-i18n="assets.stock">股票</option><option value="crypto" data-i18n="assets.crypto">加密货币</option></select></label>
@@ -152,7 +152,7 @@
     <script src="/static/rating-labels.js?v=20260901-rating-localization-2" defer></script>
     <script src="/static/kline-chart.js?v=20260901-watchlist-chart-1" defer></script>
             <script src="/static/quote-refresh.js?v=20260901-market-health-1" defer></script>
-    <script src="/static/app.js?v=20260901-ui-report-meta-densify-10" defer></script>
+    <script src="/static/app.js?v=20260901-ui-watchlist-refresh-right-11" defer></script>
     <svg width="0" height="0" style="position:absolute" aria-hidden="true">
       <defs>
         <symbol id="i-watchlist" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

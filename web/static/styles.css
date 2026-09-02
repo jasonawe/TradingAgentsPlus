@@ -200,6 +200,8 @@ table.data .num { font-family: var(--mono); font-weight: 600; text-align: right;
 /* ---------- Watchlist (setup / landing) ---------- */
 .view { display: block; }
 .view > .section-heading { display: flex; align-items: center; justify-content: space-between; margin: 0 0 16px; gap: 12px; }
+.view > .section-heading .refresh-hint { margin-right: auto; margin-left: 12px; }
+.view > .section-heading #refresh-quotes { margin-left: auto; }
 .view > .section-heading h2 { margin: 0; font-size: 16px; font-weight: 600; color: var(--ink); }
 .watchlist-panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 24px; box-shadow: var(--shadow-1); margin-bottom: 24px; }
 .watchlist-form { display: grid; grid-template-columns: 1fr 180px auto; gap: 12px; align-items: end; margin-bottom: 16px; }
