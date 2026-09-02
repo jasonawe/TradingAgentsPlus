@@ -43,7 +43,16 @@ ASSET_NAMES_ZH: dict[str, str] = {
     "ETH-USD": "以太坊",
     "513880.SS": "华安三菱日联日经225ETF",
     "688825.SS": "长鑫科技",
+    "688836.SS": "昱舒科技",
+    "600031.SS": "三一重工",
     "600999.SS": "招商证券",
+    "600519.SS": "贵州茅台",
+    "600036.SS": "招商银行",
+    "601318.SS": "中国平安",
+    "000001.SZ": "平安银行",
+    "000002.SZ": "万科A",
+    "000858.SZ": "五粮液",
+    "300750.SZ": "宁德时代",
 }
 
 _SOURCE_NAMES_ZH: dict[str, str] = {
@@ -51,6 +60,19 @@ _SOURCE_NAMES_ZH: dict[str, str] = {
     "cxmt corporation": "长鑫科技",
     "china merchants securities co., ltd.": "招商证券",
 }
+
+_EN_NAME_TRAILING = re.compile(
+    r"\s*,?\s*(?:co\.?[,\.]?\s*ltd\.?|corporation|inc\.?|company limited|company|holdings?)\s*\.?$",
+    re.IGNORECASE,
+)
+
+
+def clean_english_name(value: str | None) -> str | None:
+    """Strip corporate suffixes like 'Co.,Ltd' so the watchlist stays compact."""
+    if not value:
+        return value
+    trimmed = _EN_NAME_TRAILING.sub("", str(value).strip())
+    return trimmed or value
 
 _CJK_RE = re.compile(r"[\u3400-\u9fff]")
 
@@ -94,4 +116,7 @@ def localized_asset_name(symbol: str | None, source_name: str | None = None) -> 
             return _SOURCE_NAMES_ZH[normalized]
     if not symbol:
         return None
-    return ASSET_NAMES_ZH.get(str(symbol).strip().upper())
+    curated = ASSET_NAMES_ZH.get(str(symbol).strip().upper())
+    if curated:
+        return curated
+    return clean_english_name(source_name)
