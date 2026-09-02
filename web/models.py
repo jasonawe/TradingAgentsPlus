@@ -7,7 +7,15 @@ from datetime import date, datetime
 from enum import Enum
 from typing import Any, ClassVar, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    computed_field,
+    field_serializer,
+    field_validator,
+    model_validator,
+)
 
 from cli.models import AnalystType, AssetType
 from cli.utils import (
@@ -25,6 +33,7 @@ class RunStatus(str, Enum):
     CANCELLED = "cancelled"
     PUBLISHING = "publishing"
     INTERRUPTED = "interrupted"
+    TIMED_OUT = "timed_out"
 
 
 class EventName(str, Enum):
@@ -39,6 +48,7 @@ class EventName(str, Enum):
     RUN_FAILED = "run_failed"
     RUN_CANCELLED = "run_cancelled"
     RUN_INTERRUPTED = "run_interrupted"
+    RUN_TIMED_OUT = "run_timed_out"
 
 
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -127,6 +137,43 @@ class RunRecord(BaseModel):
     reproducibility: str | None = None
     effective_quote_strategy_id: str | None = None
     effective_quote_provider_chain: list[str] = Field(default_factory=list)
+    last_heartbeat_at: datetime | None = None
+    timeout_at: datetime | None = None
+    terminal_reason: str | None = None
+    run_timeout_seconds: int | None = None
+    run_heartbeat_interval_seconds: int | None = None
+    run_heartbeat_timeout_seconds: int | None = None
+    # Lease vs. activity split: worker_heartbeat_at is renewed by the
+    # in-process WorkerLease thread (independent of analysis activity);
+    # last_activity_at is updated whenever a chunk, phase change, agent
+    # status, progress, report artifact, or external request boundary is
+    # observed. ``last_heartbeat_at`` is kept as a backward-compatible
+    # alias for worker_heartbeat_at when loading pre-migration rows.
+    worker_heartbeat_at: datetime | None = None
+    last_activity_at: datetime | None = None
+    active_operation: str | None = None
+    active_provider: str | None = None
+    active_model: str | None = None
+    active_attempt: int | None = None
+    failed_phase: str | None = None
+    failed_agent: str | None = None
+    failed_provider: str | None = None
+    failed_model: str | None = None
+    retryable: bool = False
+    parent_run_id: str | None = None
+    attempt_number: int = 1
+    resume_checkpoint_id: str | None = None
+    checkpoint_retained_until: datetime | None = None
+    # Live counters populated alongside the run (not persisted on the row).
+    artifact_count: int = 0
+    completed_artifact_count: int = 0
+    has_partial_results: bool = False
+
+    @computed_field
+    @property
+    def status_key(self) -> str:
+        status = getattr(self.status, "value", self.status)
+        return f"run_status.{status}"
 
     @model_validator(mode="after")
     def effective_metadata_from_request(self):
@@ -134,6 +181,10 @@ class RunRecord(BaseModel):
             self.effective_quote_strategy_id = self.request.quote_strategy_id
         if not self.effective_quote_provider_chain and self.effective_quote_strategy_id:
             self.effective_quote_provider_chain = ["yfinance", "alpha_vantage"] if self.effective_quote_strategy_id == "fallback-yfinance-alpha-vantage" else ["yfinance"]
+        if self.terminal_reason is not None:
+            self.error_code = self.terminal_reason
+        elif self.error_code is not None:
+            self.terminal_reason = self.error_code
         return self
 
 
@@ -183,6 +234,7 @@ class EventPayload(BaseModel):
 
 class RunSnapshotPayload(EventPayload):
     run: RunRecord
+    snapshot_seq: int = Field(default=0, ge=0)
     replay_from_seq: int | None
 
 
@@ -233,7 +285,13 @@ class RunCompletedPayload(EventPayload):
 class RunFailedPayload(EventPayload):
     status: Literal["failed"]
     error_code: str
+    terminal_reason: str | None = None
     error_message: str
+    failed_phase: str | None = None
+    failed_agent: str | None = None
+    failed_provider: str | None = None
+    failed_model: str | None = None
+    retryable: bool = False
 
 
 class RunCancelledPayload(EventPayload):
@@ -244,8 +302,24 @@ class RunCancelledPayload(EventPayload):
 
 class RunInterruptedPayload(EventPayload):
     status: Literal["interrupted"]
-    error_code: Literal["service_restart"] = "service_restart"
+    error_code: str = "service_restart"
+    terminal_reason: str | None = None
     error_message: str
+    retryable: bool = False
+
+
+class RunTimedOutPayload(EventPayload):
+    status: Literal["timed_out"]
+    progress: float = Field(ge=0.0, le=1.0)
+    terminal_reason: str
+    error_code: str | None = None
+    error_message: str
+    retryable: bool = False
+
+    @model_validator(mode="after")
+    def mirror_terminal_reason(self):
+        self.error_code = self.terminal_reason
+        return self
 
 
 _EVENT_PAYLOAD_MODELS: dict[EventName, type[EventPayload]] = {
@@ -260,6 +334,7 @@ _EVENT_PAYLOAD_MODELS: dict[EventName, type[EventPayload]] = {
     EventName.RUN_FAILED: RunFailedPayload,
     EventName.RUN_CANCELLED: RunCancelledPayload,
     EventName.RUN_INTERRUPTED: RunInterruptedPayload,
+    EventName.RUN_TIMED_OUT: RunTimedOutPayload,
 }
 
 

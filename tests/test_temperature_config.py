@@ -5,10 +5,21 @@ chat client; when unset the provider keeps its own default.
 """
 
 import importlib
+import warnings
 
 import pytest
 
 from tradingagents.llm_clients.factory import create_llm_client
+
+
+def _get_llm(client):
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message=r"Model '.+' is not in the known model list",
+            category=RuntimeWarning,
+        )
+        return client.get_llm()
 
 
 @pytest.mark.unit
@@ -26,16 +37,23 @@ class TestTemperatureForwarding:
         ],
     )
     def test_temperature_reaches_client_when_set(self, provider, model):
-        llm = create_llm_client(
-            provider=provider, model=model, temperature=0.0, api_key="placeholder"
-        ).get_llm()
+        llm = _get_llm(
+            create_llm_client(
+                provider=provider,
+                model=model,
+                temperature=0.0,
+                api_key="placeholder",
+            )
+        )
         assert llm.temperature == 0.0
 
     def test_temperature_omitted_leaves_provider_default(self):
         # Not passing temperature must not force it to a value.
-        llm = create_llm_client(
-            provider="openai", model="gpt-4.1", api_key="placeholder"
-        ).get_llm()
+        llm = _get_llm(
+            create_llm_client(
+                provider="openai", model="gpt-4.1", api_key="placeholder"
+            )
+        )
         # langchain's default is unset/None, not 0.0
         assert llm.temperature is None
 

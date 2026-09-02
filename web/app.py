@@ -6,10 +6,12 @@ import copy
 import json
 import os
 import re
+import threading
 from collections.abc import Iterator
+from contextlib import asynccontextmanager
 from datetime import date, datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import FastAPI, Header, HTTPException, Query, Request, status
 from fastapi.exceptions import RequestValidationError
@@ -18,13 +20,16 @@ from fastapi.staticfiles import StaticFiles
 
 from tradingagents.default_config import DEFAULT_CONFIG
 
+from .artifacts import ArtifactRepository
 from .config import (
     OUTPUT_LANGUAGES,
     QUOTE_STRATEGIES,
     market_data_catalog,
     model_catalog,
     resolve_model_config,
+    resolve_run_lifecycle_config,
 )
+from .error_codes import USER_MESSAGES, TerminalReason
 from .history import ReportHistory, ReportNotFound
 from .manager import ActiveRunError, EventBatch, RunManager
 from .market_data import ProviderRouter, QuoteService
@@ -33,7 +38,9 @@ from .models import AnalysisRequest, EventEnvelope, RunRecord
 from .providers import AlphaVantageProvider, YFinanceProvider
 from .repositories import (
     AnalysisRunRepository,
+    ProviderHealthRepository,
     QuoteRepository,
+    ReportIndexRepository,
     ReportRepository,
     SettingsRepository,
     SnapshotRepository,
@@ -67,10 +74,10 @@ def _config_view(config: dict[str, Any]) -> dict[str, Any]:
     return {
         "supported_asset_types": ["stock", "crypto"],
         "analyst_options": [
-            {"key": "market", "label": "Market Analyst"},
-            {"key": "social", "label": "Sentiment Analyst"},
-            {"key": "news", "label": "News Analyst"},
-            {"key": "fundamentals", "label": "Fundamentals Analyst"},
+            {"key": "market", "label": "Market Analyst", "label_key": "analysts.market"},
+            {"key": "social", "label": "Sentiment Analyst", "label_key": "analysts.social"},
+            {"key": "news", "label": "News Analyst", "label_key": "analysts.news"},
+            {"key": "fundamentals", "label": "Fundamentals Analyst", "label_key": "analysts.fundamentals"},
         ],
         "research_depths": [1, 3, 5],
         "default_date": date.today().isoformat(),
@@ -93,9 +100,9 @@ def _watchlist_view(repo: WatchlistRepository) -> dict[str, Any]:
 def _event_sse(event: EventEnvelope) -> str:
     payload = event.model_dump(mode="json")
     # ``event`` is the SSE event type; the JSON envelope retains all metadata.
+    event_id = "" if event.event.value == "run_snapshot" else f"id: {event.seq}\n"
     return (
-        f"id: {event.seq}\n"
-        f"event: {event.event.value}\n"
+        f"{event_id}event: {event.event.value}\n"
         f"data: {json.dumps(payload, ensure_ascii=False, separators=(',', ':'))}\n\n"
     )
 
@@ -129,29 +136,74 @@ def create_app(
         store = SQLiteStore(manager._db_path)
     else:
         store = SQLiteStore(run_db_path)
-    active_manager = manager or RunManager(store=store)
+    settings_repo = SettingsRepository(store)
+    report_index_repo = ReportIndexRepository(store)
+    lifecycle_config = resolve_run_lifecycle_config(
+        config if config is not None else {}, settings_repo.all()
+    )
+    active_manager = manager or RunManager(store=store, lifecycle_config=lifecycle_config)
     if manager is not None and getattr(manager, "_store", None) is None:
         manager._store = store
         manager._db_path = store.path
+    if manager is not None:
+        manager.configure_lifecycle(lifecycle_config)
+    active_manager.set_report_root(Path(active_config.get("results_dir") or ".") / "web_reports")
     active_history = history or ReportHistory(
-        results_dir=active_config.get("results_dir"), cwd=active_config.get("project_dir")
+        results_dir=active_config.get("results_dir"),
+        cwd=active_config.get("project_dir"),
+        repository=report_index_repo,
     )
-    app = FastAPI(title="TradingAgents Web Console")
+    if history is not None:
+        active_history.attach_repository(report_index_repo)
+    report_index_stop = threading.Event()
+
+    def retry_report_index() -> None:
+        while not report_index_stop.wait(30.0):
+            try:
+                active_history.retry_outbox(limit=50)
+            except Exception:
+                continue
+
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI):
+        retry_thread = threading.Thread(
+            target=retry_report_index,
+            name="tradingagents-report-index",
+            daemon=True,
+        )
+        try:
+            active_history.rebuild_index()
+            active_history.retry_outbox(limit=50)
+            retry_thread.start()
+            yield
+        finally:
+            report_index_stop.set()
+            if retry_thread.is_alive():
+                retry_thread.join(timeout=5.0)
+            active_manager.shutdown()
+
+    app = FastAPI(title="TradingAgents Web Console", lifespan=lifespan)
     app.state.manager = active_manager
     app.state.config = active_config
     app.state.history = active_history
     app.state.store = store
+    provider_health_repo = ProviderHealthRepository(store)
+    artifact_repository = ArtifactRepository(store)
+    active_manager.attach_artifact_repository(artifact_repository)
+    app.state.artifact_repository = artifact_repository
     app.state.repositories = {
         "watchlist": WatchlistRepository(store),
         "quotes": QuoteRepository(store),
         "runs": AnalysisRunRepository(store),
         "snapshots": SnapshotRepository(store),
-        "settings": SettingsRepository(store),
-        "reports": ReportRepository(store),
+        "settings": settings_repo,
+        "reports": report_index_repo,
+        "report_gate": ReportRepository(store),
+        "provider_health": provider_health_repo,
+        "artifacts": artifact_repository,
     }
-    settings_repo = app.state.repositories["settings"]
     providers = {"yfinance": YFinanceProvider(), "alpha_vantage": AlphaVantageProvider()}
-    app.state.market_router = ProviderRouter(providers)
+    app.state.market_router = ProviderRouter(providers, health=provider_health_repo)
     app.state.market_service = QuoteService(
         app.state.market_router,
         app.state.repositories["quotes"],
@@ -161,7 +213,10 @@ def create_app(
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(_request: Request, _exc: RequestValidationError) -> JSONResponse:
-        return JSONResponse({"detail": "invalid analysis request"}, status_code=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        return JSONResponse(
+            {"detail": "invalid analysis request"},
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+        )
 
     if _STATIC_DIR.is_dir():
         app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
@@ -182,6 +237,10 @@ def create_app(
 
     @app.get("/reports/{report_id}", response_class=HTMLResponse, include_in_schema=False)
     def report_index(report_id: str) -> Response:
+        return _console_entry()
+
+    @app.get("/assets/{symbol}", response_class=HTMLResponse, include_in_schema=False)
+    def asset_index(symbol: str) -> Response:
         return _console_entry()
 
     @app.get("/api/config")
@@ -302,10 +361,55 @@ def create_app(
         except ProviderError as exc:
             raise _error(404, "未找到资产信息") from exc
 
+    @app.get("/api/assets/{symbol}/runs")
+    def list_asset_runs(symbol: str, limit: int = Query(20, ge=1, le=100)) -> dict[str, Any]:
+        records = active_manager.list_runs_for_ticker(symbol, limit=limit)
+        return {
+            "symbol": symbol.upper(),
+            "items": [
+                {
+                    "run_id": record.run_id,
+                    "status": record.status.value if hasattr(record.status, "value") else str(record.status),
+                    "phase": record.phase,
+                    "current_agent": record.current_agent,
+                    "progress": record.progress,
+                    "queued_at": record.queued_at,
+                    "started_at": record.started_at,
+                    "finished_at": record.finished_at,
+                    "signal": record.signal,
+                    "report_id": record.report_id,
+                    "error_code": record.error_code,
+                    "error_message": record.error_message,
+                    "failed_phase": record.failed_phase,
+                    "failed_agent": record.failed_agent,
+                    "retryable": record.retryable,
+                    "analysis_date": record.request.analysis_date,
+                    "asset_type": record.request.asset_type,
+                    "provider": record.request.provider,
+                    "research_depth": record.request.research_depth,
+                }
+                for record in records
+            ],
+        }
+
     @app.get("/api/providers/market-data")
     def market_provider_status() -> dict[str, Any]:
         catalog = market_data_catalog(active_config, settings_repo.all())
-        return {"providers": catalog["providers"]}
+        health = {item["provider"]: item for item in provider_health_repo.list()}
+        providers = []
+        for provider in catalog["providers"]:
+            provider_status = health.get(provider["id"], {}).get(
+                "status", provider["status"]
+            )
+            providers.append(
+                {
+                    **provider,
+                    "status": provider_status,
+                    "status_key": f"provider_status.{provider_status}",
+                    "health": health.get(provider["id"]),
+                }
+            )
+        return {"providers": providers}
 
     @app.get("/api/settings")
     def get_settings() -> dict[str, Any]:
@@ -315,7 +419,7 @@ def create_app(
         source = "env" if os.getenv("TRADINGAGENTS_OUTPUT_LANGUAGE") else (settings_repo.get("output_language") or {}).get("source", "default")
         fields["output_language"] = {"value": defaults["output_language"], "source": source}
         fields["effective_output_language"] = fields["output_language"]
-        return {"schema_version": 1, "fields": fields, "strategies": [{"id": k, "providers": v["providers"], "available": next((s["available"] for s in catalog["strategies"] if s["id"] == k), False)} for k, v in QUOTE_STRATEGIES.items()]}
+        return {"schema_version": 1, "fields": fields, "strategies": [{"id": k, "providers": v["providers"], "available": next((s["available"] for s in catalog["strategies"] if s["id"] == k), False)} for k, v in QUOTE_STRATEGIES.items()], "provider_health": {item["provider"]: item for item in provider_health_repo.list()}}
 
     @app.get("/api/runs/active")
     def get_active_run() -> dict[str, Any]:
@@ -353,9 +457,17 @@ def create_app(
                 raise ValueError("invalid analysis configuration")
             request_data = request_data.model_copy(update={"quote_strategy_id": strategy})
         except ValueError as exc:
-            raise _error(status.HTTP_422_UNPROCESSABLE_ENTITY, "invalid analysis configuration") from exc
+            raise _error(
+                status.HTTP_422_UNPROCESSABLE_CONTENT,
+                "invalid analysis configuration",
+            ) from exc
         if runner is None:
-            worker = WebRunRunner(active_manager, config=active_config).worker
+            worker = WebRunRunner(
+                active_manager,
+                config=active_config,
+                report_history=active_history,
+                artifact_repository=getattr(app.state, "artifact_repository", None),
+            ).worker
         elif hasattr(runner, "worker"):
             worker = runner.worker
         else:
@@ -397,10 +509,10 @@ def create_app(
                     return
                 if batch.events:
                     for event in batch.events:
-                        # Snapshot events use a synthetic sequence before the
-                        # retained range; never move the subscriber backwards.
                         yield _event_sse(event)
-                        if event.seq > cursor:
+                        if event.event.value == "run_snapshot":
+                            cursor = event.payload.snapshot_seq
+                        elif event.seq > cursor:
                             cursor = event.seq
                     if batch.terminal and not any(event.seq > cursor for event in batch.events):
                         return
@@ -424,9 +536,118 @@ def create_app(
         except KeyError as exc:
             raise _error(status.HTTP_404_NOT_FOUND, "run not found") from exc
 
+    @app.get("/api/runs/{run_id}/artifacts")
+    def list_run_artifacts(run_id: str) -> dict[str, Any]:
+        """Return per-stage artifacts for one run, ordered by sequence."""
+
+        try:
+            record = active_manager.get_run(run_id)
+        except KeyError as exc:
+            raise _error(status.HTTP_404_NOT_FOUND, "run not found") from exc
+        artifacts = active_manager.list_artifacts(run_id)
+        return {
+            "run_id": record.run_id,
+            "status": record.status.value,
+            "artifact_count": record.artifact_count,
+            "completed_artifact_count": record.completed_artifact_count,
+            "has_partial_results": record.has_partial_results,
+            "artifacts": artifacts,
+        }
+
+    @app.post("/api/runs/{run_id}/retry", status_code=status.HTTP_202_ACCEPTED)
+    def retry_run(run_id: str) -> JSONResponse:
+        """Create a new run that resumes from the parent's checkpoint.
+
+        Returns 409 if the parent is not retryable, has no compatible
+        checkpoint, or another run is already active. The browser falls
+        back to a fresh "重新分析" action in those cases.
+        """
+
+        try:
+            allowed, reason = active_manager.can_retry(run_id)
+        except KeyError as exc:
+            raise _error(status.HTTP_404_NOT_FOUND, "run not found") from exc
+        if not allowed:
+            raise _error(
+                status.HTTP_409_CONFLICT,
+                USER_MESSAGES.get(reason, "retry not available"),
+            )
+        parent_record = active_manager.get_run(run_id)
+        if parent_record.resume_checkpoint_id is None:
+            raise _error(
+                status.HTTP_409_CONFLICT,
+                USER_MESSAGES.get(TerminalReason.WORKER_ERROR.value, "checkpoint unavailable"),
+            )
+        if runner is None:
+            worker = WebRunRunner(
+                active_manager,
+                config=active_config,
+                report_history=active_history,
+                artifact_repository=getattr(app.state, "artifact_repository", None),
+            ).worker
+        elif hasattr(runner, "worker"):
+            worker = runner.worker
+        else:
+            worker = runner
+        try:
+            record = active_manager.retry_run(
+                parent_run_id=run_id,
+                request=parent_record.request,
+                worker=worker,
+            )
+        except ActiveRunError as exc:
+            raise _error(status.HTTP_409_CONFLICT, str(exc)) from exc
+        except RuntimeError as exc:
+            raise _error(status.HTTP_409_CONFLICT, "checkpoint_unavailable") from exc
+        return JSONResponse(_record_json(record), status_code=status.HTTP_202_ACCEPTED)
+
     @app.get("/api/history")
-    def list_history() -> list[dict[str, Any]]:
-        return active_history.list_reports()
+    def list_history(
+        request: Request,
+        page: int | None = Query(default=None, ge=1, le=100000),
+        page_size: int | None = Query(default=None, ge=1, le=100),
+        query: str | None = Query(default=None),
+        ticker: str | None = Query(default=None),
+        status_filter: str | None = Query(default=None, alias="status"),
+        asset_type: str | None = Query(default=None),
+        date_from: Annotated[date | None, Query()] = None,
+        date_to: Annotated[date | None, Query()] = None,
+        sort: str | None = Query(default=None),
+    ) -> Any:
+        if not request.query_params:
+            return active_history.list_reports()
+        if (
+            status_filter is not None
+            and status_filter not in ReportIndexRepository.STATUSES
+        ):
+            raise _error(
+                status.HTTP_422_UNPROCESSABLE_CONTENT, "invalid report status"
+            )
+        if (
+            asset_type is not None
+            and asset_type not in ReportIndexRepository.ASSET_TYPES
+        ):
+            raise _error(
+                status.HTTP_422_UNPROCESSABLE_CONTENT, "invalid asset type"
+            )
+        selected_sort = sort or "generated_at_desc"
+        if selected_sort not in ReportIndexRepository.SORTS:
+            raise _error(
+                status.HTTP_422_UNPROCESSABLE_CONTENT, "invalid report sort"
+            )
+        if date_from is not None and date_to is not None and date_from > date_to:
+            raise _error(status.HTTP_422_UNPROCESSABLE_CONTENT, "invalid date range")
+        return active_history.search_reports(
+            page=page or 1,
+            page_size=page_size or 20,
+            query=query,
+            ticker=ticker,
+            status=status_filter,
+            asset_type=asset_type,
+            date_from=date_from.isoformat() if date_from is not None else None,
+            date_to=date_to.isoformat() if date_to is not None else None,
+            sort=selected_sort,
+        )
 
     @app.get("/api/history/{report_id}")
     def history_detail(report_id: str) -> dict[str, Any]:

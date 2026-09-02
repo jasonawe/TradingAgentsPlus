@@ -8,6 +8,7 @@ def test_static_console_assets_exist_and_are_self_contained():
     css = (STATIC / "styles.css").read_text(encoding="utf-8")
     js = (STATIC / "app.js").read_text(encoding="utf-8")
     assert '/static/app.js?v=' in html
+    assert '/static/i18n.js?v=' in html
     assert '/static/styles.css?v=' in html
     assert "https://" not in html + css + js
     assert 'id="analysis-form"' in html
@@ -51,7 +52,7 @@ def test_investment_ratings_use_shared_localized_formatter_at_display_boundaries
     assert '<p>${escapeHtml(summary)}</p>' in js
     assert '<dd>${escapeHtml(value)}</dd>' in js
     assert '<span class="history-signal">${escapeHtml(status)}</span>' in js
-    assert '${escapeHtml(formatRating(analysis.rating || analysis.signal) || "已完成")}' in js
+    assert 'formatRating(analysis.rating || analysis.signal) || t("status.completed")' in js
 
     assert "renderReportMarkdown(formatRating" not in js
     assert "formatRating(report.executive_summary" not in js
@@ -78,6 +79,43 @@ def test_css_uses_fluid_container_and_intermediate_responsive_breakpoints():
     assert ".library-toolbar { grid-template-columns:1fr 1fr" in css
 
 
+def test_primary_views_use_compact_headers_without_redundant_page_intros():
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    css = (STATIC / "styles.css").read_text(encoding="utf-8")
+
+    for heading_id in (
+        "setup-title",
+        "analysis-page-title",
+        "library-title",
+        "settings-title",
+        "active-title",
+    ):
+        assert f'id="{heading_id}" class="visually-hidden"' in html
+
+    assert "analysis-page-header" not in html
+    assert "active-page-header" not in html
+    assert "view-subtitle" not in html
+    assert 'class="compact-page-actions"' in html
+    assert 'class="section-actions"' in html
+    assert ".visually-hidden" in css
+    assert ".form-title" in css and "font-size:20px" in css
+    assert ".watchlist-panel h2 { margin:0; font-family:Georgia,serif; font-size:20px" in css
+    assert ".watchlist-panel .section-heading h2 { font-size:20px; }" in css
+    assert ".settings-card h2 { margin:0 0 18px; font-family:Georgia,serif; font-weight:400; font-size:20px" in css
+    assert ".run-header h2" in css and "font-size:24px" in css
+    assert ".report-heading h2" in css and "font-size:24px" in css
+    assert '/static/styles.css?v=20260901-restore-route-fix-1' in html
+
+
+def test_active_view_hidden_states_override_layout_display_rules():
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    css = (STATIC / "styles.css").read_text(encoding="utf-8")
+
+    assert 'id="run-header" class="run-header" hidden' in html
+    assert 'id="run-grid" class="run-grid" hidden' in html
+    assert '[hidden] { display:none !important; }' in css
+
+
 def test_markdown_report_supports_tables_and_watchlist_uses_compact_rows():
     css = (STATIC / "styles.css").read_text(encoding="utf-8")
     js = (STATIC / "app.js").read_text(encoding="utf-8")
@@ -88,12 +126,12 @@ def test_markdown_report_supports_tables_and_watchlist_uses_compact_rows():
     assert ".asset-identity" in css
     assert "watchlist-analysis" in js
     assert "latestAnalysisFor" in js
-    assert "asset_name" in js
-    assert "exchange" in js
-    assert "资产名称" in js
-    assert "交易市场" in js
-    assert "asset_name_zh" in js
-    assert "exchange_name_zh" in js
+    resources = (STATIC / "i18n.js").read_text(encoding="utf-8")
+    assert "i18n.assetIdentity(quote)" in js
+    assert "asset_name_zh" in resources
+    assert "exchange_name_zh" in resources
+    assert "资产名称" in resources
+    assert "交易市场" in resources
     assert "cleanSummary" in js
 
 
@@ -111,9 +149,22 @@ def test_watchlist_is_separate_from_analysis_and_refreshes_quotes_periodically()
     assert 'id="analysis-form"' not in setup_fragment
     assert 'class="history-section"' not in setup_fragment
     assert "QUOTE_REFRESH_MS = 5000" in js
-    assert "setInterval" in js
-    assert "quoteRefreshTimer" in js
+    assert '/static/quote-refresh.js?v=' in html
+    assert "QuoteRefreshController" in js
     assert "aria-busy" in html + js
+
+
+def test_quote_refresh_controller_and_freshness_labels_are_wired():
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    controller = (STATIC / "quote-refresh.js").read_text(encoding="utf-8")
+    assert "AbortController" in controller
+    assert "4000" in controller
+    assert "[5000, 10000, 20000, 40000, 60000]" in controller
+    assert "sequence" in controller
+    resources = (STATIC / "i18n.js").read_text(encoding="utf-8")
+    for label in ("实时", "延迟", "缓存", "已过期", "不可用"):
+        assert label in resources
+    assert html.index("quote-refresh.js") < html.index("app.js")
 
 
 def test_client_restores_an_active_run_after_page_reload():
@@ -182,7 +233,11 @@ def test_client_uses_chinese_product_chrome_and_keeps_report_language_selection(
 def test_localized_client_does_not_leave_user_facing_literals_outside_dictionary():
     html = (STATIC / "index.html").read_text(encoding="utf-8")
     js = (STATIC / "app.js").read_text(encoding="utf-8")
-    assert "const I18N" in js
+    resources = (STATIC / "i18n.js").read_text(encoding="utf-8")
+    assert "const I18N" not in js
+    assert "window.TradingAgentsI18n" in js
+    assert 'locale: "zh-CN"' in resources
+    assert html.index("i18n.js") < html.index("app.js")
     assert "applyTranslations" in js
     assert "data-i18n=" in html
     for token in ("Loading history...", "No briefings saved yet.", "Start analysis"):
@@ -203,7 +258,34 @@ def test_report_view_is_separate_from_live_progress_and_supports_interruptions()
     assert '$("report-back-library").addEventListener' in js
     assert 'id="settings-view"' in html
     assert '"run_interrupted"' in js
-    assert '"completed", "interrupted", "failed", "cancelled"' in js
+    assert '"run_timed_out"' in js
+    assert "ACTIVE_RUN_STATUSES" in js
     assert 'switchView("active")' in js
     assert 'switchView("report")' in js
     assert 'switchView("active")' in js
+
+
+def test_client_snapshot_replay_and_future_terminal_status_fallback():
+    js = (STATIC / "app.js").read_text(encoding="utf-8")
+    assert "payload.snapshot_seq" in js
+    assert "state.lastSeq = Number(payload.snapshot_seq)" in js
+    assert "!ACTIVE_RUN_STATUSES.has(record.status)" in js
+    assert 'new Set(["queued", "running", "publishing"])' in js
+    assert '["queued", "running"].includes(active.status)' not in js
+    assert '["queued", "running"].includes(record.status)' not in js
+    assert "ACTIVE_RUN_STATUSES.has(active.status)" in js
+    assert "ACTIVE_RUN_STATUSES.has(record.status)" in js
+    assert 'case "run_timed_out"' in js
+    assert '"error.timedOut": "分析超时"' in (STATIC / "i18n.js").read_text(encoding="utf-8")
+
+
+def test_report_library_uses_server_pagination_and_request_sequencing():
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    js = (STATIC / "app.js").read_text(encoding="utf-8")
+    for token in ("library-prev", "library-next", "library-total"):
+        assert f'id="{token}"' in html
+    for token in ("pageSize", "hasNext", "requestSeq", "loadLibraryPage", "URLSearchParams"):
+        assert token in js
+    assert "response.items || response" in js
+    assert "state.library.page = 1" in js
+    assert "client must not re-filter" not in js

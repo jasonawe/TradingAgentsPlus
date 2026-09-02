@@ -1,5 +1,6 @@
 import warnings
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from typing import Any
 
 
@@ -20,6 +21,59 @@ def normalize_content(response):
         ]
         response.content = "\n".join(t for t in texts if t)
     return response
+
+
+def resolve_invocation_timeout(instance: Any, explicit: Any = None) -> float | None:
+    """Resolve the request timeout immediately before a provider invocation."""
+
+    supplier = getattr(instance, "_deadline_supplier", None)
+    if not callable(supplier):
+        return explicit
+    remaining = max(0.0, float(supplier()))
+    cap = getattr(instance, "_request_timeout_cap", None)
+    values = [remaining]
+    if explicit is not None:
+        values.append(max(0.0, float(explicit)))
+    if cap is not None:
+        values.append(max(0.0, float(cap)))
+    return min(values)
+
+
+def invoke_with_deadline(
+    instance: Any,
+    invoke: Callable[..., Any],
+    input: Any,
+    config: Any = None,
+    **kwargs: Any,
+) -> Any:
+    """Run one provider call with Worker checkpoints and a fresh deadline cut."""
+
+    checkpoint = getattr(instance, "_external_request_checkpoint", None)
+    if callable(checkpoint):
+        checkpoint()
+    timeout = resolve_invocation_timeout(instance, kwargs.get("timeout"))
+    if callable(getattr(instance, "_deadline_supplier", None)):
+        kwargs["timeout"] = timeout
+    try:
+        return invoke(input, config, **kwargs)
+    finally:
+        if callable(checkpoint):
+            checkpoint()
+
+
+def configure_deadline_policy(
+    llm: Any,
+    *,
+    deadline_supplier: Callable[[], float] | None,
+    timeout_cap: float | None = None,
+    checkpoint: Callable[[], Any] | None = None,
+) -> Any:
+    if deadline_supplier is None and checkpoint is None:
+        return llm
+    object.__setattr__(llm, "_deadline_supplier", deadline_supplier)
+    object.__setattr__(llm, "_request_timeout_cap", timeout_cap)
+    object.__setattr__(llm, "_external_request_checkpoint", checkpoint)
+    return llm
 
 
 class BaseLLMClient(ABC):

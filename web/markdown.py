@@ -7,7 +7,6 @@ from bleach.css_sanitizer import CSSSanitizer
 from markdown_it import MarkdownIt
 from mdit_py_plugins.tasklists import tasklists_plugin
 
-
 _MARKDOWN = MarkdownIt(
     "gfm-like",
     {

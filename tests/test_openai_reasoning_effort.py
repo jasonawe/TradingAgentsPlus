@@ -5,6 +5,8 @@ parameter: 'reasoning.effort'". The client must drop the kwarg for those rather
 than forward it and crash the run. The GPT-5 family and the o-series accept it.
 """
 
+import warnings
+
 import pytest
 
 from tradingagents.llm_clients.openai_client import (
@@ -29,7 +31,15 @@ def test_supports_reasoning_effort(model, expected):
 def _effort_on(model, monkeypatch):
     # A fake key lets get_llm() construct the client without a network call.
     monkeypatch.setenv("OPENAI_API_KEY", "test-key")
-    llm = OpenAIClient(model, provider="openai", reasoning_effort="low").get_llm()
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message=r"Model '.+' is not in the known model list",
+            category=RuntimeWarning,
+        )
+        llm = OpenAIClient(
+            model, provider="openai", reasoning_effort="low"
+        ).get_llm()
     return getattr(llm, "reasoning_effort", None)
 
 

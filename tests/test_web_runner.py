@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from web.manager import RunManager
@@ -18,11 +19,14 @@ def request(**overrides):
 class FakeGraph:
     def __init__(self, analysts, *, config, debug):
         FakeGraph.last_instance = self
+        FakeGraph.last_config = config
         self.config = config
         self.debug = debug
         self.deep_thinking_llm = None
 
     def propagate(self, ticker, date, *, asset_type, on_chunk, should_cancel):
+        supplier = self.config.get("deadline_supplier")
+        FakeGraph.last_remaining_deadline = supplier() if callable(supplier) else None
         on_chunk({"market_report": "report"})
         return ({"market_report": "report", "final_trade_decision": "BUY"}, "BUY")
 
@@ -30,6 +34,14 @@ class FakeGraph:
         path = Path(save_path)
         path.mkdir(parents=True)
         (path / "complete_report.md").write_text("report", encoding="utf-8")
+
+
+class TrackingHistory:
+    def __init__(self):
+        self.indexed = []
+
+    def index_report(self, path):
+        self.indexed.append(Path(path))
 
 
 def test_runner_streams_events_and_writes_sidecar(tmp_path):
@@ -124,3 +136,84 @@ def test_runner_redacts_unknown_activity():
     event = manager.read_events(run.run_id).events[-1]
     assert event.event is EventName.ACTIVITY
     assert "secret" not in event.payload.summary
+
+
+def test_runner_supplies_dynamic_deadline_and_worker_checkpoint_to_graph(tmp_path):
+    manager = RunManager()
+    run = manager.start_run(request(), run_id="run-deadline")
+    manager.begin_run(run.run_id)
+    runner = WebRunRunner(
+        manager,
+        graph_factory=FakeGraph,
+        config={"results_dir": str(tmp_path)},
+    )
+    runner.worker(run.run_id)
+
+    supplier = FakeGraph.last_config["deadline_supplier"]
+    checkpoint = FakeGraph.last_config["external_request_checkpoint"]
+    assert callable(supplier)
+    assert 0 < FakeGraph.last_remaining_deadline <= run.run_timeout_seconds
+    assert callable(checkpoint)
+
+
+def test_runner_checkpoints_start_chunks_phases_and_external_boundaries(tmp_path, monkeypatch):
+    manager = RunManager()
+    run = manager.start_run(request(), run_id="run-heartbeat-checkpoints")
+    manager.begin_run(run.run_id)
+    calls = []
+    original = manager.heartbeat
+
+    def tracked(run_id):
+        calls.append(run_id)
+        return original(run_id)
+
+    monkeypatch.setattr(manager, "heartbeat", tracked)
+    WebRunRunner(
+        manager,
+        graph_factory=FakeGraph,
+        config={"results_dir": str(tmp_path)},
+    ).worker(run.run_id)
+    assert calls.count(run.run_id) >= 4
+
+
+class LateGraph(FakeGraph):
+    def propagate(self, ticker, date, *, asset_type, on_chunk, should_cancel):
+        self.config["deadline_supplier"]()
+        return ({"market_report": "report", "final_trade_decision": "BUY"}, "BUY")
+
+
+def test_runner_rejects_publication_after_deadline_expiry(tmp_path):
+    manager = RunManager()
+    run = manager.start_run(request(), run_id="run-late-worker")
+    manager.begin_run(run.run_id)
+    manager._records[run.run_id].record.timeout_at = datetime.now(timezone.utc) - timedelta(seconds=1)
+    WebRunRunner(
+        manager,
+        graph_factory=LateGraph,
+        config={"results_dir": str(tmp_path)},
+    ).worker(run.run_id)
+    record = manager.get_run(run.run_id)
+    assert record.status is RunStatus.TIMED_OUT
+    assert not (tmp_path / "web_reports" / "AAPL" / "2026-08-26" / run.run_id).exists()
+
+
+def test_runner_indexes_committed_report_before_terminal_completion(tmp_path, monkeypatch):
+    manager = RunManager()
+    run = manager.start_run(request(), run_id="run-index-order")
+    manager.begin_run(run.run_id)
+    history = TrackingHistory()
+    original_complete = manager.complete_publishing
+
+    def complete(*args, **kwargs):
+        assert history.indexed
+        assert (history.indexed[0] / "COMMITTED").is_file()
+        return original_complete(*args, **kwargs)
+
+    monkeypatch.setattr(manager, "complete_publishing", complete)
+    WebRunRunner(
+        manager,
+        graph_factory=FakeGraph,
+        config={"results_dir": str(tmp_path)},
+        report_history=history,
+    ).worker(run.run_id)
+    assert manager.get_run(run.run_id).status is RunStatus.COMPLETED

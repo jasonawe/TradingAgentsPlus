@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import re
 
-
 EXCHANGE_NAMES_ZH: dict[str, str] = {
     "SHH": "上海证券交易所",
     "SHZ": "深圳证券交易所",
@@ -63,6 +62,25 @@ def localized_exchange_name(exchange: str | None) -> str | None:
         return None
     value = str(exchange).strip()
     return EXCHANGE_NAMES_ZH.get(value.upper(), value)
+
+
+def exchange_label_key(exchange: str | None) -> str | None:
+    """Return a stable UI key only when the exchange code is recognized."""
+
+    if not exchange:
+        return None
+    value = str(exchange).strip().upper()
+    if value not in EXCHANGE_NAMES_ZH:
+        return None
+    aliases = {
+        "NMS": "nasdaq",
+        "NGM": "nasdaq",
+        "NAS": "nasdaq",
+        "NYQ": "nyse",
+        "PCX": "nyse",
+        "BTT": "nasdaq",
+    }
+    return f"exchange.{aliases.get(value, value.lower())}"
 
 
 def localized_asset_name(symbol: str | None, source_name: str | None = None) -> str | None:

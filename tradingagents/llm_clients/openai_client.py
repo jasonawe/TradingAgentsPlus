@@ -8,7 +8,12 @@ from langchain_core.messages import AIMessage
 from langchain_openai import ChatOpenAI
 
 from .api_key_env import get_api_key_env
-from .base_client import BaseLLMClient, normalize_content
+from .base_client import (
+    BaseLLMClient,
+    configure_deadline_policy,
+    invoke_with_deadline,
+    normalize_content,
+)
 from .capabilities import get_capabilities
 from .validators import validate_model
 
@@ -33,7 +38,9 @@ class NormalizedChatOpenAI(ChatOpenAI):
     """
 
     def invoke(self, input, config=None, **kwargs):
-        return normalize_content(super().invoke(input, config, **kwargs))
+        return normalize_content(
+            invoke_with_deadline(self, super().invoke, input, config, **kwargs)
+        )
 
     def with_structured_output(self, schema, *, method=None, **kwargs):
         caps = get_capabilities(self.model_name)
@@ -330,7 +337,13 @@ class OpenAIClient(BaseLLMClient):
             llm_kwargs[key] = self.kwargs[key]
 
         # The subclass (provider quirks) comes from the registry spec.
-        return chat_cls(**llm_kwargs)
+        llm = chat_cls(**llm_kwargs)
+        return configure_deadline_policy(
+            llm,
+            deadline_supplier=self.kwargs.get("deadline_supplier"),
+            timeout_cap=self.kwargs.get("timeout"),
+            checkpoint=self.kwargs.get("external_request_checkpoint"),
+        )
 
     def validate_model(self) -> bool:
         """Validate model for the provider."""

@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import sqlite3
 import threading
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator
-
 
 _MIGRATION_LOCK = threading.RLock()
 
@@ -117,6 +116,7 @@ class SQLiteStore:
                     sql = migration.read_text(encoding="utf-8")
                     conn.execute("BEGIN IMMEDIATE")
                     try:
+                        self._run_python_migration_hook(conn, version)
                         # Feed complete statements to sqlite without splitting
                         # semicolons inside quoted strings or comments.
                         statement = ""
@@ -135,6 +135,87 @@ class SQLiteStore:
                     current = version
             finally:
                 conn.close()
+
+    @staticmethod
+    def _run_python_migration_hook(conn: sqlite3.Connection, version: int) -> None:
+        """Run compatibility changes that cannot be expressed idempotently in SQL."""
+
+        if version == 3:
+            tables = {
+                row[0]
+                for row in conn.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table'"
+                )
+            }
+            if {"watchlists", "watchlist_items"} <= tables:
+                conn.execute(
+                    "WITH ranked_items AS ("
+                    "SELECT id,ROW_NUMBER() OVER ("
+                    "PARTITION BY watchlist_id ORDER BY created_at DESC,id DESC"
+                    ")-1 AS new_position FROM watchlist_items"
+                    ") UPDATE watchlist_items SET position=("
+                    "SELECT new_position FROM ranked_items "
+                    "WHERE ranked_items.id=watchlist_items.id)"
+                )
+                conn.execute(
+                    "UPDATE watchlists SET version=version+1,updated_at=CURRENT_TIMESTAMP "
+                    "WHERE EXISTS (SELECT 1 FROM watchlist_items "
+                    "WHERE watchlist_items.watchlist_id=watchlists.id)"
+                )
+            return
+        if version == 4:
+            if not conn.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='web_runs'"
+            ).fetchone():
+                return
+            existing = {row[1] for row in conn.execute("PRAGMA table_info(web_runs)")}
+            recovery_columns = {
+                "worker_heartbeat_at": "TEXT",
+                "last_activity_at": "TEXT",
+                "active_operation": "TEXT",
+                "active_provider": "TEXT",
+                "active_model": "TEXT",
+                "active_attempt": "INTEGER",
+                "failed_phase": "TEXT",
+                "failed_agent": "TEXT",
+                "failed_provider": "TEXT",
+                "failed_model": "TEXT",
+                "retryable": "INTEGER NOT NULL DEFAULT 0",
+                "parent_run_id": "TEXT",
+                "attempt_number": "INTEGER NOT NULL DEFAULT 1",
+                "resume_checkpoint_id": "TEXT",
+                "lease_owner_token": "TEXT",
+                "checkpoint_signature": "TEXT",
+                "checkpoint_retained_until": "TEXT",
+            }
+            for name, kind in recovery_columns.items():
+                if name not in existing:
+                    conn.execute(f"ALTER TABLE web_runs ADD COLUMN {name} {kind}")
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_web_runs_parent ON web_runs(parent_run_id)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_web_runs_retryable ON web_runs(retryable)"
+            )
+            return
+        if version != 2:
+            return
+        if not conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='web_runs'"
+        ).fetchone():
+            return
+        existing = {row[1] for row in conn.execute("PRAGMA table_info(web_runs)")}
+        lifecycle_columns = {
+            "last_heartbeat_at": "TEXT",
+            "timeout_at": "TEXT",
+            "terminal_reason": "TEXT",
+            "run_timeout_seconds": "INTEGER",
+            "run_heartbeat_interval_seconds": "INTEGER",
+            "run_heartbeat_timeout_seconds": "INTEGER",
+        }
+        for name, kind in lifecycle_columns.items():
+            if name not in existing:
+                conn.execute(f"ALTER TABLE web_runs ADD COLUMN {name} {kind}")
 
     @property
     def schema_version(self) -> int:

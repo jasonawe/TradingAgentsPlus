@@ -3,7 +3,12 @@ from typing import Any
 
 from langchain_anthropic import ChatAnthropic
 
-from .base_client import BaseLLMClient, normalize_content
+from .base_client import (
+    BaseLLMClient,
+    configure_deadline_policy,
+    invoke_with_deadline,
+    normalize_content,
+)
 from .validators import validate_model
 
 _PASSTHROUGH_KWARGS = (
@@ -47,7 +52,9 @@ class NormalizedChatAnthropic(ChatAnthropic):
     """
 
     def invoke(self, input, config=None, **kwargs):
-        return normalize_content(super().invoke(input, config, **kwargs))
+        return normalize_content(
+            invoke_with_deadline(self, super().invoke, input, config, **kwargs)
+        )
 
 
 class AnthropicClient(BaseLLMClient):
@@ -71,7 +78,13 @@ class AnthropicClient(BaseLLMClient):
                 continue
             llm_kwargs[key] = self.kwargs[key]
 
-        return NormalizedChatAnthropic(**llm_kwargs)
+        llm = NormalizedChatAnthropic(**llm_kwargs)
+        return configure_deadline_policy(
+            llm,
+            deadline_supplier=self.kwargs.get("deadline_supplier"),
+            timeout_cap=self.kwargs.get("timeout"),
+            checkpoint=self.kwargs.get("external_request_checkpoint"),
+        )
 
     def validate_model(self) -> bool:
         """Validate model for Anthropic."""

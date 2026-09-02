@@ -6,6 +6,7 @@ from io import StringIO
 import pandas as pd
 import requests
 
+from .config import external_request_checkpoint, get_request_timeout
 from .errors import VendorNotConfiguredError, VendorRateLimitError
 
 API_BASE_URL = "https://www.alphavantage.co/query"
@@ -83,8 +84,16 @@ def _make_api_request(function_name: str, params: dict, *, api_key: str | None =
         # Remove entitlement if it's None or empty
         api_params.pop("entitlement", None)
 
-    response = requests.get(API_BASE_URL, params=api_params, timeout=REQUEST_TIMEOUT)
-    response.raise_for_status()
+    external_request_checkpoint()
+    try:
+        response = requests.get(
+            API_BASE_URL,
+            params=api_params,
+            timeout=get_request_timeout(REQUEST_TIMEOUT),
+        )
+        response.raise_for_status()
+    finally:
+        external_request_checkpoint()
 
     response_text = response.text
 

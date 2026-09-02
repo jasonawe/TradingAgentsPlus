@@ -6,6 +6,7 @@ import importlib.util
 import os
 from typing import Any
 
+from tradingagents.default_config import DEFAULT_CONFIG
 from tradingagents.llm_clients.model_catalog import MODEL_OPTIONS, get_model_options
 
 OUTPUT_LANGUAGES: tuple[str, ...] = (
@@ -26,6 +27,62 @@ QUOTE_STRATEGIES = {
     "default-yfinance": {"providers": ["yfinance"]},
     "fallback-yfinance-alpha-vantage": {"providers": ["yfinance", "alpha_vantage"]},
 }
+
+_RUN_LIFECYCLE_SETTINGS = {
+    "run_timeout_seconds": ("TRADINGAGENTS_RUN_TIMEOUT_SECONDS", 7200, 300, 86400),
+    "run_heartbeat_interval_seconds": (
+        "TRADINGAGENTS_RUN_HEARTBEAT_INTERVAL_SECONDS",
+        15,
+        5,
+        60,
+    ),
+    "run_heartbeat_timeout_seconds": (
+        "TRADINGAGENTS_RUN_HEARTBEAT_TIMEOUT_SECONDS",
+        180,
+        30,
+        600,
+    ),
+}
+
+
+def _parse_integer_setting(key: str, raw: Any) -> int:
+    if isinstance(raw, bool):
+        raise ValueError(f"invalid {key}: expected integer")
+    if isinstance(raw, int):
+        return raw
+    if isinstance(raw, str):
+        value = raw.strip()
+        if value and value.lstrip("+-").isdigit():
+            return int(value)
+    raise ValueError(f"invalid {key}: expected integer")
+
+
+def resolve_run_lifecycle_config(
+    config: dict[str, Any], settings: dict[str, Any] | None = None
+) -> dict[str, dict[str, int | str]]:
+    """Resolve and validate server-owned run lifecycle settings."""
+
+    settings = settings or {}
+    resolved: dict[str, dict[str, int | str]] = {}
+    for key, (env_key, hard_fallback, minimum, maximum) in _RUN_LIFECYCLE_SETTINGS.items():
+        raw: Any
+        source: str
+        if os.environ.get(env_key) not in (None, ""):
+            raw, source = os.environ[env_key], "env"
+        elif isinstance(settings.get(key), dict) and settings[key].get("value") is not None:
+            raw = settings[key]["value"]
+            source = str(settings[key].get("source") or "sqlite")
+        elif key in config and config[key] is not None:
+            raw, source = config[key], "config"
+        elif key in DEFAULT_CONFIG and DEFAULT_CONFIG[key] is not None:
+            raw, source = DEFAULT_CONFIG[key], "default_config"
+        else:
+            raw, source = hard_fallback, "hard_fallback"
+        value = _parse_integer_setting(key, raw)
+        if value < minimum or value > maximum:
+            raise ValueError(f"invalid {key}: expected {minimum}..{maximum}")
+        resolved[key] = {"value": value, "source": source}
+    return resolved
 
 
 def market_data_catalog(

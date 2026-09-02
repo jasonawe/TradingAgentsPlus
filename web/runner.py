@@ -20,8 +20,18 @@ from tradingagents.default_config import DEFAULT_CONFIG
 from tradingagents.graph.propagation import PropagationCancelled
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 
+from .artifacts import ArtifactRepository
+from .checkpoint_resume import (
+    GRAPH_VERSION,
+    build_checkpoint_signature,
+    retention_until,
+)
+from .error_classifier import (
+    classify_provider_exception,
+)
+from .error_codes import USER_MESSAGES, TerminalReason
 from .manager import RunManager
-from .models import EventName
+from .models import EventName, RunStatus
 from .snapshots import DataSnapshotRecorder, SnapshotStore
 
 try:
@@ -41,6 +51,25 @@ _ANALYSTS = {
 _SENSITIVE = re.compile(r"(?i)(api[_-]?key|token|secret|password|authorization)\s*[:=]\s*[^,\s}]+")
 _SAFE_RUN_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 
+# Map from a graph chunk key to the (display agent, analyst id, artifact
+# type) tuple used to upsert the per-stage artifact row.
+_ARTIFACT_KEYS: dict[str, tuple[str, str, str]] = {
+    "market_report": ("Market Analyst", "market", "analyst_report"),
+    "sentiment_report": ("Sentiment Analyst", "social", "analyst_report"),
+    "news_report": ("News Analyst", "news", "analyst_report"),
+    "fundamentals_report": ("Fundamentals Analyst", "fundamentals", "analyst_report"),
+}
+
+
+def _is_partial(content: str) -> bool:
+    """A chunk value is treated as partial when it looks unfinished."""
+
+    text = content.strip()
+    if not text:
+        return True
+    tail = text[-3:]
+    return tail in {"...", "..", " ?"} or text.endswith(("。", "，", ",", " "))
+
 
 class WebRunRunner:
     """Execute one manager run and translate graph chunks into safe events."""
@@ -51,15 +80,47 @@ class WebRunRunner:
         *,
         graph_factory: Callable[..., Any] = TradingAgentsGraph,
         config: dict[str, Any] | None = None,
+        report_history: Any | None = None,
+        artifact_repository: ArtifactRepository | None = None,
     ) -> None:
         self.manager = manager
         self.graph_factory = graph_factory
         self.config = config
+        self.report_history = report_history
+        self.artifact_repository = artifact_repository
+        # Phase 2 defaults: 120s LLM timeout, 1 SDK retry, 300s LLM-op
+        # budget, fallback to 60s for data sources.
+        self.llm_timeout_seconds = float((config or {}).get("web_llm_timeout_seconds", 120.0))
+        # Practical minimum: reasoning models (e.g. MiniMax-M3) commonly need
+        # 30-60s once the prompt grows past ~30 KB of accumulated context, and
+        # trading_graph uses this value as the per-call LLM ceiling. Anything
+        # under ~180s will repeatedly abort Risk Management / Trading Team.
+        self.llm_timeout_seconds = max(self.llm_timeout_seconds, 240.0)
+        self.llm_max_retries = int((config or {}).get("web_llm_max_retries", 1))
+        self.llm_op_budget_seconds = float((config or {}).get("web_llm_op_budget_seconds", 300.0))
+        self.data_source_timeout_seconds = float(
+            (config or {}).get("web_data_source_timeout_seconds", 60.0)
+        )
 
     def worker(self, run_id: str) -> None:
         state = self.manager._state(run_id)  # guarded by manager methods below
         request = state.record.request
         cfg = copy.deepcopy(self.config if self.config is not None else DEFAULT_CONFIG)
+        report_root = Path(cfg["results_dir"]) / "web_reports"
+        self.manager.set_report_root(report_root)
+        cfg["deadline_supplier"] = lambda: self.manager.remaining_deadline(run_id)
+        # Bug fix: ``provider_timeout_seconds`` is consumed by
+        # ``trading_graph.py`` as the LLM provider per-call ceiling. The
+        # previous wiring fed in ``data_source_timeout_seconds`` (60s) which
+        # starved reasoning-heavy providers (MiniMax-M3 routinely takes
+        # 30-60s once accumulated context passes ~30 KB). LLM gets its own
+        # value; data sources keep their timeout elsewhere.
+        cfg["provider_timeout_seconds"] = float(self.llm_timeout_seconds)
+        cfg.setdefault("web_llm_timeout_seconds", self.llm_timeout_seconds)
+        cfg["llm_max_retries"] = self.llm_max_retries
+        # Phase 2: opt into the per-ticker checkpoint saver. The resume
+        # API relies on this to skip nodes that already completed.
+        cfg["checkpoint_enabled"] = True
         # Environment overlays in DEFAULT_CONFIG win over the request's depth.
         if not os.environ.get("TRADINGAGENTS_MAX_DEBATE_ROUNDS"):
             cfg["max_debate_rounds"] = request.research_depth
@@ -74,6 +135,47 @@ class WebRunRunner:
         if request.deep_model:
             cfg["deep_think_llm"] = request.deep_model
         analysts = [getattr(a, "value", str(a)) for a in request.analysts]
+        # Deterministic checkpoint signature so the manager can refuse a
+        # retry that would silently use a different graph shape.
+        signature = build_checkpoint_signature(
+            ticker=request.ticker,
+            analysis_date=str(request.analysis_date),
+            asset_type=getattr(request.asset_type, "value", str(request.asset_type)),
+            analysts=analysts,
+            research_depth=request.research_depth,
+            output_language=request.output_language,
+            provider=request.provider,
+            quick_model=request.quick_model,
+            deep_model=request.deep_model,
+            graph_version=GRAPH_VERSION,
+        )
+        cfg["checkpoint_signature"] = signature
+        with suppress(KeyError):
+            self.manager.set_checkpoint_retained_until(
+                run_id,
+                retained_until=retention_until().isoformat(),
+                signature=signature,
+            )
+        # The external_request_checkpoint fires before each provider
+        # call. Wrap it so we also tag the active operation / provider /
+        # model and refresh activity timestamps. The lease thread keeps
+        # the worker heartbeat alive independently.
+        attempt_counter = {"value": 0}
+
+        def _external_request_checkpoint() -> None:
+            attempt_counter["value"] += 1
+            with suppress(KeyError):
+                self.manager.record_activity(
+                    run_id,
+                    operation="llm",
+                    provider=request.provider,
+                    model=request.deep_model,
+                    attempt=attempt_counter["value"],
+                )
+            self.manager.heartbeat(run_id)
+
+        cfg["external_request_checkpoint"] = _external_request_checkpoint
+        self._heartbeat(run_id)
         graph = self.graph_factory(analysts, config=cfg, debug=False)
         phase = {"name": "Analyst Team", "index": 1, "phase_count": 5}
         analyst_statuses: dict[str, str] = {}
@@ -87,8 +189,11 @@ class WebRunRunner:
         )
 
         def on_chunk(chunk: dict[str, Any]) -> None:
+            self._heartbeat(run_id)
             self._publish_chunk(run_id, chunk, analysts, phase, completed_analysts, analyst_statuses)
+            self._persist_chunk_artifacts(run_id, chunk, phase["name"])
 
+        publishing = False
         try:
             result = graph.propagate(
                 request.ticker,
@@ -97,7 +202,10 @@ class WebRunRunner:
                 on_chunk=on_chunk,
                 should_cancel=lambda: self.manager.is_cancelled(run_id),
             )
+            self._heartbeat(run_id)
             final_state, signal = result
+            if self.manager.check_expired(run_id).status is not RunStatus.RUNNING:
+                return
             if self.manager.is_cancelled(run_id):
                 raise PropagationCancelled()
             report_id = run_id
@@ -108,7 +216,10 @@ class WebRunRunner:
                 / str(request.analysis_date)
                 / self._safe_run_id_component(run_id)
             )
-            self.manager.begin_publishing(run_id)
+            publishing_record = self.manager.begin_publishing(run_id)
+            if publishing_record.status is not RunStatus.PUBLISHING:
+                return
+            publishing = True
             safe_run_id = self._safe_run_id_component(run_id)
             temporary_dir = report_dir.parent / ".tmp" / safe_run_id
             temporary_dir.parent.mkdir(parents=True, exist_ok=True)
@@ -175,16 +286,86 @@ class WebRunRunner:
             temporary_dir.rename(report_dir)
             with suppress(OSError):
                 temporary_dir.parent.rmdir()
-            self.manager.complete_publishing(run_id, signal=signal, report_id=report_id)
+            if self.report_history is not None:
+                self.report_history.index_report(report_dir)
+            self.manager.complete_publishing(
+                run_id,
+                signal=signal,
+                report_id=report_id,
+                report_dir=report_dir,
+            )
         except PropagationCancelled:
             self.manager.cancel_run(run_id, phase=phase["name"])
-        except Exception:
+        except Exception as exc:
             logger.error("Web analysis failed for run %s\n%s", run_id, traceback.format_exc())
-            self.manager.fail_run(
-                run_id,
-                error_code="worker_error",
-                error_message="analysis worker failed",
+            # The active_operation/active_provider/active_attempt fields
+            # captured the most recent LLM/data call. Surface them in
+            # the terminal record so the user sees exactly which model
+            # and provider failed.
+            info = classify_provider_exception(
+                exc,
+                provider=state.record.active_provider,
+                model=state.record.active_model,
+                phase=phase["name"],
+                agent=state.record.current_agent,
+                attempt=state.record.active_attempt,
+                operation=state.record.active_operation,
             )
+            if publishing:
+                self.manager.fail_run(
+                    run_id,
+                    error_code=TerminalReason.PUBLISH_INCOMPLETE.value,
+                    error_message=USER_MESSAGES[TerminalReason.PUBLISH_INCOMPLETE.value],
+                    failed_phase=phase["name"],
+                    failed_provider=info.provider,
+                    failed_model=info.model,
+                    retryable=False,
+                )
+            else:
+                self.manager.fail_run_classified(run_id, info)
+            with suppress(KeyError):
+                self.manager.clear_activity(run_id)
+
+    def _heartbeat(self, run_id: str) -> None:
+        self.manager.heartbeat(run_id)
+
+    def _persist_chunk_artifacts(
+        self,
+        run_id: str,
+        chunk: dict[str, Any],
+        current_phase: str,
+    ) -> None:
+        """Idempotent upsert of per-stage artifact rows from one chunk.
+
+        Only the chunk keys declared in :data:`_ARTIFACT_KEYS` produce
+        artifacts; research debates, trader plans, and risk debates are
+        derived at publishing time so they don't need partial coverage.
+        """
+
+        if self.artifact_repository is None:
+            return
+        sequence = 0
+        for key, (agent, _analyst_key, artifact_type) in _ARTIFACT_KEYS.items():
+            value = chunk.get(key)
+            if not value:
+                continue
+            content = str(value)
+            status = "partial" if _is_partial(content) else "completed"
+            try:
+                self.artifact_repository.upsert(
+                    run_id,
+                    artifact_key=key,
+                    artifact_type=artifact_type,
+                    phase=current_phase,
+                    agent=agent,
+                    title=f"{agent} report",
+                    content_markdown=content,
+                    status=status,
+                    sequence=sequence,
+                )
+            except Exception:
+                logger.exception("artifact upsert failed for run %s key=%s", run_id, key)
+            sequence += 1
 
     def _publish_chunk(
         self,
@@ -195,6 +376,7 @@ class WebRunRunner:
         completed_analysts: set[str] | None = None,
         analyst_statuses: dict[str, str] | None = None,
     ) -> None:
+        self._heartbeat(run_id)
         completed_analysts = completed_analysts if completed_analysts is not None else set()
         analyst_statuses = analyst_statuses if analyst_statuses is not None else {}
         for key, (agent, analyst_key) in _ANALYSTS.items():
@@ -236,6 +418,7 @@ class WebRunRunner:
             self.manager.publish(run_id, EventName.ACTIVITY, {"activity_type": "graph_update", "name": "graph", "summary": self._shorten(chunk)})
 
     def _publish_phase(self, run_id: str, phase: dict[str, Any], *, status: str) -> None:
+        self._heartbeat(run_id)
         self.manager.publish(
             run_id,
             EventName.PHASE_CHANGED,
@@ -254,6 +437,7 @@ class WebRunRunner:
         completed: set[str],
         previous: dict[str, str],
     ) -> None:
+        self._heartbeat(run_id)
         active_assigned = False
         for _analyst_key, (agent, selected_key) in _ANALYSTS.items():
             if selected_key not in analysts:

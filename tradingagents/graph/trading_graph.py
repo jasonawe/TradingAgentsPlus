@@ -184,6 +184,16 @@ class TradingAgentsGraph:
         if max_retries is not None and max_retries != "":
             kwargs["max_retries"] = _coerce_max_retries(max_retries)
 
+        deadline_supplier = self.config.get("deadline_supplier")
+        if callable(deadline_supplier):
+            kwargs["deadline_supplier"] = deadline_supplier
+            timeout_cap = self.config.get("provider_timeout_seconds", 60.0)
+            if timeout_cap is not None:
+                kwargs["timeout"] = float(timeout_cap)
+        checkpoint = self.config.get("external_request_checkpoint")
+        if callable(checkpoint):
+            kwargs["external_request_checkpoint"] = checkpoint
+
         return kwargs
 
     def _create_tool_nodes(self) -> dict[str, ToolNode]:

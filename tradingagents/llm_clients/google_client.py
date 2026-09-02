@@ -2,7 +2,12 @@ from typing import Any
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-from .base_client import BaseLLMClient, normalize_content
+from .base_client import (
+    BaseLLMClient,
+    configure_deadline_policy,
+    invoke_with_deadline,
+    normalize_content,
+)
 from .validators import validate_model
 
 
@@ -14,7 +19,9 @@ class NormalizedChatGoogleGenerativeAI(ChatGoogleGenerativeAI):
     """
 
     def invoke(self, input, config=None, **kwargs):
-        return normalize_content(super().invoke(input, config, **kwargs))
+        return normalize_content(
+            invoke_with_deadline(self, super().invoke, input, config, **kwargs)
+        )
 
 
 class GoogleClient(BaseLLMClient):
@@ -50,7 +57,13 @@ class GoogleClient(BaseLLMClient):
                 thinking_level = "low"
             llm_kwargs["thinking_level"] = thinking_level
 
-        return NormalizedChatGoogleGenerativeAI(**llm_kwargs)
+        llm = NormalizedChatGoogleGenerativeAI(**llm_kwargs)
+        return configure_deadline_policy(
+            llm,
+            deadline_supplier=self.kwargs.get("deadline_supplier"),
+            timeout_cap=self.kwargs.get("timeout"),
+            checkpoint=self.kwargs.get("external_request_checkpoint"),
+        )
 
     def validate_model(self) -> bool:
         """Validate model for Google."""
