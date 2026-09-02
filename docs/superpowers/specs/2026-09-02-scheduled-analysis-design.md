@@ -346,3 +346,24 @@ new file to the migration list.
 ## Open Questions
 
 None — all design questions resolved during brainstorming.
+
+## Implementation Status
+
+- [x] Plan 1 — RunManager concurrency (`docs/superpowers/plans/2026-09-02-manager-concurrency.md`) — shipped
+- [ ] Plan 2 — Scheduled jobs core (data + APScheduler + trigger logic)
+- [ ] Plan 3 — Scheduled jobs UI
+
+### Plan 1 summary
+
+- `RunManager` now tracks a `_active_run_ids: set[str]` (legacy `active_run_id`
+  property returns any one member for back-compat).
+- `concurrent_runs_cap()` reads `scheduler.max_concurrent_runs` setting
+  (default 3, clamped 1..10).
+- `start_run` / `retry_run` go through `_check_admission_locked`, which raises
+  `MaxConcurrentRunsError` or `AssetBusyError` instead of the old generic
+  `ActiveRunError` (kept as an alias for back-compat).
+- `ThreadPoolExecutor` resizes on every `start_run` so the cap is honoured.
+- `GET /api/runs/active` returns `{"runs": [...]}` (was `{"run": ...}`).
+- Front-end `showActive` / `restoreActiveRun` use a new `pickActiveRun()`
+  helper that selects the most-recently-queued run.
+
