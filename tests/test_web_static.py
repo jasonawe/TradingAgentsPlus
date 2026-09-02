@@ -147,8 +147,8 @@ def test_foundation_uses_modern_saas_tokens_and_sidebar_shell():
     assert "https://" not in html  # self-contained
 
     # Cache versions are pinned
-    assert "/static/styles.css?v=20260901-ui-watchlist-refresh-right-12" in html
-    assert "/static/app.js?v=20260901-ui-watchlist-refresh-right-12" in html
+    assert "/static/styles.css?v=20260901-zh-auto-hint-1" in html
+    assert "/static/app.js?v=20260901-zh-auto-hint-1" in html
 
     # Responsive shell collapses below 768px
     assert "@media (max-width: 768px)" in css
@@ -355,3 +355,26 @@ def test_report_library_uses_server_pagination_and_request_sequencing():
     assert "response.items || response" in js
     assert "state.library.page = 1" in js
     assert "client must not re-filter" not in js
+
+def test_watchlist_form_explains_symbol_suffixes_per_asset_type():
+    """The watchlist form shows hint text per asset type so users know whether to
+    use .SS / .SZ / .HK / -USD suffixes."""
+    resources = (STATIC / "i18n.js").read_text(encoding="utf-8")
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    js = (STATIC / "app.js").read_text(encoding="utf-8")
+    css = (STATIC / "styles.css").read_text(encoding="utf-8")
+    assert "form.tickerHint.stock" in resources
+    assert "form.tickerHint.crypto" in resources
+    # The hint mentions the three exchange suffixes users always forget
+    for suffix in (".SS", ".SZ", ".HK"):
+        assert suffix in resources.split("\"form.tickerHint.stock\":")[1].split("\",")[0], f"missing {suffix} in stock hint"
+    # HTML contains the hint node with data-i18n-html (so <code> renders)
+    assert 'id="watchlist-ticker-hint"' in html
+    assert 'data-i18n-html="form.tickerHint.stock"' in html
+    # JS switches the hint text when asset type changes
+    assert "updateTickerHint" in js
+    assert "$(\"watchlist-asset-type\").addEventListener(\"change\", updateTickerHint)" in js
+    # CSS styles the hint with subtle muted text
+    assert ".field-hint" in css
+    assert ".field-hint code" in css
+

@@ -205,6 +205,10 @@ table.data .num { font-family: var(--mono); font-weight: 600; text-align: right;
 .section-heading h2 { margin: 0; font-size: 16px; font-weight: 600; color: var(--ink); }
 .watchlist-panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 24px; box-shadow: var(--shadow-1); margin-bottom: 24px; }
 .watchlist-form { display: grid; grid-template-columns: 1fr 180px auto; gap: 12px; align-items: end; margin-bottom: 16px; }
+.field-hint { display: block; font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.55; }
+.field-hint code { background: var(--bg); border: 1px solid var(--line); padding: 1px 5px; border-radius: 4px; font-family: var(--mono); font-size: 11px; color: var(--ink); }
+.watchlist-form > .field:has(#watchlist-ticker-hint) { grid-row: span 2; align-self: stretch; }
+@media (max-width: 768px) { .watchlist-form > .field:has(#watchlist-ticker-hint) { grid-row: auto; } }
 .watchlist-form .field { margin-bottom: 0; }
 .watchlist-form button { align-self: end; }
 .watchlist-list { display: flex; flex-direction: column; }

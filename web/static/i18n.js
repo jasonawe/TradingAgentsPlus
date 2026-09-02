@@ -53,6 +53,8 @@
     "connection.timed_out": "分析超时",
     "form.ticker": "标的代码",
     "form.tickerPlaceholder": "例如 AAPL 或 BTC-USD",
+    "form.tickerHint.stock": "A 股加 <code>.SS</code>（沪）或 <code>.SZ</code>（深），港股加 <code>.HK</code>，美股直接写代码（如 <code>AAPL</code>）。",
+    "form.tickerHint.crypto": "格式：<code>BTC-USD</code>、<code>ETH-USD</code>（币种 -USD 后缀）。",
     "form.assetType": "资产类型",
     "form.analysisDate": "分析日期",
     "form.provider": "模型厂商",
