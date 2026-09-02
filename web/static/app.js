@@ -34,7 +34,7 @@
   function routePath(view, { reportId = null, symbol = null } = {}) { if (view === "report" && reportId) return `/reports/${encodeURIComponent(reportId)}`; if (view === "asset" && symbol) return `/assets/${encodeURIComponent(symbol)}`; return ROUTES[view] || ROUTES.setup; }
   function routeForPath(pathname) { const path = normalizePath(pathname); if (path === "/") return { view: "setup" }; for (const [view, route] of Object.entries(ROUTES)) if (view !== "setup" && path === route) return { view }; if (path.startsWith("/reports/")) { const reportId = decodeURIComponent(path.slice("/reports/".length)); return reportId ? { view: "report", reportId } : { view: "library" }; } if (path.startsWith("/assets/")) { const symbol = decodeURIComponent(path.slice("/assets/".length)); return symbol ? { view: "asset", symbol } : { view: "setup" }; } return null; }
   function setRoute(view, { reportId = null, symbol = null, replace = false } = {}) { const path = routePath(view, { reportId, symbol }); if (normalizePath(window.location.pathname) === normalizePath(path)) return; const method = replace ? "replaceState" : "pushState"; window.history[method]({ view, reportId, symbol }, "", path); }
-  function switchView(view) { setupView.hidden = view !== "setup"; analysisView.hidden = view !== "analysis"; activeView.hidden = !["active", "run"].includes(view); reportView.hidden = view !== "report"; libraryView.hidden = view !== "library"; settingsView.hidden = view !== "settings"; assetView.hidden = view !== "asset"; const activeNav = view === "report" ? "library" : view === "asset" ? "setup" : view; document.querySelectorAll(".nav-button").forEach((button) => button.classList.toggle("is-active", button.dataset.view === activeNav)); }
+  function switchView(view) { setupView.hidden = view !== "setup"; analysisView.hidden = view !== "analysis"; activeView.hidden = !["active", "run"].includes(view); reportView.hidden = view !== "report"; libraryView.hidden = view !== "library"; settingsView.hidden = view !== "settings"; assetView.hidden = view !== "asset"; const activeNav = view === "report" ? "library" : view === "asset" ? "setup" : view; document.querySelectorAll(".nav-primary a").forEach((link) => link.classList.toggle("is-active", link.dataset.view === activeNav)); updateTopbar(view); }
   function showSetup() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("setup"); setConnection("ready"); loadWatchlist(); }
   function showAnalysis() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("analysis"); setConnection("ready"); }
   async function showActive() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("active"); setConnection("ready"); $("active-empty").hidden = true; $("run-header").hidden = true; $("run-grid").hidden = true; $("terminal-panel").hidden = true; try { const active = (await api("/api/runs/active")).run; if (active && ACTIVE_RUN_STATUSES.has(active.status)) { state.runId = active.run_id; resetRunState(); showRun(active); connectEvents(); } else { $("active-empty").hidden = false; } } catch (_) { $("active-empty").hidden = false; } }
@@ -301,15 +301,72 @@
   function setupForm(config) { state.config = config; $("analysis-date").value = config.default_date || new Date().toISOString().slice(0, 10); renderFormOptions(config); $("asset-type").addEventListener("change", toggleCryptoAnalyst); $("provider").addEventListener("change", () => renderModelOptions(state.config)); toggleCryptoAnalyst(); }
   function toggleCryptoAnalyst() { const disabled = $("asset-type").value === "crypto"; const fundamentals = $("analyst-fundamentals"); if (!fundamentals) return; fundamentals.checked = false; fundamentals.disabled = disabled; fundamentals.closest(".choice").classList.toggle("is-disabled", disabled); }
   async function submitRun(event) { event.preventDefault(); $("form-error").textContent = ""; const analysts = [...form.querySelectorAll('input[name="analysts"]:checked')].map((input) => input.value); if (!$("ticker").value.trim()) { $("form-error").textContent = t("error.ticker"); return; } if (!analysts.length) { $("form-error").textContent = t("error.analysts"); return; } const body = { ticker: $("ticker").value.trim(), analysis_date: $("analysis-date").value, asset_type: $("asset-type").value, analysts, research_depth: Number(form.querySelector('input[name="research_depth"]:checked')?.value || 1), provider: $("provider").value, quick_model: $("quick-model").value, deep_model: $("deep-model").value, output_language: $("output-language").value, quote_strategy_id: state.config?.effective_quote_strategy_id || "default-yfinance" }; try { const record = await api("/api/runs", { method: "POST", body: JSON.stringify(body), headers: { "Content-Type": "application/json" } }); setRoute("active"); resetRunState(); state.runId = record.run_id; state.archived = false; showRun(record); $("cancel-run").hidden = false; $("new-analysis").hidden = true; connectEvents(); } catch (error) { $("form-error").textContent = localizeError(error.message); } }
-  document.addEventListener("click", (event) => { const retryBtn = event.target.closest("[data-retry-run]"); if (retryBtn) { event.preventDefault(); retryRun(retryBtn.dataset.retryRun); } });  $("cancel-run").addEventListener("click", async () => { if (!state.runId) return; try { await api(`/api/runs/${encodeURIComponent(state.runId)}/cancel`, { method: "POST" }); } catch (error) { terminalRun("failed", error.message); } }); $("back-history").addEventListener("click", () => navigate(state.archived ? "library" : "active")); $("report-back-library").addEventListener("click", () => navigate("library")); $("new-analysis").addEventListener("click", () => navigate("analysis")); $("active-new-analysis").addEventListener("click", () => navigate("analysis")); $("library-new-analysis").addEventListener("click", () => navigate("analysis")); const resetLibraryPage = () => { state.library.page = 1; loadLibraryPage(); }; $("library-search").addEventListener("input", (event) => { state.filters.search = event.target.value; resetLibraryPage(); }); $("library-asset-filter").addEventListener("change", (event) => { state.filters.asset = event.target.value; resetLibraryPage(); }); $("library-status-filter").addEventListener("change", (event) => { state.filters.status = event.target.value; resetLibraryPage(); }); $("library-sort").addEventListener("change", (event) => { state.filters.sort = event.target.value; resetLibraryPage(); }); $("library-prev").addEventListener("click", () => { if (state.library.page > 1) { state.library.page -= 1; loadLibraryPage(); } }); $("library-next").addEventListener("click", () => { if (state.library.hasNext) { state.library.page += 1; loadLibraryPage(); } }); form.addEventListener("submit", submitRun);
+  function updateTopbar(view) {
+    const titleNode = $("topbar-title");
+    const crumbsNode = $("topbar-crumbs");
+    if (!titleNode || !crumbsNode) return;
+    const map = {
+      setup: { crumb: "nav.watchlist", title: "watchlist.title" },
+      analysis: { crumb: "nav.analysis", title: "analysis.title" },
+      active: { crumb: "nav.active", title: "active.title" },
+      library: { crumb: "nav.reports", title: "library.title" },
+      settings: { crumb: "nav.settings", title: "settings.title" },
+    };
+    const entry = map[view] || map.setup;
+    titleNode.textContent = t(entry.title);
+    titleNode.dataset.i18n = entry.title;
+    crumbsNode.innerHTML = `<span data-i18n="brand.platform">${escapeHtml(t("brand.platform"))}</span> <span class="crumbs-sep">›</span> <b data-i18n="${entry.crumb}">${escapeHtml(t(entry.crumb))}</b>`;
+  }
+
+  function applyTheme(theme) {
+    const next = theme === "dark" ? "dark" : "light";
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem("tradingagents-theme", next); } catch (e) {}
+    const lightIcon = $("theme-icon-light");
+    const darkIcon = $("theme-icon-dark");
+    if (lightIcon) lightIcon.style.display = next === "dark" ? "" : "none";
+    if (darkIcon) darkIcon.style.display = next === "dark" ? "none" : "";
+  }
+
+  function initTheme() {
+    const current = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+    applyTheme(current);
+    const btn = $("theme-toggle");
+    if (btn) btn.addEventListener("click", () => {
+      applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+    });
+  }
+
+  function initSidebarToggle() {
+    const sidebar = $("sidebar-nav");
+    const backdrop = $("sidebar-backdrop");
+    const toggle = $("sidebar-toggle");
+    if (!sidebar || !backdrop || !toggle) return;
+    const close = () => { sidebar.classList.remove("is-open"); backdrop.classList.remove("is-open"); };
+    const open = () => { sidebar.classList.add("is-open"); backdrop.classList.add("is-open"); };
+    toggle.addEventListener("click", () => {
+      if (sidebar.classList.contains("is-open")) close(); else open();
+    });
+    backdrop.addEventListener("click", close);
+    document.querySelectorAll(".nav-primary a").forEach((link) => link.addEventListener("click", close));
+  }
+
+  function initSidebarCta() {
+    const btn = $("sidebar-new-analysis");
+    if (btn) btn.addEventListener("click", () => navigate("analysis"));
+  }
+
+document.addEventListener("click", (event) => { const retryBtn = event.target.closest("[data-retry-run]"); if (retryBtn) { event.preventDefault(); retryRun(retryBtn.dataset.retryRun); } });  $("cancel-run").addEventListener("click", async () => { if (!state.runId) return; try { await api(`/api/runs/${encodeURIComponent(state.runId)}/cancel`, { method: "POST" }); } catch (error) { terminalRun("failed", error.message); } }); $("back-history").addEventListener("click", () => navigate(state.archived ? "library" : "active")); $("report-back-library").addEventListener("click", () => navigate("library")); $("new-analysis").addEventListener("click", () => navigate("analysis")); $("active-new-analysis").addEventListener("click", () => navigate("analysis")); $("library-new-analysis").addEventListener("click", () => navigate("analysis")); const resetLibraryPage = () => { state.library.page = 1; loadLibraryPage(); }; $("library-search").addEventListener("input", (event) => { state.filters.search = event.target.value; resetLibraryPage(); }); $("library-asset-filter").addEventListener("change", (event) => { state.filters.asset = event.target.value; resetLibraryPage(); }); $("library-status-filter").addEventListener("change", (event) => { state.filters.status = event.target.value; resetLibraryPage(); }); $("library-sort").addEventListener("change", (event) => { state.filters.sort = event.target.value; resetLibraryPage(); }); $("library-prev").addEventListener("click", () => { if (state.library.page > 1) { state.library.page -= 1; loadLibraryPage(); } }); $("library-next").addEventListener("click", () => { if (state.library.hasNext) { state.library.page += 1; loadLibraryPage(); } }); form.addEventListener("submit", submitRun);
   $("refresh-quotes").addEventListener("click", () => quoteRefreshController?.refresh()); 
   $("watchlist-form").addEventListener("submit", addWatchlistItem);
-  document.querySelectorAll(".nav-button").forEach((button) => button.addEventListener("click", () => {
-    const view = button.dataset.view;
+  document.querySelectorAll(".nav-primary a").forEach((link) => link.addEventListener("click", (event) => {
+    const view = link.dataset.view;
+    if (!view) return;
+    event.preventDefault();
     if (["setup", "analysis", "active", "library", "settings"].includes(view)) navigate(view);
   }));
   window.addEventListener("popstate", () => applyRoute(window.location.pathname));
   function startQuoteRefresh() { quoteRefreshController?.stop(); quoteRefreshController = new window.QuoteRefreshController({ timeoutMs: 4000, backoff: [QUOTE_REFRESH_MS, 10000, 20000, 40000, 60000], fetcher: (signal) => loadWatchlist({ quotesOnly: true, signal }), onData: () => {}, onError: () => {} }); quoteRefreshController.setVisible(!document.hidden); }
   document.addEventListener("visibilitychange", () => quoteRefreshController?.setVisible(!document.hidden));
-  applyTranslations(); renderPhases(); api("/api/config").then(setupForm).catch(() => {}); api("/api/history").then(renderHistory).catch(() => {}); loadWatchlist().finally(startQuoteRefresh); applyRoute(window.location.pathname); restoreActiveRun();
+  initTheme(); initSidebarToggle(); initSidebarCta(); applyTranslations(); renderPhases(); api("/api/config").then(setupForm).catch(() => {}); api("/api/history").then(renderHistory).catch(() => {}); loadWatchlist().finally(startQuoteRefresh); applyRoute(window.location.pathname); restoreActiveRun();
 })();
