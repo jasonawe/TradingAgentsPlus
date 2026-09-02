@@ -17,7 +17,7 @@
         }
       })();
     </script>
-    <link rel="stylesheet" href="/static/styles.css?v=20260901-ui-watchlist-align-5" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260901-ui-library-redesign-6" />
   </head>
   <body>
     <div class="app-shell">
@@ -96,10 +96,9 @@
       </section>
       <section id="library-view" class="view" aria-labelledby="library-title" hidden>
         <h1 id="library-title" class="visually-hidden" data-i18n="library.title">资产分析报告</h1>
-        <div class="compact-page-actions"><button id="library-new-analysis" class="button button-primary" type="button" data-i18n="actions.newAnalysis">新建分析</button></div>
-        <div class="library-toolbar"><label class="field library-search"><span data-i18n="library.searchLabel">搜索报告</span><input id="library-search" type="search" data-i18n-placeholder="library.searchPlaceholder" placeholder="标的代码或决策文本" /></label><label class="field"><span data-i18n="library.assetFilter">资产</span><select id="library-asset-filter"><option value="" data-i18n="library.allAssets">全部资产</option><option value="stock" data-i18n="assets.stock">股票</option><option value="crypto" data-i18n="assets.crypto">加密货币</option></select></label><label class="field"><span data-i18n="library.statusFilter">状态</span><select id="library-status-filter"><option value="" data-i18n="library.allStatuses">全部状态</option><option value="completed" data-i18n="status.completed">已完成</option><option value="failed" data-i18n="status.failed">失败</option><option value="cancelled" data-i18n="status.cancelled">已取消</option><option value="interrupted" data-i18n="status.interrupted">已中断</option><option value="timed_out">分析超时</option></select></label><label class="field"><span data-i18n="library.sort">排序</span><select id="library-sort"><option value="newest" data-i18n="library.newest">最新优先</option><option value="oldest" data-i18n="library.oldest">最早优先</option></select></label></div>
-        <div class="library-layout"><div id="library-list" class="library-list"><p class="muted" data-i18n="history.loading"></p></div><section id="library-detail" class="library-detail" hidden></section></div>
-        <nav class="library-pagination" aria-label="报告分页"><button id="library-prev" class="button button-secondary" type="button" data-i18n="actions.previous">上一页</button><span id="library-total" class="muted">共 0 份报告</span><button id="library-next" class="button button-secondary" type="button" data-i18n="actions.next">下一页</button></nav>
+        <div class="library-toolbar"><label class="field library-search"><span data-i18n="library.searchLabel">搜索报告</span><input id="library-search" type="search" data-i18n-placeholder="library.searchPlaceholder" placeholder="标的代码或决策文本" /></label><label class="field"><span data-i18n="library.assetFilter">资产</span><select id="library-asset-filter"><option value="" data-i18n="library.allAssets">全部资产</option><option value="stock" data-i18n="assets.stock">股票</option><option value="crypto" data-i18n="assets.crypto">加密货币</option></select></label><label class="field"><span data-i18n="library.statusFilter">状态</span><select id="library-status-filter"><option value="" data-i18n="library.allStatuses">全部状态</option><option value="completed" data-i18n="status.completed">已完成</option><option value="failed" data-i18n="status.failed">失败</option><option value="cancelled" data-i18n="status.cancelled">已取消</option><option value="interrupted" data-i18n="status.interrupted">已中断</option><option value="timed_out">分析超时</option></select></label><label class="field"><span data-i18n="library.sort">排序</span><select id="library-sort"><option value="newest" data-i18n="library.newest">最新优先</option><option value="oldest" data-i18n="library.oldest">最早优先</option></select></label><button id="library-new-analysis" class="btn btn-primary" type="button" data-i18n="actions.newAnalysis">新建分析</button></div>
+        <div id="library-list" class="library-list"><p class="muted" data-i18n="history.loading"></p></div>
+        <nav class="library-pagination" aria-label="报告分页"><span id="library-total" class="muted">共 0 份报告</span><div><button id="library-prev" class="button button-secondary" type="button" data-i18n="actions.previous">上一页</button><button id="library-next" class="button button-secondary" type="button" data-i18n="actions.next">下一页</button></div></nav>
       </section>
       <section id="settings-view" class="view" aria-labelledby="settings-title" hidden><h1 id="settings-title" class="visually-hidden" data-i18n="settings.title">数据与模型设置</h1><div class="settings-grid"><section class="settings-card"><h2 data-i18n="settings.analysisConfig">分析配置</h2><dl id="settings-fields" class="settings-fields"><div><dt data-i18n="settings.loading">加载中</dt><dd data-i18n="settings.loadingFields">正在读取设置……</dd></div></dl></section><section class="settings-card"><h2 data-i18n="settings.marketProviders">行情来源</h2><div id="provider-status-list" class="provider-status-list"><p class="muted" data-i18n="settings.loadingProviders">正在读取行情来源……</p></div></section></div></section>
       <section id="active-view" class="view" aria-labelledby="active-title" hidden>
@@ -153,7 +152,7 @@
     <script src="/static/rating-labels.js?v=20260901-rating-localization-2" defer></script>
     <script src="/static/kline-chart.js?v=20260901-watchlist-chart-1" defer></script>
             <script src="/static/quote-refresh.js?v=20260901-market-health-1" defer></script>
-    <script src="/static/app.js?v=20260901-ui-watchlist-align-5" defer></script>
+    <script src="/static/app.js?v=20260901-ui-library-redesign-6" defer></script>
     <svg width="0" height="0" style="position:absolute" aria-hidden="true">
       <defs>
         <symbol id="i-watchlist" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

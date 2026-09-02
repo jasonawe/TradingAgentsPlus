@@ -52,7 +52,8 @@ def test_investment_ratings_use_shared_localized_formatter_at_display_boundaries
 
     assert '<p>${escapeHtml(summary)}</p>' in js
     assert '<dd>${escapeHtml(value)}</dd>' in js
-    assert '<span class="history-signal">${escapeHtml(status)}</span>' in js
+    assert '<span class="signal-chip is-${escapeHtml(statusKey)}">${escapeHtml(status)}</span>' in js
+    assert '<button type="button" class="library-row" data-report-id=' in js
     assert 'formatRating(analysis.rating || analysis.signal) || t("status.completed")' in js
 
     assert "renderReportMarkdown(formatRating" not in js
@@ -73,7 +74,8 @@ def test_css_responsive_shell_collapses_below_mobile_breakpoint():
     assert ".sidebar-backdrop.is-open" in css
     assert ".run-grid { display: grid" in css
     assert ".activity-feed" in css
-    assert ".library-layout { display: grid" in css
+    assert ".library-row { display: grid" in css
+    assert ".library-row .signal-chip" in css
 
 
 def test_css_foundation_uses_inter_token_and_constraint_layer():
@@ -144,8 +146,8 @@ def test_foundation_uses_modern_saas_tokens_and_sidebar_shell():
     assert "https://" not in html  # self-contained
 
     # Cache versions are pinned
-    assert "/static/styles.css?v=20260901-ui-watchlist-align-5" in html
-    assert "/static/app.js?v=20260901-ui-watchlist-align-5" in html
+    assert "/static/styles.css?v=20260901-ui-library-redesign-6" in html
+    assert "/static/app.js?v=20260901-ui-library-redesign-6" in html
 
     # Responsive shell collapses below 768px
     assert "@media (max-width: 768px)" in css
