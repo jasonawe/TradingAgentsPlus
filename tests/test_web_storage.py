@@ -14,7 +14,7 @@ def test_store_migrates_schema_and_preserves_existing_web_runs(tmp_path):
         )
         conn.execute("INSERT INTO web_runs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", ("r1", "{}", "completed", None, None, 1.0, None, None, None, "BUY", "rep", None, None, None))
     store = SQLiteStore(db)
-    assert store.schema_version == 4
+    assert store.schema_version == 5
     with store.connection() as conn:
         row = conn.execute(
             "SELECT report_id,worker_heartbeat_at,last_activity_at,timeout_at,terminal_reason,"
@@ -191,7 +191,7 @@ def test_legacy_snapshots_table_is_renamed_without_parallel_storage(tmp_path):
         conn.execute("INSERT INTO snapshots VALUES ('r1','{}','h','recording','now',NULL)")
     store = SQLiteStore(db)
     # Schema must upgrade cleanly even when web_runs never existed on disk.
-    assert store.schema_version == 4
+    assert store.schema_version == 5
     with store.connection() as conn:
         assert conn.execute("SELECT run_id FROM analysis_data_snapshots").fetchone()[0] == "r1"
         assert conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='snapshots'").fetchone() is None
