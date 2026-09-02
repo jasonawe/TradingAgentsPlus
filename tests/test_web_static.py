@@ -146,8 +146,8 @@ def test_foundation_uses_modern_saas_tokens_and_sidebar_shell():
     assert "https://" not in html  # self-contained
 
     # Cache versions are pinned
-    assert "/static/styles.css?v=20260901-ui-sidebar-collapse-7" in html
-    assert "/static/app.js?v=20260901-ui-sidebar-collapse-7" in html
+    assert "/static/styles.css?v=20260901-ui-sidebar-btn-bottom-9" in html
+    assert "/static/app.js?v=20260901-ui-sidebar-btn-bottom-9" in html
 
     # Responsive shell collapses below 768px
     assert "@media (max-width: 768px)" in css

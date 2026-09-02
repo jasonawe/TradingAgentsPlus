@@ -56,6 +56,7 @@ body { margin: 0; color: var(--ink); background: var(--bg); font-size: 14px; lin
 .app-shell.is-sidebar-collapsed { grid-template-columns: 64px 1fr; }
 .sidebar { background: var(--panel); border-right: 1px solid var(--line); padding: 20px 16px; display: flex; flex-direction: column; gap: 8px; position: sticky; top: 0; height: 100vh; }
 .sidebar-brand { display: flex; align-items: center; gap: 10px; padding: 6px 8px 24px; font-weight: 700; font-size: 15px; color: var(--ink); position: relative; }
+.app-shell.is-sidebar-collapsed .sidebar-brand { position: static; }
 .sidebar-brand .brand-mark { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent), #7c3aed); border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .02em; flex-shrink: 0; }
 .sidebar-collapse-btn { position: absolute; right: -4px; top: 4px; background: transparent; border: 1px solid var(--line); color: var(--muted); border-radius: var(--r-sm); padding: 4px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: color .12s, border-color .12s; }
 .sidebar-collapse-btn:hover { color: var(--ink); border-color: var(--ink-2); }
@@ -66,9 +67,12 @@ body { margin: 0; color: var(--ink); background: var(--bg); font-size: 14px; lin
 .app-shell.is-sidebar-collapsed .nav-label { display: none; }
 .app-shell.is-sidebar-collapsed .sidebar-cta-full { padding: 0; justify-content: center; }
 .app-shell.is-sidebar-collapsed .nav-primary a { justify-content: center; padding: 9px; }
-.app-shell.is-sidebar-collapsed .sidebar { padding: 20px 8px; align-items: center; }
+.app-shell.is-sidebar-collapsed .sidebar { padding: 20px 8px; align-items: stretch; }
 .app-shell.is-sidebar-collapsed .sidebar-brand { justify-content: center; padding: 6px 0 24px; }
 .app-shell.is-sidebar-collapsed .sidebar-cta { width: 100%; }
+/* Reposition the collapse button to the bottom of the sidebar in collapsed mode
+   so it stops overlapping the centered brand mark. */
+.app-shell.is-sidebar-collapsed .sidebar-collapse-btn { position: absolute; right: auto; top: auto; bottom: 12px; left: 50%; transform: translateX(-50%); }
 .nav-primary a { position: relative; }
 .nav-primary a:hover .nav-label { display: inline-block; }
 .app-shell.is-sidebar-collapsed .nav-primary a { position: relative; }
