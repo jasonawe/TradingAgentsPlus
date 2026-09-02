@@ -144,8 +144,8 @@ def test_foundation_uses_modern_saas_tokens_and_sidebar_shell():
     assert "https://" not in html  # self-contained
 
     # Cache versions are pinned
-    assert "/static/styles.css?v=20260901-ui-watchlist-simplify-4" in html
-    assert "/static/app.js?v=20260901-ui-watchlist-simplify-4" in html
+    assert "/static/styles.css?v=20260901-ui-watchlist-align-5" in html
+    assert "/static/app.js?v=20260901-ui-watchlist-align-5" in html
 
     # Responsive shell collapses below 768px
     assert "@media (max-width: 768px)" in css
@@ -187,7 +187,7 @@ def test_markdown_report_wrapping_and_watchlist_assets_contract_holds():
     assert 'querySelectorAll("table")' in js
     assert "complete_report_html" in js
     assert ".watchlist-row" in css  # phase 3 ships watchlist table
-    assert ".asset-identity" in css
+    assert ".watchlist-asset .asset-meta" in css  # row uses compact single-line meta
     assert "watchlist-analysis" in js
     assert "latestAnalysisFor" in js
     assert "i18n.assetIdentity(quote)" in js
@@ -243,12 +243,12 @@ def test_client_uses_persisted_progress_and_keeps_market_identity_readable():
     assert "syncRunSnapshot" in js
     assert "record?.progress" in js
     assert "record?.current_agent" in js
-    identity_start = css.index(".watchlist-asset .asset-identity")
-    identity_rule = css[identity_start:css.index("}", identity_start)]
-    assert "overflow: visible" in identity_rule
-    assert "white-space: normal" in identity_rule
-    assert "overflow-wrap: anywhere" in identity_rule
-    assert "text-overflow: ellipsis" not in identity_rule
+    # Watchlist row exposes a single truncated asset-meta line (name · exchange).
+    assert ".watchlist-asset .asset-meta" in css
+    assert 'text-overflow: ellipsis' in css
+    assert 'white-space: nowrap' in css
+    # Asset identity is still exposed via i18n.assetIdentity(quote).
+    assert "i18n.assetIdentity(quote)" in js
 
 
 def test_client_routes_views_and_handles_browser_history():

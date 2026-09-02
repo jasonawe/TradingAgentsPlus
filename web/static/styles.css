@@ -169,13 +169,13 @@ table.data .num { font-family: var(--mono); font-weight: 600; text-align: right;
 .watchlist-form button { align-self: end; }
 .watchlist-list { display: flex; flex-direction: column; }
 .watchlist-list .muted.watchlist-empty { padding: 32px; text-align: center; border: 1px dashed var(--line); border-radius: var(--r-md); }
-.watchlist-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.4fr auto; gap: 16px; align-items: center; padding: 14px 12px; border-bottom: 1px solid var(--line); cursor: pointer; transition: background .12s; border-radius: var(--r-sm); }
+.watchlist-row { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1.3fr auto; gap: 16px; align-items: stretch; padding: 14px 12px; border-bottom: 1px solid var(--line); cursor: pointer; transition: background .12s; border-radius: var(--r-sm); }
 .watchlist-row:hover { background: var(--panel-2); }
 .watchlist-row:last-child { border-bottom: 0; }
-.watchlist-asset { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.watchlist-asset, .watchlist-quote, .watchlist-analysis, .watchlist-actions { display: flex; flex-direction: column; gap: 4px; min-width: 0; justify-content: center; }
 .watchlist-asset .symbol { font-family: var(--mono); font-weight: 600; font-size: 13px; color: var(--ink); }
-.watchlist-asset .asset-identity { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--muted); overflow: visible; white-space: normal; overflow-wrap: anywhere; }
-.watchlist-asset .asset-identity .asset-type { color: var(--subtle); font-size: 11px; }
+.watchlist-asset .asset-meta { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.watchlist-asset .asset-type { color: var(--subtle); font-size: 11px; }
 .watchlist-quote { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; min-width: 0; }
 .watchlist-quote .quote-value { font-family: var(--mono); font-weight: 600; font-size: 14px; color: var(--ink); }
 .watchlist-quote .quote-meta { font-size: 11px; color: var(--muted); }
@@ -192,7 +192,7 @@ table.data .num { font-family: var(--mono); font-weight: 600; text-align: right;
 .watchlist-analysis .history-signal.is-buy { background: var(--green-soft); color: var(--green); }
 .watchlist-analysis .history-signal.is-sell { background: var(--red-soft); color: var(--red); }
 .watchlist-analysis .history-signal.is-hold { background: rgba(115,115,115,.12); color: var(--muted); }
-.watchlist-actions { display: flex; gap: 6px; align-items: center; }
+.watchlist-actions { display: flex; flex-direction: row; gap: 6px; align-items: center; flex-wrap: wrap; }
 .watchlist-actions .text-button, .watchlist-actions .icon-button { background: transparent; border: 1px solid var(--line); color: var(--muted); border-radius: var(--r-sm); padding: 6px 10px; font-size: 12px; cursor: pointer; font-family: inherit; transition: all .12s; }
 .watchlist-actions .text-button:hover, .watchlist-actions .icon-button:hover { color: var(--ink); border-color: var(--ink-2); }
 .watchlist-actions .icon-button.icon-button.danger:hover { color: var(--red); border-color: var(--red); }
