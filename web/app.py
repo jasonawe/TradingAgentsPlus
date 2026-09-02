@@ -31,7 +31,7 @@ from .config import (
 )
 from .error_codes import USER_MESSAGES, TerminalReason
 from .history import ReportHistory, ReportNotFound
-from .manager import ActiveRunError, EventBatch, RunManager
+from .manager import ActiveRunError, AssetBusyError, EventBatch, MaxConcurrentRunsError, RunManager
 from .market_data import ProviderRouter, QuoteService
 from .market_models import ProviderError
 from .models import AnalysisRequest, EventEnvelope, RunRecord
@@ -422,17 +422,15 @@ def create_app(
         return {"schema_version": 1, "fields": fields, "strategies": [{"id": k, "providers": v["providers"], "available": next((s["available"] for s in catalog["strategies"] if s["id"] == k), False)} for k, v in QUOTE_STRATEGIES.items()], "provider_health": {item["provider"]: item for item in provider_health_repo.list()}}
 
     @app.get("/api/runs/active")
-    def get_active_run() -> dict[str, Any]:
-        """Return the current analysis so a reopened client can reattach."""
+    def get_active_runs() -> dict[str, Any]:
+        """Return every in-flight run so a reopened client can reattach.
 
-        active_id = active_manager.active_run_id
-        if not active_id:
-            return {"run": None}
-        try:
-            return {"run": _record_json(active_manager.get_run(active_id))}
-        except KeyError:
-            # The worker may finish between reading active_run_id and get_run.
-            return {"run": None}
+        Plan 1: replaced the single-run shape ``{"run": ...}`` with a list
+        ``{"runs": [...]}`` to support configurable concurrent runs.
+        """
+
+        records = active_manager.list_active_runs()
+        return {"runs": [_record_json(record) for record in records]}
 
     @app.post("/api/runs", status_code=status.HTTP_202_ACCEPTED)
     def create_run(request_data: AnalysisRequest) -> JSONResponse:
@@ -474,7 +472,9 @@ def create_app(
             worker = runner
         try:
             record = active_manager.start_run(request_data, worker=worker)
-        except ActiveRunError as exc:
+        except MaxConcurrentRunsError as exc:
+            raise _error(status.HTTP_409_CONFLICT, str(exc)) from exc
+        except AssetBusyError as exc:
             raise _error(status.HTTP_409_CONFLICT, str(exc)) from exc
         return JSONResponse(_record_json(record), status_code=status.HTTP_202_ACCEPTED)
 
@@ -595,7 +595,9 @@ def create_app(
                 request=parent_record.request,
                 worker=worker,
             )
-        except ActiveRunError as exc:
+        except MaxConcurrentRunsError as exc:
+            raise _error(status.HTTP_409_CONFLICT, str(exc)) from exc
+        except AssetBusyError as exc:
             raise _error(status.HTTP_409_CONFLICT, str(exc)) from exc
         except RuntimeError as exc:
             raise _error(status.HTTP_409_CONFLICT, "checkpoint_unavailable") from exc

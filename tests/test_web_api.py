@@ -126,11 +126,13 @@ def test_active_run_endpoint_returns_the_current_running_analysis(harness):
         assert runner.started.wait(1)
         active = client.get("/api/runs/active")
         assert active.status_code == 200
-        assert active.json()["run"]["run_id"] == run_id
-        assert active.json()["run"]["status"] == "running"
+        runs = active.json()["runs"]
+        assert len(runs) == 1
+        assert runs[0]["run_id"] == run_id
+        assert runs[0]["status"] == "running"
         client.post(f"/api/runs/{run_id}/cancel")
         runner.release.set()
-        assert client.get("/api/runs/active").json() == {"run": None}
+        assert client.get("/api/runs/active").json() == {"runs": []}
     manager.shutdown()
 
 
@@ -480,3 +482,37 @@ def test_asset_runs_endpoint_returns_only_matching_ticker(harness):
             assert failed["provider"] is None  # _request helper omits provider
     finally:
         manager.shutdown()
+
+def test_runs_active_returns_list(harness):
+    """GET /api/runs/active must return {"runs": [...]} — never {"run": ...}."""
+    app, _manager, _runner, _tmp = harness
+    with TestClient(app) as client:
+        response = client.get("/api/runs/active")
+        assert response.status_code == 200
+        body = response.json()
+        assert "runs" in body
+        assert isinstance(body["runs"], list)
+        assert "run" not in body  # legacy single-run key removed
+
+
+def test_runs_active_lists_each_in_flight_run(harness):
+    """When two runs are active, both appear in the response."""
+    app, manager, runner, _tmp = harness
+    manager.configure_concurrency(
+        {"scheduler.max_concurrent_runs": {"value": 3, "source": "configured"}}
+    )
+    from web.models import AnalysisRequest
+    from datetime import date
+    def _analysis_request(ticker):
+        return AnalysisRequest(
+            ticker=ticker, analysis_date=date(2026, 9, 2),
+            asset_type="stock", analysts=["market"], research_depth=1,
+        )
+    with TestClient(app) as client:
+        manager.start_run(_analysis_request("AAPL"), worker=lambda rid: None)
+        manager.start_run(_analysis_request("MSFT"), worker=lambda rid: None)
+        response = client.get("/api/runs/active")
+        assert response.status_code == 200
+        symbols = {item["request"]["ticker"] for item in response.json()["runs"]}
+        assert symbols == {"AAPL", "MSFT"}
+

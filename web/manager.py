@@ -168,6 +168,16 @@ class RunManager:
             self._check_all_expired_locked()
             return set(self._active_run_ids)
 
+    def list_active_runs(self) -> list[RunRecord]:
+        """Return deep-copied RunRecord for every in-flight run, in queue order."""
+        with self._lock:
+            self.cleanup()
+            ordered = sorted(
+                (rid for rid in self._active_run_ids if rid in self._records),
+                key=lambda rid: self._records[rid].record.queued_at or self._clock(),
+            )
+            return [self._copy_record(self._records[rid].record) for rid in ordered]
+
     def set_report_root(self, report_root: str | Path) -> None:
         with self._lock:
             self._report_root = Path(report_root)
