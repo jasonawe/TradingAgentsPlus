@@ -40,8 +40,16 @@ from web.models import (
 from web.repositories import ReportRepository
 
 
-class ActiveRunError(RuntimeError):
-    """Raised when a second run is submitted while one is active."""
+class MaxConcurrentRunsError(RuntimeError):
+    """Raised when admitting a new run would breach the configured cap."""
+
+
+class AssetBusyError(RuntimeError):
+    """Raised when a run for the same ticker is already in flight."""
+
+
+# Backwards-compatible alias for legacy single-run callers / tests.
+ActiveRunError = MaxConcurrentRunsError
 
 
 @dataclass(frozen=True)
@@ -96,6 +104,11 @@ class RunManager:
         RunStatus.TIMED_OUT: EventName.RUN_TIMED_OUT,
     }
 
+    DEFAULT_MAX_CONCURRENT_RUNS = 3
+    MIN_MAX_CONCURRENT_RUNS = 1
+    MAX_MAX_CONCURRENT_RUNS = 10
+    _MAX_CONCURRENT_RUNS_SETTING = "scheduler.max_concurrent_runs"
+
     def __init__(
         self,
         *,
@@ -116,7 +129,8 @@ class RunManager:
         self._lock = threading.RLock()
         self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="tradingagents-web")
         self._records: dict[str, _ManagedRun] = {}
-        self._active_run_id: str | None = None
+        self._active_run_ids: set[str] = set()
+        self._concurrency_config: dict[str, dict[str, Any]] = {}
         self._report_root = Path(report_root) if report_root is not None else None
         self._watchdog_interval_override = watchdog_interval
         self._watchdog_stop = threading.Event()
@@ -143,9 +157,16 @@ class RunManager:
 
     @property
     def active_run_id(self) -> str | None:
+        """Return one of the active run ids (kept for legacy callers)."""
         with self._lock:
             self._check_all_expired_locked()
-            return self._active_run_id
+            return next(iter(self._active_run_ids), None)
+
+    def active_run_ids(self) -> set[str]:
+        """Return the set of all currently in-flight run ids."""
+        with self._lock:
+            self._check_all_expired_locked()
+            return set(self._active_run_ids)
 
     def set_report_root(self, report_root: str | Path) -> None:
         with self._lock:
@@ -173,6 +194,52 @@ class RunManager:
             normalized[key] = {"value": value, "source": source}
         self.lifecycle_config = normalized
 
+    @classmethod
+    def clamp_max_concurrent(cls, value: int) -> int:
+        return max(cls.MIN_MAX_CONCURRENT_RUNS, min(cls.MAX_MAX_CONCURRENT_RUNS, int(value)))
+
+    def concurrent_runs_cap(self) -> int:
+        """Return the configured upper bound for parallel active runs."""
+        with self._lock:
+            item = self._concurrency_config.get(self._MAX_CONCURRENT_RUNS_SETTING)
+            if item is None:
+                return self.DEFAULT_MAX_CONCURRENT_RUNS
+            raw = item.get("value", self.DEFAULT_MAX_CONCURRENT_RUNS)
+            try:
+                parsed = _parse_integer_setting(self._MAX_CONCURRENT_RUNS_SETTING, raw)
+            except (ValueError, TypeError):
+                return self.DEFAULT_MAX_CONCURRENT_RUNS
+            return self.clamp_max_concurrent(parsed)
+
+    def configure_concurrency(self, settings: dict[str, dict[str, Any]]) -> None:
+        """Merge scheduler.* settings; future start_run calls use the new cap."""
+        with self._lock:
+            self._concurrency_config = dict(settings)
+
+    def _resize_executor(self) -> None:
+        """Grow the executor pool to at least the current cap (cannot shrink)."""
+        with self._lock:
+            cap = self.concurrent_runs_cap()
+            current = getattr(self._executor, "_max_workers", 1)
+            if cap <= current:
+                return
+            old_exec = self._executor
+            self._executor = ThreadPoolExecutor(
+                max_workers=cap, thread_name_prefix="tradingagents-web"
+            )
+            old_exec.shutdown(wait=False, cancel_futures=False)
+
+    def _check_admission_locked(self, request: AnalysisRequest) -> None:
+        """Reject new runs when at capacity or when the ticker is busy."""
+        cap = self.concurrent_runs_cap()
+        if len(self._active_run_ids) >= cap:
+            raise MaxConcurrentRunsError(f"max concurrent runs reached ({cap})")
+        target = request.ticker.strip().upper()
+        for run_id in self._active_run_ids:
+            existing = self._records.get(run_id)
+            if existing and existing.record.request.ticker.strip().upper() == target:
+                raise AssetBusyError(f"a run for {target} is already active")
+
     def start_run(
         self,
         request: AnalysisRequest,
@@ -189,8 +256,8 @@ class RunManager:
 
         with self._lock:
             self.cleanup()
-            if self._active_run_id is not None:
-                raise ActiveRunError("an analysis run is already active")
+            self._resize_executor()
+            self._check_admission_locked(request)
             identifier = run_id or f"run-{uuid.uuid4().hex}"
             if identifier in self._records:
                 raise ValueError("run_id already exists")
@@ -223,7 +290,7 @@ class RunManager:
                 cancel_event=threading.Event(),
             )
             self._records[identifier] = state
-            self._active_run_id = identifier
+            self._active_run_ids.add(identifier)
             self._persist_locked(record)
             if worker is not None:
                 state.future = self._executor.submit(self._run_worker, identifier, worker)
@@ -699,8 +766,7 @@ class RunManager:
 
     def _finish_locked(self, state: _ManagedRun) -> None:
         state.terminal_expires_at = self._clock() + self.terminal_ttl
-        if self._active_run_id == state.record.run_id:
-            self._active_run_id = None
+        self._active_run_ids.discard(state.record.run_id)
         state.condition.notify_all()
 
     def _stop_lease_locked(self, state: _ManagedRun) -> None:
@@ -997,7 +1063,7 @@ class RunManager:
                 return False, "reason_not_retryable"
             if state.record.resume_checkpoint_id is None:
                 return False, "checkpoint_unavailable"
-            if self._active_run_id is not None:
+            if self._active_run_ids:
                 return False, "another_run_active"
             return True, ""
 
@@ -1042,8 +1108,8 @@ class RunManager:
 
         with self._lock:
             self.cleanup()
-            if self._active_run_id is not None:
-                raise ActiveRunError("an analysis run is already active")
+            self._resize_executor()
+            self._check_admission_locked(request)
             parent = self._state(parent_run_id).record
             if parent.status not in {RunStatus.FAILED, RunStatus.TIMED_OUT, RunStatus.INTERRUPTED}:
                 raise RuntimeError("run is not in a retryable state")
@@ -1084,7 +1150,7 @@ class RunManager:
                 cancel_event=threading.Event(),
             )
             self._records[identifier] = state
-            self._active_run_id = identifier
+            self._active_run_ids.add(identifier)
             self._persist_locked(record)
             if worker is not None:
                 state.future = self._executor.submit(self._run_worker, identifier, worker)

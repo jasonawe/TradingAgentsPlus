@@ -48,6 +48,10 @@ class BlockingRunner:
 @pytest.fixture
 def harness(tmp_path):
     manager = RunManager()
+    # Plan 1: enforce cap=1 so legacy single-run conflict tests still hold.
+    manager.configure_concurrency(
+        {"scheduler.max_concurrent_runs": {"value": 1, "source": "configured"}}
+    )
     runner = BlockingRunner(manager)
     config = {
         "results_dir": str(tmp_path / "results"),

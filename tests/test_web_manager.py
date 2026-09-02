@@ -51,6 +51,10 @@ def write_report_gate(path: Path, *, status="completed") -> None:
 
 def test_only_one_active_run_and_atomic_begin():
     manager = RunManager()
+    # Plan 1: cap defaults to 3; force cap=1 to exercise the legacy single-run invariant.
+    manager.configure_concurrency(
+        {"scheduler.max_concurrent_runs": {"value": 1, "source": "configured"}}
+    )
     first = manager.start_run(request())
     assert first.status is RunStatus.QUEUED
     with pytest.raises(ActiveRunError):
