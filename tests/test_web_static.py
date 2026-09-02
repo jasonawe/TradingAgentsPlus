@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 STATIC = Path(__file__).parents[1] / "web" / "static"
@@ -143,13 +144,21 @@ def test_foundation_uses_modern_saas_tokens_and_sidebar_shell():
     assert "https://" not in html  # self-contained
 
     # Cache versions are pinned
-    assert "/static/styles.css?v=20260901-ui-per-view-2" in html
-    assert "/static/app.js?v=20260901-ui-per-view-2" in html
+    assert "/static/styles.css?v=20260901-ui-backdrop-fix-3" in html
+    assert "/static/app.js?v=20260901-ui-backdrop-fix-3" in html
 
     # Responsive shell collapses below 768px
     assert "@media (max-width: 768px)" in css
     assert ".app-shell { grid-template-columns: 1fr" in css
     assert ".sidebar.is-open" in css
+    assert ".sidebar-backdrop.is-open" in css
+
+    # Backdrop must be hidden by default (outside media query) so it never
+    # occupies a grid column and breaks the 260px + 1fr two-column layout on
+    # desktop widths. Regression guard for the empty-main-area bug fixed by
+    # 20260901-ui-backdrop-fix-3.
+    base_rules = css.split("@media")[0]
+    assert re.search(r"\.sidebar-backdrop\s*\{[^}]*display:\s*none", base_rules)
 
 
 def test_foundation_legacy_class_names_are_removed():
