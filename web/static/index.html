@@ -17,23 +17,23 @@
         }
       })();
     </script>
-    <link rel="stylesheet" href="/static/styles.css?v=20260901-ui-library-redesign-6" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260901-ui-sidebar-collapse-7" />
   </head>
   <body>
     <div class="app-shell">
       <aside class="sidebar" id="sidebar-nav" aria-label="主要导航">
-        <div class="sidebar-brand"><span class="brand-mark">TA</span><span>TradingAgents</span></div>
+        <div class="sidebar-brand"><span class="brand-mark">TA</span><span class="brand-text">TradingAgents</span><button type="button" id="sidebar-collapse" class="sidebar-collapse-btn" title="折叠导航" aria-label="折叠导航"><svg class="icon-collapse-left" width="14" height="14" aria-hidden="true"><use href="#i-chevron-left"/></svg><svg class="icon-collapse-right" width="14" height="14" aria-hidden="true"><use href="#i-chevron-right"/></svg></button></div>
         <nav class="nav-primary">
-          <a href="#/" data-view="setup" class="is-active"><svg class="icon" aria-hidden="true"><use href="#i-watchlist"/></svg><span data-i18n="nav.watchlist">我的关注</span></a>
-          <a href="#/analysis" data-view="analysis"><svg class="icon" aria-hidden="true"><use href="#i-analysis"/></svg><span data-i18n="nav.analysis">分析任务</span></a>
-          <a href="#/active" data-view="active"><svg class="icon" aria-hidden="true"><use href="#i-active"/></svg><span data-i18n="nav.active">进行中</span></a>
-          <a href="#/reports" data-view="library"><svg class="icon" aria-hidden="true"><use href="#i-reports"/></svg><span data-i18n="nav.reports">报告库</span></a>
-          <a href="#/settings" data-view="settings"><svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg><span data-i18n="nav.settings">设置诊断</span></a>
+          <a href="#/" data-view="setup" class="is-active"><svg class="icon" aria-hidden="true"><use href="#i-watchlist"/></svg><span class="nav-label" data-i18n="nav.watchlist">我的关注</span></a>
+          <a href="#/analysis" data-view="analysis"><svg class="icon" aria-hidden="true"><use href="#i-analysis"/></svg><span class="nav-label" data-i18n="nav.analysis">分析任务</span></a>
+          <a href="#/active" data-view="active"><svg class="icon" aria-hidden="true"><use href="#i-active"/></svg><span class="nav-label" data-i18n="nav.active">进行中</span></a>
+          <a href="#/reports" data-view="library"><svg class="icon" aria-hidden="true"><use href="#i-reports"/></svg><span class="nav-label" data-i18n="nav.reports">报告库</span></a>
+          <a href="#/settings" data-view="settings"><svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg><span class="nav-label" data-i18n="nav.settings">设置诊断</span></a>
         </nav>
         <div class="sidebar-cta">
-          <button type="button" id="sidebar-new-analysis" class="btn btn-primary" style="width:100%">
+          <button type="button" id="sidebar-new-analysis" class="btn btn-primary sidebar-cta-full" title="新建分析">
             <svg width="14" height="14" aria-hidden="true"><use href="#i-plus"/></svg>
-            <span data-i18n="actions.newAnalysis">新建分析</span>
+            <span class="nav-label" data-i18n="actions.newAnalysis">新建分析</span>
           </button>
         </div>
       </aside>
@@ -152,7 +152,7 @@
     <script src="/static/rating-labels.js?v=20260901-rating-localization-2" defer></script>
     <script src="/static/kline-chart.js?v=20260901-watchlist-chart-1" defer></script>
             <script src="/static/quote-refresh.js?v=20260901-market-health-1" defer></script>
-    <script src="/static/app.js?v=20260901-ui-library-redesign-6" defer></script>
+    <script src="/static/app.js?v=20260901-ui-sidebar-collapse-7" defer></script>
     <svg width="0" height="0" style="position:absolute" aria-hidden="true">
       <defs>
         <symbol id="i-watchlist" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -214,6 +214,12 @@
         <symbol id="i-arrow-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="5" y1="12" x2="19" y2="12"/>
           <polyline points="12 5 19 12 12 19"/>
+        </symbol>
+        <symbol id="i-chevron-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </symbol>
+        <symbol id="i-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
         </symbol>
         <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>

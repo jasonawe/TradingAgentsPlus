@@ -366,6 +366,19 @@
     if (btn) btn.addEventListener("click", () => navigate("analysis"));
   }
 
+  function initSidebarCollapse() {
+    const shell = document.querySelector(".app-shell");
+    const btn = $("sidebar-collapse");
+    if (!shell || !btn) return;
+    let saved = "expanded";
+    try { saved = localStorage.getItem("tradingagents-sidebar") || "expanded"; } catch (e) {}
+    if (saved === "collapsed") shell.classList.add("is-sidebar-collapsed");
+    btn.addEventListener("click", () => {
+      const isCollapsed = shell.classList.toggle("is-sidebar-collapsed");
+      try { localStorage.setItem("tradingagents-sidebar", isCollapsed ? "collapsed" : "expanded"); } catch (e) {}
+    });
+  }
+
 document.addEventListener("click", (event) => { const retryBtn = event.target.closest("[data-retry-run]"); if (retryBtn) { event.preventDefault(); retryRun(retryBtn.dataset.retryRun); } });  $("cancel-run").addEventListener("click", async () => { if (!state.runId) return; try { await api(`/api/runs/${encodeURIComponent(state.runId)}/cancel`, { method: "POST" }); } catch (error) { terminalRun("failed", error.message); } }); $("back-history").addEventListener("click", () => navigate(state.archived ? "library" : "active")); $("report-back-library").addEventListener("click", () => navigate("library")); $("new-analysis").addEventListener("click", () => navigate("analysis")); $("active-new-analysis").addEventListener("click", () => navigate("analysis")); $("library-new-analysis").addEventListener("click", () => navigate("analysis")); const resetLibraryPage = () => { state.library.page = 1; loadLibraryPage(); }; $("library-search").addEventListener("input", (event) => { state.filters.search = event.target.value; resetLibraryPage(); }); $("library-asset-filter").addEventListener("change", (event) => { state.filters.asset = event.target.value; resetLibraryPage(); }); $("library-status-filter").addEventListener("change", (event) => { state.filters.status = event.target.value; resetLibraryPage(); }); $("library-sort").addEventListener("change", (event) => { state.filters.sort = event.target.value; resetLibraryPage(); }); $("library-prev").addEventListener("click", () => { if (state.library.page > 1) { state.library.page -= 1; loadLibraryPage(); } }); $("library-next").addEventListener("click", () => { if (state.library.hasNext) { state.library.page += 1; loadLibraryPage(); } }); form.addEventListener("submit", submitRun);
   $("refresh-quotes").addEventListener("click", () => quoteRefreshController?.refresh()); 
   $("watchlist-form").addEventListener("submit", addWatchlistItem);
@@ -378,5 +391,5 @@ document.addEventListener("click", (event) => { const retryBtn = event.target.cl
   window.addEventListener("popstate", () => applyRoute(window.location.pathname));
   function startQuoteRefresh() { quoteRefreshController?.stop(); quoteRefreshController = new window.QuoteRefreshController({ timeoutMs: 4000, backoff: [QUOTE_REFRESH_MS, 10000, 20000, 40000, 60000], fetcher: (signal) => loadWatchlist({ quotesOnly: true, signal }), onData: () => {}, onError: () => {} }); quoteRefreshController.setVisible(!document.hidden); }
   document.addEventListener("visibilitychange", () => quoteRefreshController?.setVisible(!document.hidden));
-  initTheme(); initSidebarToggle(); initSidebarCta(); applyTranslations(); renderPhases(); api("/api/config").then(setupForm).catch(() => {}); api("/api/history").then(renderHistory).catch(() => {}); loadWatchlist().finally(startQuoteRefresh); applyRoute(window.location.pathname); restoreActiveRun();
+  initTheme(); initSidebarToggle(); initSidebarCta(); initSidebarCollapse(); applyTranslations(); renderPhases(); api("/api/config").then(setupForm).catch(() => {}); api("/api/history").then(renderHistory).catch(() => {}); loadWatchlist().finally(startQuoteRefresh); applyRoute(window.location.pathname); restoreActiveRun();
 })();
