@@ -516,3 +516,23 @@ def test_runs_active_lists_each_in_flight_run(harness):
         symbols = {item["request"]["ticker"] for item in response.json()["runs"]}
         assert symbols == {"AAPL", "MSFT"}
 
+def test_three_runs_admitted_then_409(harness):
+    """Plan 1 Chunk 4: 3 simultaneous POSTs all succeed (cap=3), the 4th receives 409."""
+    app, manager, _runner, _tmp = harness
+    # harness defaults to cap=1 for legacy tests; bump to 3 for this scenario.
+    manager.configure_concurrency(
+        {"scheduler.max_concurrent_runs": {"value": 3, "source": "configured"}}
+    )
+    with TestClient(app) as client:
+        accepted = []
+        for i in range(3):
+            r = client.post("/api/runs", json=_request(ticker=f"T{i}"))
+            accepted.append(r.status_code)
+        # All three are admitted (HTTP 202) — the BlockingRunner keeps them in flight.
+        assert all(s == 202 for s in accepted), accepted
+
+        # 4th attempt: cap is reached → 409 with the new error wording.
+        r4 = client.post("/api/runs", json=_request(ticker="T4"))
+        assert r4.status_code == 409
+        assert "max concurrent" in r4.json()["detail"].lower()
+
