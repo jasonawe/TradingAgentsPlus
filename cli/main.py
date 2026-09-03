@@ -95,6 +95,14 @@ def web_command(
     host: str = typer.Option("127.0.0.1", "--host", help="Bind address; use 0.0.0.0 for LAN/external browser access."),
 ):
     """Launch the TradingAgents web console."""
+    from pathlib import Path
+
+    from dotenv import load_dotenv
+
+    # Load ``.env`` so LLM provider keys (OPENAI_API_KEY etc.) reach the
+    # worker threads. Existing process env vars still win by default.
+    load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+
     import uvicorn
 
     from web.app import app as web_app

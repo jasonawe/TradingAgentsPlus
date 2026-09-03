@@ -273,7 +273,25 @@ class SettingsRepository:
     SCHEDULER_DEFAULTS = {
         SCHEDULER_ENABLED: "true",
         SCHEDULER_MAX_CONCURRENT_RUNS: "3",
+        "scheduled.default_overrides.enabled": "false",
     }
+    SCHEDULER_OVERRIDES_ENABLED = "scheduled.default_overrides.enabled"
+    SCHEDULER_OVERRIDES_PROVIDER = "scheduled.default_overrides.provider"
+    SCHEDULER_OVERRIDES_QUICK_MODEL = "scheduled.default_overrides.quick_model"
+    SCHEDULER_OVERRIDES_DEEP_MODEL = "scheduled.default_overrides.deep_model"
+    SCHEDULER_OVERRIDES_ANALYSTS = "scheduled.default_overrides.analysts"
+    SCHEDULER_OVERRIDES_RESEARCH_DEPTH = "scheduled.default_overrides.research_depth"
+    SCHEDULER_OVERRIDES_OUTPUT_LANGUAGE = "scheduled.default_overrides.output_language"
+    SCHEDULER_OVERRIDES_KEYS = frozenset({
+        SCHEDULER_OVERRIDES_ENABLED,
+        SCHEDULER_OVERRIDES_PROVIDER,
+        SCHEDULER_OVERRIDES_QUICK_MODEL,
+        SCHEDULER_OVERRIDES_DEEP_MODEL,
+        SCHEDULER_OVERRIDES_ANALYSTS,
+        SCHEDULER_OVERRIDES_RESEARCH_DEPTH,
+        SCHEDULER_OVERRIDES_OUTPUT_LANGUAGE,
+    })
+
     ALLOWED = frozenset({
         "quote_ttl_seconds",
         "quote_strategy_id",
@@ -284,7 +302,7 @@ class SettingsRepository:
         "run_heartbeat_timeout_seconds",
         SCHEDULER_ENABLED,
         SCHEDULER_MAX_CONCURRENT_RUNS,
-    })
+    } | SCHEDULER_OVERRIDES_KEYS)
     def __init__(self, store: SQLiteStore) -> None:
         self.store = store
         with self.store.connection() as conn:
@@ -607,7 +625,7 @@ class ScheduledJobRepository:
 
 class ScheduledRunLogRepository:
     STATUSES = frozenset({"queued", "running", "succeeded", "failed", "skipped"})
-    PARAMETER_SOURCES = frozenset({"last_successful", "global_default"})
+    PARAMETER_SOURCES = frozenset({"last_successful", "global_default", "public_override"})
     _SELECT = (
         "SELECT logs.*,web_runs.report_id AS report_id "
         "FROM scheduled_run_logs AS logs "
@@ -681,6 +699,58 @@ class ScheduledRunLogRepository:
         with self.store.connection() as conn:
             rows = conn.execute(sql, parameters).fetchall()
         return [_row(row) for row in rows]
+
+    def list_paginated(
+        self,
+        *,
+        limit: int,
+        offset: int = 0,
+        status: str | None = None,
+        job_id: str | None = None,
+    ) -> list[dict[str, Any]]:
+        if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 100:
+            raise ValueError("invalid page size")
+        if not isinstance(offset, int) or offset < 0:
+            raise ValueError("invalid offset")
+        if status is not None:
+            self._validate_status(status)
+        clauses: list[str] = []
+        params: list[Any] = []
+        if job_id is not None:
+            clauses.append("logs.job_id=?")
+            params.append(job_id)
+        if status is not None:
+            clauses.append("logs.status=?")
+            params.append(status)
+        where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
+        sql = (
+            f"{self._SELECT}{where} ORDER BY logs.fired_at DESC,logs.id DESC "
+            "LIMIT ? OFFSET ?"
+        )
+        params.extend([limit, offset])
+        with self.store.connection() as conn:
+            rows = conn.execute(sql, tuple(params)).fetchall()
+        return [_row(row) for row in rows]
+
+    def count(
+        self,
+        *,
+        status: str | None = None,
+        job_id: str | None = None,
+    ) -> int:
+        clauses: list[str] = []
+        params: list[Any] = []
+        if job_id is not None:
+            clauses.append("logs.job_id=?")
+            params.append(job_id)
+        if status is not None:
+            clauses.append("logs.status=?")
+            params.append(status)
+        where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
+        sql = f"SELECT COUNT(*) AS c FROM scheduled_run_logs AS logs{where}"
+        with self.store.connection() as conn:
+            row = conn.execute(sql, tuple(params)).fetchone()
+        return int(row["c"]) if row else 0
 
     def list_incomplete(self, *, limit: int = 1000) -> list[dict[str, Any]]:
         if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 10000:

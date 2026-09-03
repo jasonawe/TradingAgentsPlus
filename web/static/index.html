@@ -22,7 +22,7 @@
   <body>
     <div class="app-shell">
       <aside class="sidebar" id="sidebar-nav" aria-label="主要导航">
-        <div class="sidebar-brand"><span class="brand-mark">TA</span><span class="brand-text">TradingAgents</span><button type="button" id="sidebar-collapse" class="sidebar-collapse-btn" title="折叠导航" aria-label="折叠导航"><svg class="icon-collapse-left" width="14" height="14" aria-hidden="true"><use href="#i-chevron-left"/></svg><svg class="icon-collapse-right" width="14" height="14" aria-hidden="true"><use href="#i-chevron-right"/></svg></button></div>
+        <div class="sidebar-brand"><span class="brand-mark">TA</span><span class="brand-text">TradingAgents</span></div>
         <nav class="nav-primary">
           <a href="#/" data-view="setup" class="is-active"><svg class="icon" aria-hidden="true"><use href="#i-watchlist"/></svg><span class="nav-label" data-i18n="nav.watchlist">我的关注</span></a>
           <a href="#/analysis" data-view="analysis"><svg class="icon" aria-hidden="true"><use href="#i-analysis"/></svg><span class="nav-label" data-i18n="nav.analysis">分析任务</span></a>
@@ -32,9 +32,10 @@
           <a href="#/settings" data-view="settings"><svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg><span class="nav-label" data-i18n="nav.settings">设置诊断</span></a>
         </nav>
         <div class="sidebar-cta">
-          <button type="button" id="sidebar-new-analysis" class="btn btn-primary sidebar-cta-full" title="新建分析">
-            <svg width="14" height="14" aria-hidden="true"><use href="#i-plus"/></svg>
-            <span class="nav-label" data-i18n="actions.newAnalysis">新建分析</span>
+          <button type="button" id="sidebar-collapse" class="sidebar-collapse-btn" title="折叠导航" aria-label="折叠导航">
+            <svg class="icon-collapse-left" width="14" height="14" aria-hidden="true"><use href="#i-chevron-left"/></svg>
+            <svg class="icon-collapse-right" width="14" height="14" aria-hidden="true"><use href="#i-chevron-right"/></svg>
+            <span class="nav-label" data-collapse-label>折叠导航</span>
           </button>
         </div>
       </aside>
@@ -116,6 +117,7 @@
           </div>
           <div class="scheduled-header-actions">
             <button id="scheduled-master-enabled" class="switch-control" type="button" role="switch" aria-checked="true" aria-label="启用定时任务"><span aria-hidden="true"></span><b>启用</b></button>
+            <button id="scheduled-view-history" class="button button-secondary" type="button" aria-label="查看全部触发历史" data-i18n="scheduler.history.viewAll">触发历史</button>
             <button id="scheduled-settings" class="button button-secondary" type="button" aria-label="定时任务设置" data-i18n="scheduler.settings">设置</button>
             <button id="scheduled-add" class="button button-primary" type="button" data-i18n="scheduler.add">新增任务</button>
           </div>
@@ -130,9 +132,94 @@
             <div class="scheduled-drawer-heading"><h2 id="scheduled-settings-title" data-i18n="scheduler.settings">定时任务设置</h2><button type="button" class="button button-secondary btn-icon" data-scheduled-close-drawer aria-label="关闭">×</button></div>
             <div class="setting-switch"><span data-i18n="scheduler.masterSwitch">启用定时任务</span><button id="scheduled-drawer-enabled" class="switch-control" type="button" role="switch" aria-checked="true" aria-label="启用定时任务"><span aria-hidden="true"></span><b>启用</b></button></div>
             <label class="field"><span data-i18n="scheduler.maxConcurrent">最大并行任务数</span><input id="scheduled-max-concurrent" type="range" min="1" max="10" step="1" value="3" /><output id="scheduled-max-concurrent-value" for="scheduled-max-concurrent">3</output></label>
+
+            <fieldset class="scheduled-overrides">
+              <legend data-i18n="scheduler.defaults.title">默认分析参数</legend>
+              <p class="muted scheduled-overrides-hint" data-i18n="scheduler.defaults.hint">应用于所有定时任务,优先级高于上次成功的记录。</p>
+              <div class="setting-switch"><span data-i18n="scheduler.defaults.enabled">启用覆盖</span><button id="scheduled-overrides-enabled" class="switch-control" type="button" role="switch" aria-checked="false" aria-label="启用覆盖"><span aria-hidden="true"></span><b>关闭</b></button></div>
+              <div id="scheduled-overrides-fields" class="scheduled-overrides-fields" hidden>
+                <label class="field"><span data-i18n="scheduler.defaults.provider">LLM 厂商</span>
+                  <select id="scheduled-overrides-provider"></select>
+                </label>
+                <label class="field"><span data-i18n="scheduler.defaults.quickModel">Quick 模型</span>
+                  <select id="scheduled-overrides-quick-model"></select>
+                </label>
+                <label class="field"><span data-i18n="scheduler.defaults.deepModel">Deep 模型</span>
+                  <select id="scheduled-overrides-deep-model"></select>
+                </label>
+                <div class="field">
+                  <span data-i18n="scheduler.defaults.analysts">分析类型</span>
+                  <div id="scheduled-overrides-analysts" class="analyst-options"></div>
+                </div>
+                <div class="field">
+                  <span data-i18n="scheduler.defaults.researchDepth">研究深度</span>
+                  <div id="scheduled-overrides-depth" class="depth-options"></div>
+                </div>
+                <label class="field"><span data-i18n="scheduler.defaults.outputLanguage">输出语言</span>
+                  <select id="scheduled-overrides-output-language"></select>
+                </label>
+              </div>
+              <div class="scheduled-overrides-actions">
+                <button type="button" id="scheduled-overrides-save" class="button button-primary" data-i18n="scheduler.defaults.save">保存默认参数</button>
+                <button type="button" id="scheduled-overrides-reset" class="button button-secondary" data-i18n="scheduler.defaults.reset">恢复全局默认</button>
+              </div>
+              <p id="scheduled-overrides-error" class="form-error" role="alert" aria-live="polite"></p>
+            </fieldset>
+
             <p id="scheduled-settings-error" class="form-error" role="alert" aria-live="polite"></p>
           </div>
         </aside>
+      </section>
+      <section id="scheduled-history-view" class="view scheduled-view" aria-labelledby="scheduled-history-title" hidden>
+        <div class="scheduled-header">
+          <div>
+            <h1 id="scheduled-history-title" class="visually-hidden" data-i18n="scheduler.history.title">触发历史</h1>
+          </div>
+          <div class="scheduled-header-actions">
+            <button id="scheduled-history-back" class="button button-secondary" type="button" aria-label="返回定时任务列表" data-i18n="scheduler.history.back">返回定时任务</button>
+            <button id="scheduled-history-refresh" class="button button-secondary" type="button" aria-label="刷新" data-i18n="scheduler.history.refresh">刷新</button>
+          </div>
+        </div>
+
+        <div class="library-toolbar scheduled-history-toolbar">
+          <label class="field"><span data-i18n="scheduler.history.filterJob">任务</span>
+            <select id="scheduled-history-job"></select>
+          </label>
+          <label class="field"><span data-i18n="scheduler.history.filterStatus">状态</span>
+            <select id="scheduled-history-status"></select>
+          </label>
+          <label class="field"><span data-i18n="scheduler.history.pageSize">每页</span>
+            <select id="scheduled-history-page-size">
+              <option value="10">10</option>
+              <option value="25" selected>25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </label>
+        </div>
+
+        <p id="scheduled-history-error" class="form-error" role="alert" aria-live="polite"></p>
+        <div class="scheduled-table-wrap">
+          <table class="scheduled-table">
+            <thead>
+              <tr>
+                <th scope="col" data-i18n="scheduler.history.firedAt">触发时间</th>
+                <th scope="col" data-i18n="scheduler.history.asset">资产</th>
+                <th scope="col" data-i18n="scheduler.history.status">状态</th>
+                <th scope="col" data-i18n="scheduler.history.parameterSource">参数来源</th>
+                <th scope="col" data-i18n="scheduler.history.duration">耗时</th>
+                <th scope="col" data-i18n="scheduler.history.actions">操作</th>
+              </tr>
+            </thead>
+            <tbody id="scheduled-history-rows"></tbody>
+          </table>
+        </div>
+
+        <div class="scheduled-history-pagination">
+          <button id="scheduled-history-prev" class="button button-secondary" type="button" aria-label="上一页" data-i18n="scheduler.history.prev">上一页</button>
+          <span id="scheduled-history-page-info"></span>
+          <button id="scheduled-history-next" class="button button-secondary" type="button" aria-label="下一页" data-i18n="scheduler.history.next">下一页</button>
+        </div>
       </section>
       <section id="asset-detail-view" class="view" aria-labelledby="asset-detail-title" hidden>
         <h1 id="asset-detail-title" class="visually-hidden" data-i18n="asset.detailTitle">资产详情</h1>
@@ -181,7 +268,9 @@
     <script src="/static/rating-labels.js?v=20260901-rating-localization-2" defer></script>
     <script src="/static/kline-chart.js?v=20260901-watchlist-chart-1" defer></script>
     <script src="/static/quote-refresh.js?v=20260901-market-health-1" defer></script>
+    <script src="/static/quote-cache.js?v=20260903-quote-cache-1" defer></script>
     <script src="/static/scheduled.js?v=20260903-scheduled-workspace-1" defer></script>
+    <script src="/static/scheduled-history.js?v=20260903-scheduled-history-1" defer></script>
     <script src="/static/app.js?v=20260901-zh-auto-hint-1" defer></script>
     <svg width="0" height="0" style="position:absolute" aria-hidden="true">
       <defs>
