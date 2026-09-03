@@ -7,7 +7,7 @@
   const AGENT_KEYS = { "Market Analyst": "agent.market", "Sentiment Analyst": "agent.social", "News Analyst": "agent.news", "Fundamentals Analyst": "agent.fundamentals", "Bull Researcher": "agent.bull", "Bear Researcher": "agent.bear", "Research Manager": "agent.manager", Trader: "agent.trader", "Aggressive Analyst": "agent.aggressive", "Conservative Analyst": "agent.conservative", "Neutral Analyst": "agent.neutral", "Portfolio Manager": "agent.portfolio" };
   const PHASE_NAME_KEYS = { "Analyst Team": "phase.analyst", "Research Team": "phase.research", "Trading Team": "phase.trading", "Risk Management": "phase.risk", "Portfolio Manager": "phase.portfolio" };
   const DYNAMIC_KEYS = { graph: "run.graphUpdate" };
-  const state = { language: i18n.locale, runId: null, lastSeq: 0, seen: new Set(), source: null, reportId: null, runRecord: null, elapsedTimer: null, startedAt: null, config: null, archived: false, history: [], library: { items: [], page: 1, pageSize: 20, total: 0, hasNext: false, requestSeq: 0 }, watchlist: { version: 1, items: [], quotes: {}, loading: false, sort: "change_desc" }, filters: { search: "", asset: "", status: "", sort: "newest" }, phases: PHASE_KEYS.map((key) => ({ key, status: "pending" })) };
+  const state = { language: i18n.locale, runId: null, lastSeq: 0, seen: new Set(), source: null, reportId: null, runRecord: null, elapsedTimer: null, startedAt: null, config: null, archived: false, history: [], library: { items: [], page: 1, pageSize: 20, total: 0, hasNext: false, requestSeq: 0, quotes: {} }, watchlist: { version: 1, items: [], quotes: {}, loading: false, sort: "change_desc" }, filters: { search: "", asset: "", status: "", sort: "newest" }, phases: PHASE_KEYS.map((key) => ({ key, status: "pending" })) };
   const QUOTE_REFRESH_MS = 5000;
   let quoteRefreshController = null;
   const ACTIVE_RUN_KEY = "tradingagents-active-run";
@@ -321,11 +321,49 @@
     const statusKey = String(record.rating || record.signal || "").toLowerCase();
     const freshness = record.data_status ? t("history.data", { value: record.data_status }) : "";
     const assetLabel = record.asset_type === "crypto" ? t("assets.crypto") : record.asset_type === "stock" ? t("assets.stock") : "";
-    const metadata = [assetLabel, record.provider || "", freshness].filter(Boolean).join(" · ");
-    const ticker = escapeHtml(record.ticker || t("history.unknown"));
+    const providerLabel = record.provider || "";
+    const ticker = record.ticker || t("history.unknown");
+    const quote = state.library.quotes[ticker] || state.watchlist.quotes[ticker] || (record.asset_identity && {
+      asset_name_zh: record.asset_identity.name_zh,
+      asset_name: record.asset_identity.name,
+      name_zh: record.asset_identity.name_zh,
+      name: record.asset_identity.name,
+      exchange_name_zh: record.asset_identity.exchange_zh,
+      exchange: record.asset_identity.exchange,
+    }) || null;
+    const tickerCell = window.TradingAgentsQuotes?.formatAssetCell
+      ? window.TradingAgentsQuotes.formatAssetCell(ticker, record.asset_type, quote, escapeHtml)
+      : `<span class="library-row-ticker">${escapeHtml(ticker)}</span>`;
+    const metadataParts = [];
+    if (assetLabel) metadataParts.push(assetLabel);
+    if (providerLabel) metadataParts.push(providerLabel);
+    if (freshness) metadataParts.push(freshness);
+    const metadata = metadataParts.join(" · ");
     const signalChip = `<span class="signal-chip is-${escapeHtml(statusKey)}">${escapeHtml(status)}</span>`;
     const actions = library ? "" : `<button class="text-button" type="button" data-report-id="${escapeHtml(record.report_id)}">${escapeHtml(t("actions.open"))}</button>`;
-    return `<article class="${library ? "library-item" : "history-item"}"><button type="button" class="library-row" data-report-id="${escapeHtml(record.report_id)}"><span class="library-row-ticker">${ticker}</span><span class="library-row-date">${escapeHtml(record.analysis_date || "")}</span><span class="library-row-meta">${escapeHtml(metadata)}</span>${signalChip}<svg class="library-row-arrow" width="14" height="14" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>${actions}</article>`;
+    return `<article class="${library ? "library-item" : "history-item"}"><button type="button" class="library-row" data-report-id="${escapeHtml(record.report_id)}"><span class="library-row-asset">${tickerCell}</span><span class="library-row-date">${escapeHtml(record.analysis_date || "")}</span><span class="library-row-meta">${escapeHtml(metadata)}</span>${signalChip}<svg class="library-row-arrow" width="14" height="14" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>${actions}</article>`;
+  }
+
+  async function refreshLibraryQuotes() {
+    const items = state.library.items || [];
+    if (!items.length) return;
+    const grouped = items.reduce((acc, record) => {
+      if (!record.ticker) return acc;
+      const key = record.asset_type || "stock";
+      (acc[key] ||= new Set()).add(record.ticker);
+      return acc;
+    }, {});
+    let changed = false;
+    await Promise.all(Object.entries(grouped).map(async ([assetType, symbolSet]) => {
+      const symbols = [...symbolSet];
+      try {
+        const response = window.TradingAgentsQuotes?.fetch
+          ? await window.TradingAgentsQuotes.fetch(symbols, assetType)
+          : await api(`/api/quotes?symbols=${encodeURIComponent(symbols.join(","))}&asset_type=${encodeURIComponent(assetType)}`);
+        (response.items || []).forEach((q) => { state.library.quotes[q.symbol] = q; changed = true; });
+      } catch (_) { /* ignore quote failures; will fall back to asset_type label */ }
+    }));
+    if (changed) renderLibrary();
   }
   function bindReportLinks(container) { container.querySelectorAll("[data-report-id]").forEach((button) => button.addEventListener("click", () => reopenHistory(button.dataset.reportId))); }
   function renderHistory(records) { state.history = records || []; const list = $("history-list"); if (!list) { if (state.watchlist.items.length) renderWatchlist(state.watchlist.items, state.watchlist.quotes); return; } if (!state.history.length) { list.innerHTML = `<p class="muted">${escapeHtml(t("history.empty"))}</p>`; } else { list.innerHTML = state.history.slice(0, 5).map((record) => historyItem(record, false)).join(""); bindReportLinks(list); } if (state.watchlist.items.length) renderWatchlist(state.watchlist.items, state.watchlist.quotes); }
@@ -377,7 +415,7 @@
   async function loadWatchlist({ quotesOnly = false, signal = null } = {}) { const list = $("watchlist-list"); if (list) list.setAttribute("aria-busy", "true"); try { $("watchlist-error").textContent = ""; let items = state.watchlist.items; if (!quotesOnly) { const response = await api("/api/watchlist", { signal }); state.watchlist.version = response.watchlist?.version || 1; items = response.items || []; } if (!items.length) { renderWatchlist(items, {}); return { items, quotes: {} }; } const grouped = items.reduce((result, item) => { const key = item.asset_type || "stock"; (result[key] ||= []).push(item.symbol); return result; }, {}); const quotes = { ...state.watchlist.quotes }; await Promise.all(Object.entries(grouped).map(async ([assetType, symbols]) => { const response = window.TradingAgentsQuotes?.fetch ? await window.TradingAgentsQuotes.fetch(symbols, assetType) : await api(`/api/quotes?symbols=${encodeURIComponent(symbols.join(","))}&asset_type=${encodeURIComponent(assetType)}`, { signal }); (response.items || []).forEach((item) => { quotes[item.symbol] = item; }); })); renderWatchlist(items, quotes); return { items, quotes }; } catch (error) { if (error?.name !== "AbortError") { if (!state.watchlist.items.length && list) list.innerHTML = `<p class="muted">${escapeHtml(t("watchlist.unavailable"))}</p>`; $("watchlist-error").textContent = localizeError(error.message); } throw error; } finally { if (list) list.setAttribute("aria-busy", "false"); } }
   async function addWatchlistItem(event) { event.preventDefault(); const symbol = $("watchlist-symbol").value.trim(); if (!symbol) { $("watchlist-error").textContent = t("watchlist.symbolRequired"); return; } try { await api("/api/watchlist/items", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ symbol, asset_type: $("watchlist-asset-type").value }) }); $("watchlist-symbol").value = ""; await loadWatchlist(); } catch (error) { $("watchlist-error").textContent = localizeError(error.message); } }
   function renderLibrary() { const list = $("library-list"); const records = state.library.items; $("library-total").textContent = t("library.total", { count: state.library.total }); $("library-prev").disabled = state.library.page <= 1; $("library-next").disabled = !state.library.hasNext; if (!records.length) { list.innerHTML = `<p class="muted">${escapeHtml(state.library.total ? t("library.noMatches") : t("history.empty"))}</p>`; return; } list.innerHTML = records.map((record) => historyItem(record, true)).join(""); bindReportLinks(list); }
-  async function loadLibraryPage() { const requestSeq = ++state.library.requestSeq; const params = new URLSearchParams({ page: String(state.library.page), page_size: String(state.library.pageSize), sort: state.filters.sort === "oldest" ? "generated_at_asc" : state.filters.sort === "ticker" ? "ticker_asc" : "generated_at_desc" }); if (state.filters.search.trim()) params.set("query", state.filters.search.trim()); if (state.filters.asset) params.set("asset_type", state.filters.asset); if (state.filters.status) params.set("status", state.filters.status); try { const response = await api(`/api/history?${params.toString()}`); if (requestSeq !== state.library.requestSeq) return; const items = response.items || response; state.library.items = Array.isArray(items) ? items : []; state.library.page = Number(response.page || state.library.page); state.library.pageSize = Number(response.page_size || state.library.pageSize); state.library.total = Number(response.total ?? state.library.items.length); state.library.hasNext = Boolean(response.has_next); renderLibrary(); } catch (_) { if (requestSeq !== state.library.requestSeq) return; state.library.items = []; state.library.total = 0; state.library.hasNext = false; renderLibrary(); } }
+  async function loadLibraryPage() { const requestSeq = ++state.library.requestSeq; const params = new URLSearchParams({ page: String(state.library.page), page_size: String(state.library.pageSize), sort: state.filters.sort === "oldest" ? "generated_at_asc" : state.filters.sort === "ticker" ? "ticker_asc" : "generated_at_desc" }); if (state.filters.search.trim()) params.set("query", state.filters.search.trim()); if (state.filters.asset) params.set("asset_type", state.filters.asset); if (state.filters.status) params.set("status", state.filters.status); try { const response = await api(`/api/history?${params.toString()}`); if (requestSeq !== state.library.requestSeq) return; const items = response.items || response; state.library.items = Array.isArray(items) ? items : []; state.library.page = Number(response.page || state.library.page); state.library.pageSize = Number(response.page_size || state.library.pageSize); state.library.total = Number(response.total ?? state.library.items.length); state.library.hasNext = Boolean(response.has_next); renderLibrary(); } catch (_) { if (requestSeq !== state.library.requestSeq) return; state.library.items = []; state.library.total = 0; state.library.hasNext = false; renderLibrary(); } refreshLibraryQuotes(); }
   async function reopenHistory(reportId) { navigate("report", { reportId }); }
   function renderModelOptions(config) { const providers = config.providers || []; const providerSelect = $("provider"); const current = providerSelect.value || config.configured?.provider || config.provider; providerSelect.innerHTML = providers.map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join(""); providerSelect.value = providers.some((item) => item.value === current) ? current : providers[0]?.value || ""; const selected = providers.find((item) => item.value === providerSelect.value) || providers[0]; const selectedQuick = $("quick-model").value || config.configured?.quick_model; const selectedDeep = $("deep-model").value || config.configured?.deep_model; $("quick-model").innerHTML = (selected?.quick_models || []).map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join(""); $("deep-model").innerHTML = (selected?.deep_models || []).map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join(""); $("quick-model").value = (selected?.quick_models || []).some((item) => item.value === selectedQuick) ? selectedQuick : selected?.quick_models?.[0]?.value || ""; $("deep-model").value = (selected?.deep_models || []).some((item) => item.value === selectedDeep) ? selectedDeep : selected?.deep_models?.[0]?.value || ""; }
   function renderLanguages(config) { const select = $("output-language"); const current = select.value || config.configured?.output_language || config.output_language || "English"; select.innerHTML = (config.output_languages || []).map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(languageLabel(item.value))}</option>`).join(""); select.value = (config.output_languages || []).some((item) => item.value === current) ? current : "English"; }
