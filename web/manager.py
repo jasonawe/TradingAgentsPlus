@@ -1073,8 +1073,12 @@ class RunManager:
                 return False, "reason_not_retryable"
             if state.record.resume_checkpoint_id is None:
                 return False, "checkpoint_unavailable"
-            if self._active_run_ids:
-                return False, "another_run_active"
+            try:
+                self._check_admission_locked(state.record.request)
+            except AssetBusyError:
+                return False, "asset_busy"
+            except MaxConcurrentRunsError:
+                return False, "capacity"
             return True, ""
 
     def set_checkpoint_retained_until(
