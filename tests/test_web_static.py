@@ -201,6 +201,26 @@ def test_markdown_report_wrapping_and_watchlist_assets_contract_holds():
     assert "cleanSummary" in js
 
 
+def test_watchlist_key_information_markup_and_semantic_color_contract():
+    css = (STATIC / "styles.css").read_text(encoding="utf-8")
+    js = (STATIC / "app.js").read_text(encoding="utf-8")
+    resources = (STATIC / "i18n.js").read_text(encoding="utf-8")
+
+    for token in ("quote-price", "quote-currency", "quote-change", "stateKey", "watchlistChangeMarkup"):
+        assert token in js
+    assert 'aria-hidden="true"' in js
+    assert 'watchlist.latestAnalysis' in js
+    assert "generated_at" in js
+    assert "Number.isFinite" in js
+    for token in ("strongbuy", "strongsell", "overweight", "underweight"):
+        assert token in js
+    assert ".watchlist-quote .quote-change.is-up" in css
+    assert ".watchlist-quote .quote-change.is-down" in css
+    assert ".watchlist-quote .quote-change.is-flat" in css
+    assert ".asset-detail-change" not in css or ".watchlist-quote .quote-change" in css
+    assert "watchlist.latestAnalysis" in resources
+
+
 def test_watchlist_is_separate_from_analysis_and_refreshes_quotes_periodically():
     html = (STATIC / "index.html").read_text(encoding="utf-8")
     js = (STATIC / "app.js").read_text(encoding="utf-8")

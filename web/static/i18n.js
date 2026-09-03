@@ -253,6 +253,7 @@
     "watchlist.unknownMarket": "市场未知",
     "watchlist.noAnalysis": "暂无分析报告",
     "watchlist.analysisHint": "完成一次分析后，主要结论会显示在这里。",
+    "watchlist.latestAnalysisLabel": "最近分析",
     "watchlist.latestAnalysis": "最近分析 · {value}",
     "watchlist.assetName": "资产名称：{value}",
     "watchlist.exchange": "交易市场：{value}",

@@ -140,7 +140,7 @@ def test_real_browser_navigation_paging_timeout_and_quote_refresh(tmp_path):
                                     "asset_name_zh": "招商证券",
                                     "asset_name": "China Merchants Securities Co., Ltd.",
                                     "exchange_name_zh": "上海证券交易所",
-                                    "exchange": "SHH",
+                                        "exchange": "SHH",
                                     "source": "test",
                                     "freshness": "fresh",
                                     "cache_status": "live",
@@ -227,11 +227,9 @@ def test_real_browser_navigation_paging_timeout_and_quote_refresh(tmp_path):
 
             page.route("**/api/**", api_route)
             page.goto(base_url)
-            page.locator(".asset-identity").get_by_text(
-                "资产名称：招商证券", exact=True
-            ).wait_for(timeout=5000)
             page.locator('[data-view="active"]').click()
             page.wait_for_url(f"{base_url}/active")
+            page.locator("#active-empty").wait_for(timeout=5000)
             assert page.locator("#active-empty").is_visible()
             assert page.locator("#run-header").is_hidden()
             assert page.locator("#run-grid").is_hidden()
@@ -256,6 +254,79 @@ def test_real_browser_navigation_paging_timeout_and_quote_refresh(tmp_path):
                 "分析超时", exact=True
             ).wait_for(timeout=5000)
             assert page.url == f"{base_url}/active"
+            browser.close()
+    finally:
+        process.terminate()
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+
+
+def test_real_browser_watchlist_key_information_hierarchy(tmp_path):
+    if not os.environ.get("TRADINGAGENTS_PLAYWRIGHT"):
+        pytest.skip("set TRADINGAGENTS_PLAYWRIGHT=1 to run the browser smoke harness")
+    playwright = pytest.importorskip("playwright.sync_api")
+    port = _free_port()
+    env = os.environ.copy()
+    env["TRADINGAGENTS_RESULTS_DIR"] = str(tmp_path)
+    process = subprocess.Popen(
+        [
+            sys.executable,
+            "-m",
+            "uvicorn",
+            "web.app:create_app",
+            "--factory",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            str(port),
+            "--log-level",
+            "warning",
+        ],
+        cwd=Path(__file__).parents[1],
+        env=env,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    base_url = f"http://127.0.0.1:{port}"
+    try:
+        _wait_for_server(f"{base_url}/api/config")
+        with playwright.sync_playwright() as runtime:
+            browser = runtime.chromium.launch()
+            page = browser.new_page(viewport={"width": 1280, "height": 900})
+
+            def api_route(route):
+                path = urlparse(route.request.url).path
+                if path == "/api/config":
+                    route.fulfill(json={"supported_asset_types": ["stock", "crypto"], "analyst_options": [{"key": "market", "label": "Market Analyst", "label_key": "analysts.market"}], "research_depths": [1, 3, 5], "default_date": "2026-09-01", "output_languages": [{"value": "Chinese", "label": "Chinese"}], "output_language": "Chinese", "providers": [{"value": "openai", "label": "OpenAI", "quick_models": [{"value": "gpt-test", "label": "gpt-test"}], "deep_models": [{"value": "gpt-test", "label": "gpt-test"}]}], "configured": {"provider": "openai", "quick_model": "gpt-test", "deep_model": "gpt-test", "output_language": "Chinese"}})
+                elif path == "/api/watchlist":
+                    route.fulfill(json={"watchlist": {"version": 1}, "items": [{"id": "w1", "symbol": "600999.SS", "asset_type": "stock"}]})
+                elif path == "/api/quotes":
+                    route.fulfill(json={"items": [{"symbol": "600999.SS", "asset_type": "stock", "price": 18.7, "currency": "CNY", "asset_name_zh": "招商证券", "exchange_name_zh": "上海证券交易所", "change_percent": 1.25, "source": "test", "freshness": "fresh", "cache_status": "live", "fetched_at": "2026-09-01T09:30:00Z"}]})
+                elif path == "/api/history":
+                    route.fulfill(json=[{"report_id": "report-latest", "run_id": "run-latest", "ticker": "600999.SS", "analysis_date": "2026-09-01", "asset_type": "stock", "status": "completed", "rating": "Hold"}])
+                elif path == "/api/runs/active":
+                    route.fulfill(json={"run": None})
+                else:
+                    route.continue_()
+
+            page.route("**/api/**", api_route)
+            page.goto(base_url)
+            row = page.locator(".watchlist-row").first
+            row.wait_for(timeout=5000)
+            assert row.locator(".quote-price").inner_text() == "18.7"
+            assert row.locator(".quote-change.is-up").inner_text().replace("\n", "") == "↑+1.25%"
+            assert row.locator(".analysis-label").inner_text() == "最近分析"
+            assert row.locator(".analysis-date-value").inner_text() == "2026-09-01"
+            assert row.locator('[data-report-id="report-latest"]').is_visible()
+            assert row.locator("[data-analyze-symbol]").get_attribute("data-analyze-symbol") == "600999.SS"
+            assert row.locator("[data-remove-watchlist]").is_visible()
+            page.set_viewport_size({"width": 390, "height": 844})
+            assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
+            page.locator("#theme-toggle").click()
+            assert page.evaluate("document.documentElement.dataset.theme") == "dark"
+            assert row.locator(".quote-change.is-up").is_visible()
             browser.close()
     finally:
         process.terminate()
