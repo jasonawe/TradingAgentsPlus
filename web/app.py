@@ -316,6 +316,7 @@ def create_app(
     @app.get("/active", response_class=HTMLResponse, include_in_schema=False)
     @app.get("/reports", response_class=HTMLResponse, include_in_schema=False)
     @app.get("/scheduled", response_class=HTMLResponse, include_in_schema=False)
+    @app.get("/scheduled/history", response_class=HTMLResponse, include_in_schema=False)
     @app.get("/settings", response_class=HTMLResponse, include_in_schema=False)
     def index() -> Response:
         return _console_entry()
@@ -532,6 +533,40 @@ def create_app(
     def get_scheduled_settings() -> dict[str, Any]:
         return settings_repo.scheduler_settings()
 
+    @app.get("/api/scheduled/analysis-defaults")
+    def get_scheduled_analysis_defaults() -> dict[str, Any]:
+        keys = (
+            settings_repo.SCHEDULER_OVERRIDES_ENABLED,
+            settings_repo.SCHEDULER_OVERRIDES_PROVIDER,
+            settings_repo.SCHEDULER_OVERRIDES_QUICK_MODEL,
+            settings_repo.SCHEDULER_OVERRIDES_DEEP_MODEL,
+            settings_repo.SCHEDULER_OVERRIDES_ANALYSTS,
+            settings_repo.SCHEDULER_OVERRIDES_RESEARCH_DEPTH,
+            settings_repo.SCHEDULER_OVERRIDES_OUTPUT_LANGUAGE,
+        )
+        return {key: settings_repo.get(key) for key in keys}
+
+    @app.patch("/api/scheduled/analysis-defaults")
+    def update_scheduled_analysis_defaults(payload: dict[str, Any]) -> dict[str, Any]:
+        allowed = {
+            settings_repo.SCHEDULER_OVERRIDES_ENABLED: str,
+            settings_repo.SCHEDULER_OVERRIDES_PROVIDER: str,
+            settings_repo.SCHEDULER_OVERRIDES_QUICK_MODEL: str,
+            settings_repo.SCHEDULER_OVERRIDES_DEEP_MODEL: str,
+            settings_repo.SCHEDULER_OVERRIDES_ANALYSTS: str,
+            settings_repo.SCHEDULER_OVERRIDES_RESEARCH_DEPTH: str,
+            settings_repo.SCHEDULER_OVERRIDES_OUTPUT_LANGUAGE: str,
+        }
+        if not payload or set(payload) - set(allowed):
+            raise _error(status.HTTP_422_UNPROCESSABLE_CONTENT, "invalid analysis defaults")
+        for key, expected in allowed.items():
+            if key in payload and not isinstance(payload[key], expected):
+                raise _error(status.HTTP_422_UNPROCESSABLE_CONTENT, f"{key} must be a string")
+        for key in allowed:
+            if key in payload:
+                settings_repo.set(key, payload[key] or "")
+        return get_scheduled_analysis_defaults()
+
     @app.get("/api/scheduled/cron/preview")
     def preview_scheduled_cron(
         cron_expression: str = Query(...), count: int = Query(3, ge=1, le=20)
@@ -546,6 +581,25 @@ def create_app(
             }
         except (CronExpressionError, ValueError) as exc:
             raise _error(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
+
+    @app.get("/api/scheduled/logs")
+    def list_scheduled_run_logs(
+        page: int = Query(1, ge=1, le=10000),
+        page_size: int = Query(25, ge=1, le=100),
+        status: str | None = Query(None),
+        job_id: str | None = Query(None),
+    ) -> dict[str, Any]:
+        items = scheduled_log_repo.list_paginated(
+            limit=page_size, offset=(page - 1) * page_size, status=status, job_id=job_id
+        )
+        total = scheduled_log_repo.count(status=status, job_id=job_id)
+        return {
+            "items": items,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "has_next": page * page_size < total,
+        }
 
     @app.post("/api/scheduled/jobs", status_code=status.HTTP_201_CREATED)
     def create_scheduled_job(payload: dict[str, Any]) -> JSONResponse:

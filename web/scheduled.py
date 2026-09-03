@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 from datetime import date, datetime, timezone
 from typing import Any
@@ -12,8 +13,7 @@ from apscheduler.triggers.cron import CronTrigger
 from cli.models import AnalystType
 from cli.utils import normalize_ticker_symbol
 from tradingagents.default_config import DEFAULT_CONFIG
-
-from .config import OUTPUT_LANGUAGES, market_data_catalog, model_catalog
+from .config import OUTPUT_LANGUAGES, market_data_catalog, model_catalog, resolve_model_config
 from .models import AnalysisRequest
 
 
@@ -117,6 +117,69 @@ def build_default_scheduled_request(
     )
 
 
+def _public_override_request(
+    symbol: str,
+    asset_type: str,
+    *,
+    config: dict[str, Any] | None,
+    settings: dict[str, Any] | None,
+    today: date | None,
+) -> AnalysisRequest | None:
+    """Apply user-configured ``scheduled.default_overrides.*`` on top of the
+    global default. Returns ``None`` if the overrides toggle is off or any
+    configured value fails validation.
+    """
+    if not settings:
+        return None
+    enabled = (settings.get("scheduled.default_overrides.enabled") or {}).get("value")
+    if str(enabled).lower() != "true":
+        return None
+    try:
+        base = build_default_scheduled_request(
+            symbol, asset_type, config, settings=settings, today=today
+        )
+        payload = base.model_dump(mode="json")
+        def _val(key: str) -> str | None:
+            entry = settings.get(key)
+            if isinstance(entry, dict):
+                v = entry.get("value")
+                return str(v) if v not in (None, "") else None
+            return None
+        provider = _val("scheduled.default_overrides.provider")
+        quick = _val("scheduled.default_overrides.quick_model")
+        deep = _val("scheduled.default_overrides.deep_model")
+        depth = _val("scheduled.default_overrides.research_depth")
+        language = _val("scheduled.default_overrides.output_language")
+        analysts_raw = _val("scheduled.default_overrides.analysts")
+        if provider or quick or deep:
+            resolved = resolve_model_config(
+                config or DEFAULT_CONFIG,
+                provider=provider,
+                quick_model=quick,
+                deep_model=deep,
+            )
+            payload["provider"] = resolved["provider"]
+            payload["quick_model"] = resolved["quick_model"]
+            payload["deep_model"] = resolved["deep_model"]
+        if analysts_raw:
+            try:
+                arr = json.loads(analysts_raw)
+            except (TypeError, ValueError):
+                arr = None
+            if isinstance(arr, list) and arr:
+                payload["analysts"] = arr
+        if depth and depth.isdigit():
+            payload["research_depth"] = int(depth)
+        if language and language in OUTPUT_LANGUAGES:
+            payload["output_language"] = language
+        payload["ticker"] = normalize_ticker_symbol(symbol)
+        payload["asset_type"] = asset_type
+        payload["analysis_date"] = today or date.today()
+        return AnalysisRequest.model_validate(payload)
+    except (TypeError, ValueError):
+        return None
+
+
 def infer_scheduled_request(
     symbol: str,
     asset_type: str,
@@ -126,6 +189,11 @@ def infer_scheduled_request(
     settings: dict[str, Any] | None = None,
     today: date | None = None,
 ) -> tuple[AnalysisRequest, str]:
+    override = _public_override_request(
+        symbol, asset_type, config=config, settings=settings, today=today
+    )
+    if override is not None:
+        return override, "public_override"
     if latest_request is not None:
         try:
             request = (

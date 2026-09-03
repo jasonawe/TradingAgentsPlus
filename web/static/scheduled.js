@@ -5,6 +5,11 @@
     jobs: [],
     watchlist: [],
     quotes: {},
+    config: null,
+    analysisDefaults: {
+      enabled: false, provider: "", quick_model: "", deep_model: "",
+      analysts: "", research_depth: "", output_language: "",
+    },
     settings: { enabled: true, max_concurrent_runs: 3 },
     active: false,
     visible: !document.hidden,
@@ -12,7 +17,6 @@
     loading: false,
     busy: new Set(),
     expanded: new Set(),
-    logs: {},
     formJob: null,
     formRequest: 0,
     formCronValid: false,
@@ -40,6 +44,8 @@
   const SCHEDULED_JOBS_API = "/api/scheduled/jobs";
   const SCHEDULED_SETTINGS_API = "/api/scheduled/settings";
   const SCHEDULED_CRON_PREVIEW_API = "/api/scheduled/cron/preview";
+  const SCHEDULED_ANALYSIS_DEFAULTS_API = "/api/scheduled/analysis-defaults";
+  const SCHEDULED_CONFIG_API = "/api/config";
   const WATCHLIST_API = "/api/watchlist";
   const QUOTES_API = "/api/quotes";
 
@@ -75,59 +81,39 @@
     if (!state.jobs.length) { list.innerHTML = `<div class="empty-state scheduled-empty"><strong>${esc(t("scheduler.emptyTitle"))}</strong><p>${esc(t("scheduler.emptyBody"))}</p><button id="scheduled-empty-add" class="button button-primary" type="button">${esc(t("scheduler.add"))}</button></div>`; $("scheduled-empty-add")?.addEventListener("click", () => openForm()); return; }
     const headers = ["scheduler.asset", "scheduler.cron", "scheduler.nextRun", "scheduler.lastResult", "scheduler.status", "scheduler.actions"].map((key) => `<th scope="col">${esc(t(key))}</th>`).join("");
     const rows = state.jobs.map((job) => {
-      const expanded = state.expanded.has(job.id);
       const busy = state.busy.has(job.id);
       const result = job.last_run_status ? `<span class="scheduled-status status-${esc(job.last_run_status)}">${esc(statusLabel(job.last_run_status))}</span>` : `<span class="muted">${esc(t("scheduler.noLastRun"))}</span>`;
       const report = job.last_report_id ? `<a href="/reports/${encodeURIComponent(job.last_report_id)}" class="text-button">${esc(t("scheduler.report"))}</a>` : "";
-      return `<tbody class="scheduled-job-group"><tr class="scheduled-job-row${expanded ? " is-expanded" : ""}">
+      return `<tbody class="scheduled-job-group"><tr class="scheduled-job-row">
         <td data-label="${esc(t("scheduler.asset"))}">${formatAssetCell(job.symbol, job.asset_type)}</td>
         <td data-label="${esc(t("scheduler.cron"))}"><code>${esc(job.cron_expression)}</code>${job.note ? `<small>${esc(job.note)}</small>` : ""}</td>
         <td data-label="${esc(t("scheduler.nextRun"))}">${esc(formatTime(job.next_run_at))}</td>
         <td data-label="${esc(t("scheduler.lastResult"))}">${result}${report}</td>
         <td data-label="${esc(t("scheduler.status"))}">${switchMarkup(`scheduled-toggle-${esc(job.id)}`, job.enabled, job.enabled ? t("scheduler.toggleOn") : t("scheduler.toggleOff"))}</td>
-        <td data-label="${esc(t("scheduler.actions"))}" class="scheduled-actions"><button type="button" class="text-button" data-scheduled-action="logs" data-job-id="${esc(job.id)}" aria-expanded="${expanded ? "true" : "false"}">${esc(t("scheduler.logs"))}</button><button type="button" class="text-button" data-scheduled-action="run" data-job-id="${esc(job.id)}" ${busy ? "disabled" : ""}>${esc(t("scheduler.run"))}</button><button type="button" class="text-button" data-scheduled-action="edit" data-job-id="${esc(job.id)}" ${busy ? "disabled" : ""}>${esc(t("scheduler.edit"))}</button><button type="button" class="text-button is-danger" data-scheduled-action="delete" data-job-id="${esc(job.id)}" ${busy ? "disabled" : ""}>${esc(t("scheduler.delete"))}</button></td>
-      </tr>${expanded ? `<tr class="scheduled-log-row"><td colspan="6"><div id="scheduled-logs-${esc(job.id)}" class="scheduled-logs" aria-live="polite">${renderLogs(job.id)}</div></td></tr>` : ""}</tbody>`;
+        <td data-label="${esc(t("scheduler.actions"))}" class="scheduled-actions"><button type="button" class="text-button" data-scheduled-action="run" data-job-id="${esc(job.id)}" ${busy ? "disabled" : ""}>${esc(t("scheduler.run"))}</button><button type="button" class="text-button" data-scheduled-action="edit" data-job-id="${esc(job.id)}" ${busy ? "disabled" : ""}>${esc(t("scheduler.edit"))}</button><button type="button" class="text-button is-danger" data-scheduled-action="delete" data-job-id="${esc(job.id)}" ${busy ? "disabled" : ""}>${esc(t("scheduler.delete"))}</button></td>
+      </tr></tbody>`;
     }).join("");
     list.innerHTML = `<div class="scheduled-table-wrap"><table class="scheduled-table"><thead><tr>${headers}</tr></thead>${rows}</table></div>`;
     list.querySelectorAll("[data-scheduled-action]").forEach((button) => button.addEventListener("click", () => handleAction(button.dataset.scheduledAction, button.dataset.jobId)));
     state.jobs.forEach((job) => { const toggle = $(`scheduled-toggle-${job.id}`); if (toggle) toggle.disabled = state.busy.has(job.id); toggle?.addEventListener("click", () => toggleJob(job)); });
   }
 
-  function renderLogs(jobId) {
-    const logs = state.logs[jobId];
-    if (!logs) return `<p class="muted">${esc(t("scheduler.loading"))}</p>`;
-    if (!logs.length) return `<p class="muted">${esc(t("scheduler.historyEmpty"))}</p>`;
-    return `<ul>${logs.map((log) => `<li><time>${esc(formatTime(log.fired_at))}</time><span class="scheduled-status status-${esc(log.status)}">${esc(statusLabel(log.status))}</span>${log.skip_reason ? `<span>${esc(t("scheduler.skipReason", { value: skipReasonLabel(log.skip_reason) }))}</span>` : ""}${log.error ? `<span class="form-error">${esc(log.error)}</span>` : ""}${log.report_id ? `<a href="/reports/${encodeURIComponent(log.report_id)}" class="text-button">${esc(t("scheduler.report"))}</a>` : ""}</li>`).join("")}</ul>`;
-  }
-
-  async function refreshExpandedLogs() {
-    const ids = [...state.expanded];
-    if (!ids.length) return;
-    await Promise.all(ids.map(async (id) => {
-      try {
-        const response = await request(`/api/scheduled/jobs/${encodeURIComponent(id)}/logs?limit=20`);
-        state.logs[id] = response.items || [];
-      } catch (_) {}
-    }));
-  }
-
-  async function load({ silent = false } = {}) {
+async function load({ silent = false } = {}) {
     if (!silent) { state.loading = true; render(); }
     try {
       const [jobs, settings, watchlist] = await Promise.all([request(SCHEDULED_JOBS_API), request(SCHEDULED_SETTINGS_API), request(WATCHLIST_API)]);
       state.jobs = Array.isArray(jobs.items) ? jobs.items : [];
       state.settings = { ...state.settings, ...settings };
       state.watchlist = Array.isArray(watchlist.items) ? watchlist.items : [];
-      await refreshAssetQuotes([
-        ...state.watchlist,
-        ...(Array.isArray(jobs.items) ? jobs.items.map((j) => ({ symbol: j.symbol, asset_type: j.asset_type })) : []),
-      ]);
-      if (silent) await refreshExpandedLogs();
       setError("");
       updateSwitches();
       render();
     } catch (error) { setError(error.message || t("scheduler.loadError")); if (!silent) { state.jobs = []; render(); } }
     finally { state.loading = false; render(); }
+    refreshAssetQuotes([
+      ...state.watchlist,
+      ...(Array.isArray(state.jobs) ? state.jobs.map((j) => ({ symbol: j.symbol, asset_type: j.asset_type })) : []),
+    ]).then((changed) => { if (changed) render(); }).catch(() => {});
   }
   function identityFor(symbol) {
     const quote = state.quotes?.[symbol];
@@ -156,19 +142,23 @@
   }
   async function refreshAssetQuotes(items) {
     state.quotes = {};
-    if (!items || !items.length) return;
+    if (!items || !items.length) return false;
     const grouped = items.reduce((acc, item) => {
       const key = item.asset_type || "stock";
       (acc[key] ||= new Set()).add(item.symbol);
       return acc;
     }, {});
+    let changed = false;
     await Promise.all(Object.entries(grouped).map(async ([assetType, symbolSet]) => {
-      const symbols = Array.from(symbolSet).join(",");
+      const symbols = [...symbolSet];
       try {
-        const response = await request(`${QUOTES_API}?symbols=${encodeURIComponent(symbols)}&asset_type=${encodeURIComponent(assetType)}`);
-        (response.items || []).forEach((q) => { state.quotes[q.symbol] = q; });
+        const response = window.TradingAgentsQuotes?.fetch
+          ? await window.TradingAgentsQuotes.fetch(symbols, assetType)
+          : await request(`${QUOTES_API}?symbols=${encodeURIComponent(symbols.join(","))}&asset_type=${encodeURIComponent(assetType)}`);
+        (response.items || []).forEach((q) => { state.quotes[q.symbol] = q; changed = true; });
       } catch (_) { /* ignore quote failures; will fall back to asset_type label */ }
     }));
+    return changed;
   }
   function updateSwitches() {
     [$("scheduled-master-enabled"), $("scheduled-drawer-enabled")].forEach((node) => { if (!node) return; node.classList.toggle("is-on", Boolean(state.settings.enabled)); node.setAttribute("aria-checked", String(Boolean(state.settings.enabled))); const b = node.querySelector("b"); if (b) b.textContent = state.settings.enabled ? t("scheduler.toggleOn") : t("scheduler.toggleOff"); });
@@ -201,13 +191,201 @@
   function previewCron() { clearTimeout(previewTimer); state.formCronValid = false; const input = $("scheduled-cron"); const list = $("scheduled-cron-preview"); if (!input || !list) return; const expression = input.value.trim(); if (!expression) { list.innerHTML = ""; return; } previewTimer = setTimeout(async () => { const requestId = ++state.formRequest; try { const result = await request(`${SCHEDULED_CRON_PREVIEW_API}?cron_expression=${encodeURIComponent(expression)}&count=3`); if (requestId !== state.formRequest) return; state.formCronValid = true; $("scheduled-cron-error").textContent = ""; list.innerHTML = (result.next_run_times || []).map((value) => `<li>${esc(formatTime(value))}</li>`).join(""); } catch (_) { if (requestId !== state.formRequest) return; state.formCronValid = false; $("scheduled-cron-error").textContent = t("scheduler.invalidCron"); list.innerHTML = ""; } }, 250); }
   async function saveForm(event) { event.preventDefault(); const symbolSelect = $("scheduled-symbol"); const symbol = symbolSelect?.value; const cron = $("scheduled-cron")?.value.trim(); const note = $("scheduled-note")?.value.trim() || null; const assetType = symbolSelect?.selectedOptions[0]?.dataset.assetType || state.formJob?.asset_type || "stock"; if (!symbol || !cron || !state.formCronValid) { setError(!state.formCronValid ? t("scheduler.invalidCron") : t("scheduler.formError"), "scheduled-form-error"); return; } const submit = event.submitter; if (submit) submit.disabled = true; const body = { symbol, asset_type: assetType, cron_expression: cron, note }; const path = state.formJob ? `/api/scheduled/jobs/${encodeURIComponent(state.formJob.id)}` : "/api/scheduled/jobs"; state.busy.add("form"); try { await request(path, { method: state.formJob ? "PATCH" : "POST", body: JSON.stringify(body) }); closeForm(); await load(); } catch (error) { setError(error.message || t("scheduler.formError"), "scheduled-form-error"); } finally { state.busy.delete("form"); if (submit?.isConnected) submit.disabled = false; } }
   async function toggleJob(job) { setBusy(job.id, true); try { await request(`/api/scheduled/jobs/${encodeURIComponent(job.id)}/toggle`, { method: "POST", body: JSON.stringify({ enabled: !job.enabled }) }); await load({ silent: true }); } catch (error) { setError(error.message); } finally { state.busy.delete(job.id); render(); } }
-  async function handleAction(action, id) { const job = state.jobs.find((item) => item.id === id); if (!job) return; if (action === "logs") { if (state.expanded.has(id)) state.expanded.delete(id); else { state.expanded.add(id); if (!state.logs[id]) { state.logs[id] = null; render(); try { const response = await request(`/api/scheduled/jobs/${encodeURIComponent(id)}/logs?limit=20`); state.logs[id] = response.items || []; } catch (error) { state.logs[id] = []; setError(error.message); } } render(); } } else if (action === "edit") openForm(job); else if (action === "run") { setBusy(id, true); try { await request(`/api/scheduled/jobs/${encodeURIComponent(id)}/run`, { method: "POST" }); await load({ silent: true }); } catch (error) { setError(error.message); } finally { state.busy.delete(id); render(); } } else if (action === "delete") { const confirmed = await confirmDelete(job); if (!confirmed) return; setBusy(id, true); try { await request(`/api/scheduled/jobs/${encodeURIComponent(id)}`, { method: "DELETE" }); state.expanded.delete(id); delete state.logs[id]; await load(); } catch (error) { setError(error.message); } finally { state.busy.delete(id); render(); } } }
+  async function handleAction(action, id) { const job = state.jobs.find((item) => item.id === id); if (!job) return; if (action === "edit") openForm(job); else if (action === "run") { setBusy(id, true); try { await request(`/api/scheduled/jobs/${encodeURIComponent(id)}/run`, { method: "POST" }); await load({ silent: true }); } catch (error) { setError(error.message); } finally { state.busy.delete(id); render(); } } else if (action === "delete") { const confirmed = await confirmDelete(job); if (!confirmed) return; setBusy(id, true); try { await request(`/api/scheduled/jobs/${encodeURIComponent(id)}`, { method: "DELETE" }); await load(); } catch (error) { setError(error.message); } finally { state.busy.delete(id); render(); } } }
   function confirmDelete(job) { return new Promise((resolve) => { const rootNode = $("modal-root"); if (!rootNode) return resolve(window.confirm(t("scheduler.deleteConsequence", { value: job.symbol }))); const previousFocus = document.activeElement; rootNode.innerHTML = `<div class="modal-overlay" data-confirm-cancel></div><div class="modal-dialog" role="alertdialog" aria-modal="true" aria-labelledby="scheduled-delete-title"><h2 id="scheduled-delete-title">${esc(t("scheduler.delete"))}</h2><p class="modal-message">${esc(t("scheduler.deleteConsequence", { value: job.symbol }))}</p><div class="modal-actions"><button type="button" class="button button-secondary" data-confirm-cancel>${esc(t("actions.cancel"))}</button><button type="button" class="button btn-danger" data-confirm-ok>${esc(t("scheduler.confirmDelete"))}</button></div></div>`; rootNode.classList.add("is-open"); rootNode.setAttribute("aria-hidden", "false"); let onKey; const finish = (value) => { document.removeEventListener("keydown", onKey); rootNode.classList.remove("is-open"); rootNode.setAttribute("aria-hidden", "true"); rootNode.innerHTML = ""; previousFocus?.focus?.(); resolve(value); }; rootNode.querySelectorAll("[data-confirm-cancel]").forEach((node) => node.addEventListener("click", () => finish(false))); rootNode.querySelector("[data-confirm-ok]")?.addEventListener("click", () => finish(true)); onKey = (event) => { if (event.key === "Escape") { event.preventDefault(); finish(false); } else if (event.key === "Enter") { event.preventDefault(); finish(true); } }; document.addEventListener("keydown", onKey); setTimeout(() => rootNode.querySelector("[data-confirm-ok]")?.focus(), 0); }); }
 
-  function openDrawer() { const drawer = $("scheduled-settings-drawer"); if (!drawer) return; state.drawerFocus = document.activeElement; drawer.hidden = false; drawer.setAttribute("aria-hidden", "false"); drawer.classList.add("is-open"); updateSwitches(); setTimeout(() => $("scheduled-drawer-enabled")?.focus(), 0); }
+  async function openDrawer() { const drawer = $("scheduled-settings-drawer"); if (!drawer) return; state.drawerFocus = document.activeElement; drawer.hidden = false; drawer.setAttribute("aria-hidden", "false"); drawer.classList.add("is-open"); updateSwitches(); await ensureConfig(); renderOverridesOptions(); await loadAnalysisDefaults(); setTimeout(() => $("scheduled-drawer-enabled")?.focus(), 0); }
   function closeDrawer() { const drawer = $("scheduled-settings-drawer"); if (!drawer || drawer.hidden) return; drawer.classList.remove("is-open"); drawer.setAttribute("aria-hidden", "true"); drawer.hidden = true; state.drawerFocus?.focus?.(); state.drawerFocus = null; }
+
+  async function ensureConfig() {
+    if (state.config) return state.config;
+    try { state.config = await request(SCHEDULED_CONFIG_API); }
+    catch (_) { state.config = { providers: [], analyst_options: [], research_depths: [1], languages: [] }; }
+    return state.config;
+  }
+  function providersList() { const cfg = state.config || {}; return Array.isArray(cfg.providers) ? cfg.providers : []; }
+  function currentProvider() { const sel = $("scheduled-overrides-provider"); if (sel && sel.value) return sel.value; return state.analysisDefaults.provider || ""; }
+  function providerModels(provider, kind) { const p = providersList().find((x) => x.value === provider); if (!p) return []; const list = kind === "quick" ? p.quick_models : p.deep_models; return Array.isArray(list) ? list : []; }
+  function languagesList() { const cfg = state.config || {}; const langs = Array.isArray(cfg.languages) ? cfg.languages : []; return langs.length ? langs : [{ value: "Chinese", label: "中文" }, { value: "English", label: "English" }]; }
+  function escapeAttr(value) { return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c])); }
+  function escapeText(value) { return String(value ?? ""); }
+  function depthLabel(d) { return d === 1 ? t("depth.quick") : d === 3 ? t("depth.balanced") : d === 5 ? t("depth.deep") : String(d); }
+  function translateAnalystKey(key) { const dict = { market: "市场", social: "社交情绪", news: "新闻", fundamentals: "基本面" }; return dict[key] || key; }
+
+  function renderOverridesOptions() {
+    const cfg = state.config || {};
+    const providerSelect = $("scheduled-overrides-provider");
+    if (providerSelect) providerSelect.innerHTML = providersList().map((p) => `<option value="${escapeAttr(p.value)}">${escapeText(p.label || p.value)}</option>`).join("");
+    const outSelect = $("scheduled-overrides-output-language");
+    if (outSelect) outSelect.innerHTML = languagesList().map((l) => `<option value="${escapeAttr(l.value)}">${escapeText(l.label || l.value)}</option>`).join("");
+    const analystsBox = $("scheduled-overrides-analysts");
+    if (analystsBox) {
+      const opts = Array.isArray(cfg.analyst_options) ? cfg.analyst_options : [];
+      analystsBox.innerHTML = opts.map((item) => `<div class="choice"><input id="ov-analyst-${escapeAttr(item.key)}" type="checkbox" name="overrides-analysts" value="${escapeAttr(item.key)}" /><label for="ov-analyst-${escapeAttr(item.key)}">${escapeText(translateAnalystKey(item.key))}</label></div>`).join("");
+    }
+    const depthBox = $("scheduled-overrides-depth");
+    if (depthBox) {
+      const depths = Array.isArray(cfg.research_depths) && cfg.research_depths.length ? cfg.research_depths : [1];
+      depthBox.innerHTML = depths.map((d) => `<div class="choice"><input id="ov-depth-${d}" type="radio" name="overrides-depth" value="${d}" /><label for="ov-depth-${d}">${escapeText(depthLabel(d))}</label></div>`).join("");
+    }
+    renderOverridesProviderModels();
+  }
+
+  function renderOverridesProviderModels() {
+    const provider = currentProvider() || providersList()[0]?.value || "";
+    const quickSelect = $("scheduled-overrides-quick-model");
+    const deepSelect = $("scheduled-overrides-deep-model");
+    const quick = providerModels(provider, "quick");
+    const deep = providerModels(provider, "deep");
+    const providerStable = providersList().some((p) => p.value === state.analysisDefaults.provider);
+    const currentQuick = (state.analysisDefaults.provider === provider && providerStable && providerModels(state.analysisDefaults.provider, "quick").some((m) => m.value === state.analysisDefaults.quick_model))
+      ? state.analysisDefaults.quick_model : (quick[0]?.value || "");
+    const currentDeep = (state.analysisDefaults.provider === provider && providerStable && providerModels(state.analysisDefaults.provider, "deep").some((m) => m.value === state.analysisDefaults.deep_model))
+      ? state.analysisDefaults.deep_model : (deep[0]?.value || "");
+    if (quickSelect) { quickSelect.innerHTML = quick.map((m) => `<option value="${escapeAttr(m.value)}">${escapeText(m.label || m.value)}</option>`).join(""); quickSelect.value = currentQuick; }
+    if (deepSelect) { deepSelect.innerHTML = deep.map((m) => `<option value="${escapeAttr(m.value)}">${escapeText(m.label || m.value)}</option>`).join(""); deepSelect.value = currentDeep; }
+  }
+
+  function readOverridesFromUI() {
+    const providerSelect = $("scheduled-overrides-provider");
+    const quickSelect = $("scheduled-overrides-quick-model");
+    const deepSelect = $("scheduled-overrides-deep-model");
+    const analysts = Array.from(document.querySelectorAll('input[name="overrides-analysts"]:checked')).map((el) => el.value);
+    const depthEl = document.querySelector('input[name="overrides-depth"]:checked');
+    return {
+      provider: providerSelect ? providerSelect.value : "",
+      quick_model: quickSelect ? quickSelect.value : "",
+      deep_model: deepSelect ? deepSelect.value : "",
+      analysts,
+      research_depth: depthEl ? Number(depthEl.value) : 1,
+      output_language: $("scheduled-overrides-output-language")?.value || "",
+    };
+  }
+
+  async function loadAnalysisDefaults() {
+    try {
+      const data = await request(SCHEDULED_ANALYSIS_DEFAULTS_API);
+      const get = (key) => (data && data[key] && data[key].value) ?? "";
+      state.analysisDefaults = {
+        enabled: get("scheduled.default_overrides.enabled") === "true",
+        provider: get("scheduled.default_overrides.provider"),
+        quick_model: get("scheduled.default_overrides.quick_model"),
+        deep_model: get("scheduled.default_overrides.deep_model"),
+        analysts: get("scheduled.default_overrides.analysts"),
+        research_depth: get("scheduled.default_overrides.research_depth"),
+        output_language: get("scheduled.default_overrides.output_language"),
+      };
+    } catch (_) {}
+    applyOverridesToUI();
+  }
+
+  function applyOverridesToUI() {
+    const toggle = $("scheduled-overrides-enabled");
+    const fields = $("scheduled-overrides-fields");
+    const enabled = state.analysisDefaults.enabled;
+    if (toggle) {
+      toggle.classList.toggle("is-on", enabled);
+      toggle.setAttribute("aria-checked", String(enabled));
+      const b = toggle.querySelector("b"); if (b) b.textContent = enabled ? t("scheduler.toggleOn") : t("scheduler.toggleOff");
+    }
+    if (fields) fields.hidden = !enabled;
+    if (!enabled) return;
+    const provider = state.analysisDefaults.provider || providersList()[0]?.value || "";
+    const providerSelect = $("scheduled-overrides-provider");
+    if (providerSelect) providerSelect.value = provider;
+    renderOverridesProviderModels();
+    if (state.analysisDefaults.quick_model) { const sel = $("scheduled-overrides-quick-model"); if (sel) sel.value = state.analysisDefaults.quick_model; }
+    if (state.analysisDefaults.deep_model) { const sel = $("scheduled-overrides-deep-model"); if (sel) sel.value = state.analysisDefaults.deep_model; }
+    if (state.analysisDefaults.output_language) { const sel = $("scheduled-overrides-output-language"); if (sel) sel.value = state.analysisDefaults.output_language; }
+    let analystList = [];
+    try { analystList = JSON.parse(state.analysisDefaults.analysts || "[]"); } catch (_) { analystList = []; }
+    if (!Array.isArray(analystList)) analystList = [];
+    analystList.forEach((key) => { const cb = document.querySelector(`input[name="overrides-analysts"][value="${CSS.escape(key)}"]`); if (cb) cb.checked = true; });
+    if (state.analysisDefaults.research_depth) {
+      const radio = document.querySelector(`input[name="overrides-depth"][value="${CSS.escape(String(state.analysisDefaults.research_depth))}"]`);
+      if (radio) radio.checked = true;
+    }
+  }
+
+  async function saveAnalysisDefaults() {
+    const errBox = $("scheduled-overrides-error"); if (errBox) errBox.textContent = "";
+    const toggle = $("scheduled-overrides-enabled");
+    const enabled = !!(toggle && toggle.classList.contains("is-on"));
+    const payload = { "scheduled.default_overrides.enabled": enabled ? "true" : "false" };
+    if (enabled) {
+      const current = readOverridesFromUI();
+      payload["scheduled.default_overrides.provider"] = current.provider || "";
+      payload["scheduled.default_overrides.quick_model"] = current.quick_model || "";
+      payload["scheduled.default_overrides.deep_model"] = current.deep_model || "";
+      payload["scheduled.default_overrides.analysts"] = JSON.stringify(current.analysts || []);
+      payload["scheduled.default_overrides.research_depth"] = String(current.research_depth || 1);
+      payload["scheduled.default_overrides.output_language"] = current.output_language || "";
+    } else {
+      payload["scheduled.default_overrides.provider"] = "";
+      payload["scheduled.default_overrides.quick_model"] = "";
+      payload["scheduled.default_overrides.deep_model"] = "";
+      payload["scheduled.default_overrides.analysts"] = "";
+      payload["scheduled.default_overrides.research_depth"] = "";
+      payload["scheduled.default_overrides.output_language"] = "";
+    }
+    try {
+      const data = await request(SCHEDULED_ANALYSIS_DEFAULTS_API, { method: "PATCH", body: JSON.stringify(payload) });
+      const get = (key) => (data && data[key] && data[key].value) ?? "";
+      state.analysisDefaults = {
+        enabled: get("scheduled.default_overrides.enabled") === "true",
+        provider: get("scheduled.default_overrides.provider"),
+        quick_model: get("scheduled.default_overrides.quick_model"),
+        deep_model: get("scheduled.default_overrides.deep_model"),
+        analysts: get("scheduled.default_overrides.analysts"),
+        research_depth: get("scheduled.default_overrides.research_depth"),
+        output_language: get("scheduled.default_overrides.output_language"),
+      };
+      applyOverridesToUI();
+      setError(t("scheduler.overridesSaved"), "scheduled-overrides-error");
+    } catch (error) { setError(error.message, "scheduled-overrides-error"); }
+  }
+
+  async function resetAnalysisDefaults() {
+    const empty = {
+      "scheduled.default_overrides.enabled": "false",
+      "scheduled.default_overrides.provider": "",
+      "scheduled.default_overrides.quick_model": "",
+      "scheduled.default_overrides.deep_model": "",
+      "scheduled.default_overrides.analysts": "",
+      "scheduled.default_overrides.research_depth": "",
+      "scheduled.default_overrides.output_language": "",
+    };
+    try {
+      const data = await request(SCHEDULED_ANALYSIS_DEFAULTS_API, { method: "PATCH", body: JSON.stringify(empty) });
+      const get = (key) => (data && data[key] && data[key].value) ?? "";
+      state.analysisDefaults = {
+        enabled: get("scheduled.default_overrides.enabled") === "true",
+        provider: get("scheduled.default_overrides.provider"),
+        quick_model: get("scheduled.default_overrides.quick_model"),
+        deep_model: get("scheduled.default_overrides.deep_model"),
+        analysts: get("scheduled.default_overrides.analysts"),
+        research_depth: get("scheduled.default_overrides.research_depth"),
+        output_language: get("scheduled.default_overrides.output_language"),
+      };
+      applyOverridesToUI();
+      setError(t("scheduler.overridesReset"), "scheduled-overrides-error");
+    } catch (error) { setError(error.message, "scheduled-overrides-error"); }
+  }
   async function saveSettings(patch) { const previous = { ...state.settings }; state.settings = { ...state.settings, ...patch }; updateSwitches(); try { state.settings = await request(SCHEDULED_SETTINGS_API, { method: "PATCH", body: JSON.stringify(patch) }); updateSwitches(); setError(t("scheduler.settingsSaved"), "scheduled-settings-error"); } catch (error) { state.settings = previous; updateSwitches(); setError(error.message, "scheduled-settings-error"); } }
-  function init() { if (state.initialized) return; state.initialized = true; $("scheduled-add")?.addEventListener("click", () => openForm()); $("scheduled-settings")?.addEventListener("click", openDrawer); document.querySelectorAll("[data-scheduled-close-drawer]").forEach((node) => node.addEventListener("click", closeDrawer)); [$("scheduled-master-enabled"), $("scheduled-drawer-enabled")].forEach((node) => node?.addEventListener("click", () => saveSettings({ enabled: !state.settings.enabled }))); $("scheduled-max-concurrent")?.addEventListener("change", (event) => saveSettings({ max_concurrent_runs: Number(event.target.value) })); document.addEventListener("visibilitychange", () => { state.visible = !document.hidden; schedulePolling(); if (state.active && state.visible) load({ silent: true }); }); document.addEventListener("keydown", (event) => { if (event.key === "Escape") { closeDrawer(); if ($("modal-root")?.querySelector("#scheduled-form")) closeForm(); } }); }
+  function init() { if (state.initialized) return; state.initialized = true; $("scheduled-add")?.addEventListener("click", () => openForm()); $("scheduled-settings")?.addEventListener("click", openDrawer); $("scheduled-view-history")?.addEventListener("click", () => { if (root.TradingAgentsApp?.navigate) root.TradingAgentsApp.navigate("scheduled-history"); else window.history.pushState({ view: "scheduled-history" }, "", "/scheduled/history"); }); document.querySelectorAll("[data-scheduled-close-drawer]").forEach((node) => node.addEventListener("click", closeDrawer)); [$("scheduled-master-enabled"), $("scheduled-drawer-enabled")].forEach((node) => node?.addEventListener("click", () => saveSettings({ enabled: !state.settings.enabled }))); $("scheduled-max-concurrent")?.addEventListener("change", (event) => saveSettings({ max_concurrent_runs: Number(event.target.value) }));
+    $("scheduled-overrides-enabled")?.addEventListener("click", () => {
+      const node = $("scheduled-overrides-enabled");
+      const enabled = !node.classList.contains("is-on");
+      node.classList.toggle("is-on", enabled);
+      node.setAttribute("aria-checked", String(enabled));
+      const b = node.querySelector("b"); if (b) b.textContent = enabled ? t("scheduler.toggleOn") : t("scheduler.toggleOff");
+      const fields = $("scheduled-overrides-fields"); if (fields) fields.hidden = !enabled;
+      if (enabled) renderOverridesProviderModels();
+    });
+    $("scheduled-overrides-provider")?.addEventListener("change", () => renderOverridesProviderModels());
+    $("scheduled-overrides-save")?.addEventListener("click", () => saveAnalysisDefaults());
+    $("scheduled-overrides-reset")?.addEventListener("click", () => resetAnalysisDefaults());
+ document.addEventListener("visibilitychange", () => { state.visible = !document.hidden; schedulePolling(); if (state.active && state.visible) load({ silent: true }); }); document.addEventListener("keydown", (event) => { if (event.key === "Escape") { closeDrawer(); if ($("modal-root")?.querySelector("#scheduled-form")) closeForm(); } }); }
   root.TradingAgentsScheduled = { init, show: () => { init(); setActive(true); }, setActive };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true }); else init();
 })(window);
