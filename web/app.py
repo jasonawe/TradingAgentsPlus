@@ -31,7 +31,7 @@ from .config import (
 )
 from .error_codes import USER_MESSAGES, TerminalReason
 from .history import ReportHistory, ReportNotFound
-from .manager import ActiveRunError, AssetBusyError, EventBatch, MaxConcurrentRunsError, RunManager
+from .manager import AssetBusyError, EventBatch, MaxConcurrentRunsError, RunManager
 from .market_data import ProviderRouter, QuoteService
 from .market_models import ProviderError
 from .models import AnalysisRequest, EventEnvelope, RunRecord
@@ -42,11 +42,15 @@ from .repositories import (
     QuoteRepository,
     ReportIndexRepository,
     ReportRepository,
+    ScheduledJobRepository,
+    ScheduledRunLogRepository,
     SettingsRepository,
     SnapshotRepository,
     WatchlistRepository,
 )
 from .runner import WebRunRunner
+from .scheduled import CronExpressionError, validate_cron_expression
+from .scheduler import ScheduledAnalysisService
 from .snapshots import SnapshotCorruptError, SnapshotStore
 from .storage import SQLiteStore
 
@@ -90,6 +94,39 @@ def _config_view(config: dict[str, Any]) -> dict[str, Any]:
         "provider": configured["provider"],
         "model": configured["deep_model"],
     }
+
+
+def _normalize_analysis_request(
+    request_data: AnalysisRequest,
+    *,
+    config: dict[str, Any],
+    settings: SettingsRepository,
+) -> AnalysisRequest:
+    """Apply the server-owned model, language, and quote defaults."""
+
+    selected = resolve_model_config(
+        config,
+        request_data.provider,
+        request_data.quick_model,
+        request_data.deep_model,
+    )
+    language = request_data.output_language or model_catalog(config)[1]["output_language"]
+    if language not in OUTPUT_LANGUAGES:
+        raise ValueError("invalid analysis configuration")
+    normalized = request_data.model_copy(
+        update={
+            "provider": selected["provider"],
+            "quick_model": selected["quick_model"],
+            "deep_model": selected["deep_model"],
+            "output_language": language,
+        }
+    )
+    strategy = normalized.quote_strategy_id or market_data_catalog(
+        config, settings.all()
+    )["quote_strategy_id"]["value"]
+    if strategy not in QUOTE_STRATEGIES:
+        raise ValueError("invalid analysis configuration")
+    return normalized.model_copy(update={"quote_strategy_id": strategy})
 
 
 def _watchlist_view(repo: WatchlistRepository) -> dict[str, Any]:
@@ -147,6 +184,9 @@ def create_app(
         manager._db_path = store.path
     if manager is not None:
         manager.configure_lifecycle(lifecycle_config)
+    concurrency_setting = settings_repo.get(SettingsRepository.SCHEDULER_MAX_CONCURRENT_RUNS)
+    if manager is None or (concurrency_setting or {}).get("source") != "default":
+        active_manager.configure_concurrency(settings_repo.all())
     active_manager.set_report_root(Path(active_config.get("results_dir") or ".") / "web_reports")
     active_history = history or ReportHistory(
         results_dir=active_config.get("results_dir"),
@@ -164,6 +204,58 @@ def create_app(
             except Exception:
                 continue
 
+    provider_health_repo = ProviderHealthRepository(store)
+    artifact_repository = ArtifactRepository(store)
+    active_manager.attach_artifact_repository(artifact_repository)
+    watchlist_repo = WatchlistRepository(store)
+    analysis_run_repo = AnalysisRunRepository(store)
+    scheduled_job_repo = ScheduledJobRepository(store)
+    scheduled_log_repo = ScheduledRunLogRepository(store)
+    repositories = {
+        "watchlist": watchlist_repo,
+        "quotes": QuoteRepository(store),
+        "runs": analysis_run_repo,
+        "snapshots": SnapshotRepository(store),
+        "settings": settings_repo,
+        "scheduled_jobs": scheduled_job_repo,
+        "scheduled_logs": scheduled_log_repo,
+        "reports": report_index_repo,
+        "report_gate": ReportRepository(store),
+        "provider_health": provider_health_repo,
+        "artifacts": artifact_repository,
+    }
+    if runner is None:
+        active_runner = WebRunRunner(
+            active_manager,
+            config=active_config,
+            report_history=active_history,
+            artifact_repository=artifact_repository,
+        )
+        worker = active_runner.worker
+    elif hasattr(runner, "worker"):
+        active_runner = runner
+        worker = runner.worker
+    else:
+        active_runner = runner
+        worker = runner
+
+    def normalize_request(request_data: AnalysisRequest) -> AnalysisRequest:
+        return _normalize_analysis_request(
+            request_data, config=active_config, settings=settings_repo
+        )
+
+    scheduler_service = ScheduledAnalysisService(
+        jobs=scheduled_job_repo,
+        logs=scheduled_log_repo,
+        runs=analysis_run_repo,
+        watchlist=watchlist_repo,
+        settings=settings_repo,
+        manager=active_manager,
+        worker=worker,
+        normalize_request=normalize_request,
+        config=active_config,
+    )
+
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
         retry_thread = threading.Thread(
@@ -175,8 +267,10 @@ def create_app(
             active_history.rebuild_index()
             active_history.retry_outbox(limit=50)
             retry_thread.start()
+            scheduler_service.start()
             yield
         finally:
+            scheduler_service.shutdown()
             report_index_stop.set()
             if retry_thread.is_alive():
                 retry_thread.join(timeout=5.0)
@@ -187,21 +281,11 @@ def create_app(
     app.state.config = active_config
     app.state.history = active_history
     app.state.store = store
-    provider_health_repo = ProviderHealthRepository(store)
-    artifact_repository = ArtifactRepository(store)
-    active_manager.attach_artifact_repository(artifact_repository)
+    app.state.runner = active_runner
+    app.state.worker = worker
+    app.state.scheduler = scheduler_service
     app.state.artifact_repository = artifact_repository
-    app.state.repositories = {
-        "watchlist": WatchlistRepository(store),
-        "quotes": QuoteRepository(store),
-        "runs": AnalysisRunRepository(store),
-        "snapshots": SnapshotRepository(store),
-        "settings": settings_repo,
-        "reports": report_index_repo,
-        "report_gate": ReportRepository(store),
-        "provider_health": provider_health_repo,
-        "artifacts": artifact_repository,
-    }
+    app.state.repositories = repositories
     providers = {"yfinance": YFinanceProvider(), "alpha_vantage": AlphaVantageProvider()}
     app.state.market_router = ProviderRouter(providers, health=provider_health_repo)
     app.state.market_service = QuoteService(
@@ -231,6 +315,7 @@ def create_app(
     @app.get("/analysis", response_class=HTMLResponse, include_in_schema=False)
     @app.get("/active", response_class=HTMLResponse, include_in_schema=False)
     @app.get("/reports", response_class=HTMLResponse, include_in_schema=False)
+    @app.get("/scheduled", response_class=HTMLResponse, include_in_schema=False)
     @app.get("/settings", response_class=HTMLResponse, include_in_schema=False)
     def index() -> Response:
         return _console_entry()
@@ -298,6 +383,7 @@ def create_app(
         repo = app.state.repositories["watchlist"]
         try:
             repo.delete_item(item_id, expected_version=version)
+            scheduler_service.resync()
         except KeyError as exc:
             raise _error(404, "关注项不存在") from exc
         except RuntimeError as exc:
@@ -421,6 +507,197 @@ def create_app(
         fields["effective_output_language"] = fields["output_language"]
         return {"schema_version": 1, "fields": fields, "strategies": [{"id": k, "providers": v["providers"], "available": next((s["available"] for s in catalog["strategies"] if s["id"] == k), False)} for k, v in QUOTE_STRATEGIES.items()], "provider_health": {item["provider"]: item for item in provider_health_repo.list()}}
 
+    @app.get("/api/scheduled/jobs")
+    def list_scheduled_jobs() -> dict[str, Any]:
+        return scheduler_service.list_jobs()
+
+    @app.get("/api/scheduled/jobs/{job_id}")
+    def get_scheduled_job(job_id: str) -> dict[str, Any]:
+        try:
+            return scheduler_service.get_job(job_id)
+        except KeyError as exc:
+            raise _error(status.HTTP_404_NOT_FOUND, "scheduled job not found") from exc
+
+    @app.get("/api/scheduled/jobs/{job_id}/logs")
+    def list_scheduled_logs(
+        job_id: str, limit: int = Query(20, ge=1, le=100)
+    ) -> dict[str, Any]:
+        try:
+            scheduled_job_repo.get(job_id)
+        except KeyError as exc:
+            raise _error(status.HTTP_404_NOT_FOUND, "scheduled job not found") from exc
+        return {"items": scheduled_log_repo.list(job_id, limit=limit)}
+
+    @app.get("/api/scheduled/settings")
+    def get_scheduled_settings() -> dict[str, Any]:
+        return settings_repo.scheduler_settings()
+
+    @app.get("/api/scheduled/cron/preview")
+    def preview_scheduled_cron(
+        cron_expression: str = Query(...), count: int = Query(3, ge=1, le=20)
+    ) -> dict[str, Any]:
+        try:
+            normalized = validate_cron_expression(
+                cron_expression, timezone=scheduler_service.timezone
+            )
+            return {
+                "cron_expression": normalized,
+                "next_run_times": scheduler_service.preview(normalized, count=count),
+            }
+        except (CronExpressionError, ValueError) as exc:
+            raise _error(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
+
+    @app.post("/api/scheduled/jobs", status_code=status.HTTP_201_CREATED)
+    def create_scheduled_job(payload: dict[str, Any]) -> JSONResponse:
+        allowed = {"symbol", "asset_type", "cron_expression", "note"}
+        if not payload or set(payload) - allowed:
+            raise _error(status.HTTP_422_UNPROCESSABLE_CONTENT, "invalid scheduled job parameters")
+        symbol = payload.get("symbol")
+        asset_type = payload.get("asset_type")
+        cron_expression = payload.get("cron_expression")
+        note = payload.get("note")
+        if (
+            not isinstance(symbol, str)
+            or not isinstance(asset_type, str)
+            or not isinstance(cron_expression, str)
+            or (note is not None and not isinstance(note, str))
+        ):
+            raise _error(status.HTTP_422_UNPROCESSABLE_CONTENT, "invalid scheduled job parameters")
+        try:
+            if not watchlist_repo.contains(symbol, asset_type):
+                raise _error(
+                    status.HTTP_422_UNPROCESSABLE_CONTENT,
+                    "asset must exist in the watchlist",
+                )
+            job = scheduled_job_repo.create(
+                symbol,
+                asset_type=asset_type,
+                cron_expression=cron_expression,
+                note=note,
+            )
+            scheduler_service.resync()
+            return JSONResponse(
+                scheduler_service.serialize_job(job),
+                status_code=status.HTTP_201_CREATED,
+            )
+        except HTTPException:
+            raise
+        except CronExpressionError as exc:
+            raise _error(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
+        except ValueError as exc:
+            if "already exists" in str(exc):
+                raise _error(status.HTTP_409_CONFLICT, str(exc)) from exc
+            raise _error(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
+
+    @app.patch("/api/scheduled/jobs/{job_id}", status_code=status.HTTP_201_CREATED)
+    def update_scheduled_job(job_id: str, payload: dict[str, Any]) -> JSONResponse:
+        allowed = {"symbol", "asset_type", "cron_expression", "note", "enabled"}
+        if not payload or set(payload) - allowed:
+            raise _error(status.HTTP_422_UNPROCESSABLE_CONTENT, "invalid scheduled job parameters")
+        if (
+            ("symbol" in payload and not isinstance(payload["symbol"], str))
+            or ("asset_type" in payload and not isinstance(payload["asset_type"], str))
+            or (
+                "cron_expression" in payload
+                and not isinstance(payload["cron_expression"], str)
+            )
+            or ("enabled" in payload and not isinstance(payload["enabled"], bool))
+            or (
+                "note" in payload
+                and payload["note"] is not None
+                and not isinstance(payload["note"], str)
+            )
+        ):
+            raise _error(status.HTTP_422_UNPROCESSABLE_CONTENT, "invalid scheduled job parameters")
+        try:
+            current = scheduled_job_repo.get(job_id)
+            target_symbol = payload.get("symbol", current["symbol"])
+            target_asset_type = payload.get("asset_type", current["asset_type"])
+            if not watchlist_repo.contains(target_symbol, target_asset_type):
+                raise _error(
+                    status.HTTP_422_UNPROCESSABLE_CONTENT,
+                    "asset must exist in the watchlist",
+                )
+            kwargs = {key: payload[key] for key in allowed if key in payload}
+            job = scheduled_job_repo.update(job_id, **kwargs)
+            scheduler_service.resync()
+            return JSONResponse(
+                scheduler_service.serialize_job(job),
+                status_code=status.HTTP_201_CREATED,
+            )
+        except HTTPException:
+            raise
+        except KeyError as exc:
+            raise _error(status.HTTP_404_NOT_FOUND, "scheduled job not found") from exc
+        except CronExpressionError as exc:
+            raise _error(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
+        except ValueError as exc:
+            if "already exists" in str(exc):
+                raise _error(status.HTTP_409_CONFLICT, str(exc)) from exc
+            raise _error(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
+
+    @app.delete("/api/scheduled/jobs/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
+    def delete_scheduled_job(job_id: str) -> Response:
+        try:
+            scheduled_job_repo.delete(job_id)
+            scheduler_service.resync()
+        except KeyError as exc:
+            raise _error(status.HTTP_404_NOT_FOUND, "scheduled job not found") from exc
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+    @app.post(
+        "/api/scheduled/jobs/{job_id}/toggle",
+        status_code=status.HTTP_201_CREATED,
+    )
+    def toggle_scheduled_job(job_id: str, payload: dict[str, Any]) -> JSONResponse:
+        if set(payload) != {"enabled"} or not isinstance(payload.get("enabled"), bool):
+            raise _error(status.HTTP_422_UNPROCESSABLE_CONTENT, "enabled must be a boolean")
+        try:
+            job = scheduled_job_repo.toggle(job_id, payload["enabled"])
+            scheduler_service.resync()
+            return JSONResponse(
+                scheduler_service.serialize_job(job),
+                status_code=status.HTTP_201_CREATED,
+            )
+        except KeyError as exc:
+            raise _error(status.HTTP_404_NOT_FOUND, "scheduled job not found") from exc
+
+    @app.post(
+        "/api/scheduled/jobs/{job_id}/run",
+        status_code=status.HTTP_202_ACCEPTED,
+    )
+    def run_scheduled_job(job_id: str) -> JSONResponse:
+        try:
+            log = scheduler_service.run_now(job_id)
+            return JSONResponse(log, status_code=status.HTTP_202_ACCEPTED)
+        except KeyError as exc:
+            raise _error(status.HTTP_404_NOT_FOUND, "scheduled job not found") from exc
+
+    @app.patch("/api/scheduled/settings")
+    def update_scheduled_settings(payload: dict[str, Any]) -> dict[str, Any]:
+        allowed = {"enabled", "max_concurrent_runs"}
+        if not payload or set(payload) - allowed:
+            raise _error(status.HTTP_422_UNPROCESSABLE_CONTENT, "invalid scheduler settings")
+        if (
+            ("enabled" in payload and not isinstance(payload["enabled"], bool))
+            or (
+                "max_concurrent_runs" in payload
+                and (
+                    isinstance(payload["max_concurrent_runs"], bool)
+                    or not isinstance(payload["max_concurrent_runs"], int)
+                )
+            )
+        ):
+            raise _error(status.HTTP_422_UNPROCESSABLE_CONTENT, "invalid scheduler settings")
+        try:
+            kwargs = {key: payload[key] for key in allowed if key in payload}
+            result = settings_repo.update_scheduler_settings(**kwargs)
+            active_manager.configure_concurrency(settings_repo.all())
+            scheduler_service.resync()
+            return result
+        except ValueError as exc:
+            raise _error(status.HTTP_422_UNPROCESSABLE_CONTENT, str(exc)) from exc
+
     @app.get("/api/runs/active")
     def get_active_runs() -> dict[str, Any]:
         """Return every in-flight run so a reopened client can reattach.
@@ -435,41 +712,12 @@ def create_app(
     @app.post("/api/runs", status_code=status.HTTP_202_ACCEPTED)
     def create_run(request_data: AnalysisRequest) -> JSONResponse:
         try:
-            selected = resolve_model_config(
-                active_config,
-                request_data.provider,
-                request_data.quick_model,
-                request_data.deep_model,
-            )
-            language = request_data.output_language or model_catalog(active_config)[1]["output_language"]
-            if language not in OUTPUT_LANGUAGES:
-                raise ValueError("invalid analysis configuration")
-            request_data = request_data.model_copy(update={
-                "provider": selected["provider"],
-                "quick_model": selected["quick_model"],
-                "deep_model": selected["deep_model"],
-                "output_language": language,
-            })
-            strategy = request_data.quote_strategy_id or market_data_catalog(active_config, settings_repo.all())["quote_strategy_id"]["value"]
-            if strategy not in QUOTE_STRATEGIES:
-                raise ValueError("invalid analysis configuration")
-            request_data = request_data.model_copy(update={"quote_strategy_id": strategy})
+            request_data = normalize_request(request_data)
         except ValueError as exc:
             raise _error(
                 status.HTTP_422_UNPROCESSABLE_CONTENT,
                 "invalid analysis configuration",
             ) from exc
-        if runner is None:
-            worker = WebRunRunner(
-                active_manager,
-                config=active_config,
-                report_history=active_history,
-                artifact_repository=getattr(app.state, "artifact_repository", None),
-            ).worker
-        elif hasattr(runner, "worker"):
-            worker = runner.worker
-        else:
-            worker = runner
         try:
             record = active_manager.start_run(request_data, worker=worker)
         except MaxConcurrentRunsError as exc:
@@ -578,17 +826,6 @@ def create_app(
                 status.HTTP_409_CONFLICT,
                 USER_MESSAGES.get(TerminalReason.WORKER_ERROR.value, "checkpoint unavailable"),
             )
-        if runner is None:
-            worker = WebRunRunner(
-                active_manager,
-                config=active_config,
-                report_history=active_history,
-                artifact_repository=getattr(app.state, "artifact_repository", None),
-            ).worker
-        elif hasattr(runner, "worker"):
-            worker = runner.worker
-        else:
-            worker = runner
         try:
             record = active_manager.retry_run(
                 parent_run_id=run_id,
