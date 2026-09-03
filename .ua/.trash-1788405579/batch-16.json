@@ -1,0 +1,109 @@
+{
+  "nodes": [
+    {
+      "id": "document:docs/superpowers/plans/2026-08-26-web-analysis-console-plan.md",
+      "type": "document",
+      "name": "2026-08-26-web-analysis-console-plan.md",
+      "filePath": "docs/superpowers/plans/2026-08-26-web-analysis-console-plan.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-26-web-analysis-console-plan 描述目标、方案、任务拆分与验证要求。",
+      "tags": [
+        "documentation",
+        "planning",
+        "project-artifact"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/superpowers/plans/2026-08-27-personal-investor-platform-plan.md",
+      "type": "document",
+      "name": "2026-08-27-personal-investor-platform-plan.md",
+      "filePath": "docs/superpowers/plans/2026-08-27-personal-investor-platform-plan.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-27-personal-investor-platform-plan 描述目标、方案、任务拆分与验证要求。",
+      "tags": [
+        "documentation",
+        "planning",
+        "project-artifact"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/superpowers/plans/2026-08-27-web-report-library-models-language-plan.md",
+      "type": "document",
+      "name": "2026-08-27-web-report-library-models-language-plan.md",
+      "filePath": "docs/superpowers/plans/2026-08-27-web-report-library-models-language-plan.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-27-web-report-library-models-language-plan 描述目标、方案、任务拆分与验证要求。",
+      "tags": [
+        "documentation",
+        "planning",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/superpowers/plans/2026-08-28-report-publish-integrity-plan.md",
+      "type": "document",
+      "name": "2026-08-28-report-publish-integrity-plan.md",
+      "filePath": "docs/superpowers/plans/2026-08-28-report-publish-integrity-plan.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-28-report-publish-integrity-plan 描述目标、方案、任务拆分与验证要求。",
+      "tags": [
+        "documentation",
+        "planning",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/superpowers/plans/2026-08-31-platform-reliability-operations-plan.md",
+      "type": "document",
+      "name": "2026-08-31-platform-reliability-operations-plan.md",
+      "filePath": "docs/superpowers/plans/2026-08-31-platform-reliability-operations-plan.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-31-platform-reliability-operations-plan 描述目标、方案、任务拆分与验证要求。",
+      "tags": [
+        "documentation",
+        "planning",
+        "project-artifact"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/superpowers/plans/2026-08-31-rating-localization-plan.md",
+      "type": "document",
+      "name": "2026-08-31-rating-localization-plan.md",
+      "filePath": "docs/superpowers/plans/2026-08-31-rating-localization-plan.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-31-rating-localization-plan 描述目标、方案、任务拆分与验证要求。",
+      "tags": [
+        "documentation",
+        "planning",
+        "project-artifact"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/superpowers/plans/2026-09-01-compact-section-headers.md",
+      "type": "document",
+      "name": "2026-09-01-compact-section-headers.md",
+      "filePath": "docs/superpowers/plans/2026-09-01-compact-section-headers.md",
+      "summary": "设计或实施计划文档，围绕 2026-09-01-compact-section-headers 描述目标、方案、任务拆分与验证要求。",
+      "tags": [
+        "documentation",
+        "planning",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/superpowers/plans/2026-09-02-manager-concurrency.md",
+      "type": "document",
+      "name": "2026-09-02-manager-concurrency.md",
+      "filePath": "docs/superpowers/plans/2026-09-02-manager-concurrency.md",
+      "summary": "设计或实施计划文档，围绕 2026-09-02-manager-concurrency 描述目标、方案、任务拆分与验证要求。",
+      "tags": [
+        "documentation",
+        "planning",
+        "project-artifact"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": []
+}

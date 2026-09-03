@@ -1,0 +1,1035 @@
+{
+  "nodes": [
+    {
+      "id": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "type": "file",
+      "name": "sentiment_analyst.py",
+      "filePath": "tradingagents/agents/analysts/sentiment_analyst.py",
+      "summary": "实现 tradingagents/agents/analysts/sentiment_analyst.py 在交易分析系统中的核心逻辑，对外提供 _seven_days_back、create_sentiment_analyst、_build_system_message 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/agents/analysts/sentiment_analyst.py:_seven_days_back",
+      "type": "function",
+      "name": "_seven_days_back",
+      "filePath": "tradingagents/agents/analysts/sentiment_analyst.py",
+      "lineRange": [
+        47,
+        48
+      ],
+      "summary": "位于 tradingagents/agents/analysts/sentiment_analyst.py 的函数 _seven_days_back，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/analysts/sentiment_analyst.py:create_sentiment_analyst",
+      "type": "function",
+      "name": "create_sentiment_analyst",
+      "filePath": "tradingagents/agents/analysts/sentiment_analyst.py",
+      "lineRange": [
+        51,
+        123
+      ],
+      "summary": "位于 tradingagents/agents/analysts/sentiment_analyst.py 的函数 create_sentiment_analyst，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tradingagents/agents/analysts/sentiment_analyst.py:_build_system_message",
+      "type": "function",
+      "name": "_build_system_message",
+      "filePath": "tradingagents/agents/analysts/sentiment_analyst.py",
+      "lineRange": [
+        126,
+        188
+      ],
+      "summary": "位于 tradingagents/agents/analysts/sentiment_analyst.py 的函数 _build_system_message，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tradingagents/agents/analysts/sentiment_analyst.py:create_social_media_analyst",
+      "type": "function",
+      "name": "create_social_media_analyst",
+      "filePath": "tradingagents/agents/analysts/sentiment_analyst.py",
+      "lineRange": [
+        194,
+        210
+      ],
+      "summary": "位于 tradingagents/agents/analysts/sentiment_analyst.py 的函数 create_social_media_analyst，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/agents/analysts/social_media_analyst.py",
+      "type": "file",
+      "name": "social_media_analyst.py",
+      "filePath": "tradingagents/agents/analysts/social_media_analyst.py",
+      "summary": "实现 tradingagents/agents/analysts/social_media_analyst.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/agents/managers/portfolio_manager.py",
+      "type": "file",
+      "name": "portfolio_manager.py",
+      "filePath": "tradingagents/agents/managers/portfolio_manager.py",
+      "summary": "实现 tradingagents/agents/managers/portfolio_manager.py 在交易分析系统中的核心逻辑，对外提供 create_portfolio_manager 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/agents/managers/portfolio_manager.py:create_portfolio_manager",
+      "type": "function",
+      "name": "create_portfolio_manager",
+      "filePath": "tradingagents/agents/managers/portfolio_manager.py",
+      "lineRange": [
+        25,
+        95
+      ],
+      "summary": "位于 tradingagents/agents/managers/portfolio_manager.py 的函数 create_portfolio_manager，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tradingagents/agents/managers/research_manager.py",
+      "type": "file",
+      "name": "research_manager.py",
+      "filePath": "tradingagents/agents/managers/research_manager.py",
+      "summary": "实现 tradingagents/agents/managers/research_manager.py 在交易分析系统中的核心逻辑，对外提供 create_research_manager 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/agents/managers/research_manager.py:create_research_manager",
+      "type": "function",
+      "name": "create_research_manager",
+      "filePath": "tradingagents/agents/managers/research_manager.py",
+      "lineRange": [
+        17,
+        70
+      ],
+      "summary": "位于 tradingagents/agents/managers/research_manager.py 的函数 create_research_manager，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tradingagents/agents/researchers/bear_researcher.py",
+      "type": "file",
+      "name": "bear_researcher.py",
+      "filePath": "tradingagents/agents/researchers/bear_researcher.py",
+      "summary": "实现 tradingagents/agents/researchers/bear_researcher.py 在交易分析系统中的核心逻辑，对外提供 create_bear_researcher 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/agents/researchers/bear_researcher.py:create_bear_researcher",
+      "type": "function",
+      "name": "create_bear_researcher",
+      "filePath": "tradingagents/agents/researchers/bear_researcher.py",
+      "lineRange": [
+        7,
+        63
+      ],
+      "summary": "位于 tradingagents/agents/researchers/bear_researcher.py 的函数 create_bear_researcher，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tradingagents/agents/researchers/bull_researcher.py",
+      "type": "file",
+      "name": "bull_researcher.py",
+      "filePath": "tradingagents/agents/researchers/bull_researcher.py",
+      "summary": "实现 tradingagents/agents/researchers/bull_researcher.py 在交易分析系统中的核心逻辑，对外提供 create_bull_researcher 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/agents/researchers/bull_researcher.py:create_bull_researcher",
+      "type": "function",
+      "name": "create_bull_researcher",
+      "filePath": "tradingagents/agents/researchers/bull_researcher.py",
+      "lineRange": [
+        7,
+        61
+      ],
+      "summary": "位于 tradingagents/agents/researchers/bull_researcher.py 的函数 create_bull_researcher，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tradingagents/agents/risk_mgmt/aggressive_debator.py",
+      "type": "file",
+      "name": "aggressive_debator.py",
+      "filePath": "tradingagents/agents/risk_mgmt/aggressive_debator.py",
+      "summary": "实现 tradingagents/agents/risk_mgmt/aggressive_debator.py 在交易分析系统中的核心逻辑，对外提供 create_aggressive_debator 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/risk_mgmt/aggressive_debator.py:create_aggressive_debator",
+      "type": "function",
+      "name": "create_aggressive_debator",
+      "filePath": "tradingagents/agents/risk_mgmt/aggressive_debator.py",
+      "lineRange": [
+        7,
+        59
+      ],
+      "summary": "位于 tradingagents/agents/risk_mgmt/aggressive_debator.py 的函数 create_aggressive_debator，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tradingagents/agents/risk_mgmt/conservative_debator.py",
+      "type": "file",
+      "name": "conservative_debator.py",
+      "filePath": "tradingagents/agents/risk_mgmt/conservative_debator.py",
+      "summary": "实现 tradingagents/agents/risk_mgmt/conservative_debator.py 在交易分析系统中的核心逻辑，对外提供 create_conservative_debator 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/risk_mgmt/conservative_debator.py:create_conservative_debator",
+      "type": "function",
+      "name": "create_conservative_debator",
+      "filePath": "tradingagents/agents/risk_mgmt/conservative_debator.py",
+      "lineRange": [
+        7,
+        61
+      ],
+      "summary": "位于 tradingagents/agents/risk_mgmt/conservative_debator.py 的函数 create_conservative_debator，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tradingagents/agents/risk_mgmt/neutral_debator.py",
+      "type": "file",
+      "name": "neutral_debator.py",
+      "filePath": "tradingagents/agents/risk_mgmt/neutral_debator.py",
+      "summary": "实现 tradingagents/agents/risk_mgmt/neutral_debator.py 在交易分析系统中的核心逻辑，对外提供 create_neutral_debator 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/risk_mgmt/neutral_debator.py:create_neutral_debator",
+      "type": "function",
+      "name": "create_neutral_debator",
+      "filePath": "tradingagents/agents/risk_mgmt/neutral_debator.py",
+      "lineRange": [
+        7,
+        59
+      ],
+      "summary": "位于 tradingagents/agents/risk_mgmt/neutral_debator.py 的函数 create_neutral_debator，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tradingagents/agents/schemas.py",
+      "type": "file",
+      "name": "schemas.py",
+      "filePath": "tradingagents/agents/schemas.py",
+      "summary": "实现 tradingagents/agents/schemas.py 在交易分析系统中的核心逻辑，对外提供 _coerce_optional_float、PortfolioRating、TraderAction 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "模式定义",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tradingagents/agents/schemas.py:_coerce_optional_float",
+      "type": "function",
+      "name": "_coerce_optional_float",
+      "filePath": "tradingagents/agents/schemas.py",
+      "lineRange": [
+        33,
+        36
+      ],
+      "summary": "位于 tradingagents/agents/schemas.py 的函数 _coerce_optional_float，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "模式定义",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/schemas.py:render_research_plan",
+      "type": "function",
+      "name": "render_research_plan",
+      "filePath": "tradingagents/agents/schemas.py",
+      "lineRange": [
+        105,
+        113
+      ],
+      "summary": "位于 tradingagents/agents/schemas.py 的函数 render_research_plan，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "模式定义",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/schemas.py:render_trader_proposal",
+      "type": "function",
+      "name": "render_trader_proposal",
+      "filePath": "tradingagents/agents/schemas.py",
+      "lineRange": [
+        158,
+        180
+      ],
+      "summary": "位于 tradingagents/agents/schemas.py 的函数 render_trader_proposal，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "模式定义",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/schemas.py:render_pm_decision",
+      "type": "function",
+      "name": "render_pm_decision",
+      "filePath": "tradingagents/agents/schemas.py",
+      "lineRange": [
+        231,
+        250
+      ],
+      "summary": "位于 tradingagents/agents/schemas.py 的函数 render_pm_decision，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "模式定义",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/schemas.py:render_sentiment_report",
+      "type": "function",
+      "name": "render_sentiment_report",
+      "filePath": "tradingagents/agents/schemas.py",
+      "lineRange": [
+        328,
+        341
+      ],
+      "summary": "位于 tradingagents/agents/schemas.py 的函数 render_sentiment_report，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "模式定义",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tradingagents/agents/schemas.py:PortfolioRating",
+      "type": "class",
+      "name": "PortfolioRating",
+      "filePath": "tradingagents/agents/schemas.py",
+      "lineRange": [
+        44,
+        51
+      ],
+      "summary": "位于 tradingagents/agents/schemas.py 的类 PortfolioRating，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模式定义",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/agents/schemas.py:TraderAction",
+      "type": "class",
+      "name": "TraderAction",
+      "filePath": "tradingagents/agents/schemas.py",
+      "lineRange": [
+        54,
+        65
+      ],
+      "summary": "位于 tradingagents/agents/schemas.py 的类 TraderAction，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模式定义",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/agents/schemas.py:ResearchPlan",
+      "type": "class",
+      "name": "ResearchPlan",
+      "filePath": "tradingagents/agents/schemas.py",
+      "lineRange": [
+        73,
+        102
+      ],
+      "summary": "位于 tradingagents/agents/schemas.py 的类 ResearchPlan，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模式定义",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/agents/schemas.py:TraderProposal",
+      "type": "class",
+      "name": "TraderProposal",
+      "filePath": "tradingagents/agents/schemas.py",
+      "lineRange": [
+        121,
+        155
+      ],
+      "summary": "位于 tradingagents/agents/schemas.py 的类 TraderProposal，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模式定义",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/agents/schemas.py:PortfolioDecision",
+      "type": "class",
+      "name": "PortfolioDecision",
+      "filePath": "tradingagents/agents/schemas.py",
+      "lineRange": [
+        188,
+        228
+      ],
+      "summary": "位于 tradingagents/agents/schemas.py 的类 PortfolioDecision，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模式定义",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/agents/schemas.py:SentimentBand",
+      "type": "class",
+      "name": "SentimentBand",
+      "filePath": "tradingagents/agents/schemas.py",
+      "lineRange": [
+        258,
+        270
+      ],
+      "summary": "位于 tradingagents/agents/schemas.py 的类 SentimentBand，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模式定义",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/agents/schemas.py:SentimentReport",
+      "type": "class",
+      "name": "SentimentReport",
+      "filePath": "tradingagents/agents/schemas.py",
+      "lineRange": [
+        273,
+        325
+      ],
+      "summary": "位于 tradingagents/agents/schemas.py 的类 SentimentReport，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模式定义",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tradingagents/agents/trader/trader.py",
+      "type": "file",
+      "name": "trader.py",
+      "filePath": "tradingagents/agents/trader/trader.py",
+      "summary": "实现 tradingagents/agents/trader/trader.py 在交易分析系统中的核心逻辑，对外提供 create_trader 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/agents/trader/trader.py:create_trader",
+      "type": "function",
+      "name": "create_trader",
+      "filePath": "tradingagents/agents/trader/trader.py",
+      "lineRange": [
+        21,
+        67
+      ],
+      "summary": "位于 tradingagents/agents/trader/trader.py 的函数 create_trader，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "target": "function:tradingagents/agents/analysts/sentiment_analyst.py:_seven_days_back",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "target": "function:tradingagents/agents/analysts/sentiment_analyst.py:create_sentiment_analyst",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "target": "function:tradingagents/agents/analysts/sentiment_analyst.py:_build_system_message",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "target": "function:tradingagents/agents/analysts/sentiment_analyst.py:create_social_media_analyst",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "target": "function:tradingagents/agents/analysts/sentiment_analyst.py:_seven_days_back",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "target": "function:tradingagents/agents/analysts/sentiment_analyst.py:create_sentiment_analyst",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "target": "function:tradingagents/agents/analysts/sentiment_analyst.py:_build_system_message",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "target": "function:tradingagents/agents/analysts/sentiment_analyst.py:create_social_media_analyst",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "target": "file:tradingagents/agents/schemas.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "target": "file:tradingagents/agents/utils/structured.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "target": "file:tradingagents/dataflows/reddit.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "target": "file:tradingagents/dataflows/stocktwits.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/social_media_analyst.py",
+      "target": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/managers/portfolio_manager.py",
+      "target": "function:tradingagents/agents/managers/portfolio_manager.py:create_portfolio_manager",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/managers/portfolio_manager.py",
+      "target": "function:tradingagents/agents/managers/portfolio_manager.py:create_portfolio_manager",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/managers/portfolio_manager.py",
+      "target": "file:tradingagents/agents/schemas.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/managers/portfolio_manager.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/managers/portfolio_manager.py",
+      "target": "file:tradingagents/agents/utils/structured.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/managers/research_manager.py",
+      "target": "function:tradingagents/agents/managers/research_manager.py:create_research_manager",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/managers/research_manager.py",
+      "target": "function:tradingagents/agents/managers/research_manager.py:create_research_manager",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/managers/research_manager.py",
+      "target": "file:tradingagents/agents/schemas.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/managers/research_manager.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/managers/research_manager.py",
+      "target": "file:tradingagents/agents/utils/structured.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/researchers/bear_researcher.py",
+      "target": "function:tradingagents/agents/researchers/bear_researcher.py:create_bear_researcher",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/researchers/bear_researcher.py",
+      "target": "function:tradingagents/agents/researchers/bear_researcher.py:create_bear_researcher",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/researchers/bear_researcher.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/researchers/bull_researcher.py",
+      "target": "function:tradingagents/agents/researchers/bull_researcher.py:create_bull_researcher",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/researchers/bull_researcher.py",
+      "target": "function:tradingagents/agents/researchers/bull_researcher.py:create_bull_researcher",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/researchers/bull_researcher.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/risk_mgmt/aggressive_debator.py",
+      "target": "function:tradingagents/agents/risk_mgmt/aggressive_debator.py:create_aggressive_debator",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/risk_mgmt/aggressive_debator.py",
+      "target": "function:tradingagents/agents/risk_mgmt/aggressive_debator.py:create_aggressive_debator",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/risk_mgmt/aggressive_debator.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/risk_mgmt/conservative_debator.py",
+      "target": "function:tradingagents/agents/risk_mgmt/conservative_debator.py:create_conservative_debator",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/risk_mgmt/conservative_debator.py",
+      "target": "function:tradingagents/agents/risk_mgmt/conservative_debator.py:create_conservative_debator",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/risk_mgmt/conservative_debator.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/risk_mgmt/neutral_debator.py",
+      "target": "function:tradingagents/agents/risk_mgmt/neutral_debator.py:create_neutral_debator",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/risk_mgmt/neutral_debator.py",
+      "target": "function:tradingagents/agents/risk_mgmt/neutral_debator.py:create_neutral_debator",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/risk_mgmt/neutral_debator.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "function:tradingagents/agents/schemas.py:_coerce_optional_float",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "function:tradingagents/agents/schemas.py:render_research_plan",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "function:tradingagents/agents/schemas.py:render_trader_proposal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "function:tradingagents/agents/schemas.py:render_pm_decision",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "function:tradingagents/agents/schemas.py:render_sentiment_report",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "class:tradingagents/agents/schemas.py:PortfolioRating",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "class:tradingagents/agents/schemas.py:TraderAction",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "class:tradingagents/agents/schemas.py:ResearchPlan",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "class:tradingagents/agents/schemas.py:TraderProposal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "class:tradingagents/agents/schemas.py:PortfolioDecision",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "class:tradingagents/agents/schemas.py:SentimentBand",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "class:tradingagents/agents/schemas.py:SentimentReport",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "function:tradingagents/agents/schemas.py:_coerce_optional_float",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "class:tradingagents/agents/schemas.py:PortfolioRating",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "class:tradingagents/agents/schemas.py:TraderAction",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "class:tradingagents/agents/schemas.py:ResearchPlan",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "function:tradingagents/agents/schemas.py:render_research_plan",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "class:tradingagents/agents/schemas.py:TraderProposal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "function:tradingagents/agents/schemas.py:render_trader_proposal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "class:tradingagents/agents/schemas.py:PortfolioDecision",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "function:tradingagents/agents/schemas.py:render_pm_decision",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "class:tradingagents/agents/schemas.py:SentimentBand",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "class:tradingagents/agents/schemas.py:SentimentReport",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/schemas.py",
+      "target": "function:tradingagents/agents/schemas.py:render_sentiment_report",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/trader/trader.py",
+      "target": "function:tradingagents/agents/trader/trader.py:create_trader",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/trader/trader.py",
+      "target": "function:tradingagents/agents/trader/trader.py:create_trader",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/trader/trader.py",
+      "target": "file:tradingagents/agents/schemas.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/trader/trader.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/trader/trader.py",
+      "target": "file:tradingagents/agents/utils/structured.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

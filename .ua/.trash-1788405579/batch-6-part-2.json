@@ -1,0 +1,1071 @@
+{
+  "nodes": [
+    {
+      "id": "file:web/config.py",
+      "type": "file",
+      "name": "config.py",
+      "filePath": "web/config.py",
+      "summary": "实现 web/config.py 在交易分析系统中的核心逻辑，对外提供 _parse_integer_setting、resolve_run_lifecycle_config、market_data_catalog 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/config.py:_parse_integer_setting",
+      "type": "function",
+      "name": "_parse_integer_setting",
+      "filePath": "web/config.py",
+      "lineRange": [
+        48,
+        57
+      ],
+      "summary": "位于 web/config.py 的函数 _parse_integer_setting，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/config.py:resolve_run_lifecycle_config",
+      "type": "function",
+      "name": "resolve_run_lifecycle_config",
+      "filePath": "web/config.py",
+      "lineRange": [
+        60,
+        85
+      ],
+      "summary": "位于 web/config.py 的函数 resolve_run_lifecycle_config，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/config.py:market_data_catalog",
+      "type": "function",
+      "name": "market_data_catalog",
+      "filePath": "web/config.py",
+      "lineRange": [
+        88,
+        156
+      ],
+      "summary": "位于 web/config.py 的函数 market_data_catalog，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/config.py:_options",
+      "type": "function",
+      "name": "_options",
+      "filePath": "web/config.py",
+      "lineRange": [
+        184,
+        189
+      ],
+      "summary": "位于 web/config.py 的函数 _options，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/config.py:model_catalog",
+      "type": "function",
+      "name": "model_catalog",
+      "filePath": "web/config.py",
+      "lineRange": [
+        192,
+        224
+      ],
+      "summary": "位于 web/config.py 的函数 model_catalog，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/config.py:resolve_model_config",
+      "type": "function",
+      "name": "resolve_model_config",
+      "filePath": "web/config.py",
+      "lineRange": [
+        227,
+        249
+      ],
+      "summary": "位于 web/config.py 的函数 resolve_model_config，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:web/error_classifier.py",
+      "type": "file",
+      "name": "error_classifier.py",
+      "filePath": "web/error_classifier.py",
+      "summary": "实现 web/error_classifier.py 在交易分析系统中的核心逻辑，对外提供 ProviderErrorInfo、_sanitize_detail、_looks_like_timeout 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/error_classifier.py:_sanitize_detail",
+      "type": "function",
+      "name": "_sanitize_detail",
+      "filePath": "web/error_classifier.py",
+      "lineRange": [
+        54,
+        62
+      ],
+      "summary": "位于 web/error_classifier.py 的函数 _sanitize_detail，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/error_classifier.py:_looks_like_timeout",
+      "type": "function",
+      "name": "_looks_like_timeout",
+      "filePath": "web/error_classifier.py",
+      "lineRange": [
+        65,
+        72
+      ],
+      "summary": "位于 web/error_classifier.py 的函数 _looks_like_timeout，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/error_classifier.py:_looks_like_rate_limit",
+      "type": "function",
+      "name": "_looks_like_rate_limit",
+      "filePath": "web/error_classifier.py",
+      "lineRange": [
+        75,
+        86
+      ],
+      "summary": "位于 web/error_classifier.py 的函数 _looks_like_rate_limit，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/error_classifier.py:_looks_like_auth",
+      "type": "function",
+      "name": "_looks_like_auth",
+      "filePath": "web/error_classifier.py",
+      "lineRange": [
+        89,
+        100
+      ],
+      "summary": "位于 web/error_classifier.py 的函数 _looks_like_auth，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/error_classifier.py:_looks_like_unavailable",
+      "type": "function",
+      "name": "_looks_like_unavailable",
+      "filePath": "web/error_classifier.py",
+      "lineRange": [
+        103,
+        114
+      ],
+      "summary": "位于 web/error_classifier.py 的函数 _looks_like_unavailable，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/error_classifier.py:_extract_status_code",
+      "type": "function",
+      "name": "_extract_status_code",
+      "filePath": "web/error_classifier.py",
+      "lineRange": [
+        117,
+        126
+      ],
+      "summary": "位于 web/error_classifier.py 的函数 _extract_status_code，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/error_classifier.py:classify_provider_exception",
+      "type": "function",
+      "name": "classify_provider_exception",
+      "filePath": "web/error_classifier.py",
+      "lineRange": [
+        129,
+        201
+      ],
+      "summary": "位于 web/error_classifier.py 的函数 classify_provider_exception，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/error_classifier.py:worker_error_info",
+      "type": "function",
+      "name": "worker_error_info",
+      "filePath": "web/error_classifier.py",
+      "lineRange": [
+        204,
+        224
+      ],
+      "summary": "位于 web/error_classifier.py 的函数 worker_error_info，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:web/error_classifier.py:ProviderErrorInfo",
+      "type": "class",
+      "name": "ProviderErrorInfo",
+      "filePath": "web/error_classifier.py",
+      "lineRange": [
+        26,
+        51
+      ],
+      "summary": "位于 web/error_classifier.py 的类 ProviderErrorInfo，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/error_codes.py",
+      "type": "file",
+      "name": "error_codes.py",
+      "filePath": "web/error_codes.py",
+      "summary": "实现 web/error_codes.py 在交易分析系统中的核心逻辑，对外提供 TerminalReason 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/error_codes.py:TerminalReason",
+      "type": "class",
+      "name": "TerminalReason",
+      "filePath": "web/error_codes.py",
+      "lineRange": [
+        14,
+        37
+      ],
+      "summary": "位于 web/error_codes.py 的类 TerminalReason，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/history.py",
+      "type": "file",
+      "name": "history.py",
+      "filePath": "web/history.py",
+      "summary": "实现 web/history.py 在交易分析系统中的核心逻辑，对外提供 ReportNotFound、_legacy_digest、_ReportEntry 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/history.py:_legacy_digest",
+      "type": "function",
+      "name": "_legacy_digest",
+      "filePath": "web/history.py",
+      "lineRange": [
+        49,
+        50
+      ],
+      "summary": "位于 web/history.py 的函数 _legacy_digest，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:web/history.py:ReportNotFound",
+      "type": "class",
+      "name": "ReportNotFound",
+      "filePath": "web/history.py",
+      "lineRange": [
+        20,
+        21
+      ],
+      "summary": "位于 web/history.py 的类 ReportNotFound，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/history.py:_ReportEntry",
+      "type": "class",
+      "name": "_ReportEntry",
+      "filePath": "web/history.py",
+      "lineRange": [
+        54,
+        78
+      ],
+      "summary": "位于 web/history.py 的类 _ReportEntry，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/history.py:ReportHistory",
+      "type": "class",
+      "name": "ReportHistory",
+      "filePath": "web/history.py",
+      "lineRange": [
+        81,
+        571
+      ],
+      "summary": "位于 web/history.py 的类 ReportHistory，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/lease.py",
+      "type": "file",
+      "name": "lease.py",
+      "filePath": "web/lease.py",
+      "summary": "实现 web/lease.py 在交易分析系统中的核心逻辑，对外提供 _RunManagerLike、generate_owner_token、WorkerLease 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/lease.py:generate_owner_token",
+      "type": "function",
+      "name": "generate_owner_token",
+      "filePath": "web/lease.py",
+      "lineRange": [
+        26,
+        29
+      ],
+      "summary": "位于 web/lease.py 的函数 generate_owner_token，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:web/lease.py:_RunManagerLike",
+      "type": "class",
+      "name": "_RunManagerLike",
+      "filePath": "web/lease.py",
+      "lineRange": [
+        22,
+        23
+      ],
+      "summary": "位于 web/lease.py 的类 _RunManagerLike，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/lease.py:WorkerLease",
+      "type": "class",
+      "name": "WorkerLease",
+      "filePath": "web/lease.py",
+      "lineRange": [
+        32,
+        109
+      ],
+      "summary": "位于 web/lease.py 的类 WorkerLease，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/manager.py",
+      "type": "file",
+      "name": "manager.py",
+      "filePath": "web/manager.py",
+      "summary": "实现 web/manager.py 在交易分析系统中的核心逻辑，对外提供 MaxConcurrentRunsError、AssetBusyError、EventBatch 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:web/manager.py:MaxConcurrentRunsError",
+      "type": "class",
+      "name": "MaxConcurrentRunsError",
+      "filePath": "web/manager.py",
+      "lineRange": [
+        43,
+        44
+      ],
+      "summary": "位于 web/manager.py 的类 MaxConcurrentRunsError，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/manager.py:AssetBusyError",
+      "type": "class",
+      "name": "AssetBusyError",
+      "filePath": "web/manager.py",
+      "lineRange": [
+        47,
+        48
+      ],
+      "summary": "位于 web/manager.py 的类 AssetBusyError，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/manager.py:EventBatch",
+      "type": "class",
+      "name": "EventBatch",
+      "filePath": "web/manager.py",
+      "lineRange": [
+        56,
+        66
+      ],
+      "summary": "位于 web/manager.py 的类 EventBatch，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/manager.py:_ManagedRun",
+      "type": "class",
+      "name": "_ManagedRun",
+      "filePath": "web/manager.py",
+      "lineRange": [
+        70,
+        78
+      ],
+      "summary": "位于 web/manager.py 的类 _ManagedRun，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/manager.py:RunManager",
+      "type": "class",
+      "name": "RunManager",
+      "filePath": "web/manager.py",
+      "lineRange": [
+        81,
+        1578
+      ],
+      "summary": "位于 web/manager.py 的类 RunManager，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/markdown.py",
+      "type": "file",
+      "name": "markdown.py",
+      "filePath": "web/markdown.py",
+      "summary": "实现 web/markdown.py 在交易分析系统中的核心逻辑，对外提供 render_markdown 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/markdown.py:render_markdown",
+      "type": "function",
+      "name": "render_markdown",
+      "filePath": "web/markdown.py",
+      "lineRange": [
+        61,
+        74
+      ],
+      "summary": "位于 web/markdown.py 的函数 render_markdown，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:web/config.py",
+      "target": "function:web/config.py:_parse_integer_setting",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/config.py",
+      "target": "function:web/config.py:resolve_run_lifecycle_config",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/config.py",
+      "target": "function:web/config.py:market_data_catalog",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/config.py",
+      "target": "function:web/config.py:_options",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/config.py",
+      "target": "function:web/config.py:model_catalog",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/config.py",
+      "target": "function:web/config.py:resolve_model_config",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/config.py",
+      "target": "function:web/config.py:_parse_integer_setting",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/config.py",
+      "target": "function:web/config.py:resolve_run_lifecycle_config",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/config.py",
+      "target": "function:web/config.py:market_data_catalog",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/config.py",
+      "target": "function:web/config.py:_options",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/config.py",
+      "target": "function:web/config.py:model_catalog",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/config.py",
+      "target": "function:web/config.py:resolve_model_config",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/config.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/config.py",
+      "target": "file:tradingagents/llm_clients/model_catalog.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/error_classifier.py",
+      "target": "function:web/error_classifier.py:_sanitize_detail",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/error_classifier.py",
+      "target": "function:web/error_classifier.py:_looks_like_timeout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/error_classifier.py",
+      "target": "function:web/error_classifier.py:_looks_like_rate_limit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/error_classifier.py",
+      "target": "function:web/error_classifier.py:_looks_like_auth",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/error_classifier.py",
+      "target": "function:web/error_classifier.py:_looks_like_unavailable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/error_classifier.py",
+      "target": "function:web/error_classifier.py:_extract_status_code",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/error_classifier.py",
+      "target": "function:web/error_classifier.py:classify_provider_exception",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/error_classifier.py",
+      "target": "function:web/error_classifier.py:worker_error_info",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/error_classifier.py",
+      "target": "class:web/error_classifier.py:ProviderErrorInfo",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/error_classifier.py",
+      "target": "class:web/error_classifier.py:ProviderErrorInfo",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/error_classifier.py",
+      "target": "function:web/error_classifier.py:_sanitize_detail",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/error_classifier.py",
+      "target": "function:web/error_classifier.py:_looks_like_timeout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/error_classifier.py",
+      "target": "function:web/error_classifier.py:_looks_like_rate_limit",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/error_classifier.py",
+      "target": "function:web/error_classifier.py:_looks_like_auth",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/error_classifier.py",
+      "target": "function:web/error_classifier.py:_looks_like_unavailable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/error_classifier.py",
+      "target": "function:web/error_classifier.py:_extract_status_code",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/error_classifier.py",
+      "target": "function:web/error_classifier.py:classify_provider_exception",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/error_classifier.py",
+      "target": "function:web/error_classifier.py:worker_error_info",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/error_classifier.py",
+      "target": "file:web/error_codes.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/error_codes.py",
+      "target": "class:web/error_codes.py:TerminalReason",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/error_codes.py",
+      "target": "class:web/error_codes.py:TerminalReason",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/history.py",
+      "target": "function:web/history.py:_legacy_digest",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/history.py",
+      "target": "class:web/history.py:ReportNotFound",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/history.py",
+      "target": "class:web/history.py:_ReportEntry",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/history.py",
+      "target": "class:web/history.py:ReportHistory",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/history.py",
+      "target": "class:web/history.py:ReportNotFound",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/history.py",
+      "target": "function:web/history.py:_legacy_digest",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/history.py",
+      "target": "class:web/history.py:_ReportEntry",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/history.py",
+      "target": "class:web/history.py:ReportHistory",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/history.py",
+      "target": "file:web/markdown.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/history.py",
+      "target": "file:web/repositories.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/lease.py",
+      "target": "function:web/lease.py:generate_owner_token",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/lease.py",
+      "target": "class:web/lease.py:_RunManagerLike",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/lease.py",
+      "target": "class:web/lease.py:WorkerLease",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/lease.py",
+      "target": "class:web/lease.py:_RunManagerLike",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/lease.py",
+      "target": "function:web/lease.py:generate_owner_token",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/lease.py",
+      "target": "class:web/lease.py:WorkerLease",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/manager.py",
+      "target": "class:web/manager.py:MaxConcurrentRunsError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/manager.py",
+      "target": "class:web/manager.py:AssetBusyError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/manager.py",
+      "target": "class:web/manager.py:EventBatch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/manager.py",
+      "target": "class:web/manager.py:_ManagedRun",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/manager.py",
+      "target": "class:web/manager.py:RunManager",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/manager.py",
+      "target": "class:web/manager.py:MaxConcurrentRunsError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/manager.py",
+      "target": "class:web/manager.py:AssetBusyError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/manager.py",
+      "target": "class:web/manager.py:EventBatch",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/manager.py",
+      "target": "class:web/manager.py:_ManagedRun",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/manager.py",
+      "target": "class:web/manager.py:RunManager",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/manager.py",
+      "target": "file:web/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/manager.py",
+      "target": "file:web/error_codes.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/manager.py",
+      "target": "file:web/lease.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/manager.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/manager.py",
+      "target": "file:web/repositories.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/markdown.py",
+      "target": "function:web/markdown.py:render_markdown",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/markdown.py",
+      "target": "function:web/markdown.py:render_markdown",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

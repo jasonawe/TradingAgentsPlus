@@ -1,0 +1,372 @@
+{
+  "projectRoot": "/Users/shenkang/workroom/languages/agent/TradingAgents",
+  "batchFiles": [
+    {
+      "path": "cli/__init__.py",
+      "language": "python",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "cli/models.py",
+      "language": "python",
+      "sizeLines": 15,
+      "fileCategory": "code"
+    },
+    {
+      "path": "cli/utils.py",
+      "language": "python",
+      "sizeLines": 688,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_cli_symbol_handling.py",
+      "language": "python",
+      "sizeLines": 62,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_crypto_asset_mode.py",
+      "language": "python",
+      "sizeLines": 56,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_market_localization.py",
+      "language": "python",
+      "sizeLines": 163,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_openrouter_model_select.py",
+      "language": "python",
+      "sizeLines": 122,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_ticker_symbol_handling.py",
+      "language": "python",
+      "sizeLines": 29,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_market_data.py",
+      "language": "python",
+      "sizeLines": 496,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_market_providers.py",
+      "language": "python",
+      "sizeLines": 124,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/market_data.py",
+      "language": "python",
+      "sizeLines": 474,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/market_localization.py",
+      "language": "python",
+      "sizeLines": 244,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/market_models.py",
+      "language": "python",
+      "sizeLines": 251,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/providers/__init__.py",
+      "language": "python",
+      "sizeLines": 4,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/providers/alpha_vantage_provider.py",
+      "language": "python",
+      "sizeLines": 96,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/providers/yfinance_provider.py",
+      "language": "python",
+      "sizeLines": 129,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "cli/__init__.py": [],
+    "cli/models.py": [],
+    "cli/utils.py": [
+      "cli/models.py",
+      "tradingagents/llm_clients/api_key_env.py",
+      "tradingagents/llm_clients/model_catalog.py"
+    ],
+    "tests/test_cli_symbol_handling.py": [
+      "cli/models.py",
+      "cli/utils.py",
+      "tradingagents/dataflows/symbol_utils.py"
+    ],
+    "tests/test_crypto_asset_mode.py": [
+      "cli/models.py",
+      "cli/utils.py",
+      "tradingagents/graph/propagation.py"
+    ],
+    "tests/test_market_localization.py": [
+      "web/market_localization.py"
+    ],
+    "tests/test_openrouter_model_select.py": [
+      "cli/__init__.py",
+      "cli/utils.py"
+    ],
+    "tests/test_ticker_symbol_handling.py": [
+      "cli/utils.py",
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tests/test_web_market_data.py": [
+      "web/market_data.py",
+      "web/market_models.py"
+    ],
+    "tests/test_web_market_providers.py": [
+      "web/market_models.py",
+      "web/providers/alpha_vantage_provider.py",
+      "web/providers/yfinance_provider.py"
+    ],
+    "web/market_data.py": [
+      "web/market_models.py"
+    ],
+    "web/market_localization.py": [],
+    "web/market_models.py": [
+      "web/market_localization.py"
+    ],
+    "web/providers/__init__.py": [
+      "web/providers/alpha_vantage_provider.py",
+      "web/providers/yfinance_provider.py"
+    ],
+    "web/providers/alpha_vantage_provider.py": [
+      "cli/utils.py",
+      "tradingagents/dataflows/alpha_vantage_common.py",
+      "web/market_models.py"
+    ],
+    "web/providers/yfinance_provider.py": [
+      "cli/utils.py",
+      "web/market_models.py"
+    ]
+  },
+  "neighborMap": {
+    "cli/models.py": [
+      {
+        "path": "web/models.py",
+        "batchIndex": 6,
+        "symbols": [
+          "RunStatus",
+          "EventName",
+          "AnalysisRequest",
+          "RunRecord",
+          "HistoryRecord",
+          "EventPayload",
+          "RunSnapshotPayload",
+          "RunStartedPayload",
+          "PhaseChangedPayload",
+          "AgentStatusPayload",
+          "ProgressPayload",
+          "MessagePayload",
+          "ActivityPayload",
+          "RunCompletedPayload",
+          "RunFailedPayload",
+          "RunCancelledPayload",
+          "RunInterruptedPayload",
+          "RunTimedOutPayload",
+          "EventEnvelope"
+        ]
+      }
+    ],
+    "cli/utils.py": [
+      {
+        "path": "tradingagents/llm_clients/api_key_env.py",
+        "batchIndex": 4,
+        "symbols": [
+          "get_api_key_env"
+        ]
+      },
+      {
+        "path": "tradingagents/llm_clients/model_catalog.py",
+        "batchIndex": 4,
+        "symbols": [
+          "get_model_options",
+          "get_known_models"
+        ]
+      },
+      {
+        "path": "cli/main.py",
+        "batchIndex": 3,
+        "symbols": [
+          "default_command",
+          "web_command",
+          "MessageBuffer",
+          "create_layout",
+          "format_tokens",
+          "update_display",
+          "get_user_selections",
+          "get_analysis_date",
+          "save_report_to_disk",
+          "display_complete_report",
+          "update_research_team_status",
+          "update_analyst_statuses",
+          "extract_content_string",
+          "classify_message_type",
+          "format_tool_args",
+          "_build_run_config",
+          "run_analysis",
+          "analyze"
+        ]
+      },
+      {
+        "path": "web/models.py",
+        "batchIndex": 6,
+        "symbols": [
+          "RunStatus",
+          "EventName",
+          "AnalysisRequest",
+          "RunRecord",
+          "HistoryRecord",
+          "EventPayload",
+          "RunSnapshotPayload",
+          "RunStartedPayload",
+          "PhaseChangedPayload",
+          "AgentStatusPayload",
+          "ProgressPayload",
+          "MessagePayload",
+          "ActivityPayload",
+          "RunCompletedPayload",
+          "RunFailedPayload",
+          "RunCancelledPayload",
+          "RunInterruptedPayload",
+          "RunTimedOutPayload",
+          "EventEnvelope"
+        ]
+      },
+      {
+        "path": "web/repositories.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_now",
+          "_row",
+          "WatchlistRepository",
+          "QuoteRepository",
+          "SnapshotRepository",
+          "SettingsRepository",
+          "AnalysisRunRepository",
+          "ReportIndexRepository",
+          "ProviderHealthRepository",
+          "ReportRepository"
+        ]
+      }
+    ],
+    "tests/test_cli_symbol_handling.py": [
+      {
+        "path": "tradingagents/dataflows/symbol_utils.py",
+        "batchIndex": 2,
+        "symbols": [
+          "crypto_base",
+          "_normalize_crypto",
+          "normalize_symbol",
+          "is_yahoo_safe"
+        ]
+      }
+    ],
+    "tests/test_crypto_asset_mode.py": [
+      {
+        "path": "tradingagents/graph/propagation.py",
+        "batchIndex": 3,
+        "symbols": [
+          "PropagationCancelled",
+          "Propagator"
+        ]
+      }
+    ],
+    "tests/test_ticker_symbol_handling.py": [
+      {
+        "path": "tradingagents/agents/utils/agent_utils.py",
+        "batchIndex": 1,
+        "symbols": [
+          "get_language_instruction",
+          "_clean_identity_value",
+          "resolve_instrument_identity",
+          "build_instrument_context",
+          "get_instrument_context_from_state",
+          "create_msg_delete"
+        ]
+      }
+    ],
+    "web/market_data.py": [
+      {
+        "path": "web/app.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_record_json",
+          "_error",
+          "_safe_filename",
+          "_config_view",
+          "_watchlist_view",
+          "_event_sse",
+          "_cursor",
+          "create_app",
+          "_request_disconnected"
+        ]
+      }
+    ],
+    "web/market_models.py": [
+      {
+        "path": "web/app.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_record_json",
+          "_error",
+          "_safe_filename",
+          "_config_view",
+          "_watchlist_view",
+          "_event_sse",
+          "_cursor",
+          "create_app",
+          "_request_disconnected"
+        ]
+      }
+    ],
+    "web/providers/__init__.py": [
+      {
+        "path": "web/app.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_record_json",
+          "_error",
+          "_safe_filename",
+          "_config_view",
+          "_watchlist_view",
+          "_event_sse",
+          "_cursor",
+          "create_app",
+          "_request_disconnected"
+        ]
+      }
+    ],
+    "web/providers/alpha_vantage_provider.py": [
+      {
+        "path": "tradingagents/dataflows/alpha_vantage_common.py",
+        "batchIndex": 8,
+        "symbols": [
+          "AlphaVantageNotConfiguredError",
+          "get_api_key",
+          "format_datetime_for_api",
+          "AlphaVantageRateLimitError",
+          "_make_api_request",
+          "_filter_csv_by_date_range"
+        ]
+      }
+    ]
+  }
+}

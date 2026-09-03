@@ -1,0 +1,1466 @@
+{
+  "projectRoot": "/Users/shenkang/workroom/languages/agent/TradingAgents",
+  "batchFiles": [
+    {
+      "path": "tests/test_web_storage.py",
+      "language": "python",
+      "sizeLines": 265,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/dataflows/utils.py",
+      "language": "python",
+      "sizeLines": 75,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/graph/checkpointer.py",
+      "language": "python",
+      "sizeLines": 98,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/__init__.py",
+      "language": "python",
+      "sizeLines": 5,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/app.py",
+      "language": "python",
+      "sizeLines": 710,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/artifacts.py",
+      "language": "python",
+      "sizeLines": 191,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/checkpoint_resume.py",
+      "language": "python",
+      "sizeLines": 147,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/config.py",
+      "language": "python",
+      "sizeLines": 249,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/error_classifier.py",
+      "language": "python",
+      "sizeLines": 227,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/error_codes.py",
+      "language": "python",
+      "sizeLines": 118,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/history.py",
+      "language": "python",
+      "sizeLines": 571,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/lease.py",
+      "language": "python",
+      "sizeLines": 112,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/manager.py",
+      "language": "python",
+      "sizeLines": 1578,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/markdown.py",
+      "language": "python",
+      "sizeLines": 74,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/models.py",
+      "language": "python",
+      "sizeLines": 371,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/repositories.py",
+      "language": "python",
+      "sizeLines": 939,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/runner.py",
+      "language": "python",
+      "sizeLines": 478,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/snapshots.py",
+      "language": "python",
+      "sizeLines": 252,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/storage.py",
+      "language": "python",
+      "sizeLines": 240,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "tests/test_web_storage.py": [
+      "web/storage.py"
+    ],
+    "tradingagents/dataflows/utils.py": [],
+    "tradingagents/graph/checkpointer.py": [
+      "tradingagents/dataflows/utils.py"
+    ],
+    "web/__init__.py": [
+      "web/models.py"
+    ],
+    "web/app.py": [
+      "tradingagents/default_config.py",
+      "web/artifacts.py",
+      "web/config.py",
+      "web/error_codes.py",
+      "web/history.py",
+      "web/manager.py",
+      "web/market_data.py",
+      "web/market_models.py",
+      "web/models.py",
+      "web/providers/__init__.py",
+      "web/repositories.py",
+      "web/runner.py",
+      "web/snapshots.py",
+      "web/storage.py"
+    ],
+    "web/artifacts.py": [
+      "web/storage.py"
+    ],
+    "web/checkpoint_resume.py": [
+      "tradingagents/graph/checkpointer.py"
+    ],
+    "web/config.py": [
+      "tradingagents/default_config.py",
+      "tradingagents/llm_clients/model_catalog.py"
+    ],
+    "web/error_classifier.py": [
+      "web/error_codes.py"
+    ],
+    "web/error_codes.py": [],
+    "web/history.py": [
+      "web/markdown.py",
+      "web/repositories.py"
+    ],
+    "web/lease.py": [],
+    "web/manager.py": [
+      "web/config.py",
+      "web/error_codes.py",
+      "web/lease.py",
+      "web/models.py",
+      "web/repositories.py"
+    ],
+    "web/markdown.py": [],
+    "web/models.py": [
+      "cli/models.py",
+      "cli/utils.py"
+    ],
+    "web/repositories.py": [
+      "cli/utils.py",
+      "web/storage.py"
+    ],
+    "web/runner.py": [
+      "tradingagents/dataflows/utils.py",
+      "tradingagents/default_config.py",
+      "tradingagents/graph/propagation.py",
+      "tradingagents/graph/trading_graph.py",
+      "web/artifacts.py",
+      "web/checkpoint_resume.py",
+      "web/error_classifier.py",
+      "web/error_codes.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/snapshots.py"
+    ],
+    "web/snapshots.py": [],
+    "web/storage.py": []
+  },
+  "neighborMap": {
+    "tradingagents/dataflows/utils.py": [
+      {
+        "path": "tests/test_safe_ticker_component.py",
+        "batchIndex": 5,
+        "symbols": [
+          "TestSafeTickerComponent"
+        ]
+      },
+      {
+        "path": "tradingagents/dataflows/stockstats_utils.py",
+        "batchIndex": 2,
+        "symbols": [
+          "yf_retry",
+          "_ensure_date_column",
+          "_clean_dataframe",
+          "_coerce_ohlcv_dates",
+          "_assert_ohlcv_not_stale",
+          "_needs_same_day_refresh",
+          "load_ohlcv",
+          "filter_financials_by_date",
+          "StockstatsUtils"
+        ]
+      },
+      {
+        "path": "tradingagents/graph/trading_graph.py",
+        "batchIndex": 3,
+        "symbols": [
+          "_coerce_max_retries",
+          "TradingAgentsGraph"
+        ]
+      }
+    ],
+    "tradingagents/graph/checkpointer.py": [
+      {
+        "path": "tests/test_checkpoint_resume.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_SimpleState",
+          "_node_a",
+          "_node_b",
+          "_build_graph",
+          "TestCheckpointResume",
+          "TestCheckpointSignature"
+        ]
+      },
+      {
+        "path": "tests/test_web_retry.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "_State",
+          "_node_a",
+          "_node_b",
+          "_build_graph",
+          "_create_checkpoint",
+          "test_checkpoint_signature_changes_when_graph_inputs_change",
+          "test_can_retry_rejects_non_terminal_state",
+          "test_can_retry_rejects_when_reason_not_retryable",
+          "test_can_retry_requires_existing_checkpoint",
+          "test_can_retry_rejects_when_another_run_active",
+          "test_retry_run_creates_a_new_run_with_parent_link",
+          "test_retry_run_409_when_ineligible",
+          "test_checkpoint_round_trip_via_signature_helper"
+        ]
+      },
+      {
+        "path": "tradingagents/graph/trading_graph.py",
+        "batchIndex": 3,
+        "symbols": [
+          "_coerce_max_retries",
+          "TradingAgentsGraph"
+        ]
+      }
+    ],
+    "web/app.py": [
+      {
+        "path": "tradingagents/default_config.py",
+        "batchIndex": 2,
+        "symbols": [
+          "_coerce",
+          "_apply_env_overrides"
+        ]
+      },
+      {
+        "path": "web/market_data.py",
+        "batchIndex": 7,
+        "symbols": [
+          "_DaemonExecutor",
+          "ProviderRouter",
+          "QuoteService",
+          "_payload",
+          "_diagnostic"
+        ]
+      },
+      {
+        "path": "web/market_models.py",
+        "batchIndex": 7,
+        "symbols": [
+          "_utc",
+          "Freshness",
+          "ProviderErrorCode",
+          "redact",
+          "ProviderError",
+          "QuoteSnapshot",
+          "Candle",
+          "AssetIdentity",
+          "QuoteItemError",
+          "QuoteItem",
+          "BulkQuoteResponse",
+          "QuoteProvider",
+          "ProviderDiagnostic"
+        ]
+      },
+      {
+        "path": "web/providers/__init__.py",
+        "batchIndex": 7,
+        "symbols": []
+      },
+      {
+        "path": "tests/test_chunk3_contract_fixes.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "test_market_contracts_are_flattened_and_errors_are_chinese",
+          "test_output_language_environment_overrides_sqlite",
+          "test_run_effective_metadata_is_stored",
+          "test_restart_marks_run_interrupted_and_emits_only_interrupted",
+          "test_watchlist_patch_supports_position_with_cas",
+          "test_legacy_signal_maps_to_rating"
+        ]
+      },
+      {
+        "path": "tests/test_web_api.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "BlockingRunner",
+          "harness",
+          "test_index_and_config_are_public_and_redacted",
+          "test_console_routes_serve_the_single_page_entrypoint",
+          "test_create_get_conflict_and_cancel",
+          "test_active_run_endpoint_returns_the_current_running_analysis",
+          "test_validation_and_unknown_run_errors",
+          "test_validation_does_not_emit_starlette_status_deprecation",
+          "test_create_app_injects_lifecycle_config_and_start_run_freezes_it",
+          "test_create_app_rejects_invalid_lifecycle_configuration",
+          "test_sse_emits_envelopes_and_last_event_id_wins",
+          "test_sse_snapshot_has_no_id_and_exposes_locked_replay_cut",
+          "test_fastapi_lifespan_stops_manager_watchdog",
+          "test_history_detail_and_download_are_allowlisted",
+          "test_history_pagination_filters_and_preserves_legacy_response",
+          "test_history_pagination_rejects_invalid_parameters",
+          "test_market_provider_health_is_exposed_in_provider_and_settings_views",
+          "_sse_data",
+          "test_list_runs_for_ticker_filters_orders_and_caps",
+          "test_list_runs_for_ticker_isolates_tickers",
+          "test_asset_runs_endpoint_returns_only_matching_ticker",
+          "test_runs_active_returns_list",
+          "test_runs_active_lists_each_in_flight_run",
+          "test_three_runs_admitted_then_409"
+        ]
+      },
+      {
+        "path": "tests/test_web_api_recovery.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "_build_app",
+          "test_get_artifacts_returns_empty_list_for_just_started_run",
+          "test_get_artifacts_returns_partial_after_provider_failure",
+          "test_get_artifacts_404_for_unknown_run",
+          "test_retry_endpoint_returns_409_when_not_retryable",
+          "test_retry_endpoint_returns_409_when_no_checkpoint",
+          "test_get_run_includes_recovery_fields",
+          "test_get_run_artifact_counts_visible_to_clients"
+        ]
+      }
+    ],
+    "web/artifacts.py": [
+      {
+        "path": "tests/test_web_artifacts.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "test_artifact_types_and_statuses_are_whitelisted",
+          "test_repository_rejects_unknown_artifact_type",
+          "test_upsert_is_idempotent_and_preserves_created_at",
+          "test_list_orders_by_sequence_and_returns_latest_state",
+          "test_get_run_populates_artifact_counts",
+          "test_artifacts_survive_a_failed_run_and_remain_readable",
+          "test_partial_artifact_is_not_promoted_to_completed"
+        ]
+      },
+      {
+        "path": "tests/test_web_runner_recovery.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "_ChunkGraph",
+          "_CrashGraph",
+          "test_runner_persists_completed_artifact_for_each_chunk",
+          "test_runner_classifies_provider_timeout_and_persists_failure",
+          "test_runner_attaches_checkpoint_signature_to_record"
+        ]
+      }
+    ],
+    "web/checkpoint_resume.py": [
+      {
+        "path": "tests/test_web_retry.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "_State",
+          "_node_a",
+          "_node_b",
+          "_build_graph",
+          "_create_checkpoint",
+          "test_checkpoint_signature_changes_when_graph_inputs_change",
+          "test_can_retry_rejects_non_terminal_state",
+          "test_can_retry_rejects_when_reason_not_retryable",
+          "test_can_retry_requires_existing_checkpoint",
+          "test_can_retry_rejects_when_another_run_active",
+          "test_retry_run_creates_a_new_run_with_parent_link",
+          "test_retry_run_409_when_ineligible",
+          "test_checkpoint_round_trip_via_signature_helper"
+        ]
+      }
+    ],
+    "web/config.py": [
+      {
+        "path": "tradingagents/default_config.py",
+        "batchIndex": 2,
+        "symbols": [
+          "_coerce",
+          "_apply_env_overrides"
+        ]
+      },
+      {
+        "path": "tradingagents/llm_clients/model_catalog.py",
+        "batchIndex": 4,
+        "symbols": [
+          "get_model_options",
+          "get_known_models"
+        ]
+      },
+      {
+        "path": "tests/test_web_models.py",
+        "batchIndex": 5,
+        "symbols": [
+          "test_request_normalizes_and_filters_crypto_fundamentals",
+          "test_request_accepts_web_output_language_override",
+          "test_request_rejects_server_owned_lifecycle_fields",
+          "test_invalid_values_are_rejected",
+          "test_unsafe_ticker_is_rejected",
+          "test_date_must_be_strict_iso",
+          "test_empty_effective_analysts_rejected_for_crypto",
+          "test_typed_run_history_and_event_models",
+          "test_event_payloads_are_typed_and_validate_required_fields",
+          "test_event_payloads_reject_missing_or_invalid_required_fields",
+          "test_all_payload_models_are_constructible",
+          "test_timed_out_run_and_payload_serialize_terminal_reason_alias",
+          "test_run_lifecycle_config_defaults_and_precedence",
+          "test_run_lifecycle_environment_names_are_registered",
+          "test_run_lifecycle_config_rejects_invalid_values",
+          "test_run_lifecycle_config_uses_hard_fallback_when_defaults_are_unavailable"
+        ]
+      }
+    ],
+    "web/error_classifier.py": [
+      {
+        "path": "tests/test_error_classifier.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_StatusError",
+          "_Response",
+          "_WrappedError",
+          "test_classify_provider_exception_maps_to_stable_reason",
+          "test_data_source_classification_uses_dedicated_codes",
+          "test_classifier_propagates_provider_metadata",
+          "test_classifier_does_not_leak_original_message_in_user_text",
+          "test_classifier_safe_detail_truncates_and_strips_newlines",
+          "test_worker_error_info_uses_worker_error_code",
+          "test_retryable_reasons_align_with_provider_failures"
+        ]
+      }
+    ],
+    "web/error_codes.py": [
+      {
+        "path": "tests/test_error_classifier.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_StatusError",
+          "_Response",
+          "_WrappedError",
+          "test_classify_provider_exception_maps_to_stable_reason",
+          "test_data_source_classification_uses_dedicated_codes",
+          "test_classifier_propagates_provider_metadata",
+          "test_classifier_does_not_leak_original_message_in_user_text",
+          "test_classifier_safe_detail_truncates_and_strips_newlines",
+          "test_worker_error_info_uses_worker_error_code",
+          "test_retryable_reasons_align_with_provider_failures"
+        ]
+      },
+      {
+        "path": "tests/test_web_api_recovery.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "_build_app",
+          "test_get_artifacts_returns_empty_list_for_just_started_run",
+          "test_get_artifacts_returns_partial_after_provider_failure",
+          "test_get_artifacts_404_for_unknown_run",
+          "test_retry_endpoint_returns_409_when_not_retryable",
+          "test_retry_endpoint_returns_409_when_no_checkpoint",
+          "test_get_run_includes_recovery_fields",
+          "test_get_run_artifact_counts_visible_to_clients"
+        ]
+      },
+      {
+        "path": "tests/test_web_lease.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_FakeManager",
+          "_request",
+          "test_generate_owner_token_is_unique_and_unpredictable",
+          "test_lease_renews_on_interval_until_future_settles",
+          "test_lease_stops_renewing_when_future_completes",
+          "test_stale_owner_token_is_rejected",
+          "test_lease_expiry_does_not_falsely_terminate_long_model_call",
+          "test_lease_expiry_transitions_to_interrupted_when_worker_dies"
+        ]
+      },
+      {
+        "path": "tests/test_web_retry.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "_State",
+          "_node_a",
+          "_node_b",
+          "_build_graph",
+          "_create_checkpoint",
+          "test_checkpoint_signature_changes_when_graph_inputs_change",
+          "test_can_retry_rejects_non_terminal_state",
+          "test_can_retry_rejects_when_reason_not_retryable",
+          "test_can_retry_requires_existing_checkpoint",
+          "test_can_retry_rejects_when_another_run_active",
+          "test_retry_run_creates_a_new_run_with_parent_link",
+          "test_retry_run_409_when_ineligible",
+          "test_checkpoint_round_trip_via_signature_helper"
+        ]
+      },
+      {
+        "path": "tests/test_web_runner_recovery.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "_ChunkGraph",
+          "_CrashGraph",
+          "test_runner_persists_completed_artifact_for_each_chunk",
+          "test_runner_classifies_provider_timeout_and_persists_failure",
+          "test_runner_attaches_checkpoint_signature_to_record"
+        ]
+      }
+    ],
+    "web/history.py": [
+      {
+        "path": "tests/test_chunk3_contract_fixes.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "test_market_contracts_are_flattened_and_errors_are_chinese",
+          "test_output_language_environment_overrides_sqlite",
+          "test_run_effective_metadata_is_stored",
+          "test_restart_marks_run_interrupted_and_emits_only_interrupted",
+          "test_watchlist_patch_supports_position_with_cas",
+          "test_legacy_signal_maps_to_rating"
+        ]
+      },
+      {
+        "path": "tests/test_web_api.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "BlockingRunner",
+          "harness",
+          "test_index_and_config_are_public_and_redacted",
+          "test_console_routes_serve_the_single_page_entrypoint",
+          "test_create_get_conflict_and_cancel",
+          "test_active_run_endpoint_returns_the_current_running_analysis",
+          "test_validation_and_unknown_run_errors",
+          "test_validation_does_not_emit_starlette_status_deprecation",
+          "test_create_app_injects_lifecycle_config_and_start_run_freezes_it",
+          "test_create_app_rejects_invalid_lifecycle_configuration",
+          "test_sse_emits_envelopes_and_last_event_id_wins",
+          "test_sse_snapshot_has_no_id_and_exposes_locked_replay_cut",
+          "test_fastapi_lifespan_stops_manager_watchdog",
+          "test_history_detail_and_download_are_allowlisted",
+          "test_history_pagination_filters_and_preserves_legacy_response",
+          "test_history_pagination_rejects_invalid_parameters",
+          "test_market_provider_health_is_exposed_in_provider_and_settings_views",
+          "_sse_data",
+          "test_list_runs_for_ticker_filters_orders_and_caps",
+          "test_list_runs_for_ticker_isolates_tickers",
+          "test_asset_runs_endpoint_returns_only_matching_ticker",
+          "test_runs_active_returns_list",
+          "test_runs_active_lists_each_in_flight_run",
+          "test_three_runs_admitted_then_409"
+        ]
+      },
+      {
+        "path": "tests/test_web_history.py",
+        "batchIndex": 5,
+        "symbols": [
+          "write_report",
+          "test_indexes_web_and_legacy_roots_newest_first",
+          "test_detail_has_complete_report_and_all_explicit_sections",
+          "test_detail_reads_optional_executive_summary",
+          "test_legacy_id_is_root_qualified_and_collisions_are_stable",
+          "test_rejects_traversal_and_outside_paths",
+          "test_missing_generated_metadata_is_null",
+          "test_unpublished_web_report_in_tmp_is_not_indexed",
+          "test_web_report_in_tmp_is_never_indexed_even_with_publish_markers",
+          "test_completed_legacy_web_report_without_marker_remains_visible",
+          "test_indexed_history_rebuilds_once_and_marks_deleted_files_missing",
+          "test_outbox_backed_report_is_immediately_readable",
+          "test_new_web_publication_requires_full_gate_before_indexing",
+          "test_exact_detail_falls_back_to_cached_canonical_path_when_index_fails"
+        ]
+      }
+    ],
+    "web/lease.py": [
+      {
+        "path": "tests/test_web_lease.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_FakeManager",
+          "_request",
+          "test_generate_owner_token_is_unique_and_unpredictable",
+          "test_lease_renews_on_interval_until_future_settles",
+          "test_lease_stops_renewing_when_future_completes",
+          "test_stale_owner_token_is_rejected",
+          "test_lease_expiry_does_not_falsely_terminate_long_model_call",
+          "test_lease_expiry_transitions_to_interrupted_when_worker_dies"
+        ]
+      }
+    ],
+    "web/manager.py": [
+      {
+        "path": "tests/test_chunk3_contract_fixes.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "test_market_contracts_are_flattened_and_errors_are_chinese",
+          "test_output_language_environment_overrides_sqlite",
+          "test_run_effective_metadata_is_stored",
+          "test_restart_marks_run_interrupted_and_emits_only_interrupted",
+          "test_watchlist_patch_supports_position_with_cas",
+          "test_legacy_signal_maps_to_rating"
+        ]
+      },
+      {
+        "path": "tests/test_run_manager_concurrency.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_stub_request",
+          "_managed_stub",
+          "test_concurrent_runs_cap_reads_default_when_settings_missing",
+          "test_concurrent_runs_cap_clamps_out_of_range",
+          "test_active_run_ids_starts_empty",
+          "test_active_run_id_returns_member_when_multiple",
+          "test_start_run_rejects_when_at_cap",
+          "test_start_run_rejects_duplicate_ticker",
+          "test_start_run_inserts_into_active_set",
+          "test_finish_removes_from_active_set",
+          "test_executor_grows_to_match_cap",
+          "test_three_runs_in_flight_simultaneously"
+        ]
+      },
+      {
+        "path": "tests/test_web_api.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "BlockingRunner",
+          "harness",
+          "test_index_and_config_are_public_and_redacted",
+          "test_console_routes_serve_the_single_page_entrypoint",
+          "test_create_get_conflict_and_cancel",
+          "test_active_run_endpoint_returns_the_current_running_analysis",
+          "test_validation_and_unknown_run_errors",
+          "test_validation_does_not_emit_starlette_status_deprecation",
+          "test_create_app_injects_lifecycle_config_and_start_run_freezes_it",
+          "test_create_app_rejects_invalid_lifecycle_configuration",
+          "test_sse_emits_envelopes_and_last_event_id_wins",
+          "test_sse_snapshot_has_no_id_and_exposes_locked_replay_cut",
+          "test_fastapi_lifespan_stops_manager_watchdog",
+          "test_history_detail_and_download_are_allowlisted",
+          "test_history_pagination_filters_and_preserves_legacy_response",
+          "test_history_pagination_rejects_invalid_parameters",
+          "test_market_provider_health_is_exposed_in_provider_and_settings_views",
+          "_sse_data",
+          "test_list_runs_for_ticker_filters_orders_and_caps",
+          "test_list_runs_for_ticker_isolates_tickers",
+          "test_asset_runs_endpoint_returns_only_matching_ticker",
+          "test_runs_active_returns_list",
+          "test_runs_active_lists_each_in_flight_run",
+          "test_three_runs_admitted_then_409"
+        ]
+      },
+      {
+        "path": "tests/test_web_api_recovery.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "_build_app",
+          "test_get_artifacts_returns_empty_list_for_just_started_run",
+          "test_get_artifacts_returns_partial_after_provider_failure",
+          "test_get_artifacts_404_for_unknown_run",
+          "test_retry_endpoint_returns_409_when_not_retryable",
+          "test_retry_endpoint_returns_409_when_no_checkpoint",
+          "test_get_run_includes_recovery_fields",
+          "test_get_run_artifact_counts_visible_to_clients"
+        ]
+      },
+      {
+        "path": "tests/test_web_artifacts.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "test_artifact_types_and_statuses_are_whitelisted",
+          "test_repository_rejects_unknown_artifact_type",
+          "test_upsert_is_idempotent_and_preserves_created_at",
+          "test_list_orders_by_sequence_and_returns_latest_state",
+          "test_get_run_populates_artifact_counts",
+          "test_artifacts_survive_a_failed_run_and_remain_readable",
+          "test_partial_artifact_is_not_promoted_to_completed"
+        ]
+      },
+      {
+        "path": "tests/test_web_lease.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_FakeManager",
+          "_request",
+          "test_generate_owner_token_is_unique_and_unpredictable",
+          "test_lease_renews_on_interval_until_future_settles",
+          "test_lease_stops_renewing_when_future_completes",
+          "test_stale_owner_token_is_rejected",
+          "test_lease_expiry_does_not_falsely_terminate_long_model_call",
+          "test_lease_expiry_transitions_to_interrupted_when_worker_dies"
+        ]
+      },
+      {
+        "path": "tests/test_web_manager.py",
+        "batchIndex": 5,
+        "symbols": [
+          "request",
+          "MutableClock",
+          "lifecycle_config",
+          "write_report_gate",
+          "test_only_one_active_run_and_atomic_begin",
+          "test_sqlite_persists_terminal_run_metadata_across_manager_instances",
+          "test_terminal_reason_is_canonical_for_failed_and_restarted_runs",
+          "test_persisted_timed_out_run_rejects_late_events_and_transitions",
+          "test_sqlite_persists_live_progress_snapshot_across_manager_instances",
+          "test_terminal_events_are_durable_and_replayed_after_restart",
+          "test_direct_db_path_uses_full_store_migration_and_replays_restart_interrupt",
+          "test_events_have_monotonic_sequences_and_iso_timestamps",
+          "test_progress_events_update_the_persisted_run_snapshot",
+          "test_activity_heartbeat_is_throttled_and_only_updates_queued_or_running",
+          "test_worker_lease_renewal_only_accepts_the_issuing_token",
+          "test_progress_is_clamped_monotonic_and_late_lower_update_is_not_published",
+          "test_expiry_distinguishes_wall_deadline_from_lease_heartbeat",
+          "test_publishing_is_excluded_from_wall_and_heartbeat_expiry",
+          "test_terminal_transition_normalizes_reason_agent_and_progress",
+          "test_complete_publishing_requires_the_committed_report_gate",
+          "test_restart_recovers_or_quarantines_publishing_runs",
+          "test_restart_repairs_a_missing_terminal_event_atomically",
+          "test_stale_snapshot_uses_latest_real_cut_and_replays_only_later_events",
+          "test_shutdown_stops_the_daemon_watchdog_thread",
+          "test_subscriber_cursors_are_independent_and_replay_is_ordered",
+          "test_stale_cursor_returns_snapshot_before_retained_events",
+          "test_terminal_records_expire_and_terminal_cancel_is_idempotent",
+          "test_cancel_active_run_sets_flag_and_terminal_transition_is_idempotent",
+          "test_wait_for_events_times_out_without_losing_cursor",
+          "test_cleanup_is_safe_when_called_concurrently_with_run_lifecycle",
+          "test_non_terminal_events_are_dropped_after_terminal_transition",
+          "test_public_publish_cannot_append_duplicate_terminal_event_after_completion",
+          "test_worker_exception_is_exposed_as_generic_error_without_raw_details"
+        ]
+      },
+      {
+        "path": "tests/test_web_retry.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "_State",
+          "_node_a",
+          "_node_b",
+          "_build_graph",
+          "_create_checkpoint",
+          "test_checkpoint_signature_changes_when_graph_inputs_change",
+          "test_can_retry_rejects_non_terminal_state",
+          "test_can_retry_rejects_when_reason_not_retryable",
+          "test_can_retry_requires_existing_checkpoint",
+          "test_can_retry_rejects_when_another_run_active",
+          "test_retry_run_creates_a_new_run_with_parent_link",
+          "test_retry_run_409_when_ineligible",
+          "test_checkpoint_round_trip_via_signature_helper"
+        ]
+      },
+      {
+        "path": "tests/test_web_runner.py",
+        "batchIndex": 5,
+        "symbols": [
+          "request",
+          "FakeGraph",
+          "TrackingHistory",
+          "test_runner_streams_events_and_writes_sidecar",
+          "test_runner_applies_request_output_language_to_graph_config",
+          "SummaryGraph",
+          "SummaryLLM",
+          "test_runner_persists_executive_summary_when_deep_model_is_available",
+          "test_runner_constrains_unsafe_run_id_path",
+          "test_runner_emits_phase_and_analyst_progress_events",
+          "test_runner_redacts_unknown_activity",
+          "test_runner_supplies_dynamic_deadline_and_worker_checkpoint_to_graph",
+          "test_runner_checkpoints_start_chunks_phases_and_external_boundaries",
+          "LateGraph",
+          "test_runner_rejects_publication_after_deadline_expiry",
+          "test_runner_indexes_committed_report_before_terminal_completion"
+        ]
+      },
+      {
+        "path": "tests/test_web_runner_recovery.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "_ChunkGraph",
+          "_CrashGraph",
+          "test_runner_persists_completed_artifact_for_each_chunk",
+          "test_runner_classifies_provider_timeout_and_persists_failure",
+          "test_runner_attaches_checkpoint_signature_to_record"
+        ]
+      }
+    ],
+    "web/markdown.py": [
+      {
+        "path": "tests/test_web_markdown.py",
+        "batchIndex": 5,
+        "symbols": [
+          "test_report_markdown_supports_gfm_blocks_and_sanitizes_raw_html",
+          "test_empty_report_markdown_returns_empty_html"
+        ]
+      }
+    ],
+    "web/models.py": [
+      {
+        "path": "cli/models.py",
+        "batchIndex": 7,
+        "symbols": [
+          "AnalystType",
+          "AssetType"
+        ]
+      },
+      {
+        "path": "cli/utils.py",
+        "batchIndex": 7,
+        "symbols": [
+          "is_valid_ticker_input",
+          "get_ticker",
+          "normalize_ticker_symbol",
+          "detect_asset_type",
+          "filter_analysts_for_asset_type",
+          "get_analysis_date",
+          "select_analysts",
+          "select_research_depth",
+          "_fetch_openrouter_models",
+          "_require_text",
+          "select_openrouter_model",
+          "_prompt_custom_model_id",
+          "_select_model",
+          "select_shallow_thinking_agent",
+          "select_deep_thinking_agent",
+          "_llm_provider_table",
+          "provider_default_url",
+          "resolve_backend_url",
+          "prompt_openai_compatible_url",
+          "select_llm_provider",
+          "ask_openai_reasoning_effort",
+          "ask_anthropic_effort",
+          "ask_gemini_thinking_config",
+          "ask_glm_region",
+          "ask_qwen_region",
+          "ask_minimax_region",
+          "confirm_ollama_endpoint",
+          "ensure_api_key",
+          "ask_output_language"
+        ]
+      },
+      {
+        "path": "tests/test_chunk3_contract_fixes.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "test_market_contracts_are_flattened_and_errors_are_chinese",
+          "test_output_language_environment_overrides_sqlite",
+          "test_run_effective_metadata_is_stored",
+          "test_restart_marks_run_interrupted_and_emits_only_interrupted",
+          "test_watchlist_patch_supports_position_with_cas",
+          "test_legacy_signal_maps_to_rating"
+        ]
+      },
+      {
+        "path": "tests/test_run_manager_concurrency.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_stub_request",
+          "_managed_stub",
+          "test_concurrent_runs_cap_reads_default_when_settings_missing",
+          "test_concurrent_runs_cap_clamps_out_of_range",
+          "test_active_run_ids_starts_empty",
+          "test_active_run_id_returns_member_when_multiple",
+          "test_start_run_rejects_when_at_cap",
+          "test_start_run_rejects_duplicate_ticker",
+          "test_start_run_inserts_into_active_set",
+          "test_finish_removes_from_active_set",
+          "test_executor_grows_to_match_cap",
+          "test_three_runs_in_flight_simultaneously"
+        ]
+      },
+      {
+        "path": "tests/test_web_api.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "BlockingRunner",
+          "harness",
+          "test_index_and_config_are_public_and_redacted",
+          "test_console_routes_serve_the_single_page_entrypoint",
+          "test_create_get_conflict_and_cancel",
+          "test_active_run_endpoint_returns_the_current_running_analysis",
+          "test_validation_and_unknown_run_errors",
+          "test_validation_does_not_emit_starlette_status_deprecation",
+          "test_create_app_injects_lifecycle_config_and_start_run_freezes_it",
+          "test_create_app_rejects_invalid_lifecycle_configuration",
+          "test_sse_emits_envelopes_and_last_event_id_wins",
+          "test_sse_snapshot_has_no_id_and_exposes_locked_replay_cut",
+          "test_fastapi_lifespan_stops_manager_watchdog",
+          "test_history_detail_and_download_are_allowlisted",
+          "test_history_pagination_filters_and_preserves_legacy_response",
+          "test_history_pagination_rejects_invalid_parameters",
+          "test_market_provider_health_is_exposed_in_provider_and_settings_views",
+          "_sse_data",
+          "test_list_runs_for_ticker_filters_orders_and_caps",
+          "test_list_runs_for_ticker_isolates_tickers",
+          "test_asset_runs_endpoint_returns_only_matching_ticker",
+          "test_runs_active_returns_list",
+          "test_runs_active_lists_each_in_flight_run",
+          "test_three_runs_admitted_then_409"
+        ]
+      },
+      {
+        "path": "tests/test_web_api_recovery.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "_build_app",
+          "test_get_artifacts_returns_empty_list_for_just_started_run",
+          "test_get_artifacts_returns_partial_after_provider_failure",
+          "test_get_artifacts_404_for_unknown_run",
+          "test_retry_endpoint_returns_409_when_not_retryable",
+          "test_retry_endpoint_returns_409_when_no_checkpoint",
+          "test_get_run_includes_recovery_fields",
+          "test_get_run_artifact_counts_visible_to_clients"
+        ]
+      },
+      {
+        "path": "tests/test_web_artifacts.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "test_artifact_types_and_statuses_are_whitelisted",
+          "test_repository_rejects_unknown_artifact_type",
+          "test_upsert_is_idempotent_and_preserves_created_at",
+          "test_list_orders_by_sequence_and_returns_latest_state",
+          "test_get_run_populates_artifact_counts",
+          "test_artifacts_survive_a_failed_run_and_remain_readable",
+          "test_partial_artifact_is_not_promoted_to_completed"
+        ]
+      },
+      {
+        "path": "tests/test_web_lease.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_FakeManager",
+          "_request",
+          "test_generate_owner_token_is_unique_and_unpredictable",
+          "test_lease_renews_on_interval_until_future_settles",
+          "test_lease_stops_renewing_when_future_completes",
+          "test_stale_owner_token_is_rejected",
+          "test_lease_expiry_does_not_falsely_terminate_long_model_call",
+          "test_lease_expiry_transitions_to_interrupted_when_worker_dies"
+        ]
+      },
+      {
+        "path": "tests/test_web_manager.py",
+        "batchIndex": 5,
+        "symbols": [
+          "request",
+          "MutableClock",
+          "lifecycle_config",
+          "write_report_gate",
+          "test_only_one_active_run_and_atomic_begin",
+          "test_sqlite_persists_terminal_run_metadata_across_manager_instances",
+          "test_terminal_reason_is_canonical_for_failed_and_restarted_runs",
+          "test_persisted_timed_out_run_rejects_late_events_and_transitions",
+          "test_sqlite_persists_live_progress_snapshot_across_manager_instances",
+          "test_terminal_events_are_durable_and_replayed_after_restart",
+          "test_direct_db_path_uses_full_store_migration_and_replays_restart_interrupt",
+          "test_events_have_monotonic_sequences_and_iso_timestamps",
+          "test_progress_events_update_the_persisted_run_snapshot",
+          "test_activity_heartbeat_is_throttled_and_only_updates_queued_or_running",
+          "test_worker_lease_renewal_only_accepts_the_issuing_token",
+          "test_progress_is_clamped_monotonic_and_late_lower_update_is_not_published",
+          "test_expiry_distinguishes_wall_deadline_from_lease_heartbeat",
+          "test_publishing_is_excluded_from_wall_and_heartbeat_expiry",
+          "test_terminal_transition_normalizes_reason_agent_and_progress",
+          "test_complete_publishing_requires_the_committed_report_gate",
+          "test_restart_recovers_or_quarantines_publishing_runs",
+          "test_restart_repairs_a_missing_terminal_event_atomically",
+          "test_stale_snapshot_uses_latest_real_cut_and_replays_only_later_events",
+          "test_shutdown_stops_the_daemon_watchdog_thread",
+          "test_subscriber_cursors_are_independent_and_replay_is_ordered",
+          "test_stale_cursor_returns_snapshot_before_retained_events",
+          "test_terminal_records_expire_and_terminal_cancel_is_idempotent",
+          "test_cancel_active_run_sets_flag_and_terminal_transition_is_idempotent",
+          "test_wait_for_events_times_out_without_losing_cursor",
+          "test_cleanup_is_safe_when_called_concurrently_with_run_lifecycle",
+          "test_non_terminal_events_are_dropped_after_terminal_transition",
+          "test_public_publish_cannot_append_duplicate_terminal_event_after_completion",
+          "test_worker_exception_is_exposed_as_generic_error_without_raw_details"
+        ]
+      },
+      {
+        "path": "tests/test_web_models.py",
+        "batchIndex": 5,
+        "symbols": [
+          "test_request_normalizes_and_filters_crypto_fundamentals",
+          "test_request_accepts_web_output_language_override",
+          "test_request_rejects_server_owned_lifecycle_fields",
+          "test_invalid_values_are_rejected",
+          "test_unsafe_ticker_is_rejected",
+          "test_date_must_be_strict_iso",
+          "test_empty_effective_analysts_rejected_for_crypto",
+          "test_typed_run_history_and_event_models",
+          "test_event_payloads_are_typed_and_validate_required_fields",
+          "test_event_payloads_reject_missing_or_invalid_required_fields",
+          "test_all_payload_models_are_constructible",
+          "test_timed_out_run_and_payload_serialize_terminal_reason_alias",
+          "test_run_lifecycle_config_defaults_and_precedence",
+          "test_run_lifecycle_environment_names_are_registered",
+          "test_run_lifecycle_config_rejects_invalid_values",
+          "test_run_lifecycle_config_uses_hard_fallback_when_defaults_are_unavailable"
+        ]
+      },
+      {
+        "path": "tests/test_web_retry.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "_State",
+          "_node_a",
+          "_node_b",
+          "_build_graph",
+          "_create_checkpoint",
+          "test_checkpoint_signature_changes_when_graph_inputs_change",
+          "test_can_retry_rejects_non_terminal_state",
+          "test_can_retry_rejects_when_reason_not_retryable",
+          "test_can_retry_requires_existing_checkpoint",
+          "test_can_retry_rejects_when_another_run_active",
+          "test_retry_run_creates_a_new_run_with_parent_link",
+          "test_retry_run_409_when_ineligible",
+          "test_checkpoint_round_trip_via_signature_helper"
+        ]
+      },
+      {
+        "path": "tests/test_web_runner.py",
+        "batchIndex": 5,
+        "symbols": [
+          "request",
+          "FakeGraph",
+          "TrackingHistory",
+          "test_runner_streams_events_and_writes_sidecar",
+          "test_runner_applies_request_output_language_to_graph_config",
+          "SummaryGraph",
+          "SummaryLLM",
+          "test_runner_persists_executive_summary_when_deep_model_is_available",
+          "test_runner_constrains_unsafe_run_id_path",
+          "test_runner_emits_phase_and_analyst_progress_events",
+          "test_runner_redacts_unknown_activity",
+          "test_runner_supplies_dynamic_deadline_and_worker_checkpoint_to_graph",
+          "test_runner_checkpoints_start_chunks_phases_and_external_boundaries",
+          "LateGraph",
+          "test_runner_rejects_publication_after_deadline_expiry",
+          "test_runner_indexes_committed_report_before_terminal_completion"
+        ]
+      },
+      {
+        "path": "tests/test_web_runner_recovery.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "_ChunkGraph",
+          "_CrashGraph",
+          "test_runner_persists_completed_artifact_for_each_chunk",
+          "test_runner_classifies_provider_timeout_and_persists_failure",
+          "test_runner_attaches_checkpoint_signature_to_record"
+        ]
+      }
+    ],
+    "web/repositories.py": [
+      {
+        "path": "cli/utils.py",
+        "batchIndex": 7,
+        "symbols": [
+          "is_valid_ticker_input",
+          "get_ticker",
+          "normalize_ticker_symbol",
+          "detect_asset_type",
+          "filter_analysts_for_asset_type",
+          "get_analysis_date",
+          "select_analysts",
+          "select_research_depth",
+          "_fetch_openrouter_models",
+          "_require_text",
+          "select_openrouter_model",
+          "_prompt_custom_model_id",
+          "_select_model",
+          "select_shallow_thinking_agent",
+          "select_deep_thinking_agent",
+          "_llm_provider_table",
+          "provider_default_url",
+          "resolve_backend_url",
+          "prompt_openai_compatible_url",
+          "select_llm_provider",
+          "ask_openai_reasoning_effort",
+          "ask_anthropic_effort",
+          "ask_gemini_thinking_config",
+          "ask_glm_region",
+          "ask_qwen_region",
+          "ask_minimax_region",
+          "confirm_ollama_endpoint",
+          "ensure_api_key",
+          "ask_output_language"
+        ]
+      },
+      {
+        "path": "tests/test_chunk3_contract_fixes.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "test_market_contracts_are_flattened_and_errors_are_chinese",
+          "test_output_language_environment_overrides_sqlite",
+          "test_run_effective_metadata_is_stored",
+          "test_restart_marks_run_interrupted_and_emits_only_interrupted",
+          "test_watchlist_patch_supports_position_with_cas",
+          "test_legacy_signal_maps_to_rating"
+        ]
+      },
+      {
+        "path": "tests/test_web_api.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "BlockingRunner",
+          "harness",
+          "test_index_and_config_are_public_and_redacted",
+          "test_console_routes_serve_the_single_page_entrypoint",
+          "test_create_get_conflict_and_cancel",
+          "test_active_run_endpoint_returns_the_current_running_analysis",
+          "test_validation_and_unknown_run_errors",
+          "test_validation_does_not_emit_starlette_status_deprecation",
+          "test_create_app_injects_lifecycle_config_and_start_run_freezes_it",
+          "test_create_app_rejects_invalid_lifecycle_configuration",
+          "test_sse_emits_envelopes_and_last_event_id_wins",
+          "test_sse_snapshot_has_no_id_and_exposes_locked_replay_cut",
+          "test_fastapi_lifespan_stops_manager_watchdog",
+          "test_history_detail_and_download_are_allowlisted",
+          "test_history_pagination_filters_and_preserves_legacy_response",
+          "test_history_pagination_rejects_invalid_parameters",
+          "test_market_provider_health_is_exposed_in_provider_and_settings_views",
+          "_sse_data",
+          "test_list_runs_for_ticker_filters_orders_and_caps",
+          "test_list_runs_for_ticker_isolates_tickers",
+          "test_asset_runs_endpoint_returns_only_matching_ticker",
+          "test_runs_active_returns_list",
+          "test_runs_active_lists_each_in_flight_run",
+          "test_three_runs_admitted_then_409"
+        ]
+      },
+      {
+        "path": "tests/test_web_history.py",
+        "batchIndex": 5,
+        "symbols": [
+          "write_report",
+          "test_indexes_web_and_legacy_roots_newest_first",
+          "test_detail_has_complete_report_and_all_explicit_sections",
+          "test_detail_reads_optional_executive_summary",
+          "test_legacy_id_is_root_qualified_and_collisions_are_stable",
+          "test_rejects_traversal_and_outside_paths",
+          "test_missing_generated_metadata_is_null",
+          "test_unpublished_web_report_in_tmp_is_not_indexed",
+          "test_web_report_in_tmp_is_never_indexed_even_with_publish_markers",
+          "test_completed_legacy_web_report_without_marker_remains_visible",
+          "test_indexed_history_rebuilds_once_and_marks_deleted_files_missing",
+          "test_outbox_backed_report_is_immediately_readable",
+          "test_new_web_publication_requires_full_gate_before_indexing",
+          "test_exact_detail_falls_back_to_cached_canonical_path_when_index_fails"
+        ]
+      },
+      {
+        "path": "tests/test_web_repositories.py",
+        "batchIndex": 5,
+        "symbols": [
+          "test_default_watchlist_is_idempotent_and_symbols_are_canonical",
+          "test_watchlist_version_cas_and_quote_snapshot_repositories",
+          "test_watchlist_mutations_derive_watchlist_and_use_cas",
+          "test_quote_normalizes_symbol_and_rejects_unknown_freshness",
+          "test_snapshot_manifest_is_insert_once_and_finalizable",
+          "test_run_and_report_repositories_have_minimal_adapters",
+          "test_run_repository_round_trips_lifecycle_fields_and_json_lists",
+          "test_settings_allow_run_lifecycle_configuration",
+          "_report_metadata",
+          "test_report_index_round_trips_metadata_and_rejects_unsafe_paths",
+          "test_report_index_outbox_overlays_before_filter_sort_and_retry",
+          "test_report_index_sort_keeps_null_generated_time_last_with_stable_tie_breaker",
+          "MutableClock",
+          "test_provider_health_persists_window_failures_and_resets_at_five_minutes",
+          "test_provider_health_symbol_outcomes_do_not_degrade_and_permanent_error_does"
+        ]
+      },
+      {
+        "path": "tests/test_web_settings.py",
+        "batchIndex": 5,
+        "symbols": [
+          "test_settings_whitelist_and_sources",
+          "test_settings_all_uses_one_connection"
+        ]
+      }
+    ],
+    "web/runner.py": [
+      {
+        "path": "tradingagents/default_config.py",
+        "batchIndex": 2,
+        "symbols": [
+          "_coerce",
+          "_apply_env_overrides"
+        ]
+      },
+      {
+        "path": "tradingagents/graph/propagation.py",
+        "batchIndex": 3,
+        "symbols": [
+          "PropagationCancelled",
+          "Propagator"
+        ]
+      },
+      {
+        "path": "tradingagents/graph/trading_graph.py",
+        "batchIndex": 3,
+        "symbols": [
+          "_coerce_max_retries",
+          "TradingAgentsGraph"
+        ]
+      },
+      {
+        "path": "tests/test_web_runner.py",
+        "batchIndex": 5,
+        "symbols": [
+          "request",
+          "FakeGraph",
+          "TrackingHistory",
+          "test_runner_streams_events_and_writes_sidecar",
+          "test_runner_applies_request_output_language_to_graph_config",
+          "SummaryGraph",
+          "SummaryLLM",
+          "test_runner_persists_executive_summary_when_deep_model_is_available",
+          "test_runner_constrains_unsafe_run_id_path",
+          "test_runner_emits_phase_and_analyst_progress_events",
+          "test_runner_redacts_unknown_activity",
+          "test_runner_supplies_dynamic_deadline_and_worker_checkpoint_to_graph",
+          "test_runner_checkpoints_start_chunks_phases_and_external_boundaries",
+          "LateGraph",
+          "test_runner_rejects_publication_after_deadline_expiry",
+          "test_runner_indexes_committed_report_before_terminal_completion"
+        ]
+      },
+      {
+        "path": "tests/test_web_runner_recovery.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "_ChunkGraph",
+          "_CrashGraph",
+          "test_runner_persists_completed_artifact_for_each_chunk",
+          "test_runner_classifies_provider_timeout_and_persists_failure",
+          "test_runner_attaches_checkpoint_signature_to_record"
+        ]
+      }
+    ],
+    "web/snapshots.py": [
+      {
+        "path": "tests/test_web_snapshots.py",
+        "batchIndex": 5,
+        "symbols": [
+          "test_canonical_bytes_are_stable_for_json_csv_and_text",
+          "test_canonical_bytes_normalizes_langchain_messages_in_final_state",
+          "test_recorder_writes_manifest_and_verifies_payload",
+          "test_store_rejects_traversal_symlink_and_corrupt_hash",
+          "test_snapshot_provider_reads_before_upstream_and_records_miss",
+          "test_manifest_json_is_immutable_after_finalize"
+        ]
+      }
+    ],
+    "web/storage.py": [
+      {
+        "path": "tests/test_chunk3_contract_fixes.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "test_market_contracts_are_flattened_and_errors_are_chinese",
+          "test_output_language_environment_overrides_sqlite",
+          "test_run_effective_metadata_is_stored",
+          "test_restart_marks_run_interrupted_and_emits_only_interrupted",
+          "test_watchlist_patch_supports_position_with_cas",
+          "test_legacy_signal_maps_to_rating"
+        ]
+      },
+      {
+        "path": "tests/test_web_api.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "BlockingRunner",
+          "harness",
+          "test_index_and_config_are_public_and_redacted",
+          "test_console_routes_serve_the_single_page_entrypoint",
+          "test_create_get_conflict_and_cancel",
+          "test_active_run_endpoint_returns_the_current_running_analysis",
+          "test_validation_and_unknown_run_errors",
+          "test_validation_does_not_emit_starlette_status_deprecation",
+          "test_create_app_injects_lifecycle_config_and_start_run_freezes_it",
+          "test_create_app_rejects_invalid_lifecycle_configuration",
+          "test_sse_emits_envelopes_and_last_event_id_wins",
+          "test_sse_snapshot_has_no_id_and_exposes_locked_replay_cut",
+          "test_fastapi_lifespan_stops_manager_watchdog",
+          "test_history_detail_and_download_are_allowlisted",
+          "test_history_pagination_filters_and_preserves_legacy_response",
+          "test_history_pagination_rejects_invalid_parameters",
+          "test_market_provider_health_is_exposed_in_provider_and_settings_views",
+          "_sse_data",
+          "test_list_runs_for_ticker_filters_orders_and_caps",
+          "test_list_runs_for_ticker_isolates_tickers",
+          "test_asset_runs_endpoint_returns_only_matching_ticker",
+          "test_runs_active_returns_list",
+          "test_runs_active_lists_each_in_flight_run",
+          "test_three_runs_admitted_then_409"
+        ]
+      },
+      {
+        "path": "tests/test_web_artifacts.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "test_artifact_types_and_statuses_are_whitelisted",
+          "test_repository_rejects_unknown_artifact_type",
+          "test_upsert_is_idempotent_and_preserves_created_at",
+          "test_list_orders_by_sequence_and_returns_latest_state",
+          "test_get_run_populates_artifact_counts",
+          "test_artifacts_survive_a_failed_run_and_remain_readable",
+          "test_partial_artifact_is_not_promoted_to_completed"
+        ]
+      },
+      {
+        "path": "tests/test_web_history.py",
+        "batchIndex": 5,
+        "symbols": [
+          "write_report",
+          "test_indexes_web_and_legacy_roots_newest_first",
+          "test_detail_has_complete_report_and_all_explicit_sections",
+          "test_detail_reads_optional_executive_summary",
+          "test_legacy_id_is_root_qualified_and_collisions_are_stable",
+          "test_rejects_traversal_and_outside_paths",
+          "test_missing_generated_metadata_is_null",
+          "test_unpublished_web_report_in_tmp_is_not_indexed",
+          "test_web_report_in_tmp_is_never_indexed_even_with_publish_markers",
+          "test_completed_legacy_web_report_without_marker_remains_visible",
+          "test_indexed_history_rebuilds_once_and_marks_deleted_files_missing",
+          "test_outbox_backed_report_is_immediately_readable",
+          "test_new_web_publication_requires_full_gate_before_indexing",
+          "test_exact_detail_falls_back_to_cached_canonical_path_when_index_fails"
+        ]
+      },
+      {
+        "path": "tests/test_web_repositories.py",
+        "batchIndex": 5,
+        "symbols": [
+          "test_default_watchlist_is_idempotent_and_symbols_are_canonical",
+          "test_watchlist_version_cas_and_quote_snapshot_repositories",
+          "test_watchlist_mutations_derive_watchlist_and_use_cas",
+          "test_quote_normalizes_symbol_and_rejects_unknown_freshness",
+          "test_snapshot_manifest_is_insert_once_and_finalizable",
+          "test_run_and_report_repositories_have_minimal_adapters",
+          "test_run_repository_round_trips_lifecycle_fields_and_json_lists",
+          "test_settings_allow_run_lifecycle_configuration",
+          "_report_metadata",
+          "test_report_index_round_trips_metadata_and_rejects_unsafe_paths",
+          "test_report_index_outbox_overlays_before_filter_sort_and_retry",
+          "test_report_index_sort_keeps_null_generated_time_last_with_stable_tie_breaker",
+          "MutableClock",
+          "test_provider_health_persists_window_failures_and_resets_at_five_minutes",
+          "test_provider_health_symbol_outcomes_do_not_degrade_and_permanent_error_does"
+        ]
+      },
+      {
+        "path": "tests/test_web_retry.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "_State",
+          "_node_a",
+          "_node_b",
+          "_build_graph",
+          "_create_checkpoint",
+          "test_checkpoint_signature_changes_when_graph_inputs_change",
+          "test_can_retry_rejects_non_terminal_state",
+          "test_can_retry_rejects_when_reason_not_retryable",
+          "test_can_retry_requires_existing_checkpoint",
+          "test_can_retry_rejects_when_another_run_active",
+          "test_retry_run_creates_a_new_run_with_parent_link",
+          "test_retry_run_409_when_ineligible",
+          "test_checkpoint_round_trip_via_signature_helper"
+        ]
+      },
+      {
+        "path": "tests/test_web_runner_recovery.py",
+        "batchIndex": 5,
+        "symbols": [
+          "_request",
+          "_ChunkGraph",
+          "_CrashGraph",
+          "test_runner_persists_completed_artifact_for_each_chunk",
+          "test_runner_classifies_provider_timeout_and_persists_failure",
+          "test_runner_attaches_checkpoint_signature_to_record"
+        ]
+      },
+      {
+        "path": "tests/test_web_settings.py",
+        "batchIndex": 5,
+        "symbols": [
+          "test_settings_whitelist_and_sources",
+          "test_settings_all_uses_one_connection"
+        ]
+      }
+    ]
+  }
+}

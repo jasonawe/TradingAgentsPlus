@@ -1,0 +1,65 @@
+{
+  "nodes": [
+    {
+      "id": "file:web/static/i18n.js",
+      "type": "file",
+      "name": "i18n.js",
+      "filePath": "web/static/i18n.js",
+      "summary": "前端或脚本模块 i18n.js，实现页面交互、数据刷新、图表展示或本地化逻辑。",
+      "tags": [
+        "frontend",
+        "project-artifact",
+        "tradingagents"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/static/i18n.test.js",
+      "type": "file",
+      "name": "i18n.test.js",
+      "filePath": "web/static/i18n.test.js",
+      "summary": "前端或脚本模块 i18n.test.js，实现页面交互、数据刷新、图表展示或本地化逻辑。",
+      "tags": [
+        "test",
+        "frontend",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:web/static/index.html",
+      "type": "file",
+      "name": "index.html",
+      "filePath": "web/static/index.html",
+      "summary": "前端 HTML 资源，用于展示 index 相关的交互原型或应用界面结构。",
+      "tags": [
+        "frontend",
+        "project-artifact",
+        "tradingagents"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/static/kline-chart.js",
+      "type": "file",
+      "name": "kline-chart.js",
+      "filePath": "web/static/kline-chart.js",
+      "summary": "前端或脚本模块 kline-chart.js，实现页面交互、数据刷新、图表展示或本地化逻辑。",
+      "tags": [
+        "frontend",
+        "project-artifact",
+        "tradingagents"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:web/static/i18n.test.js",
+      "target": "file:web/static/i18n.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

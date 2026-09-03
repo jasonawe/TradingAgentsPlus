@@ -1,0 +1,69 @@
+{
+  "projectRoot": "/Users/shenkang/workroom/languages/agent/TradingAgents",
+  "batchFiles": [
+    {
+      "path": "web/static/kline-chart.test.js",
+      "language": "javascript",
+      "sizeLines": 132,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/quote-refresh.js",
+      "language": "javascript",
+      "sizeLines": 72,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/quote-refresh.test.js",
+      "language": "javascript",
+      "sizeLines": 33,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/rating-labels.js",
+      "language": "javascript",
+      "sizeLines": 33,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/rating-labels.test.js",
+      "language": "javascript",
+      "sizeLines": 54,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/styles.css",
+      "language": "css",
+      "sizeLines": 448,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "web/static/watchlist-chart.js",
+      "language": "javascript",
+      "sizeLines": 190,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/synthesis.py",
+      "language": "python",
+      "sizeLines": 63,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "web/static/kline-chart.test.js": [
+      "web/static/kline-chart.js"
+    ],
+    "web/static/quote-refresh.js": [],
+    "web/static/quote-refresh.test.js": [
+      "web/static/quote-refresh.js"
+    ],
+    "web/static/rating-labels.js": [],
+    "web/static/rating-labels.test.js": [
+      "web/static/rating-labels.js"
+    ],
+    "web/static/styles.css": [],
+    "web/static/watchlist-chart.js": [],
+    "web/synthesis.py": []
+  }
+}

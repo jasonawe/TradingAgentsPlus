@@ -1,0 +1,28 @@
+{
+  "projectRoot": "/Users/shenkang/workroom/languages/agent/TradingAgents",
+  "batchFiles": [
+    {
+      "path": ".superpowers/brainstorm/41801-1787718122/console-layout.html",
+      "language": "html",
+      "sizeLines": 80,
+      "fileCategory": "markup"
+    },
+    {
+      "path": ".superpowers/brainstorm/41801-1787718122/visual-style.html",
+      "language": "html",
+      "sizeLines": 48,
+      "fileCategory": "markup"
+    },
+    {
+      "path": ".superpowers/brainstorm/41801-1787718122/waiting-architecture.html",
+      "language": "html",
+      "sizeLines": 3,
+      "fileCategory": "markup"
+    }
+  ],
+  "batchImportData": {
+    ".superpowers/brainstorm/41801-1787718122/console-layout.html": [],
+    ".superpowers/brainstorm/41801-1787718122/visual-style.html": [],
+    ".superpowers/brainstorm/41801-1787718122/waiting-architecture.html": []
+  }
+}

@@ -1,0 +1,1144 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 7,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 7,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 7,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": [
+    {
+      "path": "tests/test_alpha_vantage_hardening.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 96,
+      "nonEmptyLines": 74,
+      "functions": [
+        {
+          "name": "_patched_get",
+          "startLine": 24,
+          "endLine": 29,
+          "params": [
+            "body",
+            "capture"
+          ]
+        },
+        {
+          "name": "test_request_passes_timeout",
+          "startLine": 33,
+          "endLine": 37,
+          "params": [
+            "monkeypatch"
+          ]
+        },
+        {
+          "name": "test_rate_limit_detected",
+          "startLine": 41,
+          "endLine": 45,
+          "params": [
+            "monkeypatch"
+          ]
+        },
+        {
+          "name": "test_invalid_key_not_mislabeled_as_rate_limit",
+          "startLine": 49,
+          "endLine": 59,
+          "params": [
+            "monkeypatch"
+          ]
+        },
+        {
+          "name": "test_fundamentals_look_ahead_filter_runs_on_json_string",
+          "startLine": 76,
+          "endLine": 84,
+          "params": [
+            "monkeypatch"
+          ]
+        },
+        {
+          "name": "test_fundamentals_no_curr_date_passes_through",
+          "startLine": 88,
+          "endLine": 90,
+          "params": [
+            "monkeypatch"
+          ]
+        },
+        {
+          "name": "test_fundamentals_non_json_body_unchanged",
+          "startLine": 94,
+          "endLine": 96,
+          "params": [
+            "monkeypatch"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "_FakeResponse",
+          "startLine": 16,
+          "endLine": 21,
+          "methods": [
+            "__init__",
+            "raise_for_status"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "_FakeResponse",
+          "line": 16,
+          "isDefault": false
+        },
+        {
+          "name": "_patched_get",
+          "line": 24,
+          "isDefault": false
+        },
+        {
+          "name": "test_request_passes_timeout",
+          "line": 32,
+          "isDefault": false
+        },
+        {
+          "name": "test_rate_limit_detected",
+          "line": 40,
+          "isDefault": false
+        },
+        {
+          "name": "test_invalid_key_not_mislabeled_as_rate_limit",
+          "line": 48,
+          "isDefault": false
+        },
+        {
+          "name": "test_fundamentals_look_ahead_filter_runs_on_json_string",
+          "line": 75,
+          "isDefault": false
+        },
+        {
+          "name": "test_fundamentals_no_curr_date_passes_through",
+          "line": 87,
+          "isDefault": false
+        },
+        {
+          "name": "test_fundamentals_non_json_body_unchanged",
+          "line": 93,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "fake_get",
+          "callee": "capture.update",
+          "lineNumber": 27
+        },
+        {
+          "caller": "fake_get",
+          "callee": "_FakeResponse",
+          "lineNumber": 28
+        },
+        {
+          "caller": "test_request_passes_timeout",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 35
+        },
+        {
+          "caller": "test_request_passes_timeout",
+          "callee": "_patched_get",
+          "lineNumber": 35
+        },
+        {
+          "caller": "test_request_passes_timeout",
+          "callee": "av._make_api_request",
+          "lineNumber": 36
+        },
+        {
+          "caller": "test_request_passes_timeout",
+          "callee": "captured.get",
+          "lineNumber": 37
+        },
+        {
+          "caller": "test_rate_limit_detected",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 43
+        },
+        {
+          "caller": "test_rate_limit_detected",
+          "callee": "_patched_get",
+          "lineNumber": 43
+        },
+        {
+          "caller": "test_rate_limit_detected",
+          "callee": "pytest.raises",
+          "lineNumber": 44
+        },
+        {
+          "caller": "test_rate_limit_detected",
+          "callee": "av._make_api_request",
+          "lineNumber": 45
+        },
+        {
+          "caller": "test_invalid_key_not_mislabeled_as_rate_limit",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 54
+        },
+        {
+          "caller": "test_invalid_key_not_mislabeled_as_rate_limit",
+          "callee": "_patched_get",
+          "lineNumber": 54
+        },
+        {
+          "caller": "test_invalid_key_not_mislabeled_as_rate_limit",
+          "callee": "pytest.raises",
+          "lineNumber": 55
+        },
+        {
+          "caller": "test_invalid_key_not_mislabeled_as_rate_limit",
+          "callee": "av._make_api_request",
+          "lineNumber": 56
+        },
+        {
+          "caller": "test_invalid_key_not_mislabeled_as_rate_limit",
+          "callee": "pytest.raises",
+          "lineNumber": 57
+        },
+        {
+          "caller": "test_invalid_key_not_mislabeled_as_rate_limit",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 58
+        },
+        {
+          "caller": "test_invalid_key_not_mislabeled_as_rate_limit",
+          "callee": "_patched_get",
+          "lineNumber": 58
+        },
+        {
+          "caller": "test_invalid_key_not_mislabeled_as_rate_limit",
+          "callee": "av._make_api_request",
+          "lineNumber": 59
+        },
+        {
+          "caller": "test_fundamentals_look_ahead_filter_runs_on_json_string",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 79
+        },
+        {
+          "caller": "test_fundamentals_look_ahead_filter_runs_on_json_string",
+          "callee": "avf.get_balance_sheet",
+          "lineNumber": 80
+        },
+        {
+          "caller": "test_fundamentals_look_ahead_filter_runs_on_json_string",
+          "callee": "isinstance",
+          "lineNumber": 81
+        },
+        {
+          "caller": "test_fundamentals_look_ahead_filter_runs_on_json_string",
+          "callee": "json.loads",
+          "lineNumber": 82
+        },
+        {
+          "caller": "test_fundamentals_no_curr_date_passes_through",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 89
+        },
+        {
+          "caller": "test_fundamentals_no_curr_date_passes_through",
+          "callee": "avf.get_income_statement",
+          "lineNumber": 90
+        },
+        {
+          "caller": "test_fundamentals_non_json_body_unchanged",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 95
+        },
+        {
+          "caller": "test_fundamentals_non_json_body_unchanged",
+          "callee": "avf.get_cashflow",
+          "lineNumber": 96
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 8,
+        "functionCount": 7,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "tradingagents/dataflows/alpha_vantage.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 23,
+      "nonEmptyLines": 22,
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/dataflows/alpha_vantage_common.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 160,
+      "nonEmptyLines": 129,
+      "functions": [
+        {
+          "name": "get_api_key",
+          "startLine": 29,
+          "endLine": 36,
+          "params": []
+        },
+        {
+          "name": "format_datetime_for_api",
+          "startLine": 38,
+          "endLine": 57,
+          "params": [
+            "date_input"
+          ]
+        },
+        {
+          "name": "_make_api_request",
+          "startLine": 63,
+          "endLine": 121,
+          "params": [
+            "function_name",
+            "params",
+            "api_key"
+          ]
+        },
+        {
+          "name": "_filter_csv_by_date_range",
+          "startLine": 125,
+          "endLine": 160,
+          "params": [
+            "csv_data",
+            "start_date",
+            "end_date"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "AlphaVantageNotConfiguredError",
+          "startLine": 19,
+          "endLine": 26,
+          "methods": [],
+          "properties": []
+        },
+        {
+          "name": "AlphaVantageRateLimitError",
+          "startLine": 59,
+          "endLine": 61,
+          "methods": [],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "AlphaVantageNotConfiguredError",
+          "line": 19,
+          "isDefault": false
+        },
+        {
+          "name": "get_api_key",
+          "line": 29,
+          "isDefault": false
+        },
+        {
+          "name": "format_datetime_for_api",
+          "line": 38,
+          "isDefault": false
+        },
+        {
+          "name": "AlphaVantageRateLimitError",
+          "line": 59,
+          "isDefault": false
+        },
+        {
+          "name": "_make_api_request",
+          "line": 63,
+          "isDefault": false
+        },
+        {
+          "name": "_filter_csv_by_date_range",
+          "line": 125,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "get_api_key",
+          "callee": "os.getenv",
+          "lineNumber": 31
+        },
+        {
+          "caller": "get_api_key",
+          "callee": "AlphaVantageNotConfiguredError",
+          "lineNumber": 33
+        },
+        {
+          "caller": "format_datetime_for_api",
+          "callee": "isinstance",
+          "lineNumber": 40
+        },
+        {
+          "caller": "format_datetime_for_api",
+          "callee": "len",
+          "lineNumber": 42
+        },
+        {
+          "caller": "format_datetime_for_api",
+          "callee": "datetime.strptime",
+          "lineNumber": 46
+        },
+        {
+          "caller": "format_datetime_for_api",
+          "callee": "dt.strftime",
+          "lineNumber": 47
+        },
+        {
+          "caller": "format_datetime_for_api",
+          "callee": "datetime.strptime",
+          "lineNumber": 50
+        },
+        {
+          "caller": "format_datetime_for_api",
+          "callee": "dt.strftime",
+          "lineNumber": 51
+        },
+        {
+          "caller": "format_datetime_for_api",
+          "callee": "ValueError",
+          "lineNumber": 53
+        },
+        {
+          "caller": "format_datetime_for_api",
+          "callee": "isinstance",
+          "lineNumber": 54
+        },
+        {
+          "caller": "format_datetime_for_api",
+          "callee": "date_input.strftime",
+          "lineNumber": 55
+        },
+        {
+          "caller": "format_datetime_for_api",
+          "callee": "ValueError",
+          "lineNumber": 57
+        },
+        {
+          "caller": "format_datetime_for_api",
+          "callee": "type",
+          "lineNumber": 57
+        },
+        {
+          "caller": "_make_api_request",
+          "callee": "params.copy",
+          "lineNumber": 70
+        },
+        {
+          "caller": "_make_api_request",
+          "callee": "api_params.update",
+          "lineNumber": 71
+        },
+        {
+          "caller": "_make_api_request",
+          "callee": "get_api_key",
+          "lineNumber": 73
+        },
+        {
+          "caller": "_make_api_request",
+          "callee": "globals().get",
+          "lineNumber": 78
+        },
+        {
+          "caller": "_make_api_request",
+          "callee": "globals",
+          "lineNumber": 78
+        },
+        {
+          "caller": "_make_api_request",
+          "callee": "api_params.get",
+          "lineNumber": 79
+        },
+        {
+          "caller": "_make_api_request",
+          "callee": "api_params.pop",
+          "lineNumber": 85
+        },
+        {
+          "caller": "_make_api_request",
+          "callee": "external_request_checkpoint",
+          "lineNumber": 87
+        },
+        {
+          "caller": "_make_api_request",
+          "callee": "requests.get",
+          "lineNumber": 89
+        },
+        {
+          "caller": "_make_api_request",
+          "callee": "get_request_timeout",
+          "lineNumber": 92
+        },
+        {
+          "caller": "_make_api_request",
+          "callee": "response.raise_for_status",
+          "lineNumber": 94
+        },
+        {
+          "caller": "_make_api_request",
+          "callee": "external_request_checkpoint",
+          "lineNumber": 96
+        },
+        {
+          "caller": "_make_api_request",
+          "callee": "json.loads",
+          "lineNumber": 103
+        },
+        {
+          "caller": "_make_api_request",
+          "callee": "response_json.get",
+          "lineNumber": 111
+        },
+        {
+          "caller": "_make_api_request",
+          "callee": "response_json.get",
+          "lineNumber": 111
+        },
+        {
+          "caller": "_make_api_request",
+          "callee": "notice.lower",
+          "lineNumber": 113
+        },
+        {
+          "caller": "_make_api_request",
+          "callee": "any",
+          "lineNumber": 114
+        },
+        {
+          "caller": "_make_api_request",
+          "callee": "AlphaVantageRateLimitError",
+          "lineNumber": 115
+        },
+        {
+          "caller": "_make_api_request",
+          "callee": "AlphaVantageNotConfiguredError",
+          "lineNumber": 119
+        },
+        {
+          "caller": "_filter_csv_by_date_range",
+          "callee": "csv_data.strip",
+          "lineNumber": 137
+        },
+        {
+          "caller": "_filter_csv_by_date_range",
+          "callee": "pd.read_csv",
+          "lineNumber": 142
+        },
+        {
+          "caller": "_filter_csv_by_date_range",
+          "callee": "StringIO",
+          "lineNumber": 142
+        },
+        {
+          "caller": "_filter_csv_by_date_range",
+          "callee": "pd.to_datetime",
+          "lineNumber": 146
+        },
+        {
+          "caller": "_filter_csv_by_date_range",
+          "callee": "pd.to_datetime",
+          "lineNumber": 149
+        },
+        {
+          "caller": "_filter_csv_by_date_range",
+          "callee": "pd.to_datetime",
+          "lineNumber": 150
+        },
+        {
+          "caller": "_filter_csv_by_date_range",
+          "callee": "filtered_df.to_csv",
+          "lineNumber": 155
+        },
+        {
+          "caller": "_filter_csv_by_date_range",
+          "callee": "print",
+          "lineNumber": 159
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 6,
+        "functionCount": 4,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 64,
+      "nonEmptyLines": 48,
+      "functions": [
+        {
+          "name": "_filter_reports_by_date",
+          "startLine": 6,
+          "endLine": 27,
+          "params": [
+            "result",
+            "curr_date"
+          ]
+        },
+        {
+          "name": "get_fundamentals",
+          "startLine": 30,
+          "endLine": 45,
+          "params": [
+            "ticker",
+            "curr_date"
+          ]
+        },
+        {
+          "name": "get_balance_sheet",
+          "startLine": 48,
+          "endLine": 51,
+          "params": [
+            "ticker",
+            "freq",
+            "curr_date"
+          ]
+        },
+        {
+          "name": "get_cashflow",
+          "startLine": 54,
+          "endLine": 57,
+          "params": [
+            "ticker",
+            "freq",
+            "curr_date"
+          ]
+        },
+        {
+          "name": "get_income_statement",
+          "startLine": 60,
+          "endLine": 63,
+          "params": [
+            "ticker",
+            "freq",
+            "curr_date"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_filter_reports_by_date",
+          "line": 6,
+          "isDefault": false
+        },
+        {
+          "name": "get_fundamentals",
+          "line": 30,
+          "isDefault": false
+        },
+        {
+          "name": "get_balance_sheet",
+          "line": 48,
+          "isDefault": false
+        },
+        {
+          "name": "get_cashflow",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "get_income_statement",
+          "line": 60,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_filter_reports_by_date",
+          "callee": "isinstance",
+          "lineNumber": 13
+        },
+        {
+          "caller": "_filter_reports_by_date",
+          "callee": "json.loads",
+          "lineNumber": 16
+        },
+        {
+          "caller": "_filter_reports_by_date",
+          "callee": "isinstance",
+          "lineNumber": 19
+        },
+        {
+          "caller": "_filter_reports_by_date",
+          "callee": "isinstance",
+          "lineNumber": 22
+        },
+        {
+          "caller": "_filter_reports_by_date",
+          "callee": "payload.get",
+          "lineNumber": 22
+        },
+        {
+          "caller": "_filter_reports_by_date",
+          "callee": "r.get",
+          "lineNumber": 25
+        },
+        {
+          "caller": "_filter_reports_by_date",
+          "callee": "json.dumps",
+          "lineNumber": 27
+        },
+        {
+          "caller": "get_fundamentals",
+          "callee": "_make_api_request",
+          "lineNumber": 45
+        },
+        {
+          "caller": "get_balance_sheet",
+          "callee": "_make_api_request",
+          "lineNumber": 50
+        },
+        {
+          "caller": "get_balance_sheet",
+          "callee": "_filter_reports_by_date",
+          "lineNumber": 51
+        },
+        {
+          "caller": "get_cashflow",
+          "callee": "_make_api_request",
+          "lineNumber": 56
+        },
+        {
+          "caller": "get_cashflow",
+          "callee": "_filter_reports_by_date",
+          "lineNumber": 57
+        },
+        {
+          "caller": "get_income_statement",
+          "callee": "_make_api_request",
+          "lineNumber": 62
+        },
+        {
+          "caller": "get_income_statement",
+          "callee": "_filter_reports_by_date",
+          "lineNumber": 63
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 5,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/dataflows/alpha_vantage_indicator.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 215,
+      "nonEmptyLines": 190,
+      "functions": [
+        {
+          "name": "get_indicator",
+          "startLine": 4,
+          "endLine": 215,
+          "params": [
+            "symbol",
+            "indicator",
+            "curr_date",
+            "look_back_days",
+            "interval",
+            "time_period",
+            "series_type"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "get_indicator",
+          "line": 4,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "get_indicator",
+          "callee": "ValueError",
+          "lineNumber": 63
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "list",
+          "lineNumber": 64
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "supported_indicators.keys",
+          "lineNumber": 64
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "datetime.strptime",
+          "lineNumber": 67
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "relativedelta",
+          "lineNumber": 68
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "_make_api_request",
+          "lineNumber": 80
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "_make_api_request",
+          "lineNumber": 88
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "_make_api_request",
+          "lineNumber": 96
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "_make_api_request",
+          "lineNumber": 104
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "_make_api_request",
+          "lineNumber": 111
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "str",
+          "lineNumber": 114
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "_make_api_request",
+          "lineNumber": 119
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "_make_api_request",
+          "lineNumber": 127
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "str",
+          "lineNumber": 130
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "indicator_descriptions.get",
+          "lineNumber": 136
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "data.strip().split",
+          "lineNumber": 141
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "data.strip",
+          "lineNumber": 141
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "len",
+          "lineNumber": 142
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "col.strip",
+          "lineNumber": 146
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "lines[0].split",
+          "lineNumber": 146
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "header.index",
+          "lineNumber": 148
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "col_name_map.get",
+          "lineNumber": 160
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "header.index",
+          "lineNumber": 167
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "line.strip",
+          "lineNumber": 173
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "line.split",
+          "lineNumber": 175
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "len",
+          "lineNumber": 176
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "values[date_col_idx].strip",
+          "lineNumber": 178
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "datetime.strptime",
+          "lineNumber": 180
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "values[value_col_idx].strip",
+          "lineNumber": 184
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "result_data.append",
+          "lineNumber": 185
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "result_data.sort",
+          "lineNumber": 190
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "date_dt.strftime",
+          "lineNumber": 194
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "indicator.upper",
+          "lineNumber": 200
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "before.strftime",
+          "lineNumber": 200
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "indicator_descriptions.get",
+          "lineNumber": 203
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "print",
+          "lineNumber": 214
+        },
+        {
+          "caller": "get_indicator",
+          "callee": "str",
+          "lineNumber": 215
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/dataflows/alpha_vantage_news.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 72,
+      "nonEmptyLines": 51,
+      "functions": [
+        {
+          "name": "get_news",
+          "startLine": 4,
+          "endLine": 24,
+          "params": [
+            "ticker",
+            "start_date",
+            "end_date"
+          ]
+        },
+        {
+          "name": "get_global_news",
+          "startLine": 26,
+          "endLine": 53,
+          "params": [
+            "curr_date",
+            "look_back_days",
+            "limit"
+          ]
+        },
+        {
+          "name": "get_insider_transactions",
+          "startLine": 56,
+          "endLine": 72,
+          "params": [
+            "symbol"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "get_news",
+          "line": 4,
+          "isDefault": false
+        },
+        {
+          "name": "get_global_news",
+          "line": 26,
+          "isDefault": false
+        },
+        {
+          "name": "get_insider_transactions",
+          "line": 56,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "get_news",
+          "callee": "format_datetime_for_api",
+          "lineNumber": 20
+        },
+        {
+          "caller": "get_news",
+          "callee": "format_datetime_for_api",
+          "lineNumber": 21
+        },
+        {
+          "caller": "get_news",
+          "callee": "_make_api_request",
+          "lineNumber": 24
+        },
+        {
+          "caller": "get_global_news",
+          "callee": "datetime.strptime",
+          "lineNumber": 42
+        },
+        {
+          "caller": "get_global_news",
+          "callee": "timedelta",
+          "lineNumber": 43
+        },
+        {
+          "caller": "get_global_news",
+          "callee": "start_dt.strftime",
+          "lineNumber": 44
+        },
+        {
+          "caller": "get_global_news",
+          "callee": "format_datetime_for_api",
+          "lineNumber": 48
+        },
+        {
+          "caller": "get_global_news",
+          "callee": "format_datetime_for_api",
+          "lineNumber": 49
+        },
+        {
+          "caller": "get_global_news",
+          "callee": "str",
+          "lineNumber": 50
+        },
+        {
+          "caller": "get_global_news",
+          "callee": "_make_api_request",
+          "lineNumber": 53
+        },
+        {
+          "caller": "get_insider_transactions",
+          "callee": "_make_api_request",
+          "lineNumber": 72
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/dataflows/alpha_vantage_stock.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 40,
+      "nonEmptyLines": 31,
+      "functions": [
+        {
+          "name": "get_stock",
+          "startLine": 6,
+          "endLine": 40,
+          "params": [
+            "symbol",
+            "start_date",
+            "end_date"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "get_stock",
+          "line": 6,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "get_stock",
+          "callee": "datetime.strptime",
+          "lineNumber": 24
+        },
+        {
+          "caller": "get_stock",
+          "callee": "datetime.now",
+          "lineNumber": 25
+        },
+        {
+          "caller": "get_stock",
+          "callee": "_make_api_request",
+          "lineNumber": 38
+        },
+        {
+          "caller": "get_stock",
+          "callee": "_filter_csv_by_date_range",
+          "lineNumber": 40
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    }
+  ]
+}

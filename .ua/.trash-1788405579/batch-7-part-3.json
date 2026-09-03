@@ -1,0 +1,726 @@
+{
+  "nodes": [
+    {
+      "id": "file:web/market_models.py",
+      "type": "file",
+      "name": "market_models.py",
+      "filePath": "web/market_models.py",
+      "summary": "实现 web/market_models.py 在交易分析系统中的核心逻辑，对外提供 _utc、Freshness、ProviderErrorCode 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "模型提供商",
+        "市场数据",
+        "模式定义",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/market_models.py:_utc",
+      "type": "function",
+      "name": "_utc",
+      "filePath": "web/market_models.py",
+      "lineRange": [
+        17,
+        24
+      ],
+      "summary": "位于 web/market_models.py 的函数 _utc，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "模型提供商",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/market_models.py:redact",
+      "type": "function",
+      "name": "redact",
+      "filePath": "web/market_models.py",
+      "lineRange": [
+        50,
+        57
+      ],
+      "summary": "位于 web/market_models.py 的函数 redact，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "模型提供商",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:web/market_models.py:Freshness",
+      "type": "class",
+      "name": "Freshness",
+      "filePath": "web/market_models.py",
+      "lineRange": [
+        27,
+        31
+      ],
+      "summary": "位于 web/market_models.py 的类 Freshness，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "市场数据"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/market_models.py:ProviderErrorCode",
+      "type": "class",
+      "name": "ProviderErrorCode",
+      "filePath": "web/market_models.py",
+      "lineRange": [
+        34,
+        40
+      ],
+      "summary": "位于 web/market_models.py 的类 ProviderErrorCode，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "市场数据"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/market_models.py:ProviderError",
+      "type": "class",
+      "name": "ProviderError",
+      "filePath": "web/market_models.py",
+      "lineRange": [
+        60,
+        64
+      ],
+      "summary": "位于 web/market_models.py 的类 ProviderError，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "市场数据"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/market_models.py:QuoteSnapshot",
+      "type": "class",
+      "name": "QuoteSnapshot",
+      "filePath": "web/market_models.py",
+      "lineRange": [
+        67,
+        113
+      ],
+      "summary": "位于 web/market_models.py 的类 QuoteSnapshot，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "市场数据"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/market_models.py:Candle",
+      "type": "class",
+      "name": "Candle",
+      "filePath": "web/market_models.py",
+      "lineRange": [
+        116,
+        135
+      ],
+      "summary": "位于 web/market_models.py 的类 Candle，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "市场数据"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/market_models.py:AssetIdentity",
+      "type": "class",
+      "name": "AssetIdentity",
+      "filePath": "web/market_models.py",
+      "lineRange": [
+        138,
+        160
+      ],
+      "summary": "位于 web/market_models.py 的类 AssetIdentity，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "市场数据"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/market_models.py:QuoteItemError",
+      "type": "class",
+      "name": "QuoteItemError",
+      "filePath": "web/market_models.py",
+      "lineRange": [
+        163,
+        166
+      ],
+      "summary": "位于 web/market_models.py 的类 QuoteItemError，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "市场数据"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/market_models.py:QuoteItem",
+      "type": "class",
+      "name": "QuoteItem",
+      "filePath": "web/market_models.py",
+      "lineRange": [
+        169,
+        231
+      ],
+      "summary": "位于 web/market_models.py 的类 QuoteItem，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "市场数据"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/market_models.py:BulkQuoteResponse",
+      "type": "class",
+      "name": "BulkQuoteResponse",
+      "filePath": "web/market_models.py",
+      "lineRange": [
+        234,
+        236
+      ],
+      "summary": "位于 web/market_models.py 的类 BulkQuoteResponse，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "市场数据"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/market_models.py:QuoteProvider",
+      "type": "class",
+      "name": "QuoteProvider",
+      "filePath": "web/market_models.py",
+      "lineRange": [
+        239,
+        243
+      ],
+      "summary": "位于 web/market_models.py 的类 QuoteProvider，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "市场数据"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/market_models.py:ProviderDiagnostic",
+      "type": "class",
+      "name": "ProviderDiagnostic",
+      "filePath": "web/market_models.py",
+      "lineRange": [
+        246,
+        251
+      ],
+      "summary": "位于 web/market_models.py 的类 ProviderDiagnostic，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "市场数据"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/providers/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "web/providers/__init__.py",
+      "summary": "实现 web/providers/__init__.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "模型提供商",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:web/providers/alpha_vantage_provider.py",
+      "type": "file",
+      "name": "alpha_vantage_provider.py",
+      "filePath": "web/providers/alpha_vantage_provider.py",
+      "summary": "实现 web/providers/alpha_vantage_provider.py 在交易分析系统中的核心逻辑，对外提供 AlphaVantageProvider 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/providers/alpha_vantage_provider.py:AlphaVantageProvider",
+      "type": "class",
+      "name": "AlphaVantageProvider",
+      "filePath": "web/providers/alpha_vantage_provider.py",
+      "lineRange": [
+        19,
+        96
+      ],
+      "summary": "位于 web/providers/alpha_vantage_provider.py 的类 AlphaVantageProvider，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/providers/yfinance_provider.py",
+      "type": "file",
+      "name": "yfinance_provider.py",
+      "filePath": "web/providers/yfinance_provider.py",
+      "summary": "实现 web/providers/yfinance_provider.py 在交易分析系统中的核心逻辑，对外提供 YFinanceProvider、_info、info_currency 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "模型提供商",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/providers/yfinance_provider.py:_info",
+      "type": "function",
+      "name": "_info",
+      "filePath": "web/providers/yfinance_provider.py",
+      "lineRange": [
+        113,
+        117
+      ],
+      "summary": "位于 web/providers/yfinance_provider.py 的函数 _info，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "模型提供商",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/providers/yfinance_provider.py:info_currency",
+      "type": "function",
+      "name": "info_currency",
+      "filePath": "web/providers/yfinance_provider.py",
+      "lineRange": [
+        120,
+        121
+      ],
+      "summary": "位于 web/providers/yfinance_provider.py 的函数 info_currency，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "模型提供商",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/providers/yfinance_provider.py:info_exchange",
+      "type": "function",
+      "name": "info_exchange",
+      "filePath": "web/providers/yfinance_provider.py",
+      "lineRange": [
+        124,
+        125
+      ],
+      "summary": "位于 web/providers/yfinance_provider.py 的函数 info_exchange，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "模型提供商",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/providers/yfinance_provider.py:info_name",
+      "type": "function",
+      "name": "info_name",
+      "filePath": "web/providers/yfinance_provider.py",
+      "lineRange": [
+        128,
+        129
+      ],
+      "summary": "位于 web/providers/yfinance_provider.py 的函数 info_name，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "模型提供商",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:web/providers/yfinance_provider.py:YFinanceProvider",
+      "type": "class",
+      "name": "YFinanceProvider",
+      "filePath": "web/providers/yfinance_provider.py",
+      "lineRange": [
+        19,
+        110
+      ],
+      "summary": "位于 web/providers/yfinance_provider.py 的类 YFinanceProvider，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "市场数据"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:web/market_models.py",
+      "target": "function:web/market_models.py:_utc",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "function:web/market_models.py:redact",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:Freshness",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:ProviderErrorCode",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:ProviderError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:QuoteSnapshot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:Candle",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:AssetIdentity",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:QuoteItemError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:QuoteItem",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:BulkQuoteResponse",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:QuoteProvider",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:ProviderDiagnostic",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "function:web/market_models.py:_utc",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:Freshness",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:ProviderErrorCode",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "function:web/market_models.py:redact",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:ProviderError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:QuoteSnapshot",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:Candle",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:AssetIdentity",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:QuoteItemError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:QuoteItem",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:BulkQuoteResponse",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:QuoteProvider",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "class:web/market_models.py:ProviderDiagnostic",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "file:web/market_localization.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/providers/__init__.py",
+      "target": "file:web/providers/alpha_vantage_provider.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/providers/__init__.py",
+      "target": "file:web/providers/yfinance_provider.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/providers/alpha_vantage_provider.py",
+      "target": "class:web/providers/alpha_vantage_provider.py:AlphaVantageProvider",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/providers/alpha_vantage_provider.py",
+      "target": "class:web/providers/alpha_vantage_provider.py:AlphaVantageProvider",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/providers/alpha_vantage_provider.py",
+      "target": "file:cli/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/providers/alpha_vantage_provider.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/providers/alpha_vantage_provider.py",
+      "target": "file:web/market_models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/providers/yfinance_provider.py",
+      "target": "function:web/providers/yfinance_provider.py:_info",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/providers/yfinance_provider.py",
+      "target": "function:web/providers/yfinance_provider.py:info_currency",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/providers/yfinance_provider.py",
+      "target": "function:web/providers/yfinance_provider.py:info_exchange",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/providers/yfinance_provider.py",
+      "target": "function:web/providers/yfinance_provider.py:info_name",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/providers/yfinance_provider.py",
+      "target": "class:web/providers/yfinance_provider.py:YFinanceProvider",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/providers/yfinance_provider.py",
+      "target": "class:web/providers/yfinance_provider.py:YFinanceProvider",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/providers/yfinance_provider.py",
+      "target": "function:web/providers/yfinance_provider.py:_info",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/providers/yfinance_provider.py",
+      "target": "function:web/providers/yfinance_provider.py:info_currency",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/providers/yfinance_provider.py",
+      "target": "function:web/providers/yfinance_provider.py:info_exchange",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/providers/yfinance_provider.py",
+      "target": "function:web/providers/yfinance_provider.py:info_name",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/providers/yfinance_provider.py",
+      "target": "file:cli/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/providers/yfinance_provider.py",
+      "target": "file:web/market_models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

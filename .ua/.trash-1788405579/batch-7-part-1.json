@@ -1,0 +1,1684 @@
+{
+  "nodes": [
+    {
+      "id": "file:cli/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "cli/__init__.py",
+      "summary": "实现 cli/__init__.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。",
+      "tags": [
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:cli/models.py",
+      "type": "file",
+      "name": "models.py",
+      "filePath": "cli/models.py",
+      "summary": "实现 cli/models.py 在交易分析系统中的核心逻辑，对外提供 AnalystType、AssetType 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "模型提供商",
+        "模式定义",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:cli/models.py:AnalystType",
+      "type": "class",
+      "name": "AnalystType",
+      "filePath": "cli/models.py",
+      "lineRange": [
+        4,
+        10
+      ],
+      "summary": "位于 cli/models.py 的类 AnalystType，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "模型提供商",
+        "模式定义",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:cli/models.py:AssetType",
+      "type": "class",
+      "name": "AssetType",
+      "filePath": "cli/models.py",
+      "lineRange": [
+        13,
+        15
+      ],
+      "summary": "位于 cli/models.py 的类 AssetType，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "模型提供商",
+        "模式定义",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:cli/utils.py",
+      "type": "file",
+      "name": "utils.py",
+      "filePath": "cli/utils.py",
+      "summary": "实现 cli/utils.py 在交易分析系统中的核心逻辑，对外提供 is_valid_ticker_input、get_ticker、normalize_ticker_symbol 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:cli/utils.py:is_valid_ticker_input",
+      "type": "function",
+      "name": "is_valid_ticker_input",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        26,
+        34
+      ],
+      "summary": "位于 cli/utils.py 的函数 is_valid_ticker_input，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:get_ticker",
+      "type": "function",
+      "name": "get_ticker",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        37,
+        62
+      ],
+      "summary": "位于 cli/utils.py 的函数 get_ticker，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:normalize_ticker_symbol",
+      "type": "function",
+      "name": "normalize_ticker_symbol",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        65,
+        78
+      ],
+      "summary": "位于 cli/utils.py 的函数 normalize_ticker_symbol，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:detect_asset_type",
+      "type": "function",
+      "name": "detect_asset_type",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        81,
+        87
+      ],
+      "summary": "位于 cli/utils.py 的函数 detect_asset_type，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:filter_analysts_for_asset_type",
+      "type": "function",
+      "name": "filter_analysts_for_asset_type",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        90,
+        99
+      ],
+      "summary": "位于 cli/utils.py 的函数 filter_analysts_for_asset_type，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:get_analysis_date",
+      "type": "function",
+      "name": "get_analysis_date",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        102,
+        132
+      ],
+      "summary": "位于 cli/utils.py 的函数 get_analysis_date，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:select_analysts",
+      "type": "function",
+      "name": "select_analysts",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        135,
+        164
+      ],
+      "summary": "位于 cli/utils.py 的函数 select_analysts，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:select_research_depth",
+      "type": "function",
+      "name": "select_research_depth",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        167,
+        196
+      ],
+      "summary": "位于 cli/utils.py 的函数 select_research_depth，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:_fetch_openrouter_models",
+      "type": "function",
+      "name": "_fetch_openrouter_models",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        212,
+        226
+      ],
+      "summary": "位于 cli/utils.py 的函数 _fetch_openrouter_models，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:_require_text",
+      "type": "function",
+      "name": "_require_text",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        229,
+        243
+      ],
+      "summary": "位于 cli/utils.py 的函数 _require_text，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:select_openrouter_model",
+      "type": "function",
+      "name": "select_openrouter_model",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        246,
+        284
+      ],
+      "summary": "位于 cli/utils.py 的函数 select_openrouter_model，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:_prompt_custom_model_id",
+      "type": "function",
+      "name": "_prompt_custom_model_id",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        287,
+        289
+      ],
+      "summary": "位于 cli/utils.py 的函数 _prompt_custom_model_id，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:_select_model",
+      "type": "function",
+      "name": "_select_model",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        292,
+        326
+      ],
+      "summary": "位于 cli/utils.py 的函数 _select_model，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:select_shallow_thinking_agent",
+      "type": "function",
+      "name": "select_shallow_thinking_agent",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        329,
+        331
+      ],
+      "summary": "位于 cli/utils.py 的函数 select_shallow_thinking_agent，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:select_deep_thinking_agent",
+      "type": "function",
+      "name": "select_deep_thinking_agent",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        334,
+        336
+      ],
+      "summary": "位于 cli/utils.py 的函数 select_deep_thinking_agent，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:_llm_provider_table",
+      "type": "function",
+      "name": "_llm_provider_table",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        338,
+        366
+      ],
+      "summary": "位于 cli/utils.py 的函数 _llm_provider_table，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:provider_default_url",
+      "type": "function",
+      "name": "provider_default_url",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        369,
+        375
+      ],
+      "summary": "位于 cli/utils.py 的函数 provider_default_url，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:resolve_backend_url",
+      "type": "function",
+      "name": "resolve_backend_url",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        378,
+        388
+      ],
+      "summary": "位于 cli/utils.py 的函数 resolve_backend_url，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:prompt_openai_compatible_url",
+      "type": "function",
+      "name": "prompt_openai_compatible_url",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        391,
+        402
+      ],
+      "summary": "位于 cli/utils.py 的函数 prompt_openai_compatible_url，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:select_llm_provider",
+      "type": "function",
+      "name": "select_llm_provider",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        405,
+        430
+      ],
+      "summary": "位于 cli/utils.py 的函数 select_llm_provider，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:ask_openai_reasoning_effort",
+      "type": "function",
+      "name": "ask_openai_reasoning_effort",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        433,
+        448
+      ],
+      "summary": "位于 cli/utils.py 的函数 ask_openai_reasoning_effort，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:ask_anthropic_effort",
+      "type": "function",
+      "name": "ask_anthropic_effort",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        451,
+        470
+      ],
+      "summary": "位于 cli/utils.py 的函数 ask_anthropic_effort，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:ask_gemini_thinking_config",
+      "type": "function",
+      "name": "ask_gemini_thinking_config",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        473,
+        490
+      ],
+      "summary": "位于 cli/utils.py 的函数 ask_gemini_thinking_config，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:ask_glm_region",
+      "type": "function",
+      "name": "ask_glm_region",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        493,
+        516
+      ],
+      "summary": "位于 cli/utils.py 的函数 ask_glm_region，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:ask_qwen_region",
+      "type": "function",
+      "name": "ask_qwen_region",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        519,
+        543
+      ],
+      "summary": "位于 cli/utils.py 的函数 ask_qwen_region，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:ask_minimax_region",
+      "type": "function",
+      "name": "ask_minimax_region",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        546,
+        570
+      ],
+      "summary": "位于 cli/utils.py 的函数 ask_minimax_region，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:confirm_ollama_endpoint",
+      "type": "function",
+      "name": "confirm_ollama_endpoint",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        573,
+        600
+      ],
+      "summary": "位于 cli/utils.py 的函数 confirm_ollama_endpoint，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/utils.py:ensure_api_key",
+      "type": "function",
+      "name": "ensure_api_key",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        603,
+        650
+      ],
+      "summary": "位于 cli/utils.py 的函数 ensure_api_key，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:cli/utils.py:ask_output_language",
+      "type": "function",
+      "name": "ask_output_language",
+      "filePath": "cli/utils.py",
+      "lineRange": [
+        653,
+        688
+      ],
+      "summary": "位于 cli/utils.py 的函数 ask_output_language，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_cli_symbol_handling.py",
+      "type": "file",
+      "name": "test_cli_symbol_handling.py",
+      "filePath": "tests/test_cli_symbol_handling.py",
+      "summary": "覆盖 test_cli_symbol_handling.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_cli_symbol_handling.py:test_normalize_symbol_crypto_and_passthrough",
+      "type": "function",
+      "name": "test_normalize_symbol_crypto_and_passthrough",
+      "filePath": "tests/test_cli_symbol_handling.py",
+      "lineRange": [
+        26,
+        27
+      ],
+      "summary": "位于 tests/test_cli_symbol_handling.py 的函数 test_normalize_symbol_crypto_and_passthrough，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_cli_symbol_handling.py:test_ticker_input_validation",
+      "type": "function",
+      "name": "test_ticker_input_validation",
+      "filePath": "tests/test_cli_symbol_handling.py",
+      "lineRange": [
+        41,
+        42
+      ],
+      "summary": "位于 tests/test_cli_symbol_handling.py 的函数 test_ticker_input_validation，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_cli_symbol_handling.py:test_detect_asset_type",
+      "type": "function",
+      "name": "test_detect_asset_type",
+      "filePath": "tests/test_cli_symbol_handling.py",
+      "lineRange": [
+        55,
+        56
+      ],
+      "summary": "位于 tests/test_cli_symbol_handling.py 的函数 test_detect_asset_type，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_cli_symbol_handling.py:test_cli_normalize_delegates_to_data_layer",
+      "type": "function",
+      "name": "test_cli_normalize_delegates_to_data_layer",
+      "filePath": "tests/test_cli_symbol_handling.py",
+      "lineRange": [
+        59,
+        62
+      ],
+      "summary": "位于 tests/test_cli_symbol_handling.py 的函数 test_cli_normalize_delegates_to_data_layer，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_crypto_asset_mode.py",
+      "type": "file",
+      "name": "test_crypto_asset_mode.py",
+      "filePath": "tests/test_crypto_asset_mode.py",
+      "summary": "覆盖 test_crypto_asset_mode.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_crypto_asset_mode.py:CryptoAssetModeTests",
+      "type": "class",
+      "name": "CryptoAssetModeTests",
+      "filePath": "tests/test_crypto_asset_mode.py",
+      "lineRange": [
+        8,
+        52
+      ],
+      "summary": "位于 tests/test_crypto_asset_mode.py 的类 CryptoAssetModeTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_market_localization.py",
+      "type": "file",
+      "name": "test_market_localization.py",
+      "filePath": "tests/test_market_localization.py",
+      "summary": "覆盖 test_market_localization.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_market_localization.py:test_tencent_symbol_key",
+      "type": "function",
+      "name": "test_tencent_symbol_key",
+      "filePath": "tests/test_market_localization.py",
+      "lineRange": [
+        46,
+        47
+      ],
+      "summary": "位于 tests/test_market_localization.py 的函数 test_tencent_symbol_key，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_market_localization.py:test_decode_gb18030_handles_chinese",
+      "type": "function",
+      "name": "test_decode_gb18030_handles_chinese",
+      "filePath": "tests/test_market_localization.py",
+      "lineRange": [
+        53,
+        57
+      ],
+      "summary": "位于 tests/test_market_localization.py 的函数 test_decode_gb18030_handles_chinese，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_market_localization.py:test_decode_gb18030_handles_ascii",
+      "type": "function",
+      "name": "test_decode_gb18030_handles_ascii",
+      "filePath": "tests/test_market_localization.py",
+      "lineRange": [
+        60,
+        61
+      ],
+      "summary": "位于 tests/test_market_localization.py 的函数 test_decode_gb18030_handles_ascii，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_market_localization.py:test_localized_returns_provider_chinese_name_when_already_localized",
+      "type": "function",
+      "name": "test_localized_returns_provider_chinese_name_when_already_localized",
+      "filePath": "tests/test_market_localization.py",
+      "lineRange": [
+        67,
+        68
+      ],
+      "summary": "位于 tests/test_market_localization.py 的函数 test_localized_returns_provider_chinese_name_when_already_localized，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_market_localization.py:test_localized_prefers_curated_over_tencent",
+      "type": "function",
+      "name": "test_localized_prefers_curated_over_tencent",
+      "filePath": "tests/test_market_localization.py",
+      "lineRange": [
+        71,
+        77
+      ],
+      "summary": "位于 tests/test_market_localization.py 的函数 test_localized_prefers_curated_over_tencent，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_market_localization.py:test_localized_prefers_source_alias_when_mapped",
+      "type": "function",
+      "name": "test_localized_prefers_source_alias_when_mapped",
+      "filePath": "tests/test_market_localization.py",
+      "lineRange": [
+        80,
+        89
+      ],
+      "summary": "位于 tests/test_market_localization.py 的函数 test_localized_prefers_source_alias_when_mapped，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_market_localization.py:test_localized_falls_back_to_tencent_when_needed",
+      "type": "function",
+      "name": "test_localized_falls_back_to_tencent_when_needed",
+      "filePath": "tests/test_market_localization.py",
+      "lineRange": [
+        92,
+        101
+      ],
+      "summary": "位于 tests/test_market_localization.py 的函数 test_localized_falls_back_to_tencent_when_needed，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_market_localization.py:test_localized_returns_cleaned_english_when_remote_fails",
+      "type": "function",
+      "name": "test_localized_returns_cleaned_english_when_remote_fails",
+      "filePath": "tests/test_market_localization.py",
+      "lineRange": [
+        104,
+        108
+      ],
+      "summary": "位于 tests/test_market_localization.py 的函数 test_localized_returns_cleaned_english_when_remote_fails，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_market_localization.py:test_tencent_asset_name_uses_cache",
+      "type": "function",
+      "name": "test_tencent_asset_name_uses_cache",
+      "filePath": "tests/test_market_localization.py",
+      "lineRange": [
+        114,
+        125
+      ],
+      "summary": "位于 tests/test_market_localization.py 的函数 test_tencent_asset_name_uses_cache，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_market_localization.py:test_tencent_asset_name_returns_none_for_unsupported_suffix",
+      "type": "function",
+      "name": "test_tencent_asset_name_returns_none_for_unsupported_suffix",
+      "filePath": "tests/test_market_localization.py",
+      "lineRange": [
+        128,
+        134
+      ],
+      "summary": "位于 tests/test_market_localization.py 的函数 test_tencent_asset_name_returns_none_for_unsupported_suffix，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_market_localization.py:test_tencent_lookup_returns_chinese_name_from_payload",
+      "type": "function",
+      "name": "test_tencent_lookup_returns_chinese_name_from_payload",
+      "filePath": "tests/test_market_localization.py",
+      "lineRange": [
+        140,
+        145
+      ],
+      "summary": "位于 tests/test_market_localization.py 的函数 test_tencent_lookup_returns_chinese_name_from_payload，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_market_localization.py:test_tencent_lookup_rejects_payload_without_cjk",
+      "type": "function",
+      "name": "test_tencent_lookup_rejects_payload_without_cjk",
+      "filePath": "tests/test_market_localization.py",
+      "lineRange": [
+        148,
+        153
+      ],
+      "summary": "位于 tests/test_market_localization.py 的函数 test_tencent_lookup_rejects_payload_without_cjk，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_market_localization.py:test_tencent_lookup_returns_none_on_network_error",
+      "type": "function",
+      "name": "test_tencent_lookup_returns_none_on_network_error",
+      "filePath": "tests/test_market_localization.py",
+      "lineRange": [
+        156,
+        163
+      ],
+      "summary": "位于 tests/test_market_localization.py 的函数 test_tencent_lookup_returns_none_on_network_error，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:cli/models.py",
+      "target": "class:cli/models.py:AnalystType",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/models.py",
+      "target": "class:cli/models.py:AssetType",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/models.py",
+      "target": "class:cli/models.py:AnalystType",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/models.py",
+      "target": "class:cli/models.py:AssetType",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:is_valid_ticker_input",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:get_ticker",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:normalize_ticker_symbol",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:detect_asset_type",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:filter_analysts_for_asset_type",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:get_analysis_date",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:select_analysts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:select_research_depth",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:_fetch_openrouter_models",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:_require_text",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:select_openrouter_model",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:_prompt_custom_model_id",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:_select_model",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:select_shallow_thinking_agent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:select_deep_thinking_agent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:_llm_provider_table",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:provider_default_url",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:resolve_backend_url",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:prompt_openai_compatible_url",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:select_llm_provider",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:ask_openai_reasoning_effort",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:ask_anthropic_effort",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:ask_gemini_thinking_config",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:ask_glm_region",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:ask_qwen_region",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:ask_minimax_region",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:confirm_ollama_endpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:ensure_api_key",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:ask_output_language",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:is_valid_ticker_input",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:get_ticker",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:normalize_ticker_symbol",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:detect_asset_type",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:filter_analysts_for_asset_type",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:get_analysis_date",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:select_analysts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:select_research_depth",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:_fetch_openrouter_models",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:_require_text",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:select_openrouter_model",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:_prompt_custom_model_id",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:_select_model",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:select_shallow_thinking_agent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:select_deep_thinking_agent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:_llm_provider_table",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:provider_default_url",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:resolve_backend_url",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:prompt_openai_compatible_url",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:select_llm_provider",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:ask_openai_reasoning_effort",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:ask_anthropic_effort",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:ask_gemini_thinking_config",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:ask_glm_region",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:ask_qwen_region",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:ask_minimax_region",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:confirm_ollama_endpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:ensure_api_key",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "function:cli/utils.py:ask_output_language",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "file:cli/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "file:tradingagents/llm_clients/api_key_env.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "file:tradingagents/llm_clients/model_catalog.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_cli_symbol_handling.py",
+      "target": "function:tests/test_cli_symbol_handling.py:test_normalize_symbol_crypto_and_passthrough",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_cli_symbol_handling.py",
+      "target": "function:tests/test_cli_symbol_handling.py:test_ticker_input_validation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_cli_symbol_handling.py",
+      "target": "function:tests/test_cli_symbol_handling.py:test_detect_asset_type",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_cli_symbol_handling.py",
+      "target": "function:tests/test_cli_symbol_handling.py:test_cli_normalize_delegates_to_data_layer",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_cli_symbol_handling.py",
+      "target": "function:tests/test_cli_symbol_handling.py:test_normalize_symbol_crypto_and_passthrough",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_cli_symbol_handling.py",
+      "target": "function:tests/test_cli_symbol_handling.py:test_ticker_input_validation",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_cli_symbol_handling.py",
+      "target": "function:tests/test_cli_symbol_handling.py:test_detect_asset_type",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_cli_symbol_handling.py",
+      "target": "function:tests/test_cli_symbol_handling.py:test_cli_normalize_delegates_to_data_layer",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_cli_symbol_handling.py",
+      "target": "file:cli/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_cli_symbol_handling.py",
+      "target": "file:cli/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_cli_symbol_handling.py",
+      "target": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_crypto_asset_mode.py",
+      "target": "class:tests/test_crypto_asset_mode.py:CryptoAssetModeTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_crypto_asset_mode.py",
+      "target": "class:tests/test_crypto_asset_mode.py:CryptoAssetModeTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_crypto_asset_mode.py",
+      "target": "file:cli/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_crypto_asset_mode.py",
+      "target": "file:cli/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_crypto_asset_mode.py",
+      "target": "file:tradingagents/graph/propagation.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_tencent_symbol_key",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_decode_gb18030_handles_chinese",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_decode_gb18030_handles_ascii",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_localized_returns_provider_chinese_name_when_already_localized",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_localized_prefers_curated_over_tencent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_localized_prefers_source_alias_when_mapped",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_localized_falls_back_to_tencent_when_needed",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_localized_returns_cleaned_english_when_remote_fails",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_tencent_asset_name_uses_cache",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_tencent_asset_name_returns_none_for_unsupported_suffix",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_tencent_lookup_returns_chinese_name_from_payload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_tencent_lookup_rejects_payload_without_cjk",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_tencent_lookup_returns_none_on_network_error",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_tencent_symbol_key",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_decode_gb18030_handles_chinese",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_decode_gb18030_handles_ascii",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_localized_returns_provider_chinese_name_when_already_localized",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_localized_prefers_curated_over_tencent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_localized_prefers_source_alias_when_mapped",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_localized_falls_back_to_tencent_when_needed",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_localized_returns_cleaned_english_when_remote_fails",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_tencent_asset_name_uses_cache",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_tencent_asset_name_returns_none_for_unsupported_suffix",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_tencent_lookup_returns_chinese_name_from_payload",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_tencent_lookup_rejects_payload_without_cjk",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "function:tests/test_market_localization.py:test_tencent_lookup_returns_none_on_network_error",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "file:web/market_localization.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

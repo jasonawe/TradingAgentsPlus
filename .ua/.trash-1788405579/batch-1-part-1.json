@@ -1,0 +1,1693 @@
+{
+  "nodes": [
+    {
+      "id": "file:scripts/smoke_structured_output.py",
+      "type": "file",
+      "name": "smoke_structured_output.py",
+      "filePath": "scripts/smoke_structured_output.py",
+      "summary": "实现 scripts/smoke_structured_output.py 在交易分析系统中的核心逻辑，对外提供 _make_rm_state、_make_trader_state、_make_pm_state 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:scripts/smoke_structured_output.py:_make_rm_state",
+      "type": "function",
+      "name": "_make_rm_state",
+      "filePath": "scripts/smoke_structured_output.py",
+      "lineRange": [
+        55,
+        66
+      ],
+      "summary": "位于 scripts/smoke_structured_output.py 的函数 _make_rm_state，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/smoke_structured_output.py:_make_trader_state",
+      "type": "function",
+      "name": "_make_trader_state",
+      "filePath": "scripts/smoke_structured_output.py",
+      "lineRange": [
+        69,
+        73
+      ],
+      "summary": "位于 scripts/smoke_structured_output.py 的函数 _make_trader_state，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/smoke_structured_output.py:_make_pm_state",
+      "type": "function",
+      "name": "_make_pm_state",
+      "filePath": "scripts/smoke_structured_output.py",
+      "lineRange": [
+        76,
+        97
+      ],
+      "summary": "位于 scripts/smoke_structured_output.py 的函数 _make_pm_state，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/smoke_structured_output.py:_print_section",
+      "type": "function",
+      "name": "_print_section",
+      "filePath": "scripts/smoke_structured_output.py",
+      "lineRange": [
+        100,
+        102
+      ],
+      "summary": "位于 scripts/smoke_structured_output.py 的函数 _print_section，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scripts/smoke_structured_output.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scripts/smoke_structured_output.py",
+      "lineRange": [
+        105,
+        170
+      ],
+      "summary": "位于 scripts/smoke_structured_output.py 的函数 main，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tests/test_i18n_coverage.py",
+      "type": "file",
+      "name": "test_i18n_coverage.py",
+      "filePath": "tests/test_i18n_coverage.py",
+      "summary": "覆盖 test_i18n_coverage.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_i18n_coverage.py:test_report_agent_applies_language_instruction",
+      "type": "function",
+      "name": "test_report_agent_applies_language_instruction",
+      "filePath": "tests/test_i18n_coverage.py",
+      "lineRange": [
+        52,
+        59
+      ],
+      "summary": "位于 tests/test_i18n_coverage.py 的函数 test_report_agent_applies_language_instruction，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_i18n_coverage.py:TestLanguageInstruction",
+      "type": "class",
+      "name": "TestLanguageInstruction",
+      "filePath": "tests/test_i18n_coverage.py",
+      "lineRange": [
+        36,
+        47
+      ],
+      "summary": "位于 tests/test_i18n_coverage.py 的类 TestLanguageInstruction，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_instrument_identity.py",
+      "type": "file",
+      "name": "test_instrument_identity.py",
+      "filePath": "tests/test_instrument_identity.py",
+      "summary": "覆盖 test_instrument_identity.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_instrument_identity.py:ResolveInstrumentIdentityTests",
+      "type": "class",
+      "name": "ResolveInstrumentIdentityTests",
+      "filePath": "tests/test_instrument_identity.py",
+      "lineRange": [
+        19,
+        65
+      ],
+      "summary": "位于 tests/test_instrument_identity.py 的类 ResolveInstrumentIdentityTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_instrument_identity.py:BuildInstrumentContextTests",
+      "type": "class",
+      "name": "BuildInstrumentContextTests",
+      "filePath": "tests/test_instrument_identity.py",
+      "lineRange": [
+        69,
+        96
+      ],
+      "summary": "位于 tests/test_instrument_identity.py 的类 BuildInstrumentContextTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_instrument_identity.py:GetInstrumentContextFromStateTests",
+      "type": "class",
+      "name": "GetInstrumentContextFromStateTests",
+      "filePath": "tests/test_instrument_identity.py",
+      "lineRange": [
+        100,
+        118
+      ],
+      "summary": "位于 tests/test_instrument_identity.py 的类 GetInstrumentContextFromStateTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_instrument_identity.py:ContextAnchoredPlaceholderTests",
+      "type": "class",
+      "name": "ContextAnchoredPlaceholderTests",
+      "filePath": "tests/test_instrument_identity.py",
+      "lineRange": [
+        122,
+        166
+      ],
+      "summary": "位于 tests/test_instrument_identity.py 的类 ContextAnchoredPlaceholderTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_market_data_validator.py",
+      "type": "file",
+      "name": "test_market_data_validator.py",
+      "filePath": "tests/test_market_data_validator.py",
+      "summary": "覆盖 test_market_data_validator.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "市场数据",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_market_data_validator.py:_sample_ohlcv",
+      "type": "function",
+      "name": "_sample_ohlcv",
+      "filePath": "tests/test_market_data_validator.py",
+      "lineRange": [
+        11,
+        21
+      ],
+      "summary": "位于 tests/test_market_data_validator.py 的函数 _sample_ohlcv，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "市场数据",
+        "校验"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_market_data_validator.py:TestVerifiedSnapshot",
+      "type": "class",
+      "name": "TestVerifiedSnapshot",
+      "filePath": "tests/test_market_data_validator.py",
+      "lineRange": [
+        25,
+        63
+      ],
+      "summary": "位于 tests/test_market_data_validator.py 的类 TestVerifiedSnapshot，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "市场数据",
+        "校验"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_market_data_validator.py:TestTool",
+      "type": "class",
+      "name": "TestTool",
+      "filePath": "tests/test_market_data_validator.py",
+      "lineRange": [
+        67,
+        76
+      ],
+      "summary": "位于 tests/test_market_data_validator.py 的类 TestTool，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "市场数据",
+        "校验"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_news_analyst_prompt.py",
+      "type": "file",
+      "name": "test_news_analyst_prompt.py",
+      "filePath": "tests/test_news_analyst_prompt.py",
+      "summary": "覆盖 test_news_analyst_prompt.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_news_analyst_prompt.py:test_get_news_takes_ticker_not_query",
+      "type": "function",
+      "name": "test_get_news_takes_ticker_not_query",
+      "filePath": "tests/test_news_analyst_prompt.py",
+      "lineRange": [
+        15,
+        18
+      ],
+      "summary": "位于 tests/test_news_analyst_prompt.py 的函数 test_get_news_takes_ticker_not_query，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_news_analyst_prompt.py:test_news_prompt_matches_get_news_signature",
+      "type": "function",
+      "name": "test_news_prompt_matches_get_news_signature",
+      "filePath": "tests/test_news_analyst_prompt.py",
+      "lineRange": [
+        22,
+        25
+      ],
+      "summary": "位于 tests/test_news_analyst_prompt.py 的函数 test_news_prompt_matches_get_news_signature，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_structured_agent_prompts.py",
+      "type": "file",
+      "name": "test_structured_agent_prompts.py",
+      "filePath": "tests/test_structured_agent_prompts.py",
+      "summary": "覆盖 test_structured_agent_prompts.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_structured_agent_prompts.py:_capturing_llm",
+      "type": "function",
+      "name": "_capturing_llm",
+      "filePath": "tests/test_structured_agent_prompts.py",
+      "lineRange": [
+        25,
+        33
+      ],
+      "summary": "位于 tests/test_structured_agent_prompts.py 的函数 _capturing_llm，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_structured_agent_prompts.py:_prompt_text",
+      "type": "function",
+      "name": "_prompt_text",
+      "filePath": "tests/test_structured_agent_prompts.py",
+      "lineRange": [
+        36,
+        43
+      ],
+      "summary": "位于 tests/test_structured_agent_prompts.py 的函数 _prompt_text，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_structured_agent_prompts.py:test_trader_prompt_states_constraint",
+      "type": "function",
+      "name": "test_trader_prompt_states_constraint",
+      "filePath": "tests/test_structured_agent_prompts.py",
+      "lineRange": [
+        47,
+        56
+      ],
+      "summary": "位于 tests/test_structured_agent_prompts.py 的函数 test_trader_prompt_states_constraint，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_structured_agent_prompts.py:test_research_manager_prompt_states_constraint",
+      "type": "function",
+      "name": "test_research_manager_prompt_states_constraint",
+      "filePath": "tests/test_structured_agent_prompts.py",
+      "lineRange": [
+        60,
+        77
+      ],
+      "summary": "位于 tests/test_structured_agent_prompts.py 的函数 test_research_manager_prompt_states_constraint，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_structured_agent_prompts.py:test_portfolio_manager_prompt_states_constraint",
+      "type": "function",
+      "name": "test_portfolio_manager_prompt_states_constraint",
+      "filePath": "tests/test_structured_agent_prompts.py",
+      "lineRange": [
+        81,
+        105
+      ],
+      "summary": "位于 tests/test_structured_agent_prompts.py 的函数 test_portfolio_manager_prompt_states_constraint，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_structured_agent_prompts.py:test_sentiment_prompt_states_constraint",
+      "type": "function",
+      "name": "test_sentiment_prompt_states_constraint",
+      "filePath": "tests/test_structured_agent_prompts.py",
+      "lineRange": [
+        109,
+        129
+      ],
+      "summary": "位于 tests/test_structured_agent_prompts.py 的函数 test_sentiment_prompt_states_constraint，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_structured_agent_prompts.py:test_tool_using_analysts_keep_their_date_guidance",
+      "type": "function",
+      "name": "test_tool_using_analysts_keep_their_date_guidance",
+      "filePath": "tests/test_structured_agent_prompts.py",
+      "lineRange": [
+        133,
+        139
+      ],
+      "summary": "位于 tests/test_structured_agent_prompts.py 的函数 test_tool_using_analysts_keep_their_date_guidance，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_structured_agent_prompts.py:test_constraint_text_is_unambiguous",
+      "type": "function",
+      "name": "test_constraint_text_is_unambiguous",
+      "filePath": "tests/test_structured_agent_prompts.py",
+      "lineRange": [
+        143,
+        147
+      ],
+      "summary": "位于 tests/test_structured_agent_prompts.py 的函数 test_constraint_text_is_unambiguous，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_structured_agents.py",
+      "type": "file",
+      "name": "test_structured_agents.py",
+      "filePath": "tests/test_structured_agents.py",
+      "summary": "覆盖 test_structured_agents.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_structured_agents.py:_make_trader_state",
+      "type": "function",
+      "name": "_make_trader_state",
+      "filePath": "tests/test_structured_agents.py",
+      "lineRange": [
+        130,
+        134
+      ],
+      "summary": "位于 tests/test_structured_agents.py 的函数 _make_trader_state，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_structured_agents.py:_structured_trader_llm",
+      "type": "function",
+      "name": "_structured_trader_llm",
+      "filePath": "tests/test_structured_agents.py",
+      "lineRange": [
+        137,
+        152
+      ],
+      "summary": "位于 tests/test_structured_agents.py 的函数 _structured_trader_llm，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_structured_agents.py:test_invoke_structured_falls_back_when_result_is_none",
+      "type": "function",
+      "name": "test_invoke_structured_falls_back_when_result_is_none",
+      "filePath": "tests/test_structured_agents.py",
+      "lineRange": [
+        156,
+        170
+      ],
+      "summary": "位于 tests/test_structured_agents.py 的函数 test_invoke_structured_falls_back_when_result_is_none，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_structured_agents.py:_make_rm_state",
+      "type": "function",
+      "name": "_make_rm_state",
+      "filePath": "tests/test_structured_agents.py",
+      "lineRange": [
+        221,
+        232
+      ],
+      "summary": "位于 tests/test_structured_agents.py 的函数 _make_rm_state，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_structured_agents.py:_structured_rm_llm",
+      "type": "function",
+      "name": "_structured_rm_llm",
+      "filePath": "tests/test_structured_agents.py",
+      "lineRange": [
+        235,
+        248
+      ],
+      "summary": "位于 tests/test_structured_agents.py 的函数 _structured_rm_llm，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_structured_agents.py:_make_sentiment_state",
+      "type": "function",
+      "name": "_make_sentiment_state",
+      "filePath": "tests/test_structured_agents.py",
+      "lineRange": [
+        341,
+        347
+      ],
+      "summary": "位于 tests/test_structured_agents.py 的函数 _make_sentiment_state，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_structured_agents.py:_structured_sentiment_llm",
+      "type": "function",
+      "name": "_structured_sentiment_llm",
+      "filePath": "tests/test_structured_agents.py",
+      "lineRange": [
+        350,
+        365
+      ],
+      "summary": "位于 tests/test_structured_agents.py 的函数 _structured_sentiment_llm，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_structured_agents.py:TestRenderTraderProposal",
+      "type": "class",
+      "name": "TestRenderTraderProposal",
+      "filePath": "tests/test_structured_agents.py",
+      "lineRange": [
+        37,
+        68
+      ],
+      "summary": "位于 tests/test_structured_agents.py 的类 TestRenderTraderProposal，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_structured_agents.py:TestNullishFloatCoercion",
+      "type": "class",
+      "name": "TestNullishFloatCoercion",
+      "filePath": "tests/test_structured_agents.py",
+      "lineRange": [
+        72,
+        98
+      ],
+      "summary": "位于 tests/test_structured_agents.py 的类 TestNullishFloatCoercion，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_structured_agents.py:TestRenderResearchPlan",
+      "type": "class",
+      "name": "TestRenderResearchPlan",
+      "filePath": "tests/test_structured_agents.py",
+      "lineRange": [
+        102,
+        122
+      ],
+      "summary": "位于 tests/test_structured_agents.py 的类 TestRenderResearchPlan，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_structured_agents.py:TestTraderAgent",
+      "type": "class",
+      "name": "TestTraderAgent",
+      "filePath": "tests/test_structured_agents.py",
+      "lineRange": [
+        174,
+        213
+      ],
+      "summary": "位于 tests/test_structured_agents.py 的类 TestTraderAgent，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_structured_agents.py:TestResearchManagerAgent",
+      "type": "class",
+      "name": "TestResearchManagerAgent",
+      "filePath": "tests/test_structured_agents.py",
+      "lineRange": [
+        252,
+        285
+      ],
+      "summary": "位于 tests/test_structured_agents.py 的类 TestResearchManagerAgent，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_structured_agents.py:TestRenderSentimentReport",
+      "type": "class",
+      "name": "TestRenderSentimentReport",
+      "filePath": "tests/test_structured_agents.py",
+      "lineRange": [
+        294,
+        338
+      ],
+      "summary": "位于 tests/test_structured_agents.py 的类 TestRenderSentimentReport，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_structured_agents.py:TestSentimentAnalystAgent",
+      "type": "class",
+      "name": "TestSentimentAnalystAgent",
+      "filePath": "tests/test_structured_agents.py",
+      "lineRange": [
+        369,
+        408
+      ],
+      "summary": "位于 tests/test_structured_agents.py 的类 TestSentimentAnalystAgent，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tradingagents/agents/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "tradingagents/agents/__init__.py",
+      "summary": "实现 tradingagents/agents/__init__.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/agents/analysts/fundamentals_analyst.py",
+      "type": "file",
+      "name": "fundamentals_analyst.py",
+      "filePath": "tradingagents/agents/analysts/fundamentals_analyst.py",
+      "summary": "实现 tradingagents/agents/analysts/fundamentals_analyst.py 在交易分析系统中的核心逻辑，对外提供 create_fundamentals_analyst 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/agents/analysts/fundamentals_analyst.py:create_fundamentals_analyst",
+      "type": "function",
+      "name": "create_fundamentals_analyst",
+      "filePath": "tradingagents/agents/analysts/fundamentals_analyst.py",
+      "lineRange": [
+        13,
+        69
+      ],
+      "summary": "位于 tradingagents/agents/analysts/fundamentals_analyst.py 的函数 create_fundamentals_analyst，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tradingagents/agents/analysts/market_analyst.py",
+      "type": "file",
+      "name": "market_analyst.py",
+      "filePath": "tradingagents/agents/analysts/market_analyst.py",
+      "summary": "实现 tradingagents/agents/analysts/market_analyst.py 在交易分析系统中的核心逻辑，对外提供 create_market_analyst 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/agents/analysts/market_analyst.py:create_market_analyst",
+      "type": "function",
+      "name": "create_market_analyst",
+      "filePath": "tradingagents/agents/analysts/market_analyst.py",
+      "lineRange": [
+        12,
+        95
+      ],
+      "summary": "位于 tradingagents/agents/analysts/market_analyst.py 的函数 create_market_analyst，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tradingagents/agents/analysts/news_analyst.py",
+      "type": "file",
+      "name": "news_analyst.py",
+      "filePath": "tradingagents/agents/analysts/news_analyst.py",
+      "summary": "实现 tradingagents/agents/analysts/news_analyst.py 在交易分析系统中的核心逻辑，对外提供 create_news_analyst 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/agents/analysts/news_analyst.py:create_news_analyst",
+      "type": "function",
+      "name": "create_news_analyst",
+      "filePath": "tradingagents/agents/analysts/news_analyst.py",
+      "lineRange": [
+        13,
+        69
+      ],
+      "summary": "位于 tradingagents/agents/analysts/news_analyst.py 的函数 create_news_analyst，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:scripts/smoke_structured_output.py",
+      "target": "function:scripts/smoke_structured_output.py:_make_rm_state",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/smoke_structured_output.py",
+      "target": "function:scripts/smoke_structured_output.py:_make_trader_state",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/smoke_structured_output.py",
+      "target": "function:scripts/smoke_structured_output.py:_make_pm_state",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/smoke_structured_output.py",
+      "target": "function:scripts/smoke_structured_output.py:_print_section",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/smoke_structured_output.py",
+      "target": "function:scripts/smoke_structured_output.py:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:scripts/smoke_structured_output.py",
+      "target": "function:scripts/smoke_structured_output.py:_make_rm_state",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/smoke_structured_output.py",
+      "target": "function:scripts/smoke_structured_output.py:_make_trader_state",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/smoke_structured_output.py",
+      "target": "function:scripts/smoke_structured_output.py:_make_pm_state",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/smoke_structured_output.py",
+      "target": "function:scripts/smoke_structured_output.py:_print_section",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/smoke_structured_output.py",
+      "target": "function:scripts/smoke_structured_output.py:main",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:scripts/smoke_structured_output.py",
+      "target": "file:tradingagents/agents/managers/portfolio_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/smoke_structured_output.py",
+      "target": "file:tradingagents/agents/managers/research_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/smoke_structured_output.py",
+      "target": "file:tradingagents/agents/trader/trader.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/smoke_structured_output.py",
+      "target": "file:tradingagents/graph/signal_processing.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/smoke_structured_output.py",
+      "target": "file:tradingagents/llm_clients/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_i18n_coverage.py",
+      "target": "function:tests/test_i18n_coverage.py:test_report_agent_applies_language_instruction",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_i18n_coverage.py",
+      "target": "class:tests/test_i18n_coverage.py:TestLanguageInstruction",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_i18n_coverage.py",
+      "target": "class:tests/test_i18n_coverage.py:TestLanguageInstruction",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_i18n_coverage.py",
+      "target": "function:tests/test_i18n_coverage.py:test_report_agent_applies_language_instruction",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_i18n_coverage.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_instrument_identity.py",
+      "target": "class:tests/test_instrument_identity.py:ResolveInstrumentIdentityTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_instrument_identity.py",
+      "target": "class:tests/test_instrument_identity.py:BuildInstrumentContextTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_instrument_identity.py",
+      "target": "class:tests/test_instrument_identity.py:GetInstrumentContextFromStateTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_instrument_identity.py",
+      "target": "class:tests/test_instrument_identity.py:ContextAnchoredPlaceholderTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_instrument_identity.py",
+      "target": "class:tests/test_instrument_identity.py:ResolveInstrumentIdentityTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_instrument_identity.py",
+      "target": "class:tests/test_instrument_identity.py:BuildInstrumentContextTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_instrument_identity.py",
+      "target": "class:tests/test_instrument_identity.py:GetInstrumentContextFromStateTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_instrument_identity.py",
+      "target": "class:tests/test_instrument_identity.py:ContextAnchoredPlaceholderTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_instrument_identity.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_market_data_validator.py",
+      "target": "function:tests/test_market_data_validator.py:_sample_ohlcv",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_market_data_validator.py",
+      "target": "class:tests/test_market_data_validator.py:TestVerifiedSnapshot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_market_data_validator.py",
+      "target": "class:tests/test_market_data_validator.py:TestTool",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_market_data_validator.py",
+      "target": "function:tests/test_market_data_validator.py:_sample_ohlcv",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_market_data_validator.py",
+      "target": "class:tests/test_market_data_validator.py:TestVerifiedSnapshot",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_market_data_validator.py",
+      "target": "class:tests/test_market_data_validator.py:TestTool",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_market_data_validator.py",
+      "target": "file:tradingagents/dataflows/market_data_validator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_news_analyst_prompt.py",
+      "target": "function:tests/test_news_analyst_prompt.py:test_get_news_takes_ticker_not_query",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_news_analyst_prompt.py",
+      "target": "function:tests/test_news_analyst_prompt.py:test_news_prompt_matches_get_news_signature",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_news_analyst_prompt.py",
+      "target": "function:tests/test_news_analyst_prompt.py:test_get_news_takes_ticker_not_query",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_news_analyst_prompt.py",
+      "target": "function:tests/test_news_analyst_prompt.py:test_news_prompt_matches_get_news_signature",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_news_analyst_prompt.py",
+      "target": "file:tradingagents/agents/analysts/news_analyst.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_news_analyst_prompt.py",
+      "target": "file:tradingagents/agents/utils/news_data_tools.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "function:tests/test_structured_agent_prompts.py:_capturing_llm",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "function:tests/test_structured_agent_prompts.py:_prompt_text",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "function:tests/test_structured_agent_prompts.py:test_trader_prompt_states_constraint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "function:tests/test_structured_agent_prompts.py:test_research_manager_prompt_states_constraint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "function:tests/test_structured_agent_prompts.py:test_portfolio_manager_prompt_states_constraint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "function:tests/test_structured_agent_prompts.py:test_sentiment_prompt_states_constraint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "function:tests/test_structured_agent_prompts.py:test_tool_using_analysts_keep_their_date_guidance",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "function:tests/test_structured_agent_prompts.py:test_constraint_text_is_unambiguous",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "function:tests/test_structured_agent_prompts.py:_capturing_llm",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "function:tests/test_structured_agent_prompts.py:_prompt_text",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "function:tests/test_structured_agent_prompts.py:test_trader_prompt_states_constraint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "function:tests/test_structured_agent_prompts.py:test_research_manager_prompt_states_constraint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "function:tests/test_structured_agent_prompts.py:test_portfolio_manager_prompt_states_constraint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "function:tests/test_structured_agent_prompts.py:test_sentiment_prompt_states_constraint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "function:tests/test_structured_agent_prompts.py:test_tool_using_analysts_keep_their_date_guidance",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "function:tests/test_structured_agent_prompts.py:test_constraint_text_is_unambiguous",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "file:tradingagents/agents/managers/portfolio_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "file:tradingagents/agents/managers/research_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "file:tradingagents/agents/trader/trader.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "file:tradingagents/agents/utils/structured.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "function:tests/test_structured_agents.py:_make_trader_state",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "function:tests/test_structured_agents.py:_structured_trader_llm",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "function:tests/test_structured_agents.py:test_invoke_structured_falls_back_when_result_is_none",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "function:tests/test_structured_agents.py:_make_rm_state",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "function:tests/test_structured_agents.py:_structured_rm_llm",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "function:tests/test_structured_agents.py:_make_sentiment_state",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "function:tests/test_structured_agents.py:_structured_sentiment_llm",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "class:tests/test_structured_agents.py:TestRenderTraderProposal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "class:tests/test_structured_agents.py:TestNullishFloatCoercion",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "class:tests/test_structured_agents.py:TestRenderResearchPlan",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "class:tests/test_structured_agents.py:TestTraderAgent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "class:tests/test_structured_agents.py:TestResearchManagerAgent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "class:tests/test_structured_agents.py:TestRenderSentimentReport",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "class:tests/test_structured_agents.py:TestSentimentAnalystAgent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "class:tests/test_structured_agents.py:TestRenderTraderProposal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "class:tests/test_structured_agents.py:TestNullishFloatCoercion",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "class:tests/test_structured_agents.py:TestRenderResearchPlan",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "function:tests/test_structured_agents.py:_make_trader_state",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "function:tests/test_structured_agents.py:_structured_trader_llm",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "function:tests/test_structured_agents.py:test_invoke_structured_falls_back_when_result_is_none",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "class:tests/test_structured_agents.py:TestTraderAgent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "function:tests/test_structured_agents.py:_make_rm_state",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "function:tests/test_structured_agents.py:_structured_rm_llm",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "class:tests/test_structured_agents.py:TestResearchManagerAgent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "class:tests/test_structured_agents.py:TestRenderSentimentReport",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "function:tests/test_structured_agents.py:_make_sentiment_state",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "function:tests/test_structured_agents.py:_structured_sentiment_llm",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "class:tests/test_structured_agents.py:TestSentimentAnalystAgent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "file:tradingagents/agents/managers/research_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "file:tradingagents/agents/schemas.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "file:tradingagents/agents/trader/trader.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/analysts/fundamentals_analyst.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/analysts/market_analyst.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/analysts/news_analyst.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/managers/portfolio_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/managers/research_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/researchers/bear_researcher.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/researchers/bull_researcher.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/risk_mgmt/aggressive_debator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/risk_mgmt/conservative_debator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/risk_mgmt/neutral_debator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/trader/trader.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/utils/agent_states.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/fundamentals_analyst.py",
+      "target": "function:tradingagents/agents/analysts/fundamentals_analyst.py:create_fundamentals_analyst",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/fundamentals_analyst.py",
+      "target": "function:tradingagents/agents/analysts/fundamentals_analyst.py:create_fundamentals_analyst",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/fundamentals_analyst.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/market_analyst.py",
+      "target": "function:tradingagents/agents/analysts/market_analyst.py:create_market_analyst",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/market_analyst.py",
+      "target": "function:tradingagents/agents/analysts/market_analyst.py:create_market_analyst",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/market_analyst.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/news_analyst.py",
+      "target": "function:tradingagents/agents/analysts/news_analyst.py:create_news_analyst",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/news_analyst.py",
+      "target": "function:tradingagents/agents/analysts/news_analyst.py:create_news_analyst",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/news_analyst.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

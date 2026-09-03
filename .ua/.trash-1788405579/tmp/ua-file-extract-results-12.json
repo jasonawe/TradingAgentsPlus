@@ -1,0 +1,597 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 4,
+  "filesSkipped": [
+    ".env.enterprise.example",
+    "requirements.txt"
+  ],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 4,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 4
+    }
+  },
+  "results": [
+    {
+      "path": ".env.example",
+      "language": "config",
+      "fileCategory": "config",
+      "totalLines": 68,
+      "nonEmptyLines": 63,
+      "definitions": [
+        {
+          "name": "OPENAI_API_KEY",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 2,
+          "endLine": 2
+        },
+        {
+          "name": "GOOGLE_API_KEY",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 3,
+          "endLine": 3
+        },
+        {
+          "name": "ANTHROPIC_API_KEY",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 4,
+          "endLine": 4
+        },
+        {
+          "name": "XAI_API_KEY",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 5,
+          "endLine": 5
+        },
+        {
+          "name": "DEEPSEEK_API_KEY",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 6,
+          "endLine": 6
+        },
+        {
+          "name": "DASHSCOPE_API_KEY",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 7,
+          "endLine": 7
+        },
+        {
+          "name": "DASHSCOPE_CN_API_KEY",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 8,
+          "endLine": 8
+        },
+        {
+          "name": "ZHIPU_API_KEY",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 9,
+          "endLine": 9
+        },
+        {
+          "name": "ZHIPU_CN_API_KEY",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 10,
+          "endLine": 10
+        },
+        {
+          "name": "MINIMAX_API_KEY",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 11,
+          "endLine": 11
+        },
+        {
+          "name": "MINIMAX_CN_API_KEY",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 12,
+          "endLine": 12
+        },
+        {
+          "name": "OPENROUTER_API_KEY",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 13,
+          "endLine": 13
+        },
+        {
+          "name": "MISTRAL_API_KEY",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 14,
+          "endLine": 14
+        },
+        {
+          "name": "MOONSHOT_API_KEY",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 15,
+          "endLine": 15
+        },
+        {
+          "name": "GROQ_API_KEY",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 16,
+          "endLine": 16
+        },
+        {
+          "name": "NVIDIA_API_KEY",
+          "kind": "variable",
+          "fields": [],
+          "startLine": 17,
+          "endLine": 17
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 16
+      }
+    },
+    {
+      "path": "CHANGELOG.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 442,
+      "nonEmptyLines": 353,
+      "sections": [
+        {
+          "heading": "Changelog",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "[0.3.1] — 2026-07-05",
+          "level": 2,
+          "line": 9
+        },
+        {
+          "heading": "Fixed",
+          "level": 3,
+          "line": 14
+        },
+        {
+          "heading": "Added",
+          "level": 3,
+          "line": 33
+        },
+        {
+          "heading": "[0.3.0] — 2026-06-22",
+          "level": 2,
+          "line": 44
+        },
+        {
+          "heading": "Added",
+          "level": 3,
+          "line": 51
+        },
+        {
+          "heading": "Changed",
+          "level": 3,
+          "line": 67
+        },
+        {
+          "heading": "Fixed",
+          "level": 3,
+          "line": 85
+        },
+        {
+          "heading": "Removed",
+          "level": 3,
+          "line": 98
+        },
+        {
+          "heading": "Contributors",
+          "level": 3,
+          "line": 104
+        },
+        {
+          "heading": "[0.2.5] — 2026-05-11",
+          "level": 2,
+          "line": 110
+        },
+        {
+          "heading": "Added",
+          "level": 3,
+          "line": 112
+        },
+        {
+          "heading": "Changed",
+          "level": 3,
+          "line": 150
+        },
+        {
+          "heading": "Fixed",
+          "level": 3,
+          "line": 157
+        },
+        {
+          "heading": "Security",
+          "level": 3,
+          "line": 179
+        },
+        {
+          "heading": "[0.2.4] — 2026-04-25",
+          "level": 2,
+          "line": 185
+        },
+        {
+          "heading": "Added",
+          "level": 3,
+          "line": 187
+        },
+        {
+          "heading": "Changed",
+          "level": 3,
+          "line": 219
+        },
+        {
+          "heading": "Fixed",
+          "level": 3,
+          "line": 236
+        },
+        {
+          "heading": "Removed",
+          "level": 3,
+          "line": 244
+        },
+        {
+          "heading": "Contributors",
+          "level": 3,
+          "line": 251
+        },
+        {
+          "heading": "[0.2.3] — 2026-03-29",
+          "level": 2,
+          "line": 273
+        },
+        {
+          "heading": "Added",
+          "level": 3,
+          "line": 275
+        },
+        {
+          "heading": "Changed",
+          "level": 3,
+          "line": 283
+        },
+        {
+          "heading": "Fixed",
+          "level": 3,
+          "line": 289
+        },
+        {
+          "heading": "Contributors",
+          "level": 3,
+          "line": 298
+        },
+        {
+          "heading": "[0.2.2] — 2026-03-22",
+          "level": 2,
+          "line": 308
+        },
+        {
+          "heading": "Added",
+          "level": 3,
+          "line": 310
+        },
+        {
+          "heading": "Changed",
+          "level": 3,
+          "line": 317
+        },
+        {
+          "heading": "Fixed",
+          "level": 3,
+          "line": 327
+        },
+        {
+          "heading": "Contributors",
+          "level": 3,
+          "line": 334
+        },
+        {
+          "heading": "[0.2.1] — 2026-03-15",
+          "level": 2,
+          "line": 339
+        },
+        {
+          "heading": "Security",
+          "level": 3,
+          "line": 341
+        },
+        {
+          "heading": "Added",
+          "level": 3,
+          "line": 346
+        },
+        {
+          "heading": "Removed",
+          "level": 3,
+          "line": 351
+        },
+        {
+          "heading": "Fixed",
+          "level": 3,
+          "line": 355
+        },
+        {
+          "heading": "Contributors",
+          "level": 3,
+          "line": 365
+        },
+        {
+          "heading": "[0.2.0] — 2026-02-04",
+          "level": 2,
+          "line": 371
+        },
+        {
+          "heading": "Added",
+          "level": 3,
+          "line": 377
+        },
+        {
+          "heading": "Changed",
+          "level": 3,
+          "line": 392
+        },
+        {
+          "heading": "Fixed",
+          "level": 3,
+          "line": 400
+        },
+        {
+          "heading": "Contributors",
+          "level": 3,
+          "line": 406
+        },
+        {
+          "heading": "[0.1.1] — 2025-06-07",
+          "level": 2,
+          "line": 419
+        },
+        {
+          "heading": "Removed",
+          "level": 3,
+          "line": 421
+        },
+        {
+          "heading": "[0.1.0] — 2025-06-05",
+          "level": 2,
+          "line": 426
+        },
+        {
+          "heading": "Added",
+          "level": 3,
+          "line": 428
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 46
+      }
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 381,
+      "nonEmptyLines": 274,
+      "sections": [
+        {
+          "heading": "TradingAgentsPlus：多智能体资产分析与个人投资者平台",
+          "level": 1,
+          "line": 30
+        },
+        {
+          "heading": "News",
+          "level": 2,
+          "line": 36
+        },
+        {
+          "heading": "TradingAgents Framework",
+          "level": 2,
+          "line": 56
+        },
+        {
+          "heading": "Analyst Team",
+          "level": 3,
+          "line": 68
+        },
+        {
+          "heading": "Researcher Team",
+          "level": 3,
+          "line": 78
+        },
+        {
+          "heading": "Trader Agent",
+          "level": 3,
+          "line": 85
+        },
+        {
+          "heading": "Risk Management and Portfolio Manager",
+          "level": 3,
+          "line": 92
+        },
+        {
+          "heading": "Installation and CLI",
+          "level": 2,
+          "line": 100
+        },
+        {
+          "heading": "Installation",
+          "level": 3,
+          "line": 102
+        },
+        {
+          "heading": "Docker",
+          "level": 3,
+          "line": 128
+        },
+        {
+          "heading": "Required APIs",
+          "level": 3,
+          "line": 141
+        },
+        {
+          "heading": "CLI Usage",
+          "level": 3,
+          "line": 174
+        },
+        {
+          "heading": "Local Web Console",
+          "level": 3,
+          "line": 195
+        },
+        {
+          "heading": "Markets and tickers",
+          "level": 3,
+          "line": 249
+        },
+        {
+          "heading": "TradingAgents Package",
+          "level": 2,
+          "line": 273
+        },
+        {
+          "heading": "Implementation Details",
+          "level": 3,
+          "line": 275
+        },
+        {
+          "heading": "Python Usage",
+          "level": 3,
+          "line": 279
+        },
+        {
+          "heading": "Persistence and Recovery",
+          "level": 2,
+          "line": 313
+        },
+        {
+          "heading": "Decision log",
+          "level": 3,
+          "line": 317
+        },
+        {
+          "heading": "Checkpoint resume",
+          "level": 3,
+          "line": 323
+        },
+        {
+          "heading": "Reproducibility",
+          "level": 2,
+          "line": 341
+        },
+        {
+          "heading": "Contributing",
+          "level": 2,
+          "line": 363
+        },
+        {
+          "heading": "Citation",
+          "level": 2,
+          "line": 367
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 23
+      }
+    },
+    {
+      "path": "pyproject.toml",
+      "language": "toml",
+      "fileCategory": "config",
+      "totalLines": 100,
+      "nonEmptyLines": 90,
+      "sections": [
+        {
+          "heading": "build-system",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "project",
+          "level": 1,
+          "line": 5
+        },
+        {
+          "heading": "project.optional-dependencies",
+          "level": 2,
+          "line": 43
+        },
+        {
+          "heading": "project.scripts",
+          "level": 2,
+          "line": 59
+        },
+        {
+          "heading": "tool.setuptools.packages.find",
+          "level": 4,
+          "line": 62
+        },
+        {
+          "heading": "tool.setuptools.package-data",
+          "level": 3,
+          "line": 65
+        },
+        {
+          "heading": "tool.pytest.ini_options",
+          "level": 3,
+          "line": 69
+        },
+        {
+          "heading": "tool.ruff",
+          "level": 2,
+          "line": 81
+        },
+        {
+          "heading": "tool.ruff.lint",
+          "level": 3,
+          "line": 86
+        },
+        {
+          "heading": "tool.ruff.lint.per-file-ignores",
+          "level": 4,
+          "line": 94
+        },
+        {
+          "heading": "tool.ruff.lint.isort",
+          "level": 4,
+          "line": 97
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 11
+      }
+    }
+  ]
+}

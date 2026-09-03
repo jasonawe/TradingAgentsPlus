@@ -1,0 +1,63 @@
+{
+  "projectRoot": "/Users/shenkang/workroom/languages/agent/TradingAgents",
+  "batchFiles": [
+    {
+      "path": "docs/superpowers/plans/2026-08-26-web-analysis-console-plan.md",
+      "language": "markdown",
+      "sizeLines": 459,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-27-personal-investor-platform-plan.md",
+      "language": "markdown",
+      "sizeLines": 314,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-27-web-report-library-models-language-plan.md",
+      "language": "markdown",
+      "sizeLines": 41,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-28-report-publish-integrity-plan.md",
+      "language": "markdown",
+      "sizeLines": 43,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-31-platform-reliability-operations-plan.md",
+      "language": "markdown",
+      "sizeLines": 632,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-31-rating-localization-plan.md",
+      "language": "markdown",
+      "sizeLines": 111,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-09-01-compact-section-headers.md",
+      "language": "markdown",
+      "sizeLines": 42,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-09-02-manager-concurrency.md",
+      "language": "markdown",
+      "sizeLines": 705,
+      "fileCategory": "docs"
+    }
+  ],
+  "batchImportData": {
+    "docs/superpowers/plans/2026-08-26-web-analysis-console-plan.md": [],
+    "docs/superpowers/plans/2026-08-27-personal-investor-platform-plan.md": [],
+    "docs/superpowers/plans/2026-08-27-web-report-library-models-language-plan.md": [],
+    "docs/superpowers/plans/2026-08-28-report-publish-integrity-plan.md": [],
+    "docs/superpowers/plans/2026-08-31-platform-reliability-operations-plan.md": [],
+    "docs/superpowers/plans/2026-08-31-rating-localization-plan.md": [],
+    "docs/superpowers/plans/2026-09-01-compact-section-headers.md": [],
+    "docs/superpowers/plans/2026-09-02-manager-concurrency.md": []
+  }
+}

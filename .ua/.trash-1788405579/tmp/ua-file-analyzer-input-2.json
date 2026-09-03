@@ -1,0 +1,617 @@
+{
+  "projectRoot": "/Users/shenkang/workroom/languages/agent/TradingAgents",
+  "batchFiles": [
+    {
+      "path": "main.py",
+      "language": "python",
+      "sizeLines": 19,
+      "fileCategory": "code"
+    },
+    {
+      "path": "test.py",
+      "language": "python",
+      "sizeLines": 14,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_dataflows_config.py",
+      "language": "python",
+      "sizeLines": 61,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_date_boundaries.py",
+      "language": "python",
+      "sizeLines": 61,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_env_overrides.py",
+      "language": "python",
+      "sizeLines": 129,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_fred.py",
+      "language": "python",
+      "sizeLines": 194,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_llm_max_retries.py",
+      "language": "python",
+      "sizeLines": 100,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_news_lookahead.py",
+      "language": "python",
+      "sizeLines": 104,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_no_data_handling.py",
+      "language": "python",
+      "sizeLines": 88,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_ohlcv_cache_freshness.py",
+      "language": "python",
+      "sizeLines": 109,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_polymarket.py",
+      "language": "python",
+      "sizeLines": 129,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_reddit_fallback.py",
+      "language": "python",
+      "sizeLines": 214,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_stockstats_date_column.py",
+      "language": "python",
+      "sizeLines": 70,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_stocktwits_resilience.py",
+      "language": "python",
+      "sizeLines": 77,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_symbol_utils.py",
+      "language": "python",
+      "sizeLines": 102,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_vendor_errors.py",
+      "language": "python",
+      "sizeLines": 105,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_vendor_routing.py",
+      "language": "python",
+      "sizeLines": 123,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_yfinance_stale_ohlcv_guard.py",
+      "language": "python",
+      "sizeLines": 113,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/dataflows/__init__.py",
+      "language": "python",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/dataflows/config.py",
+      "language": "python",
+      "sizeLines": 60,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/dataflows/errors.py",
+      "language": "python",
+      "sizeLines": 55,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/dataflows/fred.py",
+      "language": "python",
+      "sizeLines": 237,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/dataflows/interface.py",
+      "language": "python",
+      "sizeLines": 262,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/dataflows/polymarket.py",
+      "language": "python",
+      "sizeLines": 139,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/dataflows/reddit.py",
+      "language": "python",
+      "sizeLines": 250,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/dataflows/stockstats_utils.py",
+      "language": "python",
+      "sizeLines": 261,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/dataflows/stocktwits.py",
+      "language": "python",
+      "sizeLines": 96,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/dataflows/symbol_utils.py",
+      "language": "python",
+      "sizeLines": 143,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/dataflows/y_finance.py",
+      "language": "python",
+      "sizeLines": 470,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/dataflows/yfinance_news.py",
+      "language": "python",
+      "sizeLines": 232,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/default_config.py",
+      "language": "python",
+      "sizeLines": 174,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "main.py": [
+      "tradingagents/default_config.py",
+      "tradingagents/graph/trading_graph.py"
+    ],
+    "test.py": [
+      "tradingagents/dataflows/y_finance.py"
+    ],
+    "tests/test_dataflows_config.py": [
+      "tradingagents/dataflows/config.py",
+      "tradingagents/default_config.py"
+    ],
+    "tests/test_date_boundaries.py": [
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/stockstats_utils.py",
+      "tradingagents/dataflows/y_finance.py"
+    ],
+    "tests/test_env_overrides.py": [
+      "tradingagents/default_config.py"
+    ],
+    "tests/test_fred.py": [
+      "tradingagents/dataflows/__init__.py",
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/fred.py",
+      "tradingagents/dataflows/interface.py",
+      "tradingagents/default_config.py"
+    ],
+    "tests/test_llm_max_retries.py": [
+      "tradingagents/default_config.py",
+      "tradingagents/graph/trading_graph.py"
+    ],
+    "tests/test_news_lookahead.py": [
+      "tradingagents/dataflows/yfinance_news.py"
+    ],
+    "tests/test_no_data_handling.py": [
+      "tradingagents/dataflows/__init__.py",
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/interface.py",
+      "tradingagents/dataflows/stockstats_utils.py",
+      "tradingagents/dataflows/symbol_utils.py"
+    ],
+    "tests/test_ohlcv_cache_freshness.py": [
+      "tradingagents/dataflows/stockstats_utils.py"
+    ],
+    "tests/test_polymarket.py": [
+      "tradingagents/dataflows/__init__.py",
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/interface.py",
+      "tradingagents/dataflows/polymarket.py",
+      "tradingagents/default_config.py"
+    ],
+    "tests/test_reddit_fallback.py": [
+      "tradingagents/dataflows/__init__.py",
+      "tradingagents/dataflows/reddit.py"
+    ],
+    "tests/test_stockstats_date_column.py": [
+      "tradingagents/dataflows/__init__.py"
+    ],
+    "tests/test_stocktwits_resilience.py": [
+      "tradingagents/dataflows/__init__.py",
+      "tradingagents/dataflows/stocktwits.py"
+    ],
+    "tests/test_symbol_utils.py": [
+      "tradingagents/dataflows/symbol_utils.py"
+    ],
+    "tests/test_vendor_errors.py": [
+      "tradingagents/dataflows/__init__.py",
+      "tradingagents/dataflows/alpha_vantage_common.py",
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/errors.py",
+      "tradingagents/dataflows/fred.py",
+      "tradingagents/dataflows/interface.py",
+      "tradingagents/default_config.py"
+    ],
+    "tests/test_vendor_routing.py": [
+      "tradingagents/dataflows/__init__.py",
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/interface.py",
+      "tradingagents/dataflows/symbol_utils.py",
+      "tradingagents/default_config.py"
+    ],
+    "tests/test_yfinance_stale_ohlcv_guard.py": [
+      "tradingagents/dataflows/__init__.py",
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/interface.py",
+      "tradingagents/dataflows/stockstats_utils.py",
+      "tradingagents/dataflows/symbol_utils.py",
+      "tradingagents/dataflows/y_finance.py",
+      "tradingagents/default_config.py"
+    ],
+    "tradingagents/dataflows/__init__.py": [],
+    "tradingagents/dataflows/config.py": [
+      "tradingagents/default_config.py"
+    ],
+    "tradingagents/dataflows/errors.py": [],
+    "tradingagents/dataflows/fred.py": [
+      "tradingagents/dataflows/errors.py"
+    ],
+    "tradingagents/dataflows/interface.py": [
+      "tradingagents/dataflows/alpha_vantage.py",
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/errors.py",
+      "tradingagents/dataflows/fred.py",
+      "tradingagents/dataflows/polymarket.py",
+      "tradingagents/dataflows/y_finance.py",
+      "tradingagents/dataflows/yfinance_news.py"
+    ],
+    "tradingagents/dataflows/polymarket.py": [],
+    "tradingagents/dataflows/reddit.py": [
+      "tradingagents/dataflows/symbol_utils.py"
+    ],
+    "tradingagents/dataflows/stockstats_utils.py": [
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/symbol_utils.py",
+      "tradingagents/dataflows/utils.py"
+    ],
+    "tradingagents/dataflows/stocktwits.py": [
+      "tradingagents/dataflows/symbol_utils.py"
+    ],
+    "tradingagents/dataflows/symbol_utils.py": [
+      "tradingagents/dataflows/errors.py"
+    ],
+    "tradingagents/dataflows/y_finance.py": [
+      "tradingagents/dataflows/stockstats_utils.py",
+      "tradingagents/dataflows/symbol_utils.py"
+    ],
+    "tradingagents/dataflows/yfinance_news.py": [
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/stockstats_utils.py",
+      "tradingagents/dataflows/symbol_utils.py"
+    ],
+    "tradingagents/default_config.py": []
+  },
+  "neighborMap": {
+    "main.py": [
+      {
+        "path": "tradingagents/graph/trading_graph.py",
+        "batchIndex": 3,
+        "symbols": [
+          "_coerce_max_retries",
+          "TradingAgentsGraph"
+        ]
+      }
+    ],
+    "tests/test_llm_max_retries.py": [
+      {
+        "path": "tradingagents/graph/trading_graph.py",
+        "batchIndex": 3,
+        "symbols": [
+          "_coerce_max_retries",
+          "TradingAgentsGraph"
+        ]
+      }
+    ],
+    "tests/test_vendor_errors.py": [
+      {
+        "path": "tradingagents/dataflows/alpha_vantage_common.py",
+        "batchIndex": 8,
+        "symbols": [
+          "AlphaVantageNotConfiguredError",
+          "get_api_key",
+          "format_datetime_for_api",
+          "AlphaVantageRateLimitError",
+          "_make_api_request",
+          "_filter_csv_by_date_range"
+        ]
+      }
+    ],
+    "tradingagents/dataflows/__init__.py": [
+      {
+        "path": "tests/test_llm_timeout.py",
+        "batchIndex": 4,
+        "symbols": [
+          "Response",
+          "configure_deadline_policy",
+          "test_llm_timeout_is_resolved_for_each_actual_invocation",
+          "test_llm_without_deadline_supplier_preserves_existing_timeout_behavior",
+          "test_bedrock_resolves_timeout_at_each_invoke",
+          "test_alpha_vantage_caps_each_request_by_current_remaining_deadline",
+          "test_non_web_dataflow_config_clears_prior_run_scoped_deadline_callbacks"
+        ]
+      }
+    ],
+    "tradingagents/dataflows/config.py": [
+      {
+        "path": "tests/test_llm_timeout.py",
+        "batchIndex": 4,
+        "symbols": [
+          "Response",
+          "configure_deadline_policy",
+          "test_llm_timeout_is_resolved_for_each_actual_invocation",
+          "test_llm_without_deadline_supplier_preserves_existing_timeout_behavior",
+          "test_bedrock_resolves_timeout_at_each_invoke",
+          "test_alpha_vantage_caps_each_request_by_current_remaining_deadline",
+          "test_non_web_dataflow_config_clears_prior_run_scoped_deadline_callbacks"
+        ]
+      },
+      {
+        "path": "tradingagents/dataflows/alpha_vantage_common.py",
+        "batchIndex": 8,
+        "symbols": [
+          "AlphaVantageNotConfiguredError",
+          "get_api_key",
+          "format_datetime_for_api",
+          "AlphaVantageRateLimitError",
+          "_make_api_request",
+          "_filter_csv_by_date_range"
+        ]
+      },
+      {
+        "path": "tradingagents/graph/trading_graph.py",
+        "batchIndex": 3,
+        "symbols": [
+          "_coerce_max_retries",
+          "TradingAgentsGraph"
+        ]
+      }
+    ],
+    "tradingagents/dataflows/errors.py": [
+      {
+        "path": "tradingagents/dataflows/alpha_vantage_common.py",
+        "batchIndex": 8,
+        "symbols": [
+          "AlphaVantageNotConfiguredError",
+          "get_api_key",
+          "format_datetime_for_api",
+          "AlphaVantageRateLimitError",
+          "_make_api_request",
+          "_filter_csv_by_date_range"
+        ]
+      }
+    ],
+    "tradingagents/dataflows/interface.py": [
+      {
+        "path": "tradingagents/dataflows/alpha_vantage.py",
+        "batchIndex": 8,
+        "symbols": []
+      },
+      {
+        "path": "tradingagents/agents/utils/core_stock_tools.py",
+        "batchIndex": 1,
+        "symbols": [
+          "get_stock_data"
+        ]
+      },
+      {
+        "path": "tradingagents/agents/utils/fundamental_data_tools.py",
+        "batchIndex": 1,
+        "symbols": [
+          "get_fundamentals",
+          "get_balance_sheet",
+          "get_cashflow",
+          "get_income_statement"
+        ]
+      },
+      {
+        "path": "tradingagents/agents/utils/macro_data_tools.py",
+        "batchIndex": 1,
+        "symbols": [
+          "get_macro_indicators"
+        ]
+      },
+      {
+        "path": "tradingagents/agents/utils/news_data_tools.py",
+        "batchIndex": 1,
+        "symbols": [
+          "get_news",
+          "get_global_news",
+          "get_insider_transactions"
+        ]
+      },
+      {
+        "path": "tradingagents/agents/utils/prediction_markets_tools.py",
+        "batchIndex": 1,
+        "symbols": [
+          "get_prediction_markets"
+        ]
+      },
+      {
+        "path": "tradingagents/agents/utils/technical_indicators_tools.py",
+        "batchIndex": 1,
+        "symbols": [
+          "get_indicators"
+        ]
+      }
+    ],
+    "tradingagents/dataflows/reddit.py": [
+      {
+        "path": "tradingagents/agents/analysts/sentiment_analyst.py",
+        "batchIndex": 1,
+        "symbols": [
+          "_seven_days_back",
+          "create_sentiment_analyst",
+          "_build_system_message",
+          "create_social_media_analyst"
+        ]
+      }
+    ],
+    "tradingagents/dataflows/stockstats_utils.py": [
+      {
+        "path": "tradingagents/dataflows/utils.py",
+        "batchIndex": 6,
+        "symbols": [
+          "safe_ticker_component",
+          "save_output",
+          "get_current_date",
+          "decorate_all_methods",
+          "get_next_weekday"
+        ]
+      },
+      {
+        "path": "tradingagents/dataflows/market_data_validator.py",
+        "batchIndex": 1,
+        "symbols": [
+          "_verified_rows",
+          "_fmt",
+          "build_verified_market_snapshot"
+        ]
+      }
+    ],
+    "tradingagents/dataflows/stocktwits.py": [
+      {
+        "path": "tradingagents/agents/analysts/sentiment_analyst.py",
+        "batchIndex": 1,
+        "symbols": [
+          "_seven_days_back",
+          "create_sentiment_analyst",
+          "_build_system_message",
+          "create_social_media_analyst"
+        ]
+      }
+    ],
+    "tradingagents/dataflows/symbol_utils.py": [
+      {
+        "path": "tests/test_cli_symbol_handling.py",
+        "batchIndex": 7,
+        "symbols": [
+          "test_normalize_symbol_crypto_and_passthrough",
+          "test_ticker_input_validation",
+          "test_detect_asset_type",
+          "test_cli_normalize_delegates_to_data_layer"
+        ]
+      }
+    ],
+    "tradingagents/dataflows/yfinance_news.py": [
+      {
+        "path": "tests/test_symbol_normalization_paths.py",
+        "batchIndex": 3,
+        "symbols": [
+          "test_identity_lookup_normalizes_symbol",
+          "test_fetch_returns_normalizes_symbol",
+          "test_news_lookup_normalizes_symbol"
+        ]
+      }
+    ],
+    "tradingagents/default_config.py": [
+      {
+        "path": "cli/main.py",
+        "batchIndex": 3,
+        "symbols": [
+          "default_command",
+          "web_command",
+          "MessageBuffer",
+          "create_layout",
+          "format_tokens",
+          "update_display",
+          "get_user_selections",
+          "get_analysis_date",
+          "save_report_to_disk",
+          "display_complete_report",
+          "update_research_team_status",
+          "update_analyst_statuses",
+          "extract_content_string",
+          "classify_message_type",
+          "format_tool_args",
+          "_build_run_config",
+          "run_analysis",
+          "analyze"
+        ]
+      },
+      {
+        "path": "tradingagents/graph/trading_graph.py",
+        "batchIndex": 3,
+        "symbols": [
+          "_coerce_max_retries",
+          "TradingAgentsGraph"
+        ]
+      },
+      {
+        "path": "web/app.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_record_json",
+          "_error",
+          "_safe_filename",
+          "_config_view",
+          "_watchlist_view",
+          "_event_sse",
+          "_cursor",
+          "create_app",
+          "_request_disconnected"
+        ]
+      },
+      {
+        "path": "web/config.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_parse_integer_setting",
+          "resolve_run_lifecycle_config",
+          "market_data_catalog",
+          "_options",
+          "model_catalog",
+          "resolve_model_config"
+        ]
+      },
+      {
+        "path": "web/runner.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_is_partial",
+          "WebRunRunner",
+          "run_web_analysis"
+        ]
+      }
+    ]
+  }
+}

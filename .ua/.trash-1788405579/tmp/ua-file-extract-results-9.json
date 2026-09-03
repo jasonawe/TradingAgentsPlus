@@ -1,0 +1,159 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 2,
+  "filesSkipped": [
+    ".dockerignore"
+  ],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 2,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 2
+    }
+  },
+  "results": [
+    {
+      "path": "Dockerfile",
+      "language": "dockerfile",
+      "fileCategory": "infra",
+      "totalLines": 28,
+      "nonEmptyLines": 19,
+      "services": [
+        {
+          "name": "builder",
+          "image": "python:3.12-slim",
+          "ports": [],
+          "startLine": 1,
+          "endLine": 12
+        },
+        {
+          "name": "python",
+          "image": "python:3.12-slim",
+          "ports": [],
+          "startLine": 13,
+          "endLine": 29
+        }
+      ],
+      "steps": [
+        {
+          "name": "FROM python:3.12-slim AS builder",
+          "startLine": 1,
+          "endLine": 1
+        },
+        {
+          "name": "ENV PYTHONDONTWRITEBYTECODE=1 \\",
+          "startLine": 3,
+          "endLine": 3
+        },
+        {
+          "name": "RUN python -m venv /opt/venv",
+          "startLine": 6,
+          "endLine": 6
+        },
+        {
+          "name": "ENV PATH=\"/opt/venv/bin:$PATH\"",
+          "startLine": 7,
+          "endLine": 7
+        },
+        {
+          "name": "WORKDIR /build",
+          "startLine": 9,
+          "endLine": 9
+        },
+        {
+          "name": "COPY . .",
+          "startLine": 10,
+          "endLine": 10
+        },
+        {
+          "name": "RUN pip install --no-cache-dir .",
+          "startLine": 11,
+          "endLine": 11
+        },
+        {
+          "name": "FROM python:3.12-slim",
+          "startLine": 13,
+          "endLine": 13
+        },
+        {
+          "name": "ENV PYTHONDONTWRITEBYTECODE=1 \\",
+          "startLine": 15,
+          "endLine": 15
+        },
+        {
+          "name": "COPY --from=builder /opt/venv /opt/venv",
+          "startLine": 18,
+          "endLine": 18
+        },
+        {
+          "name": "ENV PATH=\"/opt/venv/bin:$PATH\"",
+          "startLine": 19,
+          "endLine": 19
+        },
+        {
+          "name": "RUN useradd --create-home appuser \\",
+          "startLine": 21,
+          "endLine": 21
+        },
+        {
+          "name": "USER appuser",
+          "startLine": 23,
+          "endLine": 23
+        },
+        {
+          "name": "WORKDIR /home/appuser/app",
+          "startLine": 24,
+          "endLine": 24
+        },
+        {
+          "name": "COPY --from=builder --chown=appuser:appuser /build .",
+          "startLine": 26,
+          "endLine": 26
+        },
+        {
+          "name": "ENTRYPOINT [\"tradingagents\"]",
+          "startLine": 28,
+          "endLine": 28
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "serviceCount": 2,
+        "stepCount": 16
+      }
+    },
+    {
+      "path": "docker-compose.yml",
+      "language": "yaml",
+      "fileCategory": "infra",
+      "totalLines": 36,
+      "nonEmptyLines": 33,
+      "sections": [
+        {
+          "heading": "services",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "volumes",
+          "level": 1,
+          "line": 34
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 2
+      }
+    }
+  ]
+}

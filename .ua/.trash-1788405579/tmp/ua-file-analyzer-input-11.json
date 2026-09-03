@@ -1,0 +1,35 @@
+{
+  "projectRoot": "/Users/shenkang/workroom/languages/agent/TradingAgents",
+  "batchFiles": [
+    {
+      "path": "web/migrations/001_personal_platform.sql",
+      "language": "sql",
+      "sizeLines": 106,
+      "fileCategory": "data"
+    },
+    {
+      "path": "web/migrations/002_reliability_operations.sql",
+      "language": "sql",
+      "sizeLines": 61,
+      "fileCategory": "data"
+    },
+    {
+      "path": "web/migrations/003_watchlist_newest_first.sql",
+      "language": "sql",
+      "sizeLines": 2,
+      "fileCategory": "data"
+    },
+    {
+      "path": "web/migrations/004_analysis_timeout_recovery.sql",
+      "language": "sql",
+      "sizeLines": 29,
+      "fileCategory": "data"
+    }
+  ],
+  "batchImportData": {
+    "web/migrations/001_personal_platform.sql": [],
+    "web/migrations/002_reliability_operations.sql": [],
+    "web/migrations/003_watchlist_newest_first.sql": [],
+    "web/migrations/004_analysis_timeout_recovery.sql": []
+  }
+}

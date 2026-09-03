@@ -1,0 +1,18 @@
+{
+  "nodes": [
+    {
+      "id": "pipeline:.github/workflows/ci.yml",
+      "type": "pipeline",
+      "name": "ci.yml",
+      "filePath": ".github/workflows/ci.yml",
+      "summary": "GitHub Actions 持续集成工作流，负责安装依赖、执行测试与静态检查，并在代码变更时验证项目质量。",
+      "tags": [
+        "ci-cd",
+        "project-artifact",
+        "tradingagents"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": []
+}

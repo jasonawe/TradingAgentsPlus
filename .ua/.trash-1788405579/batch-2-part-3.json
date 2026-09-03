@@ -1,0 +1,1213 @@
+{
+  "nodes": [
+    {
+      "id": "file:tests/test_vendor_routing.py",
+      "type": "file",
+      "name": "test_vendor_routing.py",
+      "filePath": "tests/test_vendor_routing.py",
+      "summary": "覆盖 test_vendor_routing.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_vendor_routing.py:_reset_config",
+      "type": "function",
+      "name": "_reset_config",
+      "filePath": "tests/test_vendor_routing.py",
+      "lineRange": [
+        21,
+        24
+      ],
+      "summary": "位于 tests/test_vendor_routing.py 的函数 _reset_config，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_vendor_routing.py:_no_data",
+      "type": "function",
+      "name": "_no_data",
+      "filePath": "tests/test_vendor_routing.py",
+      "lineRange": [
+        27,
+        28
+      ],
+      "summary": "位于 tests/test_vendor_routing.py 的函数 _no_data，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_vendor_routing.py:_returns",
+      "type": "function",
+      "name": "_returns",
+      "filePath": "tests/test_vendor_routing.py",
+      "lineRange": [
+        31,
+        34
+      ],
+      "summary": "位于 tests/test_vendor_routing.py 的函数 _returns，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_vendor_routing.py:_raises",
+      "type": "function",
+      "name": "_raises",
+      "filePath": "tests/test_vendor_routing.py",
+      "lineRange": [
+        37,
+        40
+      ],
+      "summary": "位于 tests/test_vendor_routing.py 的函数 _raises，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_vendor_routing.py:VendorRoutingTests",
+      "type": "class",
+      "name": "VendorRoutingTests",
+      "filePath": "tests/test_vendor_routing.py",
+      "lineRange": [
+        44,
+        119
+      ],
+      "summary": "位于 tests/test_vendor_routing.py 的类 VendorRoutingTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "type": "file",
+      "name": "test_yfinance_stale_ohlcv_guard.py",
+      "filePath": "tests/test_yfinance_stale_ohlcv_guard.py",
+      "summary": "覆盖 test_yfinance_stale_ohlcv_guard.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_yfinance_stale_ohlcv_guard.py:_frame",
+      "type": "function",
+      "name": "_frame",
+      "filePath": "tests/test_yfinance_stale_ohlcv_guard.py",
+      "lineRange": [
+        24,
+        34
+      ],
+      "summary": "位于 tests/test_yfinance_stale_ohlcv_guard.py 的函数 _frame，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_yfinance_stale_ohlcv_guard.py:StaleGuardUnitTests",
+      "type": "class",
+      "name": "StaleGuardUnitTests",
+      "filePath": "tests/test_yfinance_stale_ohlcv_guard.py",
+      "lineRange": [
+        38,
+        58
+      ],
+      "summary": "位于 tests/test_yfinance_stale_ohlcv_guard.py 的类 StaleGuardUnitTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_yfinance_stale_ohlcv_guard.py:StaleGuardPropagationTests",
+      "type": "class",
+      "name": "StaleGuardPropagationTests",
+      "filePath": "tests/test_yfinance_stale_ohlcv_guard.py",
+      "lineRange": [
+        62,
+        81
+      ],
+      "summary": "位于 tests/test_yfinance_stale_ohlcv_guard.py 的类 StaleGuardPropagationTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_yfinance_stale_ohlcv_guard.py:StaleGuardRoutingTests",
+      "type": "class",
+      "name": "StaleGuardRoutingTests",
+      "filePath": "tests/test_yfinance_stale_ohlcv_guard.py",
+      "lineRange": [
+        85,
+        109
+      ],
+      "summary": "位于 tests/test_yfinance_stale_ohlcv_guard.py 的类 StaleGuardRoutingTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tradingagents/dataflows/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "tradingagents/dataflows/__init__.py",
+      "summary": "实现 tradingagents/dataflows/__init__.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/dataflows/config.py",
+      "type": "file",
+      "name": "config.py",
+      "filePath": "tradingagents/dataflows/config.py",
+      "summary": "实现 tradingagents/dataflows/config.py 在交易分析系统中的核心逻辑，对外提供 initialize_config、set_config、get_config 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/dataflows/config.py:initialize_config",
+      "type": "function",
+      "name": "initialize_config",
+      "filePath": "tradingagents/dataflows/config.py",
+      "lineRange": [
+        9,
+        13
+      ],
+      "summary": "位于 tradingagents/dataflows/config.py 的函数 initialize_config，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/config.py:set_config",
+      "type": "function",
+      "name": "set_config",
+      "filePath": "tradingagents/dataflows/config.py",
+      "lineRange": [
+        16,
+        33
+      ],
+      "summary": "位于 tradingagents/dataflows/config.py 的函数 set_config，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/config.py:get_config",
+      "type": "function",
+      "name": "get_config",
+      "filePath": "tradingagents/dataflows/config.py",
+      "lineRange": [
+        36,
+        40
+      ],
+      "summary": "位于 tradingagents/dataflows/config.py 的函数 get_config，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/config.py:get_request_timeout",
+      "type": "function",
+      "name": "get_request_timeout",
+      "filePath": "tradingagents/dataflows/config.py",
+      "lineRange": [
+        43,
+        50
+      ],
+      "summary": "位于 tradingagents/dataflows/config.py 的函数 get_request_timeout，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/config.py:external_request_checkpoint",
+      "type": "function",
+      "name": "external_request_checkpoint",
+      "filePath": "tradingagents/dataflows/config.py",
+      "lineRange": [
+        53,
+        56
+      ],
+      "summary": "位于 tradingagents/dataflows/config.py 的函数 external_request_checkpoint，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/dataflows/errors.py",
+      "type": "file",
+      "name": "errors.py",
+      "filePath": "tradingagents/dataflows/errors.py",
+      "summary": "实现 tradingagents/dataflows/errors.py 在交易分析系统中的核心逻辑，对外提供 VendorError、NoMarketDataError、VendorRateLimitError 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/dataflows/errors.py:VendorError",
+      "type": "class",
+      "name": "VendorError",
+      "filePath": "tradingagents/dataflows/errors.py",
+      "lineRange": [
+        21,
+        22
+      ],
+      "summary": "位于 tradingagents/dataflows/errors.py 的类 VendorError，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "市场数据",
+        "校验"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/dataflows/errors.py:NoMarketDataError",
+      "type": "class",
+      "name": "NoMarketDataError",
+      "filePath": "tradingagents/dataflows/errors.py",
+      "lineRange": [
+        25,
+        43
+      ],
+      "summary": "位于 tradingagents/dataflows/errors.py 的类 NoMarketDataError，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "市场数据",
+        "校验"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/dataflows/errors.py:VendorRateLimitError",
+      "type": "class",
+      "name": "VendorRateLimitError",
+      "filePath": "tradingagents/dataflows/errors.py",
+      "lineRange": [
+        46,
+        47
+      ],
+      "summary": "位于 tradingagents/dataflows/errors.py 的类 VendorRateLimitError，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "市场数据",
+        "校验"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/dataflows/errors.py:VendorNotConfiguredError",
+      "type": "class",
+      "name": "VendorNotConfiguredError",
+      "filePath": "tradingagents/dataflows/errors.py",
+      "lineRange": [
+        50,
+        55
+      ],
+      "summary": "位于 tradingagents/dataflows/errors.py 的类 VendorNotConfiguredError，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "市场数据",
+        "校验"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tradingagents/dataflows/fred.py",
+      "type": "file",
+      "name": "fred.py",
+      "filePath": "tradingagents/dataflows/fred.py",
+      "summary": "实现 tradingagents/dataflows/fred.py 在交易分析系统中的核心逻辑，对外提供 FredNotConfiguredError、get_api_key、_resolve_series_id 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tradingagents/dataflows/fred.py:get_api_key",
+      "type": "function",
+      "name": "get_api_key",
+      "filePath": "tradingagents/dataflows/fred.py",
+      "lineRange": [
+        84,
+        92
+      ],
+      "summary": "位于 tradingagents/dataflows/fred.py 的函数 get_api_key，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/fred.py:_resolve_series_id",
+      "type": "function",
+      "name": "_resolve_series_id",
+      "filePath": "tradingagents/dataflows/fred.py",
+      "lineRange": [
+        95,
+        115
+      ],
+      "summary": "位于 tradingagents/dataflows/fred.py 的函数 _resolve_series_id，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/fred.py:_request",
+      "type": "function",
+      "name": "_request",
+      "filePath": "tradingagents/dataflows/fred.py",
+      "lineRange": [
+        118,
+        133
+      ],
+      "summary": "位于 tradingagents/dataflows/fred.py 的函数 _request，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/fred.py:get_macro_data",
+      "type": "function",
+      "name": "get_macro_data",
+      "filePath": "tradingagents/dataflows/fred.py",
+      "lineRange": [
+        136,
+        237
+      ],
+      "summary": "位于 tradingagents/dataflows/fred.py 的函数 get_macro_data，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:tradingagents/dataflows/fred.py:FredNotConfiguredError",
+      "type": "class",
+      "name": "FredNotConfiguredError",
+      "filePath": "tradingagents/dataflows/fred.py",
+      "lineRange": [
+        75,
+        81
+      ],
+      "summary": "位于 tradingagents/dataflows/fred.py 的类 FredNotConfiguredError，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tradingagents/dataflows/interface.py",
+      "type": "file",
+      "name": "interface.py",
+      "filePath": "tradingagents/dataflows/interface.py",
+      "summary": "实现 tradingagents/dataflows/interface.py 在交易分析系统中的核心逻辑，对外提供 get_category_for_method、get_vendor、route_to_vendor 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tradingagents/dataflows/interface.py:get_category_for_method",
+      "type": "function",
+      "name": "get_category_for_method",
+      "filePath": "tradingagents/dataflows/interface.py",
+      "lineRange": [
+        146,
+        151
+      ],
+      "summary": "位于 tradingagents/dataflows/interface.py 的函数 get_category_for_method，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/interface.py:get_vendor",
+      "type": "function",
+      "name": "get_vendor",
+      "filePath": "tradingagents/dataflows/interface.py",
+      "lineRange": [
+        153,
+        166
+      ],
+      "summary": "位于 tradingagents/dataflows/interface.py 的函数 get_vendor，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/interface.py:route_to_vendor",
+      "type": "function",
+      "name": "route_to_vendor",
+      "filePath": "tradingagents/dataflows/interface.py",
+      "lineRange": [
+        168,
+        262
+      ],
+      "summary": "位于 tradingagents/dataflows/interface.py 的函数 route_to_vendor，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tradingagents/dataflows/polymarket.py",
+      "type": "file",
+      "name": "polymarket.py",
+      "filePath": "tradingagents/dataflows/polymarket.py",
+      "summary": "实现 tradingagents/dataflows/polymarket.py 在交易分析系统中的核心逻辑，对外提供 _request、_parse_json_list、_is_forward_looking 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/dataflows/polymarket.py:_request",
+      "type": "function",
+      "name": "_request",
+      "filePath": "tradingagents/dataflows/polymarket.py",
+      "lineRange": [
+        29,
+        34
+      ],
+      "summary": "位于 tradingagents/dataflows/polymarket.py 的函数 _request，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/polymarket.py:_parse_json_list",
+      "type": "function",
+      "name": "_parse_json_list",
+      "filePath": "tradingagents/dataflows/polymarket.py",
+      "lineRange": [
+        37,
+        44
+      ],
+      "summary": "位于 tradingagents/dataflows/polymarket.py 的函数 _parse_json_list，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/polymarket.py:_is_forward_looking",
+      "type": "function",
+      "name": "_is_forward_looking",
+      "filePath": "tradingagents/dataflows/polymarket.py",
+      "lineRange": [
+        47,
+        65
+      ],
+      "summary": "位于 tradingagents/dataflows/polymarket.py 的函数 _is_forward_looking，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/polymarket.py:get_prediction_markets",
+      "type": "function",
+      "name": "get_prediction_markets",
+      "filePath": "tradingagents/dataflows/polymarket.py",
+      "lineRange": [
+        68,
+        139
+      ],
+      "summary": "位于 tradingagents/dataflows/polymarket.py 的函数 get_prediction_markets，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:tests/test_vendor_routing.py",
+      "target": "function:tests/test_vendor_routing.py:_reset_config",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_vendor_routing.py",
+      "target": "function:tests/test_vendor_routing.py:_no_data",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_vendor_routing.py",
+      "target": "function:tests/test_vendor_routing.py:_returns",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_vendor_routing.py",
+      "target": "function:tests/test_vendor_routing.py:_raises",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_vendor_routing.py",
+      "target": "class:tests/test_vendor_routing.py:VendorRoutingTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_vendor_routing.py",
+      "target": "function:tests/test_vendor_routing.py:_reset_config",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_vendor_routing.py",
+      "target": "function:tests/test_vendor_routing.py:_no_data",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_vendor_routing.py",
+      "target": "function:tests/test_vendor_routing.py:_returns",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_vendor_routing.py",
+      "target": "function:tests/test_vendor_routing.py:_raises",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_vendor_routing.py",
+      "target": "class:tests/test_vendor_routing.py:VendorRoutingTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_vendor_routing.py",
+      "target": "file:tradingagents/dataflows/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_routing.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_routing.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_routing.py",
+      "target": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_routing.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "function:tests/test_yfinance_stale_ohlcv_guard.py:_frame",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "class:tests/test_yfinance_stale_ohlcv_guard.py:StaleGuardUnitTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "class:tests/test_yfinance_stale_ohlcv_guard.py:StaleGuardPropagationTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "class:tests/test_yfinance_stale_ohlcv_guard.py:StaleGuardRoutingTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "function:tests/test_yfinance_stale_ohlcv_guard.py:_frame",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "class:tests/test_yfinance_stale_ohlcv_guard.py:StaleGuardUnitTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "class:tests/test_yfinance_stale_ohlcv_guard.py:StaleGuardPropagationTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "class:tests/test_yfinance_stale_ohlcv_guard.py:StaleGuardRoutingTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "file:tradingagents/dataflows/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "file:tradingagents/dataflows/stockstats_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "file:tradingagents/dataflows/y_finance.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/config.py",
+      "target": "function:tradingagents/dataflows/config.py:initialize_config",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/config.py",
+      "target": "function:tradingagents/dataflows/config.py:set_config",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/config.py",
+      "target": "function:tradingagents/dataflows/config.py:get_config",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/config.py",
+      "target": "function:tradingagents/dataflows/config.py:get_request_timeout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/config.py",
+      "target": "function:tradingagents/dataflows/config.py:external_request_checkpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/config.py",
+      "target": "function:tradingagents/dataflows/config.py:initialize_config",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/config.py",
+      "target": "function:tradingagents/dataflows/config.py:set_config",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/config.py",
+      "target": "function:tradingagents/dataflows/config.py:get_config",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/config.py",
+      "target": "function:tradingagents/dataflows/config.py:get_request_timeout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/config.py",
+      "target": "function:tradingagents/dataflows/config.py:external_request_checkpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/config.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/errors.py",
+      "target": "class:tradingagents/dataflows/errors.py:VendorError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/errors.py",
+      "target": "class:tradingagents/dataflows/errors.py:NoMarketDataError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/errors.py",
+      "target": "class:tradingagents/dataflows/errors.py:VendorRateLimitError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/errors.py",
+      "target": "class:tradingagents/dataflows/errors.py:VendorNotConfiguredError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/errors.py",
+      "target": "class:tradingagents/dataflows/errors.py:VendorError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/errors.py",
+      "target": "class:tradingagents/dataflows/errors.py:NoMarketDataError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/errors.py",
+      "target": "class:tradingagents/dataflows/errors.py:VendorRateLimitError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/errors.py",
+      "target": "class:tradingagents/dataflows/errors.py:VendorNotConfiguredError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/fred.py",
+      "target": "function:tradingagents/dataflows/fred.py:get_api_key",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/fred.py",
+      "target": "function:tradingagents/dataflows/fred.py:_resolve_series_id",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/fred.py",
+      "target": "function:tradingagents/dataflows/fred.py:_request",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/fred.py",
+      "target": "function:tradingagents/dataflows/fred.py:get_macro_data",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/fred.py",
+      "target": "class:tradingagents/dataflows/fred.py:FredNotConfiguredError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/fred.py",
+      "target": "class:tradingagents/dataflows/fred.py:FredNotConfiguredError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/fred.py",
+      "target": "function:tradingagents/dataflows/fred.py:get_api_key",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/fred.py",
+      "target": "function:tradingagents/dataflows/fred.py:_resolve_series_id",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/fred.py",
+      "target": "function:tradingagents/dataflows/fred.py:_request",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/fred.py",
+      "target": "function:tradingagents/dataflows/fred.py:get_macro_data",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/fred.py",
+      "target": "file:tradingagents/dataflows/errors.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/interface.py",
+      "target": "function:tradingagents/dataflows/interface.py:get_category_for_method",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/interface.py",
+      "target": "function:tradingagents/dataflows/interface.py:get_vendor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/interface.py",
+      "target": "function:tradingagents/dataflows/interface.py:route_to_vendor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/interface.py",
+      "target": "function:tradingagents/dataflows/interface.py:get_category_for_method",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/interface.py",
+      "target": "function:tradingagents/dataflows/interface.py:get_vendor",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/interface.py",
+      "target": "function:tradingagents/dataflows/interface.py:route_to_vendor",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/interface.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/interface.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/interface.py",
+      "target": "file:tradingagents/dataflows/errors.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/interface.py",
+      "target": "file:tradingagents/dataflows/fred.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/interface.py",
+      "target": "file:tradingagents/dataflows/polymarket.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/interface.py",
+      "target": "file:tradingagents/dataflows/y_finance.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/interface.py",
+      "target": "file:tradingagents/dataflows/yfinance_news.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/polymarket.py",
+      "target": "function:tradingagents/dataflows/polymarket.py:_request",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/polymarket.py",
+      "target": "function:tradingagents/dataflows/polymarket.py:_parse_json_list",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/polymarket.py",
+      "target": "function:tradingagents/dataflows/polymarket.py:_is_forward_looking",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/polymarket.py",
+      "target": "function:tradingagents/dataflows/polymarket.py:get_prediction_markets",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/polymarket.py",
+      "target": "function:tradingagents/dataflows/polymarket.py:_request",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/polymarket.py",
+      "target": "function:tradingagents/dataflows/polymarket.py:_parse_json_list",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/polymarket.py",
+      "target": "function:tradingagents/dataflows/polymarket.py:_is_forward_looking",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/polymarket.py",
+      "target": "function:tradingagents/dataflows/polymarket.py:get_prediction_markets",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

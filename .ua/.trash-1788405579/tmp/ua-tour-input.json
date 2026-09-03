@@ -1,0 +1,4619 @@
+{
+  "nodes": [
+    {
+      "id": "file:scripts/smoke_structured_output.py",
+      "type": "file",
+      "name": "smoke_structured_output.py",
+      "filePath": "scripts/smoke_structured_output.py",
+      "summary": "实现 scripts/smoke_structured_output.py 在交易分析系统中的核心逻辑，对外提供 _make_rm_state、_make_trader_state、_make_pm_state 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tests/test_i18n_coverage.py",
+      "type": "file",
+      "name": "test_i18n_coverage.py",
+      "filePath": "tests/test_i18n_coverage.py",
+      "summary": "覆盖 test_i18n_coverage.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_instrument_identity.py",
+      "type": "file",
+      "name": "test_instrument_identity.py",
+      "filePath": "tests/test_instrument_identity.py",
+      "summary": "覆盖 test_instrument_identity.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_market_data_validator.py",
+      "type": "file",
+      "name": "test_market_data_validator.py",
+      "filePath": "tests/test_market_data_validator.py",
+      "summary": "覆盖 test_market_data_validator.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_news_analyst_prompt.py",
+      "type": "file",
+      "name": "test_news_analyst_prompt.py",
+      "filePath": "tests/test_news_analyst_prompt.py",
+      "summary": "覆盖 test_news_analyst_prompt.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_structured_agent_prompts.py",
+      "type": "file",
+      "name": "test_structured_agent_prompts.py",
+      "filePath": "tests/test_structured_agent_prompts.py",
+      "summary": "覆盖 test_structured_agent_prompts.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_structured_agents.py",
+      "type": "file",
+      "name": "test_structured_agents.py",
+      "filePath": "tests/test_structured_agents.py",
+      "summary": "覆盖 test_structured_agents.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tradingagents/agents/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "tradingagents/agents/__init__.py",
+      "summary": "实现 tradingagents/agents/__init__.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/analysts/fundamentals_analyst.py",
+      "type": "file",
+      "name": "fundamentals_analyst.py",
+      "filePath": "tradingagents/agents/analysts/fundamentals_analyst.py",
+      "summary": "实现 tradingagents/agents/analysts/fundamentals_analyst.py 在交易分析系统中的核心逻辑，对外提供 create_fundamentals_analyst 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/analysts/market_analyst.py",
+      "type": "file",
+      "name": "market_analyst.py",
+      "filePath": "tradingagents/agents/analysts/market_analyst.py",
+      "summary": "实现 tradingagents/agents/analysts/market_analyst.py 在交易分析系统中的核心逻辑，对外提供 create_market_analyst 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/analysts/news_analyst.py",
+      "type": "file",
+      "name": "news_analyst.py",
+      "filePath": "tradingagents/agents/analysts/news_analyst.py",
+      "summary": "实现 tradingagents/agents/analysts/news_analyst.py 在交易分析系统中的核心逻辑，对外提供 create_news_analyst 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "type": "file",
+      "name": "sentiment_analyst.py",
+      "filePath": "tradingagents/agents/analysts/sentiment_analyst.py",
+      "summary": "实现 tradingagents/agents/analysts/sentiment_analyst.py 在交易分析系统中的核心逻辑，对外提供 _seven_days_back、create_sentiment_analyst、_build_system_message 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/analysts/social_media_analyst.py",
+      "type": "file",
+      "name": "social_media_analyst.py",
+      "filePath": "tradingagents/agents/analysts/social_media_analyst.py",
+      "summary": "实现 tradingagents/agents/analysts/social_media_analyst.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/managers/portfolio_manager.py",
+      "type": "file",
+      "name": "portfolio_manager.py",
+      "filePath": "tradingagents/agents/managers/portfolio_manager.py",
+      "summary": "实现 tradingagents/agents/managers/portfolio_manager.py 在交易分析系统中的核心逻辑，对外提供 create_portfolio_manager 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/managers/research_manager.py",
+      "type": "file",
+      "name": "research_manager.py",
+      "filePath": "tradingagents/agents/managers/research_manager.py",
+      "summary": "实现 tradingagents/agents/managers/research_manager.py 在交易分析系统中的核心逻辑，对外提供 create_research_manager 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/researchers/bear_researcher.py",
+      "type": "file",
+      "name": "bear_researcher.py",
+      "filePath": "tradingagents/agents/researchers/bear_researcher.py",
+      "summary": "实现 tradingagents/agents/researchers/bear_researcher.py 在交易分析系统中的核心逻辑，对外提供 create_bear_researcher 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/researchers/bull_researcher.py",
+      "type": "file",
+      "name": "bull_researcher.py",
+      "filePath": "tradingagents/agents/researchers/bull_researcher.py",
+      "summary": "实现 tradingagents/agents/researchers/bull_researcher.py 在交易分析系统中的核心逻辑，对外提供 create_bull_researcher 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/risk_mgmt/aggressive_debator.py",
+      "type": "file",
+      "name": "aggressive_debator.py",
+      "filePath": "tradingagents/agents/risk_mgmt/aggressive_debator.py",
+      "summary": "实现 tradingagents/agents/risk_mgmt/aggressive_debator.py 在交易分析系统中的核心逻辑，对外提供 create_aggressive_debator 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/risk_mgmt/conservative_debator.py",
+      "type": "file",
+      "name": "conservative_debator.py",
+      "filePath": "tradingagents/agents/risk_mgmt/conservative_debator.py",
+      "summary": "实现 tradingagents/agents/risk_mgmt/conservative_debator.py 在交易分析系统中的核心逻辑，对外提供 create_conservative_debator 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/risk_mgmt/neutral_debator.py",
+      "type": "file",
+      "name": "neutral_debator.py",
+      "filePath": "tradingagents/agents/risk_mgmt/neutral_debator.py",
+      "summary": "实现 tradingagents/agents/risk_mgmt/neutral_debator.py 在交易分析系统中的核心逻辑，对外提供 create_neutral_debator 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/schemas.py",
+      "type": "file",
+      "name": "schemas.py",
+      "filePath": "tradingagents/agents/schemas.py",
+      "summary": "实现 tradingagents/agents/schemas.py 在交易分析系统中的核心逻辑，对外提供 _coerce_optional_float、PortfolioRating、TraderAction 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/trader/trader.py",
+      "type": "file",
+      "name": "trader.py",
+      "filePath": "tradingagents/agents/trader/trader.py",
+      "summary": "实现 tradingagents/agents/trader/trader.py 在交易分析系统中的核心逻辑，对外提供 create_trader 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "file",
+      "name": "agent_utils.py",
+      "filePath": "tradingagents/agents/utils/agent_utils.py",
+      "summary": "实现 tradingagents/agents/utils/agent_utils.py 在交易分析系统中的核心逻辑，对外提供 get_language_instruction、_clean_identity_value、resolve_instrument_identity 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/core_stock_tools.py",
+      "type": "file",
+      "name": "core_stock_tools.py",
+      "filePath": "tradingagents/agents/utils/core_stock_tools.py",
+      "summary": "实现 tradingagents/agents/utils/core_stock_tools.py 在交易分析系统中的核心逻辑，对外提供 get_stock_data 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/fundamental_data_tools.py",
+      "type": "file",
+      "name": "fundamental_data_tools.py",
+      "filePath": "tradingagents/agents/utils/fundamental_data_tools.py",
+      "summary": "实现 tradingagents/agents/utils/fundamental_data_tools.py 在交易分析系统中的核心逻辑，对外提供 get_fundamentals、get_balance_sheet、get_cashflow 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/macro_data_tools.py",
+      "type": "file",
+      "name": "macro_data_tools.py",
+      "filePath": "tradingagents/agents/utils/macro_data_tools.py",
+      "summary": "实现 tradingagents/agents/utils/macro_data_tools.py 在交易分析系统中的核心逻辑，对外提供 get_macro_indicators 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/market_data_validation_tools.py",
+      "type": "file",
+      "name": "market_data_validation_tools.py",
+      "filePath": "tradingagents/agents/utils/market_data_validation_tools.py",
+      "summary": "实现 tradingagents/agents/utils/market_data_validation_tools.py 在交易分析系统中的核心逻辑，对外提供 get_verified_market_snapshot 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/news_data_tools.py",
+      "type": "file",
+      "name": "news_data_tools.py",
+      "filePath": "tradingagents/agents/utils/news_data_tools.py",
+      "summary": "实现 tradingagents/agents/utils/news_data_tools.py 在交易分析系统中的核心逻辑，对外提供 get_news、get_global_news、get_insider_transactions 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/prediction_markets_tools.py",
+      "type": "file",
+      "name": "prediction_markets_tools.py",
+      "filePath": "tradingagents/agents/utils/prediction_markets_tools.py",
+      "summary": "实现 tradingagents/agents/utils/prediction_markets_tools.py 在交易分析系统中的核心逻辑，对外提供 get_prediction_markets 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/structured.py",
+      "type": "file",
+      "name": "structured.py",
+      "filePath": "tradingagents/agents/utils/structured.py",
+      "summary": "实现 tradingagents/agents/utils/structured.py 在交易分析系统中的核心逻辑，对外提供 bind_structured、invoke_structured_or_freetext 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/technical_indicators_tools.py",
+      "type": "file",
+      "name": "technical_indicators_tools.py",
+      "filePath": "tradingagents/agents/utils/technical_indicators_tools.py",
+      "summary": "实现 tradingagents/agents/utils/technical_indicators_tools.py 在交易分析系统中的核心逻辑，对外提供 get_indicators 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/dataflows/market_data_validator.py",
+      "type": "file",
+      "name": "market_data_validator.py",
+      "filePath": "tradingagents/dataflows/market_data_validator.py",
+      "summary": "实现 tradingagents/dataflows/market_data_validator.py 在交易分析系统中的核心逻辑，对外提供 _verified_rows、_fmt、build_verified_market_snapshot 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:main.py",
+      "type": "file",
+      "name": "main.py",
+      "filePath": "main.py",
+      "summary": "实现 main.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:test.py",
+      "type": "file",
+      "name": "test.py",
+      "filePath": "test.py",
+      "summary": "实现 test.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tests/test_dataflows_config.py",
+      "type": "file",
+      "name": "test_dataflows_config.py",
+      "filePath": "tests/test_dataflows_config.py",
+      "summary": "覆盖 test_dataflows_config.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_date_boundaries.py",
+      "type": "file",
+      "name": "test_date_boundaries.py",
+      "filePath": "tests/test_date_boundaries.py",
+      "summary": "覆盖 test_date_boundaries.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_env_overrides.py",
+      "type": "file",
+      "name": "test_env_overrides.py",
+      "filePath": "tests/test_env_overrides.py",
+      "summary": "覆盖 test_env_overrides.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_fred.py",
+      "type": "file",
+      "name": "test_fred.py",
+      "filePath": "tests/test_fred.py",
+      "summary": "覆盖 test_fred.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_llm_max_retries.py",
+      "type": "file",
+      "name": "test_llm_max_retries.py",
+      "filePath": "tests/test_llm_max_retries.py",
+      "summary": "覆盖 test_llm_max_retries.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_news_lookahead.py",
+      "type": "file",
+      "name": "test_news_lookahead.py",
+      "filePath": "tests/test_news_lookahead.py",
+      "summary": "覆盖 test_news_lookahead.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_no_data_handling.py",
+      "type": "file",
+      "name": "test_no_data_handling.py",
+      "filePath": "tests/test_no_data_handling.py",
+      "summary": "覆盖 test_no_data_handling.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_ohlcv_cache_freshness.py",
+      "type": "file",
+      "name": "test_ohlcv_cache_freshness.py",
+      "filePath": "tests/test_ohlcv_cache_freshness.py",
+      "summary": "覆盖 test_ohlcv_cache_freshness.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_polymarket.py",
+      "type": "file",
+      "name": "test_polymarket.py",
+      "filePath": "tests/test_polymarket.py",
+      "summary": "覆盖 test_polymarket.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_reddit_fallback.py",
+      "type": "file",
+      "name": "test_reddit_fallback.py",
+      "filePath": "tests/test_reddit_fallback.py",
+      "summary": "覆盖 test_reddit_fallback.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_stockstats_date_column.py",
+      "type": "file",
+      "name": "test_stockstats_date_column.py",
+      "filePath": "tests/test_stockstats_date_column.py",
+      "summary": "覆盖 test_stockstats_date_column.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_stocktwits_resilience.py",
+      "type": "file",
+      "name": "test_stocktwits_resilience.py",
+      "filePath": "tests/test_stocktwits_resilience.py",
+      "summary": "覆盖 test_stocktwits_resilience.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_symbol_utils.py",
+      "type": "file",
+      "name": "test_symbol_utils.py",
+      "filePath": "tests/test_symbol_utils.py",
+      "summary": "覆盖 test_symbol_utils.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_vendor_errors.py",
+      "type": "file",
+      "name": "test_vendor_errors.py",
+      "filePath": "tests/test_vendor_errors.py",
+      "summary": "覆盖 test_vendor_errors.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_vendor_routing.py",
+      "type": "file",
+      "name": "test_vendor_routing.py",
+      "filePath": "tests/test_vendor_routing.py",
+      "summary": "覆盖 test_vendor_routing.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "type": "file",
+      "name": "test_yfinance_stale_ohlcv_guard.py",
+      "filePath": "tests/test_yfinance_stale_ohlcv_guard.py",
+      "summary": "覆盖 test_yfinance_stale_ohlcv_guard.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tradingagents/dataflows/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "tradingagents/dataflows/__init__.py",
+      "summary": "实现 tradingagents/dataflows/__init__.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/dataflows/config.py",
+      "type": "file",
+      "name": "config.py",
+      "filePath": "tradingagents/dataflows/config.py",
+      "summary": "实现 tradingagents/dataflows/config.py 在交易分析系统中的核心逻辑，对外提供 initialize_config、set_config、get_config 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/dataflows/errors.py",
+      "type": "file",
+      "name": "errors.py",
+      "filePath": "tradingagents/dataflows/errors.py",
+      "summary": "实现 tradingagents/dataflows/errors.py 在交易分析系统中的核心逻辑，对外提供 VendorError、NoMarketDataError、VendorRateLimitError 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/dataflows/fred.py",
+      "type": "file",
+      "name": "fred.py",
+      "filePath": "tradingagents/dataflows/fred.py",
+      "summary": "实现 tradingagents/dataflows/fred.py 在交易分析系统中的核心逻辑，对外提供 FredNotConfiguredError、get_api_key、_resolve_series_id 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/dataflows/interface.py",
+      "type": "file",
+      "name": "interface.py",
+      "filePath": "tradingagents/dataflows/interface.py",
+      "summary": "实现 tradingagents/dataflows/interface.py 在交易分析系统中的核心逻辑，对外提供 get_category_for_method、get_vendor、route_to_vendor 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/dataflows/polymarket.py",
+      "type": "file",
+      "name": "polymarket.py",
+      "filePath": "tradingagents/dataflows/polymarket.py",
+      "summary": "实现 tradingagents/dataflows/polymarket.py 在交易分析系统中的核心逻辑，对外提供 _request、_parse_json_list、_is_forward_looking 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/dataflows/reddit.py",
+      "type": "file",
+      "name": "reddit.py",
+      "filePath": "tradingagents/dataflows/reddit.py",
+      "summary": "实现 tradingagents/dataflows/reddit.py 在交易分析系统中的核心逻辑，对外提供 _search_qs、_iso_to_timestamp、_strip_html 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/dataflows/stockstats_utils.py",
+      "type": "file",
+      "name": "stockstats_utils.py",
+      "filePath": "tradingagents/dataflows/stockstats_utils.py",
+      "summary": "实现 tradingagents/dataflows/stockstats_utils.py 在交易分析系统中的核心逻辑，对外提供 yf_retry、_ensure_date_column、_clean_dataframe 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/dataflows/stocktwits.py",
+      "type": "file",
+      "name": "stocktwits.py",
+      "filePath": "tradingagents/dataflows/stocktwits.py",
+      "summary": "实现 tradingagents/dataflows/stocktwits.py 在交易分析系统中的核心逻辑，对外提供 _stocktwits_symbol、fetch_stocktwits_messages 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "file",
+      "name": "symbol_utils.py",
+      "filePath": "tradingagents/dataflows/symbol_utils.py",
+      "summary": "实现 tradingagents/dataflows/symbol_utils.py 在交易分析系统中的核心逻辑，对外提供 crypto_base、_normalize_crypto、normalize_symbol 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/dataflows/y_finance.py",
+      "type": "file",
+      "name": "y_finance.py",
+      "filePath": "tradingagents/dataflows/y_finance.py",
+      "summary": "实现 tradingagents/dataflows/y_finance.py 在交易分析系统中的核心逻辑，对外提供 get_YFin_data_online、get_stock_stats_indicators_window、_get_stock_stats_bulk 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/dataflows/yfinance_news.py",
+      "type": "file",
+      "name": "yfinance_news.py",
+      "filePath": "tradingagents/dataflows/yfinance_news.py",
+      "summary": "实现 tradingagents/dataflows/yfinance_news.py 在交易分析系统中的核心逻辑，对外提供 _as_utc、_extract_article_data、_in_news_window 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/default_config.py",
+      "type": "file",
+      "name": "default_config.py",
+      "filePath": "tradingagents/default_config.py",
+      "summary": "实现 tradingagents/default_config.py 在交易分析系统中的核心逻辑，对外提供 _coerce、_apply_env_overrides 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:cli/announcements.py",
+      "type": "file",
+      "name": "announcements.py",
+      "filePath": "cli/announcements.py",
+      "summary": "实现 cli/announcements.py 在交易分析系统中的核心逻辑，对外提供 fetch_announcements、display_announcements 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:cli/config.py",
+      "type": "file",
+      "name": "config.py",
+      "filePath": "cli/config.py",
+      "summary": "实现 cli/config.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:cli/main.py",
+      "type": "file",
+      "name": "main.py",
+      "filePath": "cli/main.py",
+      "summary": "实现 cli/main.py 在交易分析系统中的核心逻辑，对外提供 default_command、web_command、MessageBuffer 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:cli/stats_handler.py",
+      "type": "file",
+      "name": "stats_handler.py",
+      "filePath": "cli/stats_handler.py",
+      "summary": "实现 cli/stats_handler.py 在交易分析系统中的核心逻辑，对外提供 StatsCallbackHandler 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tests/test_analyst_execution.py",
+      "type": "file",
+      "name": "test_analyst_execution.py",
+      "filePath": "tests/test_analyst_execution.py",
+      "summary": "覆盖 test_analyst_execution.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_cli_config_precedence.py",
+      "type": "file",
+      "name": "test_cli_config_precedence.py",
+      "filePath": "tests/test_cli_config_precedence.py",
+      "summary": "覆盖 test_cli_config_precedence.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_cli_no_console.py",
+      "type": "file",
+      "name": "test_cli_no_console.py",
+      "filePath": "tests/test_cli_no_console.py",
+      "summary": "覆盖 test_cli_no_console.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_graph_stream_callbacks.py",
+      "type": "file",
+      "name": "test_graph_stream_callbacks.py",
+      "filePath": "tests/test_graph_stream_callbacks.py",
+      "summary": "覆盖 test_graph_stream_callbacks.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_market_toolnode.py",
+      "type": "file",
+      "name": "test_market_toolnode.py",
+      "filePath": "tests/test_market_toolnode.py",
+      "summary": "覆盖 test_market_toolnode.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_memory_log.py",
+      "type": "file",
+      "name": "test_memory_log.py",
+      "filePath": "tests/test_memory_log.py",
+      "summary": "覆盖 test_memory_log.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_reporting.py",
+      "type": "file",
+      "name": "test_reporting.py",
+      "filePath": "tests/test_reporting.py",
+      "summary": "覆盖 test_reporting.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_risk_router_path_map.py",
+      "type": "file",
+      "name": "test_risk_router_path_map.py",
+      "filePath": "tests/test_risk_router_path_map.py",
+      "summary": "覆盖 test_risk_router_path_map.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_signal_processing.py",
+      "type": "file",
+      "name": "test_signal_processing.py",
+      "filePath": "tests/test_signal_processing.py",
+      "summary": "覆盖 test_signal_processing.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_symbol_normalization_paths.py",
+      "type": "file",
+      "name": "test_symbol_normalization_paths.py",
+      "filePath": "tests/test_symbol_normalization_paths.py",
+      "summary": "覆盖 test_symbol_normalization_paths.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_web_command.py",
+      "type": "file",
+      "name": "test_web_command.py",
+      "filePath": "tests/test_web_command.py",
+      "summary": "覆盖 test_web_command.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/agent_states.py",
+      "type": "file",
+      "name": "agent_states.py",
+      "filePath": "tradingagents/agents/utils/agent_states.py",
+      "summary": "实现 tradingagents/agents/utils/agent_states.py 在交易分析系统中的核心逻辑，对外提供 InvestDebateState、RiskDebateState、AgentState 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/memory.py",
+      "type": "file",
+      "name": "memory.py",
+      "filePath": "tradingagents/agents/utils/memory.py",
+      "summary": "实现 tradingagents/agents/utils/memory.py 在交易分析系统中的核心逻辑，对外提供 TradingMemoryLog 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/rating.py",
+      "type": "file",
+      "name": "rating.py",
+      "filePath": "tradingagents/agents/utils/rating.py",
+      "summary": "实现 tradingagents/agents/utils/rating.py 在交易分析系统中的核心逻辑，对外提供 parse_rating 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/graph/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "tradingagents/graph/__init__.py",
+      "summary": "实现 tradingagents/graph/__init__.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/graph/analyst_execution.py",
+      "type": "file",
+      "name": "analyst_execution.py",
+      "filePath": "tradingagents/graph/analyst_execution.py",
+      "summary": "实现 tradingagents/graph/analyst_execution.py 在交易分析系统中的核心逻辑，对外提供 AnalystNodeSpec、AnalystExecutionPlan、build_analyst_execution_plan 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/graph/conditional_logic.py",
+      "type": "file",
+      "name": "conditional_logic.py",
+      "filePath": "tradingagents/graph/conditional_logic.py",
+      "summary": "实现 tradingagents/graph/conditional_logic.py 在交易分析系统中的核心逻辑，对外提供 ConditionalLogic 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/graph/propagation.py",
+      "type": "file",
+      "name": "propagation.py",
+      "filePath": "tradingagents/graph/propagation.py",
+      "summary": "实现 tradingagents/graph/propagation.py 在交易分析系统中的核心逻辑，对外提供 PropagationCancelled、Propagator 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/graph/reflection.py",
+      "type": "file",
+      "name": "reflection.py",
+      "filePath": "tradingagents/graph/reflection.py",
+      "summary": "实现 tradingagents/graph/reflection.py 在交易分析系统中的核心逻辑，对外提供 Reflector 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/graph/setup.py",
+      "type": "file",
+      "name": "setup.py",
+      "filePath": "tradingagents/graph/setup.py",
+      "summary": "实现 tradingagents/graph/setup.py 在交易分析系统中的核心逻辑，对外提供 GraphSetup 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/graph/signal_processing.py",
+      "type": "file",
+      "name": "signal_processing.py",
+      "filePath": "tradingagents/graph/signal_processing.py",
+      "summary": "实现 tradingagents/graph/signal_processing.py 在交易分析系统中的核心逻辑，对外提供 SignalProcessor 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/graph/trading_graph.py",
+      "type": "file",
+      "name": "trading_graph.py",
+      "filePath": "tradingagents/graph/trading_graph.py",
+      "summary": "实现 tradingagents/graph/trading_graph.py 在交易分析系统中的核心逻辑，对外提供 _coerce_max_retries、TradingAgentsGraph 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/reporting.py",
+      "type": "file",
+      "name": "reporting.py",
+      "filePath": "tradingagents/reporting.py",
+      "summary": "实现 tradingagents/reporting.py 在交易分析系统中的核心逻辑，对外提供 write_report_tree 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tests/test_anthropic_effort.py",
+      "type": "file",
+      "name": "test_anthropic_effort.py",
+      "filePath": "tests/test_anthropic_effort.py",
+      "summary": "覆盖 test_anthropic_effort.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_api_key_env.py",
+      "type": "file",
+      "name": "test_api_key_env.py",
+      "filePath": "tests/test_api_key_env.py",
+      "summary": "覆盖 test_api_key_env.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_bedrock_provider.py",
+      "type": "file",
+      "name": "test_bedrock_provider.py",
+      "filePath": "tests/test_bedrock_provider.py",
+      "summary": "覆盖 test_bedrock_provider.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_capabilities.py",
+      "type": "file",
+      "name": "test_capabilities.py",
+      "filePath": "tests/test_capabilities.py",
+      "summary": "覆盖 test_capabilities.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_deepseek_reasoning.py",
+      "type": "file",
+      "name": "test_deepseek_reasoning.py",
+      "filePath": "tests/test_deepseek_reasoning.py",
+      "summary": "覆盖 test_deepseek_reasoning.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_google_api_key.py",
+      "type": "file",
+      "name": "test_google_api_key.py",
+      "filePath": "tests/test_google_api_key.py",
+      "summary": "覆盖 test_google_api_key.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_google_thinking_level.py",
+      "type": "file",
+      "name": "test_google_thinking_level.py",
+      "filePath": "tests/test_google_thinking_level.py",
+      "summary": "覆盖 test_google_thinking_level.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_llm_timeout.py",
+      "type": "file",
+      "name": "test_llm_timeout.py",
+      "filePath": "tests/test_llm_timeout.py",
+      "summary": "覆盖 test_llm_timeout.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_minimax.py",
+      "type": "file",
+      "name": "test_minimax.py",
+      "filePath": "tests/test_minimax.py",
+      "summary": "覆盖 test_minimax.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_model_validation.py",
+      "type": "file",
+      "name": "test_model_validation.py",
+      "filePath": "tests/test_model_validation.py",
+      "summary": "覆盖 test_model_validation.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_openai_compatible_provider.py",
+      "type": "file",
+      "name": "test_openai_compatible_provider.py",
+      "filePath": "tests/test_openai_compatible_provider.py",
+      "summary": "覆盖 test_openai_compatible_provider.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_openai_reasoning_effort.py",
+      "type": "file",
+      "name": "test_openai_reasoning_effort.py",
+      "filePath": "tests/test_openai_reasoning_effort.py",
+      "summary": "覆盖 test_openai_reasoning_effort.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_openai_responses_base_url.py",
+      "type": "file",
+      "name": "test_openai_responses_base_url.py",
+      "filePath": "tests/test_openai_responses_base_url.py",
+      "summary": "覆盖 test_openai_responses_base_url.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_provider_registry.py",
+      "type": "file",
+      "name": "test_provider_registry.py",
+      "filePath": "tests/test_provider_registry.py",
+      "summary": "覆盖 test_provider_registry.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_temperature_config.py",
+      "type": "file",
+      "name": "test_temperature_config.py",
+      "filePath": "tests/test_temperature_config.py",
+      "summary": "覆盖 test_temperature_config.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "tradingagents/llm_clients/__init__.py",
+      "summary": "实现 tradingagents/llm_clients/__init__.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/anthropic_client.py",
+      "type": "file",
+      "name": "anthropic_client.py",
+      "filePath": "tradingagents/llm_clients/anthropic_client.py",
+      "summary": "实现 tradingagents/llm_clients/anthropic_client.py 在交易分析系统中的核心逻辑，对外提供 _supports_effort、NormalizedChatAnthropic、AnthropicClient 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/api_key_env.py",
+      "type": "file",
+      "name": "api_key_env.py",
+      "filePath": "tradingagents/llm_clients/api_key_env.py",
+      "summary": "实现 tradingagents/llm_clients/api_key_env.py 在交易分析系统中的核心逻辑，对外提供 get_api_key_env 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/azure_client.py",
+      "type": "file",
+      "name": "azure_client.py",
+      "filePath": "tradingagents/llm_clients/azure_client.py",
+      "summary": "实现 tradingagents/llm_clients/azure_client.py 在交易分析系统中的核心逻辑，对外提供 NormalizedAzureChatOpenAI、AzureOpenAIClient 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/base_client.py",
+      "type": "file",
+      "name": "base_client.py",
+      "filePath": "tradingagents/llm_clients/base_client.py",
+      "summary": "实现 tradingagents/llm_clients/base_client.py 在交易分析系统中的核心逻辑，对外提供 normalize_content、resolve_invocation_timeout、invoke_with_deadline 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/bedrock_client.py",
+      "type": "file",
+      "name": "bedrock_client.py",
+      "filePath": "tradingagents/llm_clients/bedrock_client.py",
+      "summary": "实现 tradingagents/llm_clients/bedrock_client.py 在交易分析系统中的核心逻辑，对外提供 _bedrock_class、BedrockClient 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/capabilities.py",
+      "type": "file",
+      "name": "capabilities.py",
+      "filePath": "tradingagents/llm_clients/capabilities.py",
+      "summary": "实现 tradingagents/llm_clients/capabilities.py 在交易分析系统中的核心逻辑，对外提供 ModelCapabilities、get_capabilities 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/factory.py",
+      "type": "file",
+      "name": "factory.py",
+      "filePath": "tradingagents/llm_clients/factory.py",
+      "summary": "实现 tradingagents/llm_clients/factory.py 在交易分析系统中的核心逻辑，对外提供 create_llm_client 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/google_client.py",
+      "type": "file",
+      "name": "google_client.py",
+      "filePath": "tradingagents/llm_clients/google_client.py",
+      "summary": "实现 tradingagents/llm_clients/google_client.py 在交易分析系统中的核心逻辑，对外提供 NormalizedChatGoogleGenerativeAI、GoogleClient 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/model_catalog.py",
+      "type": "file",
+      "name": "model_catalog.py",
+      "filePath": "tradingagents/llm_clients/model_catalog.py",
+      "summary": "实现 tradingagents/llm_clients/model_catalog.py 在交易分析系统中的核心逻辑，对外提供 get_model_options、get_known_models 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/openai_client.py",
+      "type": "file",
+      "name": "openai_client.py",
+      "filePath": "tradingagents/llm_clients/openai_client.py",
+      "summary": "实现 tradingagents/llm_clients/openai_client.py 在交易分析系统中的核心逻辑，对外提供 NormalizedChatOpenAI、LocalCompatibleChatOpenAI、_input_to_messages 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/validators.py",
+      "type": "file",
+      "name": "validators.py",
+      "filePath": "tradingagents/llm_clients/validators.py",
+      "summary": "实现 tradingagents/llm_clients/validators.py 在交易分析系统中的核心逻辑，对外提供 validate_model 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tests/test_checkpoint_resume.py",
+      "type": "file",
+      "name": "test_checkpoint_resume.py",
+      "filePath": "tests/test_checkpoint_resume.py",
+      "summary": "覆盖 test_checkpoint_resume.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_chunk3_contract_fixes.py",
+      "type": "file",
+      "name": "test_chunk3_contract_fixes.py",
+      "filePath": "tests/test_chunk3_contract_fixes.py",
+      "summary": "覆盖 test_chunk3_contract_fixes.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_error_classifier.py",
+      "type": "file",
+      "name": "test_error_classifier.py",
+      "filePath": "tests/test_error_classifier.py",
+      "summary": "覆盖 test_error_classifier.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_run_manager_concurrency.py",
+      "type": "file",
+      "name": "test_run_manager_concurrency.py",
+      "filePath": "tests/test_run_manager_concurrency.py",
+      "summary": "覆盖 test_run_manager_concurrency.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_safe_ticker_component.py",
+      "type": "file",
+      "name": "test_safe_ticker_component.py",
+      "filePath": "tests/test_safe_ticker_component.py",
+      "summary": "覆盖 test_safe_ticker_component.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_web_api.py",
+      "type": "file",
+      "name": "test_web_api.py",
+      "filePath": "tests/test_web_api.py",
+      "summary": "覆盖 test_web_api.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_web_api_recovery.py",
+      "type": "file",
+      "name": "test_web_api_recovery.py",
+      "filePath": "tests/test_web_api_recovery.py",
+      "summary": "覆盖 test_web_api_recovery.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_web_artifacts.py",
+      "type": "file",
+      "name": "test_web_artifacts.py",
+      "filePath": "tests/test_web_artifacts.py",
+      "summary": "覆盖 test_web_artifacts.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_web_history.py",
+      "type": "file",
+      "name": "test_web_history.py",
+      "filePath": "tests/test_web_history.py",
+      "summary": "覆盖 test_web_history.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_web_lease.py",
+      "type": "file",
+      "name": "test_web_lease.py",
+      "filePath": "tests/test_web_lease.py",
+      "summary": "覆盖 test_web_lease.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_web_manager.py",
+      "type": "file",
+      "name": "test_web_manager.py",
+      "filePath": "tests/test_web_manager.py",
+      "summary": "覆盖 test_web_manager.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_web_markdown.py",
+      "type": "file",
+      "name": "test_web_markdown.py",
+      "filePath": "tests/test_web_markdown.py",
+      "summary": "覆盖 test_web_markdown.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_web_models.py",
+      "type": "file",
+      "name": "test_web_models.py",
+      "filePath": "tests/test_web_models.py",
+      "summary": "覆盖 test_web_models.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_web_repositories.py",
+      "type": "file",
+      "name": "test_web_repositories.py",
+      "filePath": "tests/test_web_repositories.py",
+      "summary": "覆盖 test_web_repositories.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_web_retry.py",
+      "type": "file",
+      "name": "test_web_retry.py",
+      "filePath": "tests/test_web_retry.py",
+      "summary": "覆盖 test_web_retry.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_web_runner.py",
+      "type": "file",
+      "name": "test_web_runner.py",
+      "filePath": "tests/test_web_runner.py",
+      "summary": "覆盖 test_web_runner.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_web_runner_recovery.py",
+      "type": "file",
+      "name": "test_web_runner_recovery.py",
+      "filePath": "tests/test_web_runner_recovery.py",
+      "summary": "覆盖 test_web_runner_recovery.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_web_settings.py",
+      "type": "file",
+      "name": "test_web_settings.py",
+      "filePath": "tests/test_web_settings.py",
+      "summary": "覆盖 test_web_settings.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_web_snapshots.py",
+      "type": "file",
+      "name": "test_web_snapshots.py",
+      "filePath": "tests/test_web_snapshots.py",
+      "summary": "覆盖 test_web_snapshots.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_web_storage.py",
+      "type": "file",
+      "name": "test_web_storage.py",
+      "filePath": "tests/test_web_storage.py",
+      "summary": "覆盖 test_web_storage.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tradingagents/dataflows/utils.py",
+      "type": "file",
+      "name": "utils.py",
+      "filePath": "tradingagents/dataflows/utils.py",
+      "summary": "实现 tradingagents/dataflows/utils.py 在交易分析系统中的核心逻辑，对外提供 safe_ticker_component、save_output、get_current_date 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/graph/checkpointer.py",
+      "type": "file",
+      "name": "checkpointer.py",
+      "filePath": "tradingagents/graph/checkpointer.py",
+      "summary": "实现 tradingagents/graph/checkpointer.py 在交易分析系统中的核心逻辑，对外提供 _db_path、thread_id、get_checkpointer 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "web/__init__.py",
+      "summary": "实现 web/__init__.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/app.py",
+      "type": "file",
+      "name": "app.py",
+      "filePath": "web/app.py",
+      "summary": "实现 web/app.py 在交易分析系统中的核心逻辑，对外提供 _record_json、_error、_safe_filename 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/artifacts.py",
+      "type": "file",
+      "name": "artifacts.py",
+      "filePath": "web/artifacts.py",
+      "summary": "实现 web/artifacts.py 在交易分析系统中的核心逻辑，对外提供 _now_iso、ArtifactRecord、_decode_row 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/checkpoint_resume.py",
+      "type": "file",
+      "name": "checkpoint_resume.py",
+      "filePath": "web/checkpoint_resume.py",
+      "summary": "实现 web/checkpoint_resume.py 在交易分析系统中的核心逻辑，对外提供 build_checkpoint_signature、thread_id_for_run、checkpoint_id 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/config.py",
+      "type": "file",
+      "name": "config.py",
+      "filePath": "web/config.py",
+      "summary": "实现 web/config.py 在交易分析系统中的核心逻辑，对外提供 _parse_integer_setting、resolve_run_lifecycle_config、market_data_catalog 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/error_classifier.py",
+      "type": "file",
+      "name": "error_classifier.py",
+      "filePath": "web/error_classifier.py",
+      "summary": "实现 web/error_classifier.py 在交易分析系统中的核心逻辑，对外提供 ProviderErrorInfo、_sanitize_detail、_looks_like_timeout 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/error_codes.py",
+      "type": "file",
+      "name": "error_codes.py",
+      "filePath": "web/error_codes.py",
+      "summary": "实现 web/error_codes.py 在交易分析系统中的核心逻辑，对外提供 TerminalReason 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/history.py",
+      "type": "file",
+      "name": "history.py",
+      "filePath": "web/history.py",
+      "summary": "实现 web/history.py 在交易分析系统中的核心逻辑，对外提供 ReportNotFound、_legacy_digest、_ReportEntry 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/lease.py",
+      "type": "file",
+      "name": "lease.py",
+      "filePath": "web/lease.py",
+      "summary": "实现 web/lease.py 在交易分析系统中的核心逻辑，对外提供 _RunManagerLike、generate_owner_token、WorkerLease 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/manager.py",
+      "type": "file",
+      "name": "manager.py",
+      "filePath": "web/manager.py",
+      "summary": "实现 web/manager.py 在交易分析系统中的核心逻辑，对外提供 MaxConcurrentRunsError、AssetBusyError、EventBatch 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/markdown.py",
+      "type": "file",
+      "name": "markdown.py",
+      "filePath": "web/markdown.py",
+      "summary": "实现 web/markdown.py 在交易分析系统中的核心逻辑，对外提供 render_markdown 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/models.py",
+      "type": "file",
+      "name": "models.py",
+      "filePath": "web/models.py",
+      "summary": "实现 web/models.py 在交易分析系统中的核心逻辑，对外提供 RunStatus、EventName、AnalysisRequest 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/repositories.py",
+      "type": "file",
+      "name": "repositories.py",
+      "filePath": "web/repositories.py",
+      "summary": "实现 web/repositories.py 在交易分析系统中的核心逻辑，对外提供 _now、_row、WatchlistRepository 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/runner.py",
+      "type": "file",
+      "name": "runner.py",
+      "filePath": "web/runner.py",
+      "summary": "实现 web/runner.py 在交易分析系统中的核心逻辑，对外提供 _is_partial、WebRunRunner、run_web_analysis 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/snapshots.py",
+      "type": "file",
+      "name": "snapshots.py",
+      "filePath": "web/snapshots.py",
+      "summary": "实现 web/snapshots.py 在交易分析系统中的核心逻辑，对外提供 SnapshotCorruptError、_normalize、canonical_bytes 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/storage.py",
+      "type": "file",
+      "name": "storage.py",
+      "filePath": "web/storage.py",
+      "summary": "实现 web/storage.py 在交易分析系统中的核心逻辑，对外提供 SQLiteStore 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:cli/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "cli/__init__.py",
+      "summary": "实现 cli/__init__.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:cli/models.py",
+      "type": "file",
+      "name": "models.py",
+      "filePath": "cli/models.py",
+      "summary": "实现 cli/models.py 在交易分析系统中的核心逻辑，对外提供 AnalystType、AssetType 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:cli/utils.py",
+      "type": "file",
+      "name": "utils.py",
+      "filePath": "cli/utils.py",
+      "summary": "实现 cli/utils.py 在交易分析系统中的核心逻辑，对外提供 is_valid_ticker_input、get_ticker、normalize_ticker_symbol 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tests/test_cli_symbol_handling.py",
+      "type": "file",
+      "name": "test_cli_symbol_handling.py",
+      "filePath": "tests/test_cli_symbol_handling.py",
+      "summary": "覆盖 test_cli_symbol_handling.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_crypto_asset_mode.py",
+      "type": "file",
+      "name": "test_crypto_asset_mode.py",
+      "filePath": "tests/test_crypto_asset_mode.py",
+      "summary": "覆盖 test_crypto_asset_mode.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_market_localization.py",
+      "type": "file",
+      "name": "test_market_localization.py",
+      "filePath": "tests/test_market_localization.py",
+      "summary": "覆盖 test_market_localization.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_openrouter_model_select.py",
+      "type": "file",
+      "name": "test_openrouter_model_select.py",
+      "filePath": "tests/test_openrouter_model_select.py",
+      "summary": "覆盖 test_openrouter_model_select.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_ticker_symbol_handling.py",
+      "type": "file",
+      "name": "test_ticker_symbol_handling.py",
+      "filePath": "tests/test_ticker_symbol_handling.py",
+      "summary": "覆盖 test_ticker_symbol_handling.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_web_market_data.py",
+      "type": "file",
+      "name": "test_web_market_data.py",
+      "filePath": "tests/test_web_market_data.py",
+      "summary": "覆盖 test_web_market_data.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tests/test_web_market_providers.py",
+      "type": "file",
+      "name": "test_web_market_providers.py",
+      "filePath": "tests/test_web_market_providers.py",
+      "summary": "覆盖 test_web_market_providers.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:web/market_data.py",
+      "type": "file",
+      "name": "market_data.py",
+      "filePath": "web/market_data.py",
+      "summary": "实现 web/market_data.py 在交易分析系统中的核心逻辑，对外提供 _DaemonExecutor、ProviderRouter、QuoteService 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/market_localization.py",
+      "type": "file",
+      "name": "market_localization.py",
+      "filePath": "web/market_localization.py",
+      "summary": "实现 web/market_localization.py 在交易分析系统中的核心逻辑，对外提供 clean_english_name、_with_cache、_tencent_symbol_key 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/market_models.py",
+      "type": "file",
+      "name": "market_models.py",
+      "filePath": "web/market_models.py",
+      "summary": "实现 web/market_models.py 在交易分析系统中的核心逻辑，对外提供 _utc、Freshness、ProviderErrorCode 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/providers/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "web/providers/__init__.py",
+      "summary": "实现 web/providers/__init__.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/providers/alpha_vantage_provider.py",
+      "type": "file",
+      "name": "alpha_vantage_provider.py",
+      "filePath": "web/providers/alpha_vantage_provider.py",
+      "summary": "实现 web/providers/alpha_vantage_provider.py 在交易分析系统中的核心逻辑，对外提供 AlphaVantageProvider 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/providers/yfinance_provider.py",
+      "type": "file",
+      "name": "yfinance_provider.py",
+      "filePath": "web/providers/yfinance_provider.py",
+      "summary": "实现 web/providers/yfinance_provider.py 在交易分析系统中的核心逻辑，对外提供 YFinanceProvider、_info、info_currency 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tests/test_alpha_vantage_hardening.py",
+      "type": "file",
+      "name": "test_alpha_vantage_hardening.py",
+      "filePath": "tests/test_alpha_vantage_hardening.py",
+      "summary": "覆盖 test_alpha_vantage_hardening.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    {
+      "id": "file:tradingagents/dataflows/alpha_vantage.py",
+      "type": "file",
+      "name": "alpha_vantage.py",
+      "filePath": "tradingagents/dataflows/alpha_vantage.py",
+      "summary": "实现 tradingagents/dataflows/alpha_vantage.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "type": "file",
+      "name": "alpha_vantage_common.py",
+      "filePath": "tradingagents/dataflows/alpha_vantage_common.py",
+      "summary": "实现 tradingagents/dataflows/alpha_vantage_common.py 在交易分析系统中的核心逻辑，对外提供 AlphaVantageNotConfiguredError、get_api_key、format_datetime_for_api 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "type": "file",
+      "name": "alpha_vantage_fundamentals.py",
+      "filePath": "tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "summary": "实现 tradingagents/dataflows/alpha_vantage_fundamentals.py 在交易分析系统中的核心逻辑，对外提供 _filter_reports_by_date、get_fundamentals、get_balance_sheet 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/dataflows/alpha_vantage_indicator.py",
+      "type": "file",
+      "name": "alpha_vantage_indicator.py",
+      "filePath": "tradingagents/dataflows/alpha_vantage_indicator.py",
+      "summary": "实现 tradingagents/dataflows/alpha_vantage_indicator.py 在交易分析系统中的核心逻辑，对外提供 get_indicator 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/dataflows/alpha_vantage_news.py",
+      "type": "file",
+      "name": "alpha_vantage_news.py",
+      "filePath": "tradingagents/dataflows/alpha_vantage_news.py",
+      "summary": "实现 tradingagents/dataflows/alpha_vantage_news.py 在交易分析系统中的核心逻辑，对外提供 get_news、get_global_news、get_insider_transactions 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:tradingagents/dataflows/alpha_vantage_stock.py",
+      "type": "file",
+      "name": "alpha_vantage_stock.py",
+      "filePath": "tradingagents/dataflows/alpha_vantage_stock.py",
+      "summary": "实现 tradingagents/dataflows/alpha_vantage_stock.py 在交易分析系统中的核心逻辑，对外提供 get_stock 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "service:.dockerignore",
+      "type": "service",
+      "name": ".dockerignore",
+      "filePath": ".dockerignore",
+      "summary": "定义 .dockerignore 的部署与运行环境，负责项目服务的构建、启动或编排。"
+    },
+    {
+      "id": "service:Dockerfile",
+      "type": "service",
+      "name": "Dockerfile",
+      "filePath": "Dockerfile",
+      "summary": "定义 Dockerfile 的部署与运行环境，负责项目服务的构建、启动或编排。"
+    },
+    {
+      "id": "service:docker-compose.yml",
+      "type": "service",
+      "name": "docker-compose.yml",
+      "filePath": "docker-compose.yml",
+      "summary": "定义 docker-compose.yml 的部署与运行环境，负责项目服务的构建、启动或编排。"
+    },
+    {
+      "id": "pipeline:.github/workflows/ci.yml",
+      "type": "pipeline",
+      "name": "ci.yml",
+      "filePath": ".github/workflows/ci.yml",
+      "summary": "GitHub Actions 持续集成工作流，负责安装依赖、执行测试与静态检查，并在代码变更时验证项目质量。"
+    },
+    {
+      "id": "table:web/migrations/001_personal_platform.sql",
+      "type": "table",
+      "name": "001_personal_platform.sql",
+      "filePath": "web/migrations/001_personal_platform.sql",
+      "summary": "数据库迁移文件 001_personal_platform.sql，定义或调整 Web 平台的持久化表结构、索引与可靠性相关字段。"
+    },
+    {
+      "id": "table:web/migrations/002_reliability_operations.sql",
+      "type": "table",
+      "name": "002_reliability_operations.sql",
+      "filePath": "web/migrations/002_reliability_operations.sql",
+      "summary": "数据库迁移文件 002_reliability_operations.sql，定义或调整 Web 平台的持久化表结构、索引与可靠性相关字段。"
+    },
+    {
+      "id": "table:web/migrations/003_watchlist_newest_first.sql",
+      "type": "table",
+      "name": "003_watchlist_newest_first.sql",
+      "filePath": "web/migrations/003_watchlist_newest_first.sql",
+      "summary": "数据库迁移文件 003_watchlist_newest_first.sql，定义或调整 Web 平台的持久化表结构、索引与可靠性相关字段。"
+    },
+    {
+      "id": "table:web/migrations/004_analysis_timeout_recovery.sql",
+      "type": "table",
+      "name": "004_analysis_timeout_recovery.sql",
+      "filePath": "web/migrations/004_analysis_timeout_recovery.sql",
+      "summary": "数据库迁移文件 004_analysis_timeout_recovery.sql，定义或调整 Web 平台的持久化表结构、索引与可靠性相关字段。"
+    },
+    {
+      "id": "config:.env.enterprise.example",
+      "type": "config",
+      "name": ".env.enterprise.example",
+      "filePath": ".env.enterprise.example",
+      "summary": "项目配置文件 .env.enterprise.example，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    {
+      "id": "config:.env.example",
+      "type": "config",
+      "name": ".env.example",
+      "filePath": ".env.example",
+      "summary": "项目配置文件 .env.example，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    {
+      "id": "document:CHANGELOG.md",
+      "type": "document",
+      "name": "CHANGELOG.md",
+      "filePath": "CHANGELOG.md",
+      "summary": "版本变更日志，按时间记录功能迭代、缺陷修复和兼容性调整。"
+    },
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "项目入口文档，介绍 TradingAgents 的定位、安装配置、运行方式与主要能力。"
+    },
+    {
+      "id": "config:pyproject.toml",
+      "type": "config",
+      "name": "pyproject.toml",
+      "filePath": "pyproject.toml",
+      "summary": "项目配置文件 pyproject.toml，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    {
+      "id": "document:requirements.txt",
+      "type": "document",
+      "name": "requirements.txt",
+      "filePath": "requirements.txt",
+      "summary": "设计或实施计划文档，围绕 requirements 描述目标、方案、任务拆分与验证要求。"
+    },
+    {
+      "id": "file:.superpowers/brainstorm/41801-1787718122/console-layout.html",
+      "type": "file",
+      "name": "console-layout.html",
+      "filePath": ".superpowers/brainstorm/41801-1787718122/console-layout.html",
+      "summary": "前端 HTML 资源，用于展示 console-layout 相关的交互原型或应用界面结构。"
+    },
+    {
+      "id": "file:.superpowers/brainstorm/41801-1787718122/visual-style.html",
+      "type": "file",
+      "name": "visual-style.html",
+      "filePath": ".superpowers/brainstorm/41801-1787718122/visual-style.html",
+      "summary": "前端 HTML 资源，用于展示 visual-style 相关的交互原型或应用界面结构。"
+    },
+    {
+      "id": "file:.superpowers/brainstorm/41801-1787718122/waiting-architecture.html",
+      "type": "file",
+      "name": "waiting-architecture.html",
+      "filePath": ".superpowers/brainstorm/41801-1787718122/waiting-architecture.html",
+      "summary": "前端 HTML 资源，用于展示 waiting-architecture 相关的交互原型或应用界面结构。"
+    },
+    {
+      "id": "file:.superpowers/brainstorm/81139-1787817330/portfolio-layout-options.html",
+      "type": "file",
+      "name": "portfolio-layout-options.html",
+      "filePath": ".superpowers/brainstorm/81139-1787817330/portfolio-layout-options.html",
+      "summary": "前端 HTML 资源，用于展示 portfolio-layout-options 相关的交互原型或应用界面结构。"
+    },
+    {
+      "id": "file:.superpowers/brainstorm/81139-1787817330/report-reading-options.html",
+      "type": "file",
+      "name": "report-reading-options.html",
+      "filePath": ".superpowers/brainstorm/81139-1787817330/report-reading-options.html",
+      "summary": "前端 HTML 资源，用于展示 report-reading-options 相关的交互原型或应用界面结构。"
+    },
+    {
+      "id": "file:.superpowers/brainstorm/81139-1787817330/waiting-architecture.html",
+      "type": "file",
+      "name": "waiting-architecture.html",
+      "filePath": ".superpowers/brainstorm/81139-1787817330/waiting-architecture.html",
+      "summary": "前端 HTML 资源，用于展示 waiting-architecture 相关的交互原型或应用界面结构。"
+    },
+    {
+      "id": "config:.ua/tmp/import-input.json",
+      "type": "config",
+      "name": "import-input.json",
+      "filePath": ".ua/tmp/import-input.json",
+      "summary": "项目配置文件 import-input.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    {
+      "id": "config:.ua/tmp/import-output.json",
+      "type": "config",
+      "name": "import-output.json",
+      "filePath": ".ua/tmp/import-output.json",
+      "summary": "项目配置文件 import-output.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    {
+      "id": "config:.ua/tmp/ua-import-map-input.json",
+      "type": "config",
+      "name": "ua-import-map-input.json",
+      "filePath": ".ua/tmp/ua-import-map-input.json",
+      "summary": "项目配置文件 ua-import-map-input.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    {
+      "id": "config:.ua/tmp/ua-import-map-output.json",
+      "type": "config",
+      "name": "ua-import-map-output.json",
+      "filePath": ".ua/tmp/ua-import-map-output.json",
+      "summary": "项目配置文件 ua-import-map-output.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    {
+      "id": "config:.ua/tmp/ua-scan-files.json",
+      "type": "config",
+      "name": "ua-scan-files.json",
+      "filePath": ".ua/tmp/ua-scan-files.json",
+      "summary": "项目配置文件 ua-scan-files.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    {
+      "id": "document:docs/superpowers/plans/2026-08-26-web-analysis-console-plan.md",
+      "type": "document",
+      "name": "2026-08-26-web-analysis-console-plan.md",
+      "filePath": "docs/superpowers/plans/2026-08-26-web-analysis-console-plan.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-26-web-analysis-console-plan 描述目标、方案、任务拆分与验证要求。"
+    },
+    {
+      "id": "document:docs/superpowers/plans/2026-08-27-personal-investor-platform-plan.md",
+      "type": "document",
+      "name": "2026-08-27-personal-investor-platform-plan.md",
+      "filePath": "docs/superpowers/plans/2026-08-27-personal-investor-platform-plan.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-27-personal-investor-platform-plan 描述目标、方案、任务拆分与验证要求。"
+    },
+    {
+      "id": "document:docs/superpowers/plans/2026-08-27-web-report-library-models-language-plan.md",
+      "type": "document",
+      "name": "2026-08-27-web-report-library-models-language-plan.md",
+      "filePath": "docs/superpowers/plans/2026-08-27-web-report-library-models-language-plan.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-27-web-report-library-models-language-plan 描述目标、方案、任务拆分与验证要求。"
+    },
+    {
+      "id": "document:docs/superpowers/plans/2026-08-28-report-publish-integrity-plan.md",
+      "type": "document",
+      "name": "2026-08-28-report-publish-integrity-plan.md",
+      "filePath": "docs/superpowers/plans/2026-08-28-report-publish-integrity-plan.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-28-report-publish-integrity-plan 描述目标、方案、任务拆分与验证要求。"
+    },
+    {
+      "id": "document:docs/superpowers/plans/2026-08-31-platform-reliability-operations-plan.md",
+      "type": "document",
+      "name": "2026-08-31-platform-reliability-operations-plan.md",
+      "filePath": "docs/superpowers/plans/2026-08-31-platform-reliability-operations-plan.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-31-platform-reliability-operations-plan 描述目标、方案、任务拆分与验证要求。"
+    },
+    {
+      "id": "document:docs/superpowers/plans/2026-08-31-rating-localization-plan.md",
+      "type": "document",
+      "name": "2026-08-31-rating-localization-plan.md",
+      "filePath": "docs/superpowers/plans/2026-08-31-rating-localization-plan.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-31-rating-localization-plan 描述目标、方案、任务拆分与验证要求。"
+    },
+    {
+      "id": "document:docs/superpowers/plans/2026-09-01-compact-section-headers.md",
+      "type": "document",
+      "name": "2026-09-01-compact-section-headers.md",
+      "filePath": "docs/superpowers/plans/2026-09-01-compact-section-headers.md",
+      "summary": "设计或实施计划文档，围绕 2026-09-01-compact-section-headers 描述目标、方案、任务拆分与验证要求。"
+    },
+    {
+      "id": "document:docs/superpowers/plans/2026-09-02-manager-concurrency.md",
+      "type": "document",
+      "name": "2026-09-02-manager-concurrency.md",
+      "filePath": "docs/superpowers/plans/2026-09-02-manager-concurrency.md",
+      "summary": "设计或实施计划文档，围绕 2026-09-02-manager-concurrency 描述目标、方案、任务拆分与验证要求。"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-08-26-web-analysis-console-design.md",
+      "type": "document",
+      "name": "2026-08-26-web-analysis-console-design.md",
+      "filePath": "docs/superpowers/specs/2026-08-26-web-analysis-console-design.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-26-web-analysis-console-design 描述目标、方案、任务拆分与验证要求。"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-08-27-personal-investor-platform-design.md",
+      "type": "document",
+      "name": "2026-08-27-personal-investor-platform-design.md",
+      "filePath": "docs/superpowers/specs/2026-08-27-personal-investor-platform-design.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-27-personal-investor-platform-design 描述目标、方案、任务拆分与验证要求。"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-08-27-web-report-library-models-language-design.md",
+      "type": "document",
+      "name": "2026-08-27-web-report-library-models-language-design.md",
+      "filePath": "docs/superpowers/specs/2026-08-27-web-report-library-models-language-design.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-27-web-report-library-models-language-design 描述目标、方案、任务拆分与验证要求。"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-08-31-platform-reliability-operations-design.md",
+      "type": "document",
+      "name": "2026-08-31-platform-reliability-operations-design.md",
+      "filePath": "docs/superpowers/specs/2026-08-31-platform-reliability-operations-design.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-31-platform-reliability-operations-design 描述目标、方案、任务拆分与验证要求。"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-08-31-rating-localization-design.md",
+      "type": "document",
+      "name": "2026-08-31-rating-localization-design.md",
+      "filePath": "docs/superpowers/specs/2026-08-31-rating-localization-design.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-31-rating-localization-design 描述目标、方案、任务拆分与验证要求。"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-09-01-analysis-timeout-recovery-design.md",
+      "type": "document",
+      "name": "2026-09-01-analysis-timeout-recovery-design.md",
+      "filePath": "docs/superpowers/specs/2026-09-01-analysis-timeout-recovery-design.md",
+      "summary": "设计或实施计划文档，围绕 2026-09-01-analysis-timeout-recovery-design 描述目标、方案、任务拆分与验证要求。"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-09-01-compact-section-headers-design.md",
+      "type": "document",
+      "name": "2026-09-01-compact-section-headers-design.md",
+      "filePath": "docs/superpowers/specs/2026-09-01-compact-section-headers-design.md",
+      "summary": "设计或实施计划文档，围绕 2026-09-01-compact-section-headers-design 描述目标、方案、任务拆分与验证要求。"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-09-02-scheduled-analysis-design.md",
+      "type": "document",
+      "name": "2026-09-02-scheduled-analysis-design.md",
+      "filePath": "docs/superpowers/specs/2026-09-02-scheduled-analysis-design.md",
+      "summary": "设计或实施计划文档，围绕 2026-09-02-scheduled-analysis-design 描述目标、方案、任务拆分与验证要求。"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-09-02-ui-modern-redesign-design.md",
+      "type": "document",
+      "name": "2026-09-02-ui-modern-redesign-design.md",
+      "filePath": "docs/superpowers/specs/2026-09-02-ui-modern-redesign-design.md",
+      "summary": "设计或实施计划文档，围绕 2026-09-02-ui-modern-redesign-design 描述目标、方案、任务拆分与验证要求。"
+    },
+    {
+      "id": "file:.superpowers/brainstorm/41801-1787718122/.server-stopped",
+      "type": "file",
+      "name": ".server-stopped",
+      "filePath": ".superpowers/brainstorm/41801-1787718122/.server-stopped",
+      "summary": "项目文件 .superpowers/brainstorm/41801-1787718122/.server-stopped，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    {
+      "id": "file:.superpowers/brainstorm/70330-1787815068/.server-stopped",
+      "type": "file",
+      "name": ".server-stopped",
+      "filePath": ".superpowers/brainstorm/70330-1787815068/.server-stopped",
+      "summary": "项目文件 .superpowers/brainstorm/70330-1787815068/.server-stopped，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    {
+      "id": "file:.superpowers/brainstorm/70330-1787815068/portfolio-layout-options.html",
+      "type": "file",
+      "name": "portfolio-layout-options.html",
+      "filePath": ".superpowers/brainstorm/70330-1787815068/portfolio-layout-options.html",
+      "summary": "前端 HTML 资源，用于展示 portfolio-layout-options 相关的交互原型或应用界面结构。"
+    },
+    {
+      "id": "file:.superpowers/brainstorm/81139-1787817330/.server-stopped",
+      "type": "file",
+      "name": ".server-stopped",
+      "filePath": ".superpowers/brainstorm/81139-1787817330/.server-stopped",
+      "summary": "项目文件 .superpowers/brainstorm/81139-1787817330/.server-stopped，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    {
+      "id": "file:.ua/.understandignore",
+      "type": "file",
+      "name": ".understandignore",
+      "filePath": ".ua/.understandignore",
+      "summary": "项目文件 .ua/.understandignore，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    {
+      "id": "config:.ua/config.json",
+      "type": "config",
+      "name": "config.json",
+      "filePath": ".ua/config.json",
+      "summary": "项目配置文件 config.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    {
+      "id": "config:.ua/intermediate/raw-scan.json",
+      "type": "config",
+      "name": "raw-scan.json",
+      "filePath": ".ua/intermediate/raw-scan.json",
+      "summary": "项目配置文件 raw-scan.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    {
+      "id": "config:.ua/intermediate/scan-result.json",
+      "type": "config",
+      "name": "scan-result.json",
+      "filePath": ".ua/intermediate/scan-result.json",
+      "summary": "项目配置文件 scan-result.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    {
+      "id": "file:.ua/tmp/synthesize-scan.mjs",
+      "type": "file",
+      "name": "synthesize-scan.mjs",
+      "filePath": ".ua/tmp/synthesize-scan.mjs",
+      "summary": "项目文件 .ua/tmp/synthesize-scan.mjs，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    {
+      "id": "file:.ua/tmp/ua-scan-files.stderr",
+      "type": "file",
+      "name": "ua-scan-files.stderr",
+      "filePath": ".ua/tmp/ua-scan-files.stderr",
+      "summary": "项目文件 .ua/tmp/ua-scan-files.stderr，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    {
+      "id": "document:cli/static/welcome.txt",
+      "type": "document",
+      "name": "welcome.txt",
+      "filePath": "cli/static/welcome.txt",
+      "summary": "设计或实施计划文档，围绕 welcome 描述目标、方案、任务拆分与验证要求。"
+    },
+    {
+      "id": "file:tests/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "tests/__init__.py",
+      "summary": "项目文件 tests/__init__.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    {
+      "id": "file:tests/conftest.py",
+      "type": "file",
+      "name": "conftest.py",
+      "filePath": "tests/conftest.py",
+      "summary": "项目文件 tests/conftest.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    {
+      "id": "file:tests/test_cli_env_skip.py",
+      "type": "file",
+      "name": "test_cli_env_skip.py",
+      "filePath": "tests/test_cli_env_skip.py",
+      "summary": "项目文件 tests/test_cli_env_skip.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    {
+      "id": "file:tests/test_ollama_base_url.py",
+      "type": "file",
+      "name": "test_ollama_base_url.py",
+      "filePath": "tests/test_ollama_base_url.py",
+      "summary": "项目文件 tests/test_ollama_base_url.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    {
+      "id": "file:tests/test_packaging_contract.py",
+      "type": "file",
+      "name": "test_packaging_contract.py",
+      "filePath": "tests/test_packaging_contract.py",
+      "summary": "项目文件 tests/test_packaging_contract.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    {
+      "id": "file:tests/test_web_browser.py",
+      "type": "file",
+      "name": "test_web_browser.py",
+      "filePath": "tests/test_web_browser.py",
+      "summary": "项目文件 tests/test_web_browser.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    {
+      "id": "file:tests/test_web_static.py",
+      "type": "file",
+      "name": "test_web_static.py",
+      "filePath": "tests/test_web_static.py",
+      "summary": "项目文件 tests/test_web_static.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    {
+      "id": "file:tests/test_web_synthesis.py",
+      "type": "file",
+      "name": "test_web_synthesis.py",
+      "filePath": "tests/test_web_synthesis.py",
+      "summary": "项目文件 tests/test_web_synthesis.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    {
+      "id": "file:tradingagents/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "tradingagents/__init__.py",
+      "summary": "项目文件 tradingagents/__init__.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    {
+      "id": "file:web/static/app.js",
+      "type": "file",
+      "name": "app.js",
+      "filePath": "web/static/app.js",
+      "summary": "前端或脚本模块 app.js，实现页面交互、数据刷新、图表展示或本地化逻辑。"
+    },
+    {
+      "id": "file:web/static/i18n.js",
+      "type": "file",
+      "name": "i18n.js",
+      "filePath": "web/static/i18n.js",
+      "summary": "前端或脚本模块 i18n.js，实现页面交互、数据刷新、图表展示或本地化逻辑。"
+    },
+    {
+      "id": "file:web/static/i18n.test.js",
+      "type": "file",
+      "name": "i18n.test.js",
+      "filePath": "web/static/i18n.test.js",
+      "summary": "前端或脚本模块 i18n.test.js，实现页面交互、数据刷新、图表展示或本地化逻辑。"
+    },
+    {
+      "id": "file:web/static/index.html",
+      "type": "file",
+      "name": "index.html",
+      "filePath": "web/static/index.html",
+      "summary": "前端 HTML 资源，用于展示 index 相关的交互原型或应用界面结构。"
+    },
+    {
+      "id": "file:web/static/kline-chart.js",
+      "type": "file",
+      "name": "kline-chart.js",
+      "filePath": "web/static/kline-chart.js",
+      "summary": "前端或脚本模块 kline-chart.js，实现页面交互、数据刷新、图表展示或本地化逻辑。"
+    },
+    {
+      "id": "file:web/static/kline-chart.test.js",
+      "type": "file",
+      "name": "kline-chart.test.js",
+      "filePath": "web/static/kline-chart.test.js",
+      "summary": "前端或脚本模块 kline-chart.test.js，实现页面交互、数据刷新、图表展示或本地化逻辑。"
+    },
+    {
+      "id": "file:web/static/quote-refresh.js",
+      "type": "file",
+      "name": "quote-refresh.js",
+      "filePath": "web/static/quote-refresh.js",
+      "summary": "前端或脚本模块 quote-refresh.js，实现页面交互、数据刷新、图表展示或本地化逻辑。"
+    },
+    {
+      "id": "file:web/static/quote-refresh.test.js",
+      "type": "file",
+      "name": "quote-refresh.test.js",
+      "filePath": "web/static/quote-refresh.test.js",
+      "summary": "前端或脚本模块 quote-refresh.test.js，实现页面交互、数据刷新、图表展示或本地化逻辑。"
+    },
+    {
+      "id": "file:web/static/rating-labels.js",
+      "type": "file",
+      "name": "rating-labels.js",
+      "filePath": "web/static/rating-labels.js",
+      "summary": "前端或脚本模块 rating-labels.js，实现页面交互、数据刷新、图表展示或本地化逻辑。"
+    },
+    {
+      "id": "file:web/static/rating-labels.test.js",
+      "type": "file",
+      "name": "rating-labels.test.js",
+      "filePath": "web/static/rating-labels.test.js",
+      "summary": "前端或脚本模块 rating-labels.test.js，实现页面交互、数据刷新、图表展示或本地化逻辑。"
+    },
+    {
+      "id": "file:web/static/styles.css",
+      "type": "file",
+      "name": "styles.css",
+      "filePath": "web/static/styles.css",
+      "summary": "前端样式表，定义 Web 控制台的布局、颜色、排版与交互状态。"
+    },
+    {
+      "id": "file:web/static/watchlist-chart.js",
+      "type": "file",
+      "name": "watchlist-chart.js",
+      "filePath": "web/static/watchlist-chart.js",
+      "summary": "前端或脚本模块 watchlist-chart.js，实现页面交互、数据刷新、图表展示或本地化逻辑。"
+    },
+    {
+      "id": "file:web/synthesis.py",
+      "type": "file",
+      "name": "synthesis.py",
+      "filePath": "web/synthesis.py",
+      "summary": "项目文件 web/synthesis.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:scripts/smoke_structured_output.py",
+      "target": "file:tradingagents/agents/managers/portfolio_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/smoke_structured_output.py",
+      "target": "file:tradingagents/agents/managers/research_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/smoke_structured_output.py",
+      "target": "file:tradingagents/agents/trader/trader.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/smoke_structured_output.py",
+      "target": "file:tradingagents/graph/signal_processing.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scripts/smoke_structured_output.py",
+      "target": "file:tradingagents/llm_clients/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_i18n_coverage.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_instrument_identity.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_market_data_validator.py",
+      "target": "file:tradingagents/dataflows/market_data_validator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_news_analyst_prompt.py",
+      "target": "file:tradingagents/agents/analysts/news_analyst.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_news_analyst_prompt.py",
+      "target": "file:tradingagents/agents/utils/news_data_tools.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "file:tradingagents/agents/managers/portfolio_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "file:tradingagents/agents/managers/research_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "file:tradingagents/agents/trader/trader.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_structured_agent_prompts.py",
+      "target": "file:tradingagents/agents/utils/structured.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "file:tradingagents/agents/managers/research_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "file:tradingagents/agents/schemas.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_structured_agents.py",
+      "target": "file:tradingagents/agents/trader/trader.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/analysts/fundamentals_analyst.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/analysts/market_analyst.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/analysts/news_analyst.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/managers/portfolio_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/managers/research_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/researchers/bear_researcher.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/researchers/bull_researcher.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/risk_mgmt/aggressive_debator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/risk_mgmt/conservative_debator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/risk_mgmt/neutral_debator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/trader/trader.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/utils/agent_states.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/__init__.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/fundamentals_analyst.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/market_analyst.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/news_analyst.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "target": "file:tradingagents/agents/schemas.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "target": "file:tradingagents/agents/utils/structured.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "target": "file:tradingagents/dataflows/reddit.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "target": "file:tradingagents/dataflows/stocktwits.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/analysts/social_media_analyst.py",
+      "target": "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/managers/portfolio_manager.py",
+      "target": "file:tradingagents/agents/schemas.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/managers/portfolio_manager.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/managers/portfolio_manager.py",
+      "target": "file:tradingagents/agents/utils/structured.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/managers/research_manager.py",
+      "target": "file:tradingagents/agents/schemas.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/managers/research_manager.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/managers/research_manager.py",
+      "target": "file:tradingagents/agents/utils/structured.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/researchers/bear_researcher.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/researchers/bull_researcher.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/risk_mgmt/aggressive_debator.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/risk_mgmt/conservative_debator.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/risk_mgmt/neutral_debator.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/trader/trader.py",
+      "target": "file:tradingagents/agents/schemas.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/trader/trader.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/trader/trader.py",
+      "target": "file:tradingagents/agents/utils/structured.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "file:tradingagents/agents/utils/core_stock_tools.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "file:tradingagents/agents/utils/fundamental_data_tools.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "file:tradingagents/agents/utils/macro_data_tools.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "file:tradingagents/agents/utils/market_data_validation_tools.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "file:tradingagents/agents/utils/news_data_tools.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "file:tradingagents/agents/utils/prediction_markets_tools.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "file:tradingagents/agents/utils/technical_indicators_tools.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/core_stock_tools.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/fundamental_data_tools.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/macro_data_tools.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/market_data_validation_tools.py",
+      "target": "file:tradingagents/dataflows/market_data_validator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/news_data_tools.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/prediction_markets_tools.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/technical_indicators_tools.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/market_data_validator.py",
+      "target": "file:tradingagents/dataflows/stockstats_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:main.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:main.py",
+      "target": "file:tradingagents/graph/trading_graph.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test.py",
+      "target": "file:tradingagents/dataflows/y_finance.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_dataflows_config.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_dataflows_config.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_date_boundaries.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_date_boundaries.py",
+      "target": "file:tradingagents/dataflows/stockstats_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_date_boundaries.py",
+      "target": "file:tradingagents/dataflows/y_finance.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_fred.py",
+      "target": "file:tradingagents/dataflows/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_fred.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_fred.py",
+      "target": "file:tradingagents/dataflows/fred.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_fred.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_fred.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "file:tradingagents/graph/trading_graph.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_news_lookahead.py",
+      "target": "file:tradingagents/dataflows/yfinance_news.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_no_data_handling.py",
+      "target": "file:tradingagents/dataflows/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_no_data_handling.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_no_data_handling.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_no_data_handling.py",
+      "target": "file:tradingagents/dataflows/stockstats_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_no_data_handling.py",
+      "target": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_ohlcv_cache_freshness.py",
+      "target": "file:tradingagents/dataflows/stockstats_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_polymarket.py",
+      "target": "file:tradingagents/dataflows/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_polymarket.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_polymarket.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_polymarket.py",
+      "target": "file:tradingagents/dataflows/polymarket.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_polymarket.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "file:tradingagents/dataflows/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "file:tradingagents/dataflows/reddit.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_stockstats_date_column.py",
+      "target": "file:tradingagents/dataflows/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_stocktwits_resilience.py",
+      "target": "file:tradingagents/dataflows/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_stocktwits_resilience.py",
+      "target": "file:tradingagents/dataflows/stocktwits.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_symbol_utils.py",
+      "target": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_errors.py",
+      "target": "file:tradingagents/dataflows/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_errors.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_errors.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_errors.py",
+      "target": "file:tradingagents/dataflows/errors.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_errors.py",
+      "target": "file:tradingagents/dataflows/fred.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_errors.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_errors.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_routing.py",
+      "target": "file:tradingagents/dataflows/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_routing.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_routing.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_routing.py",
+      "target": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_routing.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "file:tradingagents/dataflows/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "file:tradingagents/dataflows/stockstats_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "file:tradingagents/dataflows/y_finance.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/config.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/fred.py",
+      "target": "file:tradingagents/dataflows/errors.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/interface.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/interface.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/interface.py",
+      "target": "file:tradingagents/dataflows/errors.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/interface.py",
+      "target": "file:tradingagents/dataflows/fred.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/interface.py",
+      "target": "file:tradingagents/dataflows/polymarket.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/interface.py",
+      "target": "file:tradingagents/dataflows/y_finance.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/interface.py",
+      "target": "file:tradingagents/dataflows/yfinance_news.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/reddit.py",
+      "target": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "file:tradingagents/dataflows/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/stocktwits.py",
+      "target": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/symbol_utils.py",
+      "target": "file:tradingagents/dataflows/errors.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "file:tradingagents/dataflows/stockstats_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/yfinance_news.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/yfinance_news.py",
+      "target": "file:tradingagents/dataflows/stockstats_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/yfinance_news.py",
+      "target": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:cli/announcements.py",
+      "target": "file:cli/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "file:cli/announcements.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "file:cli/stats_handler.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "file:cli/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "file:tradingagents/graph/analyst_execution.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "file:tradingagents/graph/trading_graph.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "file:tradingagents/reporting.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_analyst_execution.py",
+      "target": "file:tradingagents/graph/analyst_execution.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_cli_config_precedence.py",
+      "target": "file:cli/main.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_cli_no_console.py",
+      "target": "file:cli/main.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "file:tradingagents/graph/propagation.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "file:tradingagents/graph/trading_graph.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_market_toolnode.py",
+      "target": "file:tradingagents/graph/trading_graph.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "file:tradingagents/agents/managers/portfolio_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "file:tradingagents/agents/schemas.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "file:tradingagents/agents/utils/memory.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "file:tradingagents/graph/propagation.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "file:tradingagents/graph/reflection.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "file:tradingagents/graph/trading_graph.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_reporting.py",
+      "target": "file:tradingagents/graph/trading_graph.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_reporting.py",
+      "target": "file:tradingagents/reporting.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_risk_router_path_map.py",
+      "target": "file:tradingagents/graph/conditional_logic.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_risk_router_path_map.py",
+      "target": "file:tradingagents/graph/setup.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_signal_processing.py",
+      "target": "file:tradingagents/agents/utils/rating.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_signal_processing.py",
+      "target": "file:tradingagents/graph/signal_processing.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_symbol_normalization_paths.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_symbol_normalization_paths.py",
+      "target": "file:tradingagents/dataflows/yfinance_news.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_symbol_normalization_paths.py",
+      "target": "file:tradingagents/graph/trading_graph.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_command.py",
+      "target": "file:cli/main.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/memory.py",
+      "target": "file:tradingagents/agents/utils/rating.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/__init__.py",
+      "target": "file:tradingagents/graph/conditional_logic.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/__init__.py",
+      "target": "file:tradingagents/graph/propagation.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/__init__.py",
+      "target": "file:tradingagents/graph/reflection.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/__init__.py",
+      "target": "file:tradingagents/graph/setup.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/__init__.py",
+      "target": "file:tradingagents/graph/signal_processing.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/__init__.py",
+      "target": "file:tradingagents/graph/trading_graph.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/conditional_logic.py",
+      "target": "file:tradingagents/agents/utils/agent_states.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/propagation.py",
+      "target": "file:tradingagents/agents/utils/agent_states.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/setup.py",
+      "target": "file:tradingagents/agents/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/setup.py",
+      "target": "file:tradingagents/agents/utils/agent_states.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/setup.py",
+      "target": "file:tradingagents/graph/analyst_execution.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/setup.py",
+      "target": "file:tradingagents/graph/conditional_logic.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/signal_processing.py",
+      "target": "file:tradingagents/agents/utils/rating.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/agents/utils/memory.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/dataflows/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/graph/checkpointer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/graph/conditional_logic.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/graph/propagation.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/graph/reflection.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/graph/setup.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/graph/signal_processing.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/llm_clients/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/reporting.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_anthropic_effort.py",
+      "target": "file:tradingagents/llm_clients/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "file:tradingagents/llm_clients/api_key_env.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_bedrock_provider.py",
+      "target": "file:tradingagents/llm_clients/api_key_env.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_bedrock_provider.py",
+      "target": "file:tradingagents/llm_clients/factory.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_bedrock_provider.py",
+      "target": "file:tradingagents/llm_clients/validators.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_capabilities.py",
+      "target": "file:tradingagents/llm_clients/capabilities.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_deepseek_reasoning.py",
+      "target": "file:tradingagents/llm_clients/openai_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_google_api_key.py",
+      "target": "file:tradingagents/llm_clients/google_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_google_thinking_level.py",
+      "target": "file:tradingagents/llm_clients/google_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "file:tradingagents/dataflows/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "file:tradingagents/llm_clients/anthropic_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "file:tradingagents/llm_clients/azure_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "file:tradingagents/llm_clients/google_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "file:tradingagents/llm_clients/openai_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_minimax.py",
+      "target": "file:tradingagents/llm_clients/openai_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_model_validation.py",
+      "target": "file:tradingagents/llm_clients/base_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_model_validation.py",
+      "target": "file:tradingagents/llm_clients/model_catalog.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_model_validation.py",
+      "target": "file:tradingagents/llm_clients/validators.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_openai_compatible_provider.py",
+      "target": "file:tradingagents/llm_clients/api_key_env.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_openai_compatible_provider.py",
+      "target": "file:tradingagents/llm_clients/factory.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_openai_compatible_provider.py",
+      "target": "file:tradingagents/llm_clients/validators.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_openai_reasoning_effort.py",
+      "target": "file:tradingagents/llm_clients/openai_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_openai_responses_base_url.py",
+      "target": "file:tradingagents/llm_clients/openai_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_provider_registry.py",
+      "target": "file:tradingagents/llm_clients/openai_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_temperature_config.py",
+      "target": "file:tradingagents/llm_clients/factory.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/__init__.py",
+      "target": "file:tradingagents/llm_clients/base_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/__init__.py",
+      "target": "file:tradingagents/llm_clients/factory.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/anthropic_client.py",
+      "target": "file:tradingagents/llm_clients/base_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/anthropic_client.py",
+      "target": "file:tradingagents/llm_clients/validators.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/azure_client.py",
+      "target": "file:tradingagents/llm_clients/base_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/bedrock_client.py",
+      "target": "file:tradingagents/llm_clients/base_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/bedrock_client.py",
+      "target": "file:tradingagents/llm_clients/validators.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/factory.py",
+      "target": "file:tradingagents/llm_clients/base_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/google_client.py",
+      "target": "file:tradingagents/llm_clients/base_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/google_client.py",
+      "target": "file:tradingagents/llm_clients/validators.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "file:tradingagents/llm_clients/api_key_env.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "file:tradingagents/llm_clients/base_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "file:tradingagents/llm_clients/capabilities.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "file:tradingagents/llm_clients/validators.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/validators.py",
+      "target": "file:tradingagents/llm_clients/model_catalog.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_checkpoint_resume.py",
+      "target": "file:tradingagents/graph/checkpointer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "file:web/app.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "file:web/history.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "file:web/repositories.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "file:web/error_classifier.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "file:web/error_codes.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_safe_ticker_component.py",
+      "target": "file:tradingagents/dataflows/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "file:web/app.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "file:web/history.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "file:web/repositories.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "file:web/app.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "file:web/error_codes.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "file:web/artifacts.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "file:web/history.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "file:web/repositories.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "file:web/error_codes.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "file:web/lease.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_manager.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_manager.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_markdown.py",
+      "target": "file:web/markdown.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_models.py",
+      "target": "file:web/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_models.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_repositories.py",
+      "target": "file:web/repositories.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_repositories.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_retry.py",
+      "target": "file:tradingagents/graph/checkpointer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_retry.py",
+      "target": "file:web/checkpoint_resume.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_retry.py",
+      "target": "file:web/error_codes.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_retry.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_retry.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_retry.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "file:web/runner.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "file:web/artifacts.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "file:web/error_codes.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "file:web/runner.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_settings.py",
+      "target": "file:web/repositories.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_settings.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_snapshots.py",
+      "target": "file:web/snapshots.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/checkpointer.py",
+      "target": "file:tradingagents/dataflows/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/__init__.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/artifacts.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/error_codes.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/history.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/market_data.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/market_models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/providers/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/repositories.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/runner.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/snapshots.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/artifacts.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/checkpoint_resume.py",
+      "target": "file:tradingagents/graph/checkpointer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/config.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/config.py",
+      "target": "file:tradingagents/llm_clients/model_catalog.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/error_classifier.py",
+      "target": "file:web/error_codes.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/history.py",
+      "target": "file:web/markdown.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/history.py",
+      "target": "file:web/repositories.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/manager.py",
+      "target": "file:web/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/manager.py",
+      "target": "file:web/error_codes.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/manager.py",
+      "target": "file:web/lease.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/manager.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/manager.py",
+      "target": "file:web/repositories.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "file:cli/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "file:cli/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "file:cli/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:tradingagents/dataflows/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:tradingagents/graph/propagation.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:tradingagents/graph/trading_graph.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:web/artifacts.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:web/checkpoint_resume.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:web/error_classifier.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:web/error_codes.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:web/snapshots.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "file:cli/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "file:tradingagents/llm_clients/api_key_env.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:cli/utils.py",
+      "target": "file:tradingagents/llm_clients/model_catalog.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_cli_symbol_handling.py",
+      "target": "file:cli/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_cli_symbol_handling.py",
+      "target": "file:cli/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_cli_symbol_handling.py",
+      "target": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_crypto_asset_mode.py",
+      "target": "file:cli/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_crypto_asset_mode.py",
+      "target": "file:cli/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_crypto_asset_mode.py",
+      "target": "file:tradingagents/graph/propagation.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_market_localization.py",
+      "target": "file:web/market_localization.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_openrouter_model_select.py",
+      "target": "file:cli/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_openrouter_model_select.py",
+      "target": "file:cli/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_ticker_symbol_handling.py",
+      "target": "file:cli/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_ticker_symbol_handling.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "file:web/market_data.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "file:web/market_models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_market_providers.py",
+      "target": "file:web/market_models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_market_providers.py",
+      "target": "file:web/providers/alpha_vantage_provider.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_market_providers.py",
+      "target": "file:web/providers/yfinance_provider.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/market_data.py",
+      "target": "file:web/market_models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/market_models.py",
+      "target": "file:web/market_localization.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/providers/__init__.py",
+      "target": "file:web/providers/alpha_vantage_provider.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/providers/__init__.py",
+      "target": "file:web/providers/yfinance_provider.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/providers/alpha_vantage_provider.py",
+      "target": "file:cli/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/providers/alpha_vantage_provider.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/providers/alpha_vantage_provider.py",
+      "target": "file:web/market_models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/providers/yfinance_provider.py",
+      "target": "file:cli/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/providers/yfinance_provider.py",
+      "target": "file:web/market_models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_alpha_vantage_hardening.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_alpha_vantage_hardening.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_indicator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_news.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_stock.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "target": "file:tradingagents/dataflows/errors.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_indicator.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_news.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_stock.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "table:web/migrations/001_personal_platform.sql",
+      "target": "table:web/migrations/002_reliability_operations.sql",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "table:web/migrations/002_reliability_operations.sql",
+      "target": "table:web/migrations/001_personal_platform.sql",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "table:web/migrations/003_watchlist_newest_first.sql",
+      "target": "table:web/migrations/001_personal_platform.sql",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "table:web/migrations/004_analysis_timeout_recovery.sql",
+      "target": "table:web/migrations/001_personal_platform.sql",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_synthesis.py",
+      "target": "file:web/synthesis.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/static/i18n.test.js",
+      "target": "file:web/static/i18n.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/static/kline-chart.test.js",
+      "target": "file:web/static/kline-chart.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/static/quote-refresh.test.js",
+      "target": "file:web/static/quote-refresh.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/static/rating-labels.test.js",
+      "target": "file:web/static/rating-labels.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/static/i18n.js",
+      "target": "file:web/static/i18n.test.js",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "Path-based pairing (deterministic)"
+    },
+    {
+      "source": "file:web/static/kline-chart.js",
+      "target": "file:web/static/kline-chart.test.js",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "Path-based pairing (deterministic)"
+    },
+    {
+      "source": "file:web/static/quote-refresh.js",
+      "target": "file:web/static/quote-refresh.test.js",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "Path-based pairing (deterministic)"
+    },
+    {
+      "source": "file:web/static/rating-labels.js",
+      "target": "file:web/static/rating-labels.test.js",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5,
+      "description": "Path-based pairing (deterministic)"
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer:agent-domain",
+      "name": "核心智能体层",
+      "description": "实现分析师、研究辩论、风险辩论、交易员与投资组合经理等多智能体金融研究角色及其共享状态和工具。"
+    },
+    {
+      "id": "layer:graph-orchestration",
+      "name": "图编排层",
+      "description": "负责 TradingAgents 工作流图的构建、条件路由、状态传播、反思循环、信号处理与执行计划。"
+    },
+    {
+      "id": "layer:market-data",
+      "name": "市场数据集成层",
+      "description": "统一接入行情、新闻、宏观、社交和预测市场数据源，并处理供应商路由、标的规范化、校验与本地化。"
+    },
+    {
+      "id": "layer:llm-integration",
+      "name": "LLM 适配层",
+      "description": "封装 OpenAI、Anthropic、Google、Azure、Bedrock 等模型提供商，并集中管理模型能力、密钥、超时和参数校验。"
+    },
+    {
+      "id": "layer:web-service",
+      "name": "Web 服务与 API 层",
+      "description": "提供 FastAPI 应用工厂、分析运行管理、恢复租约、错误分类、报告合成与 Web 请求响应模型。"
+    },
+    {
+      "id": "layer:presentation",
+      "name": "交互界面层",
+      "description": "承载命令行入口与本地 Web 单页工作台，包括行情图表、报告浏览、本地化、样式和用户交互。"
+    },
+    {
+      "id": "layer:persistence",
+      "name": "持久化与历史层",
+      "description": "管理 SQLite 模式迁移、仓储、分析产物、报告历史、快照、检查点恢复和智能体记忆。"
+    },
+    {
+      "id": "layer:test",
+      "name": "测试与验证层",
+      "description": "覆盖核心智能体、数据源、模型适配、CLI、Web API、前端模块及可靠性场景，并提供结构化输出冒烟验证。"
+    },
+    {
+      "id": "layer:infrastructure",
+      "name": "基础设施与配置",
+      "description": "定义 Python 打包依赖、环境变量模板、Docker 部署、GitHub Actions CI/CD 以及知识图谱分析配置与中间数据。"
+    },
+    {
+      "id": "layer:documentation",
+      "name": "文档与设计原型",
+      "description": "汇集项目说明、变更记录、设计规格、实施计划和界面探索原型，为平台演进提供决策依据。"
+    }
+  ]
+}

@@ -1,15 +1,166 @@
 {
-  "scriptCompleted": true,
-  "stats": {
-    "filesScanned": 148,
-    "filesWithImports": 112,
-    "totalEdges": 260
-  },
-  "importMap": {
+  "projectRoot": "/Users/shenkang/workroom/languages/agent/TradingAgents",
+  "batchFiles": [
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "sizeLines": 384,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-09-02-scheduled-analysis.md",
+      "language": "markdown",
+      "sizeLines": 77,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-02-scheduled-analysis-design.md",
+      "language": "markdown",
+      "sizeLines": 392,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "pyproject.toml",
+      "language": "toml",
+      "sizeLines": 101,
+      "fileCategory": "config"
+    },
+    {
+      "path": "tests/test_scheduled_api.py",
+      "language": "python",
+      "sizeLines": 325,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_scheduled_primitives.py",
+      "language": "python",
+      "sizeLines": 176,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_scheduled_repositories.py",
+      "language": "python",
+      "sizeLines": 293,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_scheduled_service.py",
+      "language": "python",
+      "sizeLines": 494,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_manager.py",
+      "language": "python",
+      "sizeLines": 672,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_retry.py",
+      "language": "python",
+      "sizeLines": 287,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_static.py",
+      "language": "python",
+      "sizeLines": 460,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_storage.py",
+      "language": "python",
+      "sizeLines": 265,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/app.py",
+      "language": "python",
+      "sizeLines": 947,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/error_codes.py",
+      "language": "python",
+      "sizeLines": 120,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/manager.py",
+      "language": "python",
+      "sizeLines": 1586,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/migrations/005_scheduled_analysis.sql",
+      "language": "sql",
+      "sizeLines": 31,
+      "fileCategory": "data"
+    },
+    {
+      "path": "web/repositories.py",
+      "language": "python",
+      "sizeLines": 1360,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/scheduled.py",
+      "language": "python",
+      "sizeLines": 156,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/scheduler.py",
+      "language": "python",
+      "sizeLines": 394,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/app.js",
+      "language": "javascript",
+      "sizeLines": 423,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/i18n.js",
+      "language": "javascript",
+      "sizeLines": 395,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/index.html",
+      "language": "html",
+      "sizeLines": 262,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "web/static/scheduled.js",
+      "language": "javascript",
+      "sizeLines": 154,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/styles.css",
+      "language": "css",
+      "sizeLines": 513,
+      "fileCategory": "markup"
+    }
+  ],
+  "batchImportData": {
     ".dockerignore": [],
     ".env.enterprise.example": [],
     ".env.example": [],
     ".github/workflows/ci.yml": [],
+    ".superpowers/brainstorm/41801-1787718122/.server-stopped": [],
+    ".superpowers/brainstorm/41801-1787718122/console-layout.html": [],
+    ".superpowers/brainstorm/41801-1787718122/visual-style.html": [],
+    ".superpowers/brainstorm/41801-1787718122/waiting-architecture.html": [],
+    ".superpowers/brainstorm/70330-1787815068/.server-stopped": [],
+    ".superpowers/brainstorm/70330-1787815068/portfolio-layout-options.html": [],
+    ".superpowers/brainstorm/81139-1787817330/.server-stopped": [],
+    ".superpowers/brainstorm/81139-1787817330/portfolio-layout-options.html": [],
+    ".superpowers/brainstorm/81139-1787817330/report-reading-options.html": [],
+    ".superpowers/brainstorm/81139-1787817330/waiting-architecture.html": [],
     "CHANGELOG.md": [],
     "Dockerfile": [],
     "README.md": [],
@@ -36,6 +187,24 @@
       "tradingagents/llm_clients/model_catalog.py"
     ],
     "docker-compose.yml": [],
+    "docs/superpowers/plans/2026-08-26-web-analysis-console-plan.md": [],
+    "docs/superpowers/plans/2026-08-27-personal-investor-platform-plan.md": [],
+    "docs/superpowers/plans/2026-08-27-web-report-library-models-language-plan.md": [],
+    "docs/superpowers/plans/2026-08-28-report-publish-integrity-plan.md": [],
+    "docs/superpowers/plans/2026-08-31-platform-reliability-operations-plan.md": [],
+    "docs/superpowers/plans/2026-08-31-rating-localization-plan.md": [],
+    "docs/superpowers/plans/2026-09-01-compact-section-headers.md": [],
+    "docs/superpowers/plans/2026-09-02-manager-concurrency.md": [],
+    "docs/superpowers/plans/2026-09-02-scheduled-analysis.md": [],
+    "docs/superpowers/specs/2026-08-26-web-analysis-console-design.md": [],
+    "docs/superpowers/specs/2026-08-27-personal-investor-platform-design.md": [],
+    "docs/superpowers/specs/2026-08-27-web-report-library-models-language-design.md": [],
+    "docs/superpowers/specs/2026-08-31-platform-reliability-operations-design.md": [],
+    "docs/superpowers/specs/2026-08-31-rating-localization-design.md": [],
+    "docs/superpowers/specs/2026-09-01-analysis-timeout-recovery-design.md": [],
+    "docs/superpowers/specs/2026-09-01-compact-section-headers-design.md": [],
+    "docs/superpowers/specs/2026-09-02-scheduled-analysis-design.md": [],
+    "docs/superpowers/specs/2026-09-02-ui-modern-redesign-design.md": [],
     "main.py": [
       "tradingagents/default_config.py",
       "tradingagents/graph/trading_graph.py"
@@ -78,6 +247,14 @@
     "tests/test_checkpoint_resume.py": [
       "tradingagents/graph/checkpointer.py"
     ],
+    "tests/test_chunk3_contract_fixes.py": [
+      "web/app.py",
+      "web/history.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/repositories.py",
+      "web/storage.py"
+    ],
     "tests/test_cli_config_precedence.py": [
       "cli/main.py"
     ],
@@ -110,6 +287,10 @@
     "tests/test_env_overrides.py": [
       "tradingagents/default_config.py"
     ],
+    "tests/test_error_classifier.py": [
+      "web/error_classifier.py",
+      "web/error_codes.py"
+    ],
     "tests/test_fred.py": [
       "tradingagents/dataflows/__init__.py",
       "tradingagents/dataflows/config.py",
@@ -123,6 +304,10 @@
     "tests/test_google_thinking_level.py": [
       "tradingagents/llm_clients/google_client.py"
     ],
+    "tests/test_graph_stream_callbacks.py": [
+      "tradingagents/graph/propagation.py",
+      "tradingagents/graph/trading_graph.py"
+    ],
     "tests/test_i18n_coverage.py": [
       "tradingagents/agents/utils/agent_utils.py"
     ],
@@ -133,8 +318,20 @@
       "tradingagents/default_config.py",
       "tradingagents/graph/trading_graph.py"
     ],
+    "tests/test_llm_timeout.py": [
+      "tradingagents/dataflows/__init__.py",
+      "tradingagents/dataflows/alpha_vantage_common.py",
+      "tradingagents/dataflows/config.py",
+      "tradingagents/llm_clients/anthropic_client.py",
+      "tradingagents/llm_clients/azure_client.py",
+      "tradingagents/llm_clients/google_client.py",
+      "tradingagents/llm_clients/openai_client.py"
+    ],
     "tests/test_market_data_validator.py": [
       "tradingagents/dataflows/market_data_validator.py"
+    ],
+    "tests/test_market_localization.py": [
+      "web/market_localization.py"
     ],
     "tests/test_market_toolnode.py": [
       "tradingagents/graph/trading_graph.py"
@@ -188,6 +385,7 @@
       "cli/__init__.py",
       "cli/utils.py"
     ],
+    "tests/test_packaging_contract.py": [],
     "tests/test_polymarket.py": [
       "tradingagents/dataflows/__init__.py",
       "tradingagents/dataflows/config.py",
@@ -210,8 +408,38 @@
       "tradingagents/graph/conditional_logic.py",
       "tradingagents/graph/setup.py"
     ],
+    "tests/test_run_manager_concurrency.py": [
+      "web/manager.py",
+      "web/models.py"
+    ],
     "tests/test_safe_ticker_component.py": [
       "tradingagents/dataflows/utils.py"
+    ],
+    "tests/test_scheduled_api.py": [
+      "web/app.py",
+      "web/error_codes.py",
+      "web/history.py",
+      "web/manager.py",
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_scheduled_primitives.py": [
+      "tradingagents/default_config.py",
+      "web/config.py",
+      "web/repositories.py",
+      "web/scheduled.py",
+      "web/storage.py"
+    ],
+    "tests/test_scheduled_repositories.py": [
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_scheduled_service.py": [
+      "web/manager.py",
+      "web/models.py",
+      "web/repositories.py",
+      "web/scheduler.py",
+      "web/storage.py"
     ],
     "tests/test_signal_processing.py": [
       "tradingagents/agents/utils/rating.py",
@@ -267,6 +495,100 @@
       "tradingagents/dataflows/interface.py",
       "tradingagents/dataflows/symbol_utils.py",
       "tradingagents/default_config.py"
+    ],
+    "tests/test_web_api.py": [
+      "web/app.py",
+      "web/history.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_api_recovery.py": [
+      "web/app.py",
+      "web/error_codes.py",
+      "web/manager.py",
+      "web/models.py"
+    ],
+    "tests/test_web_artifacts.py": [
+      "web/artifacts.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_browser.py": [],
+    "tests/test_web_command.py": [
+      "cli/main.py"
+    ],
+    "tests/test_web_history.py": [
+      "web/history.py",
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_lease.py": [
+      "web/error_codes.py",
+      "web/lease.py",
+      "web/manager.py",
+      "web/models.py"
+    ],
+    "tests/test_web_manager.py": [
+      "web/manager.py",
+      "web/models.py"
+    ],
+    "tests/test_web_markdown.py": [
+      "web/markdown.py"
+    ],
+    "tests/test_web_market_data.py": [
+      "web/market_data.py",
+      "web/market_models.py"
+    ],
+    "tests/test_web_market_providers.py": [
+      "web/market_models.py",
+      "web/providers/alpha_vantage_provider.py",
+      "web/providers/yfinance_provider.py"
+    ],
+    "tests/test_web_models.py": [
+      "web/config.py",
+      "web/models.py"
+    ],
+    "tests/test_web_repositories.py": [
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_retry.py": [
+      "tradingagents/graph/checkpointer.py",
+      "web/checkpoint_resume.py",
+      "web/error_codes.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_runner.py": [
+      "web/manager.py",
+      "web/models.py",
+      "web/runner.py"
+    ],
+    "tests/test_web_runner_recovery.py": [
+      "web/artifacts.py",
+      "web/error_codes.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/runner.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_settings.py": [
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_snapshots.py": [
+      "web/snapshots.py"
+    ],
+    "tests/test_web_static.py": [],
+    "tests/test_web_storage.py": [
+      "web/storage.py"
+    ],
+    "tests/test_web_synthesis.py": [
+      "web/synthesis.py"
     ],
     "tests/test_yfinance_stale_ohlcv_guard.py": [
       "tradingagents/dataflows/__init__.py",
@@ -388,6 +710,7 @@
       "tradingagents/dataflows/alpha_vantage_stock.py"
     ],
     "tradingagents/dataflows/alpha_vantage_common.py": [
+      "tradingagents/dataflows/config.py",
       "tradingagents/dataflows/errors.py"
     ],
     "tradingagents/dataflows/alpha_vantage_fundamentals.py": [
@@ -525,6 +848,139 @@
     "tradingagents/llm_clients/validators.py": [
       "tradingagents/llm_clients/model_catalog.py"
     ],
-    "tradingagents/reporting.py": []
+    "tradingagents/reporting.py": [],
+    "web/__init__.py": [
+      "web/models.py"
+    ],
+    "web/app.py": [
+      "tradingagents/default_config.py",
+      "web/artifacts.py",
+      "web/config.py",
+      "web/error_codes.py",
+      "web/history.py",
+      "web/manager.py",
+      "web/market_data.py",
+      "web/market_models.py",
+      "web/models.py",
+      "web/providers/__init__.py",
+      "web/repositories.py",
+      "web/runner.py",
+      "web/scheduled.py",
+      "web/scheduler.py",
+      "web/snapshots.py",
+      "web/storage.py"
+    ],
+    "web/artifacts.py": [
+      "web/storage.py"
+    ],
+    "web/checkpoint_resume.py": [
+      "tradingagents/graph/checkpointer.py"
+    ],
+    "web/config.py": [
+      "tradingagents/default_config.py",
+      "tradingagents/llm_clients/model_catalog.py"
+    ],
+    "web/error_classifier.py": [
+      "web/error_codes.py"
+    ],
+    "web/error_codes.py": [],
+    "web/history.py": [
+      "web/markdown.py",
+      "web/repositories.py"
+    ],
+    "web/lease.py": [],
+    "web/manager.py": [
+      "web/config.py",
+      "web/error_codes.py",
+      "web/lease.py",
+      "web/models.py",
+      "web/repositories.py"
+    ],
+    "web/markdown.py": [],
+    "web/market_data.py": [
+      "web/market_models.py"
+    ],
+    "web/market_localization.py": [],
+    "web/market_models.py": [
+      "web/market_localization.py"
+    ],
+    "web/migrations/001_personal_platform.sql": [],
+    "web/migrations/002_reliability_operations.sql": [],
+    "web/migrations/003_watchlist_newest_first.sql": [],
+    "web/migrations/004_analysis_timeout_recovery.sql": [],
+    "web/migrations/005_scheduled_analysis.sql": [],
+    "web/models.py": [
+      "cli/models.py",
+      "cli/utils.py"
+    ],
+    "web/providers/__init__.py": [
+      "web/providers/alpha_vantage_provider.py",
+      "web/providers/yfinance_provider.py"
+    ],
+    "web/providers/alpha_vantage_provider.py": [
+      "cli/utils.py",
+      "tradingagents/dataflows/alpha_vantage_common.py",
+      "web/market_models.py"
+    ],
+    "web/providers/yfinance_provider.py": [
+      "cli/utils.py",
+      "web/market_models.py"
+    ],
+    "web/repositories.py": [
+      "cli/utils.py",
+      "web/models.py",
+      "web/scheduled.py",
+      "web/storage.py"
+    ],
+    "web/runner.py": [
+      "tradingagents/dataflows/utils.py",
+      "tradingagents/default_config.py",
+      "tradingagents/graph/propagation.py",
+      "tradingagents/graph/trading_graph.py",
+      "web/artifacts.py",
+      "web/checkpoint_resume.py",
+      "web/error_classifier.py",
+      "web/error_codes.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/snapshots.py"
+    ],
+    "web/scheduled.py": [
+      "cli/models.py",
+      "cli/utils.py",
+      "tradingagents/default_config.py",
+      "web/config.py",
+      "web/models.py"
+    ],
+    "web/scheduler.py": [
+      "web/manager.py",
+      "web/models.py",
+      "web/repositories.py",
+      "web/scheduled.py"
+    ],
+    "web/snapshots.py": [],
+    "web/static/app.js": [],
+    "web/static/i18n.js": [],
+    "web/static/i18n.test.js": [
+      "web/static/i18n.js"
+    ],
+    "web/static/index.html": [],
+    "web/static/kline-chart.js": [],
+    "web/static/kline-chart.test.js": [
+      "web/static/kline-chart.js"
+    ],
+    "web/static/quote-refresh.js": [],
+    "web/static/quote-refresh.test.js": [
+      "web/static/quote-refresh.js"
+    ],
+    "web/static/rating-labels.js": [],
+    "web/static/rating-labels.test.js": [
+      "web/static/rating-labels.js"
+    ],
+    "web/static/scheduled.js": [],
+    "web/static/styles.css": [],
+    "web/static/watchlist-chart.js": [],
+    "web/storage.py": [],
+    "web/synthesis.py": []
   }
 }

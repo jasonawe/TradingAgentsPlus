@@ -1,0 +1,1799 @@
+{
+  "nodes": [
+    {
+      "id": "file:tests/test_anthropic_effort.py",
+      "type": "file",
+      "name": "test_anthropic_effort.py",
+      "filePath": "tests/test_anthropic_effort.py",
+      "summary": "覆盖 test_anthropic_effort.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_anthropic_effort.py:_capture_kwargs",
+      "type": "function",
+      "name": "_capture_kwargs",
+      "filePath": "tests/test_anthropic_effort.py",
+      "lineRange": [
+        16,
+        22
+      ],
+      "summary": "位于 tests/test_anthropic_effort.py 的函数 _capture_kwargs，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_anthropic_effort.py:_get_llm",
+      "type": "function",
+      "name": "_get_llm",
+      "filePath": "tests/test_anthropic_effort.py",
+      "lineRange": [
+        25,
+        32
+      ],
+      "summary": "位于 tests/test_anthropic_effort.py 的函数 _get_llm，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_anthropic_effort.py:TestEffortGate",
+      "type": "class",
+      "name": "TestEffortGate",
+      "filePath": "tests/test_anthropic_effort.py",
+      "lineRange": [
+        36,
+        114
+      ],
+      "summary": "位于 tests/test_anthropic_effort.py 的类 TestEffortGate，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_api_key_env.py",
+      "type": "file",
+      "name": "test_api_key_env.py",
+      "filePath": "tests/test_api_key_env.py",
+      "summary": "覆盖 test_api_key_env.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_api_key_env.py:test_every_select_llm_provider_choice_has_an_entry",
+      "type": "function",
+      "name": "test_every_select_llm_provider_choice_has_an_entry",
+      "filePath": "tests/test_api_key_env.py",
+      "lineRange": [
+        15,
+        27
+      ],
+      "summary": "位于 tests/test_api_key_env.py 的函数 test_every_select_llm_provider_choice_has_an_entry，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_api_key_env.py:test_known_providers_resolve",
+      "type": "function",
+      "name": "test_known_providers_resolve",
+      "filePath": "tests/test_api_key_env.py",
+      "lineRange": [
+        48,
+        49
+      ],
+      "summary": "位于 tests/test_api_key_env.py 的函数 test_known_providers_resolve，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_api_key_env.py:test_ollama_has_no_key",
+      "type": "function",
+      "name": "test_ollama_has_no_key",
+      "filePath": "tests/test_api_key_env.py",
+      "lineRange": [
+        52,
+        53
+      ],
+      "summary": "位于 tests/test_api_key_env.py 的函数 test_ollama_has_no_key，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_api_key_env.py:test_unknown_provider_returns_none",
+      "type": "function",
+      "name": "test_unknown_provider_returns_none",
+      "filePath": "tests/test_api_key_env.py",
+      "lineRange": [
+        56,
+        57
+      ],
+      "summary": "位于 tests/test_api_key_env.py 的函数 test_unknown_provider_returns_none，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_api_key_env.py:test_case_insensitive_lookup",
+      "type": "function",
+      "name": "test_case_insensitive_lookup",
+      "filePath": "tests/test_api_key_env.py",
+      "lineRange": [
+        60,
+        62
+      ],
+      "summary": "位于 tests/test_api_key_env.py 的函数 test_case_insensitive_lookup，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_api_key_env.py:cli_utils",
+      "type": "function",
+      "name": "cli_utils",
+      "filePath": "tests/test_api_key_env.py",
+      "lineRange": [
+        69,
+        74
+      ],
+      "summary": "位于 tests/test_api_key_env.py 的函数 cli_utils，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_api_key_env.py:test_ensure_api_key_returns_existing",
+      "type": "function",
+      "name": "test_ensure_api_key_returns_existing",
+      "filePath": "tests/test_api_key_env.py",
+      "lineRange": [
+        77,
+        80
+      ],
+      "summary": "位于 tests/test_api_key_env.py 的函数 test_ensure_api_key_returns_existing，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_api_key_env.py:test_ensure_api_key_no_op_for_ollama",
+      "type": "function",
+      "name": "test_ensure_api_key_no_op_for_ollama",
+      "filePath": "tests/test_api_key_env.py",
+      "lineRange": [
+        83,
+        89
+      ],
+      "summary": "位于 tests/test_api_key_env.py 的函数 test_ensure_api_key_no_op_for_ollama，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_api_key_env.py:test_ensure_api_key_unknown_provider_no_prompt",
+      "type": "function",
+      "name": "test_ensure_api_key_unknown_provider_no_prompt",
+      "filePath": "tests/test_api_key_env.py",
+      "lineRange": [
+        92,
+        96
+      ],
+      "summary": "位于 tests/test_api_key_env.py 的函数 test_ensure_api_key_unknown_provider_no_prompt，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_api_key_env.py:test_ensure_api_key_prompts_and_writes_to_env",
+      "type": "function",
+      "name": "test_ensure_api_key_prompts_and_writes_to_env",
+      "filePath": "tests/test_api_key_env.py",
+      "lineRange": [
+        99,
+        113
+      ],
+      "summary": "位于 tests/test_api_key_env.py 的函数 test_ensure_api_key_prompts_and_writes_to_env，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_api_key_env.py:test_ensure_api_key_user_cancels_returns_none",
+      "type": "function",
+      "name": "test_ensure_api_key_user_cancels_returns_none",
+      "filePath": "tests/test_api_key_env.py",
+      "lineRange": [
+        116,
+        131
+      ],
+      "summary": "位于 tests/test_api_key_env.py 的函数 test_ensure_api_key_user_cancels_returns_none，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_api_key_env.py:test_ensure_api_key_updates_existing_env_file",
+      "type": "function",
+      "name": "test_ensure_api_key_updates_existing_env_file",
+      "filePath": "tests/test_api_key_env.py",
+      "lineRange": [
+        134,
+        148
+      ],
+      "summary": "位于 tests/test_api_key_env.py 的函数 test_ensure_api_key_updates_existing_env_file，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_bedrock_provider.py",
+      "type": "file",
+      "name": "test_bedrock_provider.py",
+      "filePath": "tests/test_bedrock_provider.py",
+      "summary": "覆盖 test_bedrock_provider.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_bedrock_provider.py:test_factory_routes_bedrock",
+      "type": "function",
+      "name": "test_factory_routes_bedrock",
+      "filePath": "tests/test_bedrock_provider.py",
+      "lineRange": [
+        17,
+        19
+      ],
+      "summary": "位于 tests/test_bedrock_provider.py 的函数 test_factory_routes_bedrock，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_bedrock_provider.py:test_bedrock_any_model_and_no_key_env",
+      "type": "function",
+      "name": "test_bedrock_any_model_and_no_key_env",
+      "filePath": "tests/test_bedrock_provider.py",
+      "lineRange": [
+        23,
+        26
+      ],
+      "summary": "位于 tests/test_bedrock_provider.py 的函数 test_bedrock_any_model_and_no_key_env，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_bedrock_provider.py:test_helpful_error_when_langchain_aws_absent",
+      "type": "function",
+      "name": "test_helpful_error_when_langchain_aws_absent",
+      "filePath": "tests/test_bedrock_provider.py",
+      "lineRange": [
+        30,
+        35
+      ],
+      "summary": "位于 tests/test_bedrock_provider.py 的函数 test_helpful_error_when_langchain_aws_absent，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_bedrock_provider.py:_capture_kwargs",
+      "type": "function",
+      "name": "_capture_kwargs",
+      "filePath": "tests/test_bedrock_provider.py",
+      "lineRange": [
+        38,
+        49
+      ],
+      "summary": "位于 tests/test_bedrock_provider.py 的函数 _capture_kwargs，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_bedrock_provider.py:test_bearer_token_passed_as_api_key",
+      "type": "function",
+      "name": "test_bearer_token_passed_as_api_key",
+      "filePath": "tests/test_bedrock_provider.py",
+      "lineRange": [
+        53,
+        60
+      ],
+      "summary": "位于 tests/test_bedrock_provider.py 的函数 test_bearer_token_passed_as_api_key，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_bedrock_provider.py:test_no_bearer_token_omits_api_key",
+      "type": "function",
+      "name": "test_no_bearer_token_omits_api_key",
+      "filePath": "tests/test_bedrock_provider.py",
+      "lineRange": [
+        64,
+        69
+      ],
+      "summary": "位于 tests/test_bedrock_provider.py 的函数 test_no_bearer_token_omits_api_key，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_bedrock_provider.py:test_construction_when_extra_installed",
+      "type": "function",
+      "name": "test_construction_when_extra_installed",
+      "filePath": "tests/test_bedrock_provider.py",
+      "lineRange": [
+        73,
+        80
+      ],
+      "summary": "位于 tests/test_bedrock_provider.py 的函数 test_construction_when_extra_installed，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_capabilities.py",
+      "type": "file",
+      "name": "test_capabilities.py",
+      "filePath": "tests/test_capabilities.py",
+      "summary": "覆盖 test_capabilities.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_capabilities.py:test_capabilities_dataclass_is_frozen",
+      "type": "function",
+      "name": "test_capabilities_dataclass_is_frozen",
+      "filePath": "tests/test_capabilities.py",
+      "lineRange": [
+        120,
+        124
+      ],
+      "summary": "位于 tests/test_capabilities.py 的函数 test_capabilities_dataclass_is_frozen，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_capabilities.py:TestExactIdMatches",
+      "type": "class",
+      "name": "TestExactIdMatches",
+      "filePath": "tests/test_capabilities.py",
+      "lineRange": [
+        13,
+        31
+      ],
+      "summary": "位于 tests/test_capabilities.py 的类 TestExactIdMatches，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_capabilities.py:TestPatternMatches",
+      "type": "class",
+      "name": "TestPatternMatches",
+      "filePath": "tests/test_capabilities.py",
+      "lineRange": [
+        35,
+        57
+      ],
+      "summary": "位于 tests/test_capabilities.py 的类 TestPatternMatches，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_capabilities.py:TestMinimaxExactMatches",
+      "type": "class",
+      "name": "TestMinimaxExactMatches",
+      "filePath": "tests/test_capabilities.py",
+      "lineRange": [
+        61,
+        93
+      ],
+      "summary": "位于 tests/test_capabilities.py 的类 TestMinimaxExactMatches，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_capabilities.py:TestDefault",
+      "type": "class",
+      "name": "TestDefault",
+      "filePath": "tests/test_capabilities.py",
+      "lineRange": [
+        97,
+        116
+      ],
+      "summary": "位于 tests/test_capabilities.py 的类 TestDefault，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_deepseek_reasoning.py",
+      "type": "file",
+      "name": "test_deepseek_reasoning.py",
+      "filePath": "tests/test_deepseek_reasoning.py",
+      "summary": "覆盖 test_deepseek_reasoning.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_deepseek_reasoning.py:_bound_kwargs",
+      "type": "function",
+      "name": "_bound_kwargs",
+      "filePath": "tests/test_deepseek_reasoning.py",
+      "lineRange": [
+        123,
+        126
+      ],
+      "summary": "位于 tests/test_deepseek_reasoning.py 的函数 _bound_kwargs，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_deepseek_reasoning.py:_has_real_deepseek_key",
+      "type": "function",
+      "name": "_has_real_deepseek_key",
+      "filePath": "tests/test_deepseek_reasoning.py",
+      "lineRange": [
+        187,
+        189
+      ],
+      "summary": "位于 tests/test_deepseek_reasoning.py 的函数 _has_real_deepseek_key，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_deepseek_reasoning.py:TestInputToMessages",
+      "type": "class",
+      "name": "TestInputToMessages",
+      "filePath": "tests/test_deepseek_reasoning.py",
+      "lineRange": [
+        34,
+        47
+      ],
+      "summary": "位于 tests/test_deepseek_reasoning.py 的类 TestInputToMessages，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_deepseek_reasoning.py:TestDeepSeekReasoningContent",
+      "type": "class",
+      "name": "TestDeepSeekReasoningContent",
+      "filePath": "tests/test_deepseek_reasoning.py",
+      "lineRange": [
+        56,
+        115
+      ],
+      "summary": "位于 tests/test_deepseek_reasoning.py 的类 TestDeepSeekReasoningContent，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_deepseek_reasoning.py:TestStructuredOutputCapabilityDispatch",
+      "type": "class",
+      "name": "TestStructuredOutputCapabilityDispatch",
+      "filePath": "tests/test_deepseek_reasoning.py",
+      "lineRange": [
+        130,
+        179
+      ],
+      "summary": "位于 tests/test_deepseek_reasoning.py 的类 TestStructuredOutputCapabilityDispatch，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_deepseek_reasoning.py:TestDeepSeekLiveStructuredOutput",
+      "type": "class",
+      "name": "TestDeepSeekLiveStructuredOutput",
+      "filePath": "tests/test_deepseek_reasoning.py",
+      "lineRange": [
+        197,
+        223
+      ],
+      "summary": "位于 tests/test_deepseek_reasoning.py 的类 TestDeepSeekLiveStructuredOutput，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_deepseek_reasoning.py:TestBaseClassIsolation",
+      "type": "class",
+      "name": "TestBaseClassIsolation",
+      "filePath": "tests/test_deepseek_reasoning.py",
+      "lineRange": [
+        232,
+        239
+      ],
+      "summary": "位于 tests/test_deepseek_reasoning.py 的类 TestBaseClassIsolation，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_google_api_key.py",
+      "type": "file",
+      "name": "test_google_api_key.py",
+      "filePath": "tests/test_google_api_key.py",
+      "summary": "覆盖 test_google_api_key.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_google_api_key.py:TestGoogleApiKeyStandardization",
+      "type": "class",
+      "name": "TestGoogleApiKeyStandardization",
+      "filePath": "tests/test_google_api_key.py",
+      "lineRange": [
+        10,
+        27
+      ],
+      "summary": "位于 tests/test_google_api_key.py 的类 TestGoogleApiKeyStandardization，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_google_thinking_level.py",
+      "type": "file",
+      "name": "test_google_thinking_level.py",
+      "filePath": "tests/test_google_thinking_level.py",
+      "summary": "覆盖 test_google_thinking_level.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_google_thinking_level.py:_captured_kwargs",
+      "type": "function",
+      "name": "_captured_kwargs",
+      "filePath": "tests/test_google_thinking_level.py",
+      "lineRange": [
+        15,
+        23
+      ],
+      "summary": "位于 tests/test_google_thinking_level.py 的函数 _captured_kwargs，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_google_thinking_level.py:test_flash_passes_thinking_level_through",
+      "type": "function",
+      "name": "test_flash_passes_thinking_level_through",
+      "filePath": "tests/test_google_thinking_level.py",
+      "lineRange": [
+        27,
+        30
+      ],
+      "summary": "位于 tests/test_google_thinking_level.py 的函数 test_flash_passes_thinking_level_through，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_google_thinking_level.py:test_pro_remaps_minimal_to_low",
+      "type": "function",
+      "name": "test_pro_remaps_minimal_to_low",
+      "filePath": "tests/test_google_thinking_level.py",
+      "lineRange": [
+        33,
+        35
+      ],
+      "summary": "位于 tests/test_google_thinking_level.py 的函数 test_pro_remaps_minimal_to_low，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_google_thinking_level.py:test_pro_keeps_high",
+      "type": "function",
+      "name": "test_pro_keeps_high",
+      "filePath": "tests/test_google_thinking_level.py",
+      "lineRange": [
+        38,
+        40
+      ],
+      "summary": "位于 tests/test_google_thinking_level.py 的函数 test_pro_keeps_high，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_google_thinking_level.py:test_no_thinking_level_is_omitted",
+      "type": "function",
+      "name": "test_no_thinking_level_is_omitted",
+      "filePath": "tests/test_google_thinking_level.py",
+      "lineRange": [
+        43,
+        46
+      ],
+      "summary": "位于 tests/test_google_thinking_level.py 的函数 test_no_thinking_level_is_omitted，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_llm_timeout.py",
+      "type": "file",
+      "name": "test_llm_timeout.py",
+      "filePath": "tests/test_llm_timeout.py",
+      "summary": "覆盖 test_llm_timeout.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_llm_timeout.py:configure_deadline_policy",
+      "type": "function",
+      "name": "configure_deadline_policy",
+      "filePath": "tests/test_llm_timeout.py",
+      "lineRange": [
+        17,
+        22
+      ],
+      "summary": "位于 tests/test_llm_timeout.py 的函数 configure_deadline_policy，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_llm_timeout.py:test_llm_timeout_is_resolved_for_each_actual_invocation",
+      "type": "function",
+      "name": "test_llm_timeout_is_resolved_for_each_actual_invocation",
+      "filePath": "tests/test_llm_timeout.py",
+      "lineRange": [
+        43,
+        65
+      ],
+      "summary": "位于 tests/test_llm_timeout.py 的函数 test_llm_timeout_is_resolved_for_each_actual_invocation，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_llm_timeout.py:test_llm_without_deadline_supplier_preserves_existing_timeout_behavior",
+      "type": "function",
+      "name": "test_llm_without_deadline_supplier_preserves_existing_timeout_behavior",
+      "filePath": "tests/test_llm_timeout.py",
+      "lineRange": [
+        68,
+        81
+      ],
+      "summary": "位于 tests/test_llm_timeout.py 的函数 test_llm_without_deadline_supplier_preserves_existing_timeout_behavior，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_llm_timeout.py:test_bedrock_resolves_timeout_at_each_invoke",
+      "type": "function",
+      "name": "test_bedrock_resolves_timeout_at_each_invoke",
+      "filePath": "tests/test_llm_timeout.py",
+      "lineRange": [
+        84,
+        110
+      ],
+      "summary": "位于 tests/test_llm_timeout.py 的函数 test_bedrock_resolves_timeout_at_each_invoke，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_llm_timeout.py:test_alpha_vantage_caps_each_request_by_current_remaining_deadline",
+      "type": "function",
+      "name": "test_alpha_vantage_caps_each_request_by_current_remaining_deadline",
+      "filePath": "tests/test_llm_timeout.py",
+      "lineRange": [
+        113,
+        145
+      ],
+      "summary": "位于 tests/test_llm_timeout.py 的函数 test_alpha_vantage_caps_each_request_by_current_remaining_deadline，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_llm_timeout.py:test_non_web_dataflow_config_clears_prior_run_scoped_deadline_callbacks",
+      "type": "function",
+      "name": "test_non_web_dataflow_config_clears_prior_run_scoped_deadline_callbacks",
+      "filePath": "tests/test_llm_timeout.py",
+      "lineRange": [
+        148,
+        158
+      ],
+      "summary": "位于 tests/test_llm_timeout.py 的函数 test_non_web_dataflow_config_clears_prior_run_scoped_deadline_callbacks，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_llm_timeout.py:Response",
+      "type": "class",
+      "name": "Response",
+      "filePath": "tests/test_llm_timeout.py",
+      "lineRange": [
+        13,
+        14
+      ],
+      "summary": "位于 tests/test_llm_timeout.py 的类 Response，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_minimax.py",
+      "type": "file",
+      "name": "test_minimax.py",
+      "filePath": "tests/test_minimax.py",
+      "summary": "覆盖 test_minimax.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_minimax.py:_client",
+      "type": "function",
+      "name": "_client",
+      "filePath": "tests/test_minimax.py",
+      "lineRange": [
+        17,
+        23
+      ],
+      "summary": "位于 tests/test_minimax.py 的函数 _client，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_minimax.py:TestMinimaxReasoningSplit",
+      "type": "class",
+      "name": "TestMinimaxReasoningSplit",
+      "filePath": "tests/test_minimax.py",
+      "lineRange": [
+        27,
+        43
+      ],
+      "summary": "位于 tests/test_minimax.py 的类 TestMinimaxReasoningSplit，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_minimax.py:TestMinimaxStructuredOutputDispatch",
+      "type": "class",
+      "name": "TestMinimaxStructuredOutputDispatch",
+      "filePath": "tests/test_minimax.py",
+      "lineRange": [
+        47,
+        73
+      ],
+      "summary": "位于 tests/test_minimax.py 的类 TestMinimaxStructuredOutputDispatch，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:tests/test_anthropic_effort.py",
+      "target": "function:tests/test_anthropic_effort.py:_capture_kwargs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_anthropic_effort.py",
+      "target": "function:tests/test_anthropic_effort.py:_get_llm",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_anthropic_effort.py",
+      "target": "class:tests/test_anthropic_effort.py:TestEffortGate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_anthropic_effort.py",
+      "target": "function:tests/test_anthropic_effort.py:_capture_kwargs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_anthropic_effort.py",
+      "target": "function:tests/test_anthropic_effort.py:_get_llm",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_anthropic_effort.py",
+      "target": "class:tests/test_anthropic_effort.py:TestEffortGate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_anthropic_effort.py",
+      "target": "file:tradingagents/llm_clients/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_every_select_llm_provider_choice_has_an_entry",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_known_providers_resolve",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_ollama_has_no_key",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_unknown_provider_returns_none",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_case_insensitive_lookup",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:cli_utils",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_ensure_api_key_returns_existing",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_ensure_api_key_no_op_for_ollama",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_ensure_api_key_unknown_provider_no_prompt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_ensure_api_key_prompts_and_writes_to_env",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_ensure_api_key_user_cancels_returns_none",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_ensure_api_key_updates_existing_env_file",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_every_select_llm_provider_choice_has_an_entry",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_known_providers_resolve",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_ollama_has_no_key",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_unknown_provider_returns_none",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_case_insensitive_lookup",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:cli_utils",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_ensure_api_key_returns_existing",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_ensure_api_key_no_op_for_ollama",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_ensure_api_key_unknown_provider_no_prompt",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_ensure_api_key_prompts_and_writes_to_env",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_ensure_api_key_user_cancels_returns_none",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "function:tests/test_api_key_env.py:test_ensure_api_key_updates_existing_env_file",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_api_key_env.py",
+      "target": "file:tradingagents/llm_clients/api_key_env.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_bedrock_provider.py",
+      "target": "function:tests/test_bedrock_provider.py:test_factory_routes_bedrock",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_bedrock_provider.py",
+      "target": "function:tests/test_bedrock_provider.py:test_bedrock_any_model_and_no_key_env",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_bedrock_provider.py",
+      "target": "function:tests/test_bedrock_provider.py:test_helpful_error_when_langchain_aws_absent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_bedrock_provider.py",
+      "target": "function:tests/test_bedrock_provider.py:_capture_kwargs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_bedrock_provider.py",
+      "target": "function:tests/test_bedrock_provider.py:test_bearer_token_passed_as_api_key",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_bedrock_provider.py",
+      "target": "function:tests/test_bedrock_provider.py:test_no_bearer_token_omits_api_key",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_bedrock_provider.py",
+      "target": "function:tests/test_bedrock_provider.py:test_construction_when_extra_installed",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_bedrock_provider.py",
+      "target": "function:tests/test_bedrock_provider.py:test_factory_routes_bedrock",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_bedrock_provider.py",
+      "target": "function:tests/test_bedrock_provider.py:test_bedrock_any_model_and_no_key_env",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_bedrock_provider.py",
+      "target": "function:tests/test_bedrock_provider.py:test_helpful_error_when_langchain_aws_absent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_bedrock_provider.py",
+      "target": "function:tests/test_bedrock_provider.py:_capture_kwargs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_bedrock_provider.py",
+      "target": "function:tests/test_bedrock_provider.py:test_bearer_token_passed_as_api_key",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_bedrock_provider.py",
+      "target": "function:tests/test_bedrock_provider.py:test_no_bearer_token_omits_api_key",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_bedrock_provider.py",
+      "target": "function:tests/test_bedrock_provider.py:test_construction_when_extra_installed",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_bedrock_provider.py",
+      "target": "file:tradingagents/llm_clients/api_key_env.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_bedrock_provider.py",
+      "target": "file:tradingagents/llm_clients/factory.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_bedrock_provider.py",
+      "target": "file:tradingagents/llm_clients/validators.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_capabilities.py",
+      "target": "function:tests/test_capabilities.py:test_capabilities_dataclass_is_frozen",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_capabilities.py",
+      "target": "class:tests/test_capabilities.py:TestExactIdMatches",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_capabilities.py",
+      "target": "class:tests/test_capabilities.py:TestPatternMatches",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_capabilities.py",
+      "target": "class:tests/test_capabilities.py:TestMinimaxExactMatches",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_capabilities.py",
+      "target": "class:tests/test_capabilities.py:TestDefault",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_capabilities.py",
+      "target": "class:tests/test_capabilities.py:TestExactIdMatches",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_capabilities.py",
+      "target": "class:tests/test_capabilities.py:TestPatternMatches",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_capabilities.py",
+      "target": "class:tests/test_capabilities.py:TestMinimaxExactMatches",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_capabilities.py",
+      "target": "class:tests/test_capabilities.py:TestDefault",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_capabilities.py",
+      "target": "function:tests/test_capabilities.py:test_capabilities_dataclass_is_frozen",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_capabilities.py",
+      "target": "file:tradingagents/llm_clients/capabilities.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_deepseek_reasoning.py",
+      "target": "function:tests/test_deepseek_reasoning.py:_bound_kwargs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_deepseek_reasoning.py",
+      "target": "function:tests/test_deepseek_reasoning.py:_has_real_deepseek_key",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_deepseek_reasoning.py",
+      "target": "class:tests/test_deepseek_reasoning.py:TestInputToMessages",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_deepseek_reasoning.py",
+      "target": "class:tests/test_deepseek_reasoning.py:TestDeepSeekReasoningContent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_deepseek_reasoning.py",
+      "target": "class:tests/test_deepseek_reasoning.py:TestStructuredOutputCapabilityDispatch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_deepseek_reasoning.py",
+      "target": "class:tests/test_deepseek_reasoning.py:TestDeepSeekLiveStructuredOutput",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_deepseek_reasoning.py",
+      "target": "class:tests/test_deepseek_reasoning.py:TestBaseClassIsolation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_deepseek_reasoning.py",
+      "target": "class:tests/test_deepseek_reasoning.py:TestInputToMessages",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_deepseek_reasoning.py",
+      "target": "class:tests/test_deepseek_reasoning.py:TestDeepSeekReasoningContent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_deepseek_reasoning.py",
+      "target": "function:tests/test_deepseek_reasoning.py:_bound_kwargs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_deepseek_reasoning.py",
+      "target": "class:tests/test_deepseek_reasoning.py:TestStructuredOutputCapabilityDispatch",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_deepseek_reasoning.py",
+      "target": "function:tests/test_deepseek_reasoning.py:_has_real_deepseek_key",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_deepseek_reasoning.py",
+      "target": "class:tests/test_deepseek_reasoning.py:TestDeepSeekLiveStructuredOutput",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_deepseek_reasoning.py",
+      "target": "class:tests/test_deepseek_reasoning.py:TestBaseClassIsolation",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_deepseek_reasoning.py",
+      "target": "file:tradingagents/llm_clients/openai_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_google_api_key.py",
+      "target": "class:tests/test_google_api_key.py:TestGoogleApiKeyStandardization",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_google_api_key.py",
+      "target": "class:tests/test_google_api_key.py:TestGoogleApiKeyStandardization",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_google_api_key.py",
+      "target": "file:tradingagents/llm_clients/google_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_google_thinking_level.py",
+      "target": "function:tests/test_google_thinking_level.py:_captured_kwargs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_google_thinking_level.py",
+      "target": "function:tests/test_google_thinking_level.py:test_flash_passes_thinking_level_through",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_google_thinking_level.py",
+      "target": "function:tests/test_google_thinking_level.py:test_pro_remaps_minimal_to_low",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_google_thinking_level.py",
+      "target": "function:tests/test_google_thinking_level.py:test_pro_keeps_high",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_google_thinking_level.py",
+      "target": "function:tests/test_google_thinking_level.py:test_no_thinking_level_is_omitted",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_google_thinking_level.py",
+      "target": "function:tests/test_google_thinking_level.py:_captured_kwargs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_google_thinking_level.py",
+      "target": "function:tests/test_google_thinking_level.py:test_flash_passes_thinking_level_through",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_google_thinking_level.py",
+      "target": "function:tests/test_google_thinking_level.py:test_pro_remaps_minimal_to_low",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_google_thinking_level.py",
+      "target": "function:tests/test_google_thinking_level.py:test_pro_keeps_high",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_google_thinking_level.py",
+      "target": "function:tests/test_google_thinking_level.py:test_no_thinking_level_is_omitted",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_google_thinking_level.py",
+      "target": "file:tradingagents/llm_clients/google_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "function:tests/test_llm_timeout.py:configure_deadline_policy",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "function:tests/test_llm_timeout.py:test_llm_timeout_is_resolved_for_each_actual_invocation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "function:tests/test_llm_timeout.py:test_llm_without_deadline_supplier_preserves_existing_timeout_behavior",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "function:tests/test_llm_timeout.py:test_bedrock_resolves_timeout_at_each_invoke",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "function:tests/test_llm_timeout.py:test_alpha_vantage_caps_each_request_by_current_remaining_deadline",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "function:tests/test_llm_timeout.py:test_non_web_dataflow_config_clears_prior_run_scoped_deadline_callbacks",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "class:tests/test_llm_timeout.py:Response",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "class:tests/test_llm_timeout.py:Response",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "function:tests/test_llm_timeout.py:configure_deadline_policy",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "function:tests/test_llm_timeout.py:test_llm_timeout_is_resolved_for_each_actual_invocation",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "function:tests/test_llm_timeout.py:test_llm_without_deadline_supplier_preserves_existing_timeout_behavior",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "function:tests/test_llm_timeout.py:test_bedrock_resolves_timeout_at_each_invoke",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "function:tests/test_llm_timeout.py:test_alpha_vantage_caps_each_request_by_current_remaining_deadline",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "function:tests/test_llm_timeout.py:test_non_web_dataflow_config_clears_prior_run_scoped_deadline_callbacks",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "file:tradingagents/dataflows/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "file:tradingagents/llm_clients/anthropic_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "file:tradingagents/llm_clients/azure_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "file:tradingagents/llm_clients/google_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_llm_timeout.py",
+      "target": "file:tradingagents/llm_clients/openai_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_minimax.py",
+      "target": "function:tests/test_minimax.py:_client",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_minimax.py",
+      "target": "class:tests/test_minimax.py:TestMinimaxReasoningSplit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_minimax.py",
+      "target": "class:tests/test_minimax.py:TestMinimaxStructuredOutputDispatch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_minimax.py",
+      "target": "function:tests/test_minimax.py:_client",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_minimax.py",
+      "target": "class:tests/test_minimax.py:TestMinimaxReasoningSplit",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_minimax.py",
+      "target": "class:tests/test_minimax.py:TestMinimaxStructuredOutputDispatch",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_minimax.py",
+      "target": "file:tradingagents/llm_clients/openai_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

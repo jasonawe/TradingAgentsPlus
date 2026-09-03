@@ -1,0 +1,967 @@
+{
+  "nodes": [
+    {
+      "id": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "file",
+      "name": "agent_utils.py",
+      "filePath": "tradingagents/agents/utils/agent_utils.py",
+      "summary": "实现 tradingagents/agents/utils/agent_utils.py 在交易分析系统中的核心逻辑，对外提供 get_language_instruction、_clean_identity_value、resolve_instrument_identity 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/agents/utils/agent_utils.py:get_language_instruction",
+      "type": "function",
+      "name": "get_language_instruction",
+      "filePath": "tradingagents/agents/utils/agent_utils.py",
+      "lineRange": [
+        52,
+        65
+      ],
+      "summary": "位于 tradingagents/agents/utils/agent_utils.py 的函数 get_language_instruction，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/utils/agent_utils.py:_clean_identity_value",
+      "type": "function",
+      "name": "_clean_identity_value",
+      "filePath": "tradingagents/agents/utils/agent_utils.py",
+      "lineRange": [
+        68,
+        75
+      ],
+      "summary": "位于 tradingagents/agents/utils/agent_utils.py 的函数 _clean_identity_value，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/utils/agent_utils.py:resolve_instrument_identity",
+      "type": "function",
+      "name": "resolve_instrument_identity",
+      "filePath": "tradingagents/agents/utils/agent_utils.py",
+      "lineRange": [
+        79,
+        119
+      ],
+      "summary": "位于 tradingagents/agents/utils/agent_utils.py 的函数 resolve_instrument_identity，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tradingagents/agents/utils/agent_utils.py:build_instrument_context",
+      "type": "function",
+      "name": "build_instrument_context",
+      "filePath": "tradingagents/agents/utils/agent_utils.py",
+      "lineRange": [
+        122,
+        169
+      ],
+      "summary": "位于 tradingagents/agents/utils/agent_utils.py 的函数 build_instrument_context，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tradingagents/agents/utils/agent_utils.py:get_instrument_context_from_state",
+      "type": "function",
+      "name": "get_instrument_context_from_state",
+      "filePath": "tradingagents/agents/utils/agent_utils.py",
+      "lineRange": [
+        172,
+        187
+      ],
+      "summary": "位于 tradingagents/agents/utils/agent_utils.py 的函数 get_instrument_context_from_state，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/utils/agent_utils.py:create_msg_delete",
+      "type": "function",
+      "name": "create_msg_delete",
+      "filePath": "tradingagents/agents/utils/agent_utils.py",
+      "lineRange": [
+        190,
+        214
+      ],
+      "summary": "位于 tradingagents/agents/utils/agent_utils.py 的函数 create_msg_delete，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/core_stock_tools.py",
+      "type": "file",
+      "name": "core_stock_tools.py",
+      "filePath": "tradingagents/agents/utils/core_stock_tools.py",
+      "summary": "实现 tradingagents/agents/utils/core_stock_tools.py 在交易分析系统中的核心逻辑，对外提供 get_stock_data 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/utils/core_stock_tools.py:get_stock_data",
+      "type": "function",
+      "name": "get_stock_data",
+      "filePath": "tradingagents/agents/utils/core_stock_tools.py",
+      "lineRange": [
+        9,
+        24
+      ],
+      "summary": "位于 tradingagents/agents/utils/core_stock_tools.py 的函数 get_stock_data，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/fundamental_data_tools.py",
+      "type": "file",
+      "name": "fundamental_data_tools.py",
+      "filePath": "tradingagents/agents/utils/fundamental_data_tools.py",
+      "summary": "实现 tradingagents/agents/utils/fundamental_data_tools.py 在交易分析系统中的核心逻辑，对外提供 get_fundamentals、get_balance_sheet、get_cashflow 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/agents/utils/fundamental_data_tools.py:get_fundamentals",
+      "type": "function",
+      "name": "get_fundamentals",
+      "filePath": "tradingagents/agents/utils/fundamental_data_tools.py",
+      "lineRange": [
+        9,
+        22
+      ],
+      "summary": "位于 tradingagents/agents/utils/fundamental_data_tools.py 的函数 get_fundamentals，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/utils/fundamental_data_tools.py:get_balance_sheet",
+      "type": "function",
+      "name": "get_balance_sheet",
+      "filePath": "tradingagents/agents/utils/fundamental_data_tools.py",
+      "lineRange": [
+        26,
+        41
+      ],
+      "summary": "位于 tradingagents/agents/utils/fundamental_data_tools.py 的函数 get_balance_sheet，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/utils/fundamental_data_tools.py:get_cashflow",
+      "type": "function",
+      "name": "get_cashflow",
+      "filePath": "tradingagents/agents/utils/fundamental_data_tools.py",
+      "lineRange": [
+        45,
+        60
+      ],
+      "summary": "位于 tradingagents/agents/utils/fundamental_data_tools.py 的函数 get_cashflow，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/utils/fundamental_data_tools.py:get_income_statement",
+      "type": "function",
+      "name": "get_income_statement",
+      "filePath": "tradingagents/agents/utils/fundamental_data_tools.py",
+      "lineRange": [
+        64,
+        79
+      ],
+      "summary": "位于 tradingagents/agents/utils/fundamental_data_tools.py 的函数 get_income_statement，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/macro_data_tools.py",
+      "type": "file",
+      "name": "macro_data_tools.py",
+      "filePath": "tradingagents/agents/utils/macro_data_tools.py",
+      "summary": "实现 tradingagents/agents/utils/macro_data_tools.py 在交易分析系统中的核心逻辑，对外提供 get_macro_indicators 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/utils/macro_data_tools.py:get_macro_indicators",
+      "type": "function",
+      "name": "get_macro_indicators",
+      "filePath": "tradingagents/agents/utils/macro_data_tools.py",
+      "lineRange": [
+        9,
+        36
+      ],
+      "summary": "位于 tradingagents/agents/utils/macro_data_tools.py 的函数 get_macro_indicators，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/market_data_validation_tools.py",
+      "type": "file",
+      "name": "market_data_validation_tools.py",
+      "filePath": "tradingagents/agents/utils/market_data_validation_tools.py",
+      "summary": "实现 tradingagents/agents/utils/market_data_validation_tools.py 在交易分析系统中的核心逻辑，对外提供 get_verified_market_snapshot 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/utils/market_data_validation_tools.py:get_verified_market_snapshot",
+      "type": "function",
+      "name": "get_verified_market_snapshot",
+      "filePath": "tradingagents/agents/utils/market_data_validation_tools.py",
+      "lineRange": [
+        9,
+        23
+      ],
+      "summary": "位于 tradingagents/agents/utils/market_data_validation_tools.py 的函数 get_verified_market_snapshot，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "校验"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/news_data_tools.py",
+      "type": "file",
+      "name": "news_data_tools.py",
+      "filePath": "tradingagents/agents/utils/news_data_tools.py",
+      "summary": "实现 tradingagents/agents/utils/news_data_tools.py 在交易分析系统中的核心逻辑，对外提供 get_news、get_global_news、get_insider_transactions 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/agents/utils/news_data_tools.py:get_news",
+      "type": "function",
+      "name": "get_news",
+      "filePath": "tradingagents/agents/utils/news_data_tools.py",
+      "lineRange": [
+        9,
+        24
+      ],
+      "summary": "位于 tradingagents/agents/utils/news_data_tools.py 的函数 get_news，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/utils/news_data_tools.py:get_global_news",
+      "type": "function",
+      "name": "get_global_news",
+      "filePath": "tradingagents/agents/utils/news_data_tools.py",
+      "lineRange": [
+        27,
+        46
+      ],
+      "summary": "位于 tradingagents/agents/utils/news_data_tools.py 的函数 get_global_news，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/utils/news_data_tools.py:get_insider_transactions",
+      "type": "function",
+      "name": "get_insider_transactions",
+      "filePath": "tradingagents/agents/utils/news_data_tools.py",
+      "lineRange": [
+        49,
+        60
+      ],
+      "summary": "位于 tradingagents/agents/utils/news_data_tools.py 的函数 get_insider_transactions，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/prediction_markets_tools.py",
+      "type": "file",
+      "name": "prediction_markets_tools.py",
+      "filePath": "tradingagents/agents/utils/prediction_markets_tools.py",
+      "summary": "实现 tradingagents/agents/utils/prediction_markets_tools.py 在交易分析系统中的核心逻辑，对外提供 get_prediction_markets 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/utils/prediction_markets_tools.py:get_prediction_markets",
+      "type": "function",
+      "name": "get_prediction_markets",
+      "filePath": "tradingagents/agents/utils/prediction_markets_tools.py",
+      "lineRange": [
+        9,
+        31
+      ],
+      "summary": "位于 tradingagents/agents/utils/prediction_markets_tools.py 的函数 get_prediction_markets，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/structured.py",
+      "type": "file",
+      "name": "structured.py",
+      "filePath": "tradingagents/agents/utils/structured.py",
+      "summary": "实现 tradingagents/agents/utils/structured.py 在交易分析系统中的核心逻辑，对外提供 bind_structured、invoke_structured_or_freetext 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/agents/utils/structured.py:bind_structured",
+      "type": "function",
+      "name": "bind_structured",
+      "filePath": "tradingagents/agents/utils/structured.py",
+      "lineRange": [
+        42,
+        56
+      ],
+      "summary": "位于 tradingagents/agents/utils/structured.py 的函数 bind_structured，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/utils/structured.py:invoke_structured_or_freetext",
+      "type": "function",
+      "name": "invoke_structured_or_freetext",
+      "filePath": "tradingagents/agents/utils/structured.py",
+      "lineRange": [
+        59,
+        89
+      ],
+      "summary": "位于 tradingagents/agents/utils/structured.py 的函数 invoke_structured_or_freetext，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/technical_indicators_tools.py",
+      "type": "file",
+      "name": "technical_indicators_tools.py",
+      "filePath": "tradingagents/agents/utils/technical_indicators_tools.py",
+      "summary": "实现 tradingagents/agents/utils/technical_indicators_tools.py 在交易分析系统中的核心逻辑，对外提供 get_indicators 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/utils/technical_indicators_tools.py:get_indicators",
+      "type": "function",
+      "name": "get_indicators",
+      "filePath": "tradingagents/agents/utils/technical_indicators_tools.py",
+      "lineRange": [
+        9,
+        35
+      ],
+      "summary": "位于 tradingagents/agents/utils/technical_indicators_tools.py 的函数 get_indicators，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/dataflows/market_data_validator.py",
+      "type": "file",
+      "name": "market_data_validator.py",
+      "filePath": "tradingagents/dataflows/market_data_validator.py",
+      "summary": "实现 tradingagents/dataflows/market_data_validator.py 在交易分析系统中的核心逻辑，对外提供 _verified_rows、_fmt、build_verified_market_snapshot 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/dataflows/market_data_validator.py:_verified_rows",
+      "type": "function",
+      "name": "_verified_rows",
+      "filePath": "tradingagents/dataflows/market_data_validator.py",
+      "lineRange": [
+        28,
+        45
+      ],
+      "summary": "位于 tradingagents/dataflows/market_data_validator.py 的函数 _verified_rows，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "校验"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/market_data_validator.py:_fmt",
+      "type": "function",
+      "name": "_fmt",
+      "filePath": "tradingagents/dataflows/market_data_validator.py",
+      "lineRange": [
+        48,
+        59
+      ],
+      "summary": "位于 tradingagents/dataflows/market_data_validator.py 的函数 _fmt，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "校验"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/market_data_validator.py:build_verified_market_snapshot",
+      "type": "function",
+      "name": "build_verified_market_snapshot",
+      "filePath": "tradingagents/dataflows/market_data_validator.py",
+      "lineRange": [
+        62,
+        123
+      ],
+      "summary": "位于 tradingagents/dataflows/market_data_validator.py 的函数 build_verified_market_snapshot，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "校验"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "function:tradingagents/agents/utils/agent_utils.py:get_language_instruction",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "function:tradingagents/agents/utils/agent_utils.py:_clean_identity_value",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "function:tradingagents/agents/utils/agent_utils.py:resolve_instrument_identity",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "function:tradingagents/agents/utils/agent_utils.py:build_instrument_context",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "function:tradingagents/agents/utils/agent_utils.py:get_instrument_context_from_state",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "function:tradingagents/agents/utils/agent_utils.py:create_msg_delete",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "function:tradingagents/agents/utils/agent_utils.py:get_language_instruction",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "function:tradingagents/agents/utils/agent_utils.py:_clean_identity_value",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "function:tradingagents/agents/utils/agent_utils.py:resolve_instrument_identity",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "function:tradingagents/agents/utils/agent_utils.py:build_instrument_context",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "function:tradingagents/agents/utils/agent_utils.py:get_instrument_context_from_state",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "function:tradingagents/agents/utils/agent_utils.py:create_msg_delete",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "file:tradingagents/agents/utils/core_stock_tools.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "file:tradingagents/agents/utils/fundamental_data_tools.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "file:tradingagents/agents/utils/macro_data_tools.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "file:tradingagents/agents/utils/market_data_validation_tools.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "file:tradingagents/agents/utils/news_data_tools.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "file:tradingagents/agents/utils/prediction_markets_tools.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_utils.py",
+      "target": "file:tradingagents/agents/utils/technical_indicators_tools.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/core_stock_tools.py",
+      "target": "function:tradingagents/agents/utils/core_stock_tools.py:get_stock_data",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/core_stock_tools.py",
+      "target": "function:tradingagents/agents/utils/core_stock_tools.py:get_stock_data",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/core_stock_tools.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/fundamental_data_tools.py",
+      "target": "function:tradingagents/agents/utils/fundamental_data_tools.py:get_fundamentals",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/fundamental_data_tools.py",
+      "target": "function:tradingagents/agents/utils/fundamental_data_tools.py:get_balance_sheet",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/fundamental_data_tools.py",
+      "target": "function:tradingagents/agents/utils/fundamental_data_tools.py:get_cashflow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/fundamental_data_tools.py",
+      "target": "function:tradingagents/agents/utils/fundamental_data_tools.py:get_income_statement",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/fundamental_data_tools.py",
+      "target": "function:tradingagents/agents/utils/fundamental_data_tools.py:get_fundamentals",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/fundamental_data_tools.py",
+      "target": "function:tradingagents/agents/utils/fundamental_data_tools.py:get_balance_sheet",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/fundamental_data_tools.py",
+      "target": "function:tradingagents/agents/utils/fundamental_data_tools.py:get_cashflow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/fundamental_data_tools.py",
+      "target": "function:tradingagents/agents/utils/fundamental_data_tools.py:get_income_statement",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/fundamental_data_tools.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/macro_data_tools.py",
+      "target": "function:tradingagents/agents/utils/macro_data_tools.py:get_macro_indicators",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/macro_data_tools.py",
+      "target": "function:tradingagents/agents/utils/macro_data_tools.py:get_macro_indicators",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/macro_data_tools.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/market_data_validation_tools.py",
+      "target": "function:tradingagents/agents/utils/market_data_validation_tools.py:get_verified_market_snapshot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/market_data_validation_tools.py",
+      "target": "function:tradingagents/agents/utils/market_data_validation_tools.py:get_verified_market_snapshot",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/market_data_validation_tools.py",
+      "target": "file:tradingagents/dataflows/market_data_validator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/news_data_tools.py",
+      "target": "function:tradingagents/agents/utils/news_data_tools.py:get_news",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/news_data_tools.py",
+      "target": "function:tradingagents/agents/utils/news_data_tools.py:get_global_news",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/news_data_tools.py",
+      "target": "function:tradingagents/agents/utils/news_data_tools.py:get_insider_transactions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/news_data_tools.py",
+      "target": "function:tradingagents/agents/utils/news_data_tools.py:get_news",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/news_data_tools.py",
+      "target": "function:tradingagents/agents/utils/news_data_tools.py:get_global_news",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/news_data_tools.py",
+      "target": "function:tradingagents/agents/utils/news_data_tools.py:get_insider_transactions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/news_data_tools.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/prediction_markets_tools.py",
+      "target": "function:tradingagents/agents/utils/prediction_markets_tools.py:get_prediction_markets",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/prediction_markets_tools.py",
+      "target": "function:tradingagents/agents/utils/prediction_markets_tools.py:get_prediction_markets",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/prediction_markets_tools.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/structured.py",
+      "target": "function:tradingagents/agents/utils/structured.py:bind_structured",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/structured.py",
+      "target": "function:tradingagents/agents/utils/structured.py:invoke_structured_or_freetext",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/structured.py",
+      "target": "function:tradingagents/agents/utils/structured.py:bind_structured",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/structured.py",
+      "target": "function:tradingagents/agents/utils/structured.py:invoke_structured_or_freetext",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/technical_indicators_tools.py",
+      "target": "function:tradingagents/agents/utils/technical_indicators_tools.py:get_indicators",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/technical_indicators_tools.py",
+      "target": "function:tradingagents/agents/utils/technical_indicators_tools.py:get_indicators",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/technical_indicators_tools.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/market_data_validator.py",
+      "target": "function:tradingagents/dataflows/market_data_validator.py:_verified_rows",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/market_data_validator.py",
+      "target": "function:tradingagents/dataflows/market_data_validator.py:_fmt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/market_data_validator.py",
+      "target": "function:tradingagents/dataflows/market_data_validator.py:build_verified_market_snapshot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/market_data_validator.py",
+      "target": "function:tradingagents/dataflows/market_data_validator.py:_verified_rows",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/market_data_validator.py",
+      "target": "function:tradingagents/dataflows/market_data_validator.py:_fmt",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/market_data_validator.py",
+      "target": "function:tradingagents/dataflows/market_data_validator.py:build_verified_market_snapshot",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/market_data_validator.py",
+      "target": "file:tradingagents/dataflows/stockstats_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

@@ -1,0 +1,255 @@
+{
+  "nodes": [
+    {
+      "id": "file:web/static/kline-chart.test.js",
+      "type": "file",
+      "name": "kline-chart.test.js",
+      "filePath": "web/static/kline-chart.test.js",
+      "summary": "前端或脚本模块 kline-chart.test.js，实现页面交互、数据刷新、图表展示或本地化逻辑。",
+      "tags": [
+        "test",
+        "frontend",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/static/quote-refresh.js",
+      "type": "file",
+      "name": "quote-refresh.js",
+      "filePath": "web/static/quote-refresh.js",
+      "summary": "前端或脚本模块 quote-refresh.js，实现页面交互、数据刷新、图表展示或本地化逻辑。",
+      "tags": [
+        "frontend",
+        "project-artifact",
+        "tradingagents"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/static/quote-refresh.test.js",
+      "type": "file",
+      "name": "quote-refresh.test.js",
+      "filePath": "web/static/quote-refresh.test.js",
+      "summary": "前端或脚本模块 quote-refresh.test.js，实现页面交互、数据刷新、图表展示或本地化逻辑。",
+      "tags": [
+        "test",
+        "frontend",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:web/static/rating-labels.js",
+      "type": "file",
+      "name": "rating-labels.js",
+      "filePath": "web/static/rating-labels.js",
+      "summary": "前端或脚本模块 rating-labels.js，实现页面交互、数据刷新、图表展示或本地化逻辑。",
+      "tags": [
+        "frontend",
+        "project-artifact",
+        "tradingagents"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:web/static/rating-labels.test.js",
+      "type": "file",
+      "name": "rating-labels.test.js",
+      "filePath": "web/static/rating-labels.test.js",
+      "summary": "前端或脚本模块 rating-labels.test.js，实现页面交互、数据刷新、图表展示或本地化逻辑。",
+      "tags": [
+        "test",
+        "frontend",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:web/static/styles.css",
+      "type": "file",
+      "name": "styles.css",
+      "filePath": "web/static/styles.css",
+      "summary": "前端样式表，定义 Web 控制台的布局、颜色、排版与交互状态。",
+      "tags": [
+        "frontend",
+        "project-artifact",
+        "tradingagents"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/static/watchlist-chart.js",
+      "type": "file",
+      "name": "watchlist-chart.js",
+      "filePath": "web/static/watchlist-chart.js",
+      "summary": "前端或脚本模块 watchlist-chart.js，实现页面交互、数据刷新、图表展示或本地化逻辑。",
+      "tags": [
+        "frontend",
+        "project-artifact",
+        "tradingagents"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/synthesis.py",
+      "type": "file",
+      "name": "synthesis.py",
+      "filePath": "web/synthesis.py",
+      "summary": "项目文件 web/synthesis.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。",
+      "tags": [
+        "implementation",
+        "project-artifact",
+        "tradingagents"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/synthesis.py:_text",
+      "type": "function",
+      "name": "_text",
+      "filePath": "web/synthesis.py",
+      "lineRange": [
+        9,
+        16
+      ],
+      "summary": "实现 _text，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/synthesis.py:_source_material",
+      "type": "function",
+      "name": "_source_material",
+      "filePath": "web/synthesis.py",
+      "lineRange": [
+        19,
+        31
+      ],
+      "summary": "实现 _source_material，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/synthesis.py:generate_executive_summary",
+      "type": "function",
+      "name": "generate_executive_summary",
+      "filePath": "web/synthesis.py",
+      "lineRange": [
+        34,
+        57
+      ],
+      "summary": "实现 generate_executive_summary，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/synthesis.py:save_executive_summary",
+      "type": "function",
+      "name": "save_executive_summary",
+      "filePath": "web/synthesis.py",
+      "lineRange": [
+        60,
+        63
+      ],
+      "summary": "实现 save_executive_summary，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:web/static/kline-chart.test.js",
+      "target": "file:web/static/kline-chart.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/static/quote-refresh.test.js",
+      "target": "file:web/static/quote-refresh.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/static/rating-labels.test.js",
+      "target": "file:web/static/rating-labels.js",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/synthesis.py",
+      "target": "function:web/synthesis.py:_text",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/synthesis.py",
+      "target": "function:web/synthesis.py:_text",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/synthesis.py",
+      "target": "function:web/synthesis.py:_source_material",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/synthesis.py",
+      "target": "function:web/synthesis.py:_source_material",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/synthesis.py",
+      "target": "function:web/synthesis.py:generate_executive_summary",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/synthesis.py",
+      "target": "function:web/synthesis.py:generate_executive_summary",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/synthesis.py",
+      "target": "function:web/synthesis.py:save_executive_summary",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/synthesis.py",
+      "target": "function:web/synthesis.py:save_executive_summary",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

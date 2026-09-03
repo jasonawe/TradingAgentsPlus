@@ -1,0 +1,940 @@
+{
+  "nodes": [
+    {
+      "id": "file:tests/test_alpha_vantage_hardening.py",
+      "type": "file",
+      "name": "test_alpha_vantage_hardening.py",
+      "filePath": "tests/test_alpha_vantage_hardening.py",
+      "summary": "覆盖 test_alpha_vantage_hardening.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_alpha_vantage_hardening.py:_patched_get",
+      "type": "function",
+      "name": "_patched_get",
+      "filePath": "tests/test_alpha_vantage_hardening.py",
+      "lineRange": [
+        24,
+        29
+      ],
+      "summary": "位于 tests/test_alpha_vantage_hardening.py 的函数 _patched_get，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_alpha_vantage_hardening.py:test_request_passes_timeout",
+      "type": "function",
+      "name": "test_request_passes_timeout",
+      "filePath": "tests/test_alpha_vantage_hardening.py",
+      "lineRange": [
+        33,
+        37
+      ],
+      "summary": "位于 tests/test_alpha_vantage_hardening.py 的函数 test_request_passes_timeout，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_alpha_vantage_hardening.py:test_rate_limit_detected",
+      "type": "function",
+      "name": "test_rate_limit_detected",
+      "filePath": "tests/test_alpha_vantage_hardening.py",
+      "lineRange": [
+        41,
+        45
+      ],
+      "summary": "位于 tests/test_alpha_vantage_hardening.py 的函数 test_rate_limit_detected，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_alpha_vantage_hardening.py:test_invalid_key_not_mislabeled_as_rate_limit",
+      "type": "function",
+      "name": "test_invalid_key_not_mislabeled_as_rate_limit",
+      "filePath": "tests/test_alpha_vantage_hardening.py",
+      "lineRange": [
+        49,
+        59
+      ],
+      "summary": "位于 tests/test_alpha_vantage_hardening.py 的函数 test_invalid_key_not_mislabeled_as_rate_limit，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_alpha_vantage_hardening.py:test_fundamentals_look_ahead_filter_runs_on_json_string",
+      "type": "function",
+      "name": "test_fundamentals_look_ahead_filter_runs_on_json_string",
+      "filePath": "tests/test_alpha_vantage_hardening.py",
+      "lineRange": [
+        76,
+        84
+      ],
+      "summary": "位于 tests/test_alpha_vantage_hardening.py 的函数 test_fundamentals_look_ahead_filter_runs_on_json_string，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_alpha_vantage_hardening.py:test_fundamentals_no_curr_date_passes_through",
+      "type": "function",
+      "name": "test_fundamentals_no_curr_date_passes_through",
+      "filePath": "tests/test_alpha_vantage_hardening.py",
+      "lineRange": [
+        88,
+        90
+      ],
+      "summary": "位于 tests/test_alpha_vantage_hardening.py 的函数 test_fundamentals_no_curr_date_passes_through，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_alpha_vantage_hardening.py:test_fundamentals_non_json_body_unchanged",
+      "type": "function",
+      "name": "test_fundamentals_non_json_body_unchanged",
+      "filePath": "tests/test_alpha_vantage_hardening.py",
+      "lineRange": [
+        94,
+        96
+      ],
+      "summary": "位于 tests/test_alpha_vantage_hardening.py 的函数 test_fundamentals_non_json_body_unchanged，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_alpha_vantage_hardening.py:_FakeResponse",
+      "type": "class",
+      "name": "_FakeResponse",
+      "filePath": "tests/test_alpha_vantage_hardening.py",
+      "lineRange": [
+        16,
+        21
+      ],
+      "summary": "位于 tests/test_alpha_vantage_hardening.py 的类 _FakeResponse，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tradingagents/dataflows/alpha_vantage.py",
+      "type": "file",
+      "name": "alpha_vantage.py",
+      "filePath": "tradingagents/dataflows/alpha_vantage.py",
+      "summary": "实现 tradingagents/dataflows/alpha_vantage.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "type": "file",
+      "name": "alpha_vantage_common.py",
+      "filePath": "tradingagents/dataflows/alpha_vantage_common.py",
+      "summary": "实现 tradingagents/dataflows/alpha_vantage_common.py 在交易分析系统中的核心逻辑，对外提供 AlphaVantageNotConfiguredError、get_api_key、format_datetime_for_api 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/dataflows/alpha_vantage_common.py:get_api_key",
+      "type": "function",
+      "name": "get_api_key",
+      "filePath": "tradingagents/dataflows/alpha_vantage_common.py",
+      "lineRange": [
+        29,
+        36
+      ],
+      "summary": "位于 tradingagents/dataflows/alpha_vantage_common.py 的函数 get_api_key，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/alpha_vantage_common.py:format_datetime_for_api",
+      "type": "function",
+      "name": "format_datetime_for_api",
+      "filePath": "tradingagents/dataflows/alpha_vantage_common.py",
+      "lineRange": [
+        38,
+        57
+      ],
+      "summary": "位于 tradingagents/dataflows/alpha_vantage_common.py 的函数 format_datetime_for_api，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/alpha_vantage_common.py:_make_api_request",
+      "type": "function",
+      "name": "_make_api_request",
+      "filePath": "tradingagents/dataflows/alpha_vantage_common.py",
+      "lineRange": [
+        63,
+        121
+      ],
+      "summary": "位于 tradingagents/dataflows/alpha_vantage_common.py 的函数 _make_api_request，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tradingagents/dataflows/alpha_vantage_common.py:_filter_csv_by_date_range",
+      "type": "function",
+      "name": "_filter_csv_by_date_range",
+      "filePath": "tradingagents/dataflows/alpha_vantage_common.py",
+      "lineRange": [
+        125,
+        160
+      ],
+      "summary": "位于 tradingagents/dataflows/alpha_vantage_common.py 的函数 _filter_csv_by_date_range，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tradingagents/dataflows/alpha_vantage_common.py:AlphaVantageNotConfiguredError",
+      "type": "class",
+      "name": "AlphaVantageNotConfiguredError",
+      "filePath": "tradingagents/dataflows/alpha_vantage_common.py",
+      "lineRange": [
+        19,
+        26
+      ],
+      "summary": "位于 tradingagents/dataflows/alpha_vantage_common.py 的类 AlphaVantageNotConfiguredError，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/dataflows/alpha_vantage_common.py:AlphaVantageRateLimitError",
+      "type": "class",
+      "name": "AlphaVantageRateLimitError",
+      "filePath": "tradingagents/dataflows/alpha_vantage_common.py",
+      "lineRange": [
+        59,
+        61
+      ],
+      "summary": "位于 tradingagents/dataflows/alpha_vantage_common.py 的类 AlphaVantageRateLimitError，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "type": "file",
+      "name": "alpha_vantage_fundamentals.py",
+      "filePath": "tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "summary": "实现 tradingagents/dataflows/alpha_vantage_fundamentals.py 在交易分析系统中的核心逻辑，对外提供 _filter_reports_by_date、get_fundamentals、get_balance_sheet 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/dataflows/alpha_vantage_fundamentals.py:_filter_reports_by_date",
+      "type": "function",
+      "name": "_filter_reports_by_date",
+      "filePath": "tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "lineRange": [
+        6,
+        27
+      ],
+      "summary": "位于 tradingagents/dataflows/alpha_vantage_fundamentals.py 的函数 _filter_reports_by_date，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/alpha_vantage_fundamentals.py:get_fundamentals",
+      "type": "function",
+      "name": "get_fundamentals",
+      "filePath": "tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "lineRange": [
+        30,
+        45
+      ],
+      "summary": "位于 tradingagents/dataflows/alpha_vantage_fundamentals.py 的函数 get_fundamentals，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/alpha_vantage_fundamentals.py:get_balance_sheet",
+      "type": "function",
+      "name": "get_balance_sheet",
+      "filePath": "tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "lineRange": [
+        48,
+        51
+      ],
+      "summary": "位于 tradingagents/dataflows/alpha_vantage_fundamentals.py 的函数 get_balance_sheet，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/alpha_vantage_fundamentals.py:get_cashflow",
+      "type": "function",
+      "name": "get_cashflow",
+      "filePath": "tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "lineRange": [
+        54,
+        57
+      ],
+      "summary": "位于 tradingagents/dataflows/alpha_vantage_fundamentals.py 的函数 get_cashflow，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/alpha_vantage_fundamentals.py:get_income_statement",
+      "type": "function",
+      "name": "get_income_statement",
+      "filePath": "tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "lineRange": [
+        60,
+        63
+      ],
+      "summary": "位于 tradingagents/dataflows/alpha_vantage_fundamentals.py 的函数 get_income_statement，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/dataflows/alpha_vantage_indicator.py",
+      "type": "file",
+      "name": "alpha_vantage_indicator.py",
+      "filePath": "tradingagents/dataflows/alpha_vantage_indicator.py",
+      "summary": "实现 tradingagents/dataflows/alpha_vantage_indicator.py 在交易分析系统中的核心逻辑，对外提供 get_indicator 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/dataflows/alpha_vantage_indicator.py:get_indicator",
+      "type": "function",
+      "name": "get_indicator",
+      "filePath": "tradingagents/dataflows/alpha_vantage_indicator.py",
+      "lineRange": [
+        4,
+        215
+      ],
+      "summary": "位于 tradingagents/dataflows/alpha_vantage_indicator.py 的函数 get_indicator，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tradingagents/dataflows/alpha_vantage_news.py",
+      "type": "file",
+      "name": "alpha_vantage_news.py",
+      "filePath": "tradingagents/dataflows/alpha_vantage_news.py",
+      "summary": "实现 tradingagents/dataflows/alpha_vantage_news.py 在交易分析系统中的核心逻辑，对外提供 get_news、get_global_news、get_insider_transactions 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/dataflows/alpha_vantage_news.py:get_news",
+      "type": "function",
+      "name": "get_news",
+      "filePath": "tradingagents/dataflows/alpha_vantage_news.py",
+      "lineRange": [
+        4,
+        24
+      ],
+      "summary": "位于 tradingagents/dataflows/alpha_vantage_news.py 的函数 get_news，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/alpha_vantage_news.py:get_global_news",
+      "type": "function",
+      "name": "get_global_news",
+      "filePath": "tradingagents/dataflows/alpha_vantage_news.py",
+      "lineRange": [
+        26,
+        53
+      ],
+      "summary": "位于 tradingagents/dataflows/alpha_vantage_news.py 的函数 get_global_news，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/alpha_vantage_news.py:get_insider_transactions",
+      "type": "function",
+      "name": "get_insider_transactions",
+      "filePath": "tradingagents/dataflows/alpha_vantage_news.py",
+      "lineRange": [
+        56,
+        72
+      ],
+      "summary": "位于 tradingagents/dataflows/alpha_vantage_news.py 的函数 get_insider_transactions，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/dataflows/alpha_vantage_stock.py",
+      "type": "file",
+      "name": "alpha_vantage_stock.py",
+      "filePath": "tradingagents/dataflows/alpha_vantage_stock.py",
+      "summary": "实现 tradingagents/dataflows/alpha_vantage_stock.py 在交易分析系统中的核心逻辑，对外提供 get_stock 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/alpha_vantage_stock.py:get_stock",
+      "type": "function",
+      "name": "get_stock",
+      "filePath": "tradingagents/dataflows/alpha_vantage_stock.py",
+      "lineRange": [
+        6,
+        40
+      ],
+      "summary": "位于 tradingagents/dataflows/alpha_vantage_stock.py 的函数 get_stock，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:tests/test_alpha_vantage_hardening.py",
+      "target": "function:tests/test_alpha_vantage_hardening.py:_patched_get",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_alpha_vantage_hardening.py",
+      "target": "function:tests/test_alpha_vantage_hardening.py:test_request_passes_timeout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_alpha_vantage_hardening.py",
+      "target": "function:tests/test_alpha_vantage_hardening.py:test_rate_limit_detected",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_alpha_vantage_hardening.py",
+      "target": "function:tests/test_alpha_vantage_hardening.py:test_invalid_key_not_mislabeled_as_rate_limit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_alpha_vantage_hardening.py",
+      "target": "function:tests/test_alpha_vantage_hardening.py:test_fundamentals_look_ahead_filter_runs_on_json_string",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_alpha_vantage_hardening.py",
+      "target": "function:tests/test_alpha_vantage_hardening.py:test_fundamentals_no_curr_date_passes_through",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_alpha_vantage_hardening.py",
+      "target": "function:tests/test_alpha_vantage_hardening.py:test_fundamentals_non_json_body_unchanged",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_alpha_vantage_hardening.py",
+      "target": "class:tests/test_alpha_vantage_hardening.py:_FakeResponse",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_alpha_vantage_hardening.py",
+      "target": "class:tests/test_alpha_vantage_hardening.py:_FakeResponse",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_alpha_vantage_hardening.py",
+      "target": "function:tests/test_alpha_vantage_hardening.py:_patched_get",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_alpha_vantage_hardening.py",
+      "target": "function:tests/test_alpha_vantage_hardening.py:test_request_passes_timeout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_alpha_vantage_hardening.py",
+      "target": "function:tests/test_alpha_vantage_hardening.py:test_rate_limit_detected",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_alpha_vantage_hardening.py",
+      "target": "function:tests/test_alpha_vantage_hardening.py:test_invalid_key_not_mislabeled_as_rate_limit",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_alpha_vantage_hardening.py",
+      "target": "function:tests/test_alpha_vantage_hardening.py:test_fundamentals_look_ahead_filter_runs_on_json_string",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_alpha_vantage_hardening.py",
+      "target": "function:tests/test_alpha_vantage_hardening.py:test_fundamentals_no_curr_date_passes_through",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_alpha_vantage_hardening.py",
+      "target": "function:tests/test_alpha_vantage_hardening.py:test_fundamentals_non_json_body_unchanged",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_alpha_vantage_hardening.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_alpha_vantage_hardening.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_indicator.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_news.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_stock.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_common.py:get_api_key",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_common.py:format_datetime_for_api",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_common.py:_make_api_request",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_common.py:_filter_csv_by_date_range",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "target": "class:tradingagents/dataflows/alpha_vantage_common.py:AlphaVantageNotConfiguredError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "target": "class:tradingagents/dataflows/alpha_vantage_common.py:AlphaVantageRateLimitError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "target": "class:tradingagents/dataflows/alpha_vantage_common.py:AlphaVantageNotConfiguredError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_common.py:get_api_key",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_common.py:format_datetime_for_api",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "target": "class:tradingagents/dataflows/alpha_vantage_common.py:AlphaVantageRateLimitError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_common.py:_make_api_request",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_common.py:_filter_csv_by_date_range",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "target": "file:tradingagents/dataflows/errors.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_fundamentals.py:_filter_reports_by_date",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_fundamentals.py:get_fundamentals",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_fundamentals.py:get_balance_sheet",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_fundamentals.py:get_cashflow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_fundamentals.py:get_income_statement",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_fundamentals.py:_filter_reports_by_date",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_fundamentals.py:get_fundamentals",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_fundamentals.py:get_balance_sheet",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_fundamentals.py:get_cashflow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_fundamentals.py:get_income_statement",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_indicator.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_indicator.py:get_indicator",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_indicator.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_indicator.py:get_indicator",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_indicator.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_news.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_news.py:get_news",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_news.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_news.py:get_global_news",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_news.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_news.py:get_insider_transactions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_news.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_news.py:get_news",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_news.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_news.py:get_global_news",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_news.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_news.py:get_insider_transactions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_news.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_stock.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_stock.py:get_stock",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_stock.py",
+      "target": "function:tradingagents/dataflows/alpha_vantage_stock.py:get_stock",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/alpha_vantage_stock.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

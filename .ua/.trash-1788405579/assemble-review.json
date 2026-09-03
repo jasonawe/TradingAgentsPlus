@@ -1,0 +1,13 @@
+{
+  "fixedSectionOk": true,
+  "nodesRecovered": 0,
+  "edgesRestored": 0,
+  "crossBatchEdgesAdded": 0,
+  "typesRemapped": 0,
+  "complexityRemapped": 0,
+  "notes": [
+    "合并后的 1210 个节点均具有合法 ID、已知类型和标准复杂度值，未发现悬空边。",
+    "导入图中的 390 条文件导入关系均已在知识图谱中表示，无需补充跨批次 imports 边。",
+    "tested_by 链接器新增的 4 条边未造成重复或引用完整性问题。"
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "nodes": [
+    {
+      "id": "file:.superpowers/brainstorm/41801-1787718122/console-layout.html",
+      "type": "file",
+      "name": "console-layout.html",
+      "filePath": ".superpowers/brainstorm/41801-1787718122/console-layout.html",
+      "summary": "前端 HTML 资源，用于展示 console-layout 相关的交互原型或应用界面结构。",
+      "tags": [
+        "frontend",
+        "project-artifact",
+        "tradingagents"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:.superpowers/brainstorm/41801-1787718122/visual-style.html",
+      "type": "file",
+      "name": "visual-style.html",
+      "filePath": ".superpowers/brainstorm/41801-1787718122/visual-style.html",
+      "summary": "前端 HTML 资源，用于展示 visual-style 相关的交互原型或应用界面结构。",
+      "tags": [
+        "frontend",
+        "project-artifact",
+        "tradingagents"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:.superpowers/brainstorm/41801-1787718122/waiting-architecture.html",
+      "type": "file",
+      "name": "waiting-architecture.html",
+      "filePath": ".superpowers/brainstorm/41801-1787718122/waiting-architecture.html",
+      "summary": "前端 HTML 资源，用于展示 waiting-architecture 相关的交互原型或应用界面结构。",
+      "tags": [
+        "frontend",
+        "project-artifact",
+        "tradingagents"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": []
+}

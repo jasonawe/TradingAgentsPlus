@@ -1,0 +1,906 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 7,
+  "filesSkipped": [
+    "web/static/styles.css"
+  ],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 7,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 7,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": [
+    {
+      "path": "web/static/kline-chart.test.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 132,
+      "nonEmptyLines": 116,
+      "functions": [
+        {
+          "name": "sampleCandles",
+          "startLine": 8,
+          "endLine": 15,
+          "params": []
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "web/static/quote-refresh.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 72,
+      "nonEmptyLines": 67,
+      "callGraph": [
+        {
+          "caller": "constructor",
+          "callee": "setTimeout",
+          "lineNumber": 11
+        },
+        {
+          "caller": "constructor",
+          "callee": "clearTimeout",
+          "lineNumber": 12
+        },
+        {
+          "caller": "refresh",
+          "callee": "this.controller.abort",
+          "lineNumber": 24
+        },
+        {
+          "caller": "refresh",
+          "callee": "this.schedule",
+          "lineNumber": 27
+        },
+        {
+          "caller": "refresh",
+          "callee": "controller.abort",
+          "lineNumber": 27
+        },
+        {
+          "caller": "refresh",
+          "callee": "this.fetcher",
+          "lineNumber": 29
+        },
+        {
+          "caller": "refresh",
+          "callee": "this.onData",
+          "lineNumber": 32
+        },
+        {
+          "caller": "refresh",
+          "callee": "this._queue",
+          "lineNumber": 33
+        },
+        {
+          "caller": "refresh",
+          "callee": "this.onError",
+          "lineNumber": 37
+        },
+        {
+          "caller": "refresh",
+          "callee": "this._queue",
+          "lineNumber": 38
+        },
+        {
+          "caller": "refresh",
+          "callee": "Math.min",
+          "lineNumber": 38
+        },
+        {
+          "caller": "refresh",
+          "callee": "this.cancelSchedule",
+          "lineNumber": 40
+        },
+        {
+          "caller": "setVisible",
+          "callee": "Boolean",
+          "lineNumber": 46
+        },
+        {
+          "caller": "setVisible",
+          "callee": "this.cancelSchedule",
+          "lineNumber": 48
+        },
+        {
+          "caller": "setVisible",
+          "callee": "this.controller.abort",
+          "lineNumber": 50
+        },
+        {
+          "caller": "setVisible",
+          "callee": "this.refresh",
+          "lineNumber": 53
+        },
+        {
+          "caller": "stop",
+          "callee": "this.cancelSchedule",
+          "lineNumber": 58
+        },
+        {
+          "caller": "stop",
+          "callee": "this.controller.abort",
+          "lineNumber": 59
+        },
+        {
+          "caller": "_queue",
+          "callee": "this.cancelSchedule",
+          "lineNumber": 65
+        },
+        {
+          "caller": "_queue",
+          "callee": "this.schedule",
+          "lineNumber": 67
+        },
+        {
+          "caller": "_queue",
+          "callee": "this.refresh",
+          "lineNumber": 67
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "web/static/quote-refresh.test.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 33,
+      "nonEmptyLines": 31,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "web/static/rating-labels.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 33,
+      "nonEmptyLines": 30,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "web/static/rating-labels.test.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 54,
+      "nonEmptyLines": 47,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "web/static/watchlist-chart.js",
+      "language": "javascript",
+      "fileCategory": "code",
+      "totalLines": 190,
+      "nonEmptyLines": 173,
+      "callGraph": [
+        {
+          "caller": "escapeHtml",
+          "callee": "String(value ?? \"\")\n      .replace(/&/g, \"&amp;\")\n      .replace(/</g, \"&lt;\")\n      .replace(/>/g, \"&gt;\")\n      .replace(/\"/g, \"&quot;\")\n      .replace",
+          "lineNumber": 10
+        },
+        {
+          "caller": "escapeHtml",
+          "callee": "String(value ?? \"\")\n      .replace(/&/g, \"&amp;\")\n      .replace(/</g, \"&lt;\")\n      .replace(/>/g, \"&gt;\")\n      .replace",
+          "lineNumber": 10
+        },
+        {
+          "caller": "escapeHtml",
+          "callee": "String(value ?? \"\")\n      .replace(/&/g, \"&amp;\")\n      .replace(/</g, \"&lt;\")\n      .replace",
+          "lineNumber": 10
+        },
+        {
+          "caller": "escapeHtml",
+          "callee": "String(value ?? \"\")\n      .replace(/&/g, \"&amp;\")\n      .replace",
+          "lineNumber": 10
+        },
+        {
+          "caller": "escapeHtml",
+          "callee": "String(value ?? \"\")\n      .replace",
+          "lineNumber": 10
+        },
+        {
+          "caller": "escapeHtml",
+          "callee": "String",
+          "lineNumber": 10
+        },
+        {
+          "caller": "localizeError",
+          "callee": "translator",
+          "lineNumber": 27
+        },
+        {
+          "caller": "localizeError",
+          "callee": "t",
+          "lineNumber": 30
+        },
+        {
+          "caller": "localizeError",
+          "callee": "t",
+          "lineNumber": 31
+        },
+        {
+          "caller": "localizeError",
+          "callee": "t",
+          "lineNumber": 32
+        },
+        {
+          "caller": "localizeError",
+          "callee": "t",
+          "lineNumber": 34
+        },
+        {
+          "caller": "panelTemplate",
+          "callee": "window.KLineChart.INTERVALS.map((entry) => {\n      const isActive = entry.key === DEFAULT_INTERVAL;\n      return `<button type=\"button\" class=\"chart-interval${isActive ? \" is-active\" : \"\"}\" data-interval=\"${escapeHtml(entry.key)}\" data-days=\"${entry.days}\">${escapeHtml(entry.key)}</button>`;\n    }).join",
+          "lineNumber": 38
+        },
+        {
+          "caller": "panelTemplate",
+          "callee": "window.KLineChart.INTERVALS.map",
+          "lineNumber": 38
+        },
+        {
+          "caller": "panelTemplate",
+          "callee": "escapeHtml",
+          "lineNumber": 40
+        },
+        {
+          "caller": "panelTemplate",
+          "callee": "escapeHtml",
+          "lineNumber": 40
+        },
+        {
+          "caller": "panelTemplate",
+          "callee": "escapeHtml",
+          "lineNumber": 43
+        },
+        {
+          "caller": "panelTemplate",
+          "callee": "escapeHtml",
+          "lineNumber": 43
+        },
+        {
+          "caller": "panelTemplate",
+          "callee": "escapeHtml",
+          "lineNumber": 45
+        },
+        {
+          "caller": "panelTemplate",
+          "callee": "t",
+          "lineNumber": 45
+        },
+        {
+          "caller": "panelTemplate",
+          "callee": "escapeHtml",
+          "lineNumber": 47
+        },
+        {
+          "caller": "panelTemplate",
+          "callee": "t",
+          "lineNumber": 47
+        },
+        {
+          "caller": "panelTemplate",
+          "callee": "escapeHtml",
+          "lineNumber": 50
+        },
+        {
+          "caller": "panelTemplate",
+          "callee": "t",
+          "lineNumber": 50
+        },
+        {
+          "caller": "toggleRow",
+          "callee": "row.querySelector",
+          "lineNumber": 60
+        },
+        {
+          "caller": "toggleRow",
+          "callee": "button.setAttribute",
+          "lineNumber": 62
+        },
+        {
+          "caller": "ensurePanel",
+          "callee": "panel.classList?.contains",
+          "lineNumber": 68
+        },
+        {
+          "caller": "ensurePanel",
+          "callee": "translator",
+          "lineNumber": 69
+        },
+        {
+          "caller": "ensurePanel",
+          "callee": "document.createElement",
+          "lineNumber": 70
+        },
+        {
+          "caller": "ensurePanel",
+          "callee": "panelTemplate",
+          "lineNumber": 71
+        },
+        {
+          "caller": "ensurePanel",
+          "callee": "row.insertAdjacentElement",
+          "lineNumber": 73
+        },
+        {
+          "caller": "ensurePanel",
+          "callee": "wirePanel",
+          "lineNumber": 74
+        },
+        {
+          "caller": "setStatus",
+          "callee": "panel.querySelector",
+          "lineNumber": 80
+        },
+        {
+          "caller": "setStatus",
+          "callee": "escapeHtml",
+          "lineNumber": 83
+        },
+        {
+          "caller": "setStatus",
+          "callee": "escapeHtml",
+          "lineNumber": 83
+        },
+        {
+          "caller": "renderChart",
+          "callee": "panel.querySelector",
+          "lineNumber": 87
+        },
+        {
+          "caller": "renderChart",
+          "callee": "body.getBoundingClientRect",
+          "lineNumber": 89
+        },
+        {
+          "caller": "renderChart",
+          "callee": "Math.max",
+          "lineNumber": 90
+        },
+        {
+          "caller": "renderChart",
+          "callee": "Math.floor",
+          "lineNumber": 90
+        },
+        {
+          "caller": "renderChart",
+          "callee": "window.KLineChart.buildSvg",
+          "lineNumber": 93
+        },
+        {
+          "caller": "renderChart",
+          "callee": "summaryLine",
+          "lineNumber": 94
+        },
+        {
+          "caller": "renderChart",
+          "callee": "escapeHtml",
+          "lineNumber": 97
+        },
+        {
+          "caller": "summaryLine",
+          "callee": "translator",
+          "lineNumber": 108
+        },
+        {
+          "caller": "summaryLine",
+          "callee": "formatDate",
+          "lineNumber": 109
+        },
+        {
+          "caller": "summaryLine",
+          "callee": "formatDate",
+          "lineNumber": 109
+        },
+        {
+          "caller": "summaryLine",
+          "callee": "t",
+          "lineNumber": 110
+        },
+        {
+          "caller": "summaryLine",
+          "callee": "first.open.toFixed",
+          "lineNumber": 111
+        },
+        {
+          "caller": "summaryLine",
+          "callee": "last.close.toFixed",
+          "lineNumber": 111
+        },
+        {
+          "caller": "summaryLine",
+          "callee": "pct.toFixed",
+          "lineNumber": 111
+        },
+        {
+          "caller": "formatDate",
+          "callee": "Number.isNaN",
+          "lineNumber": 118
+        },
+        {
+          "caller": "formatDate",
+          "callee": "date.getTime",
+          "lineNumber": 118
+        },
+        {
+          "caller": "formatDate",
+          "callee": "date.getFullYear",
+          "lineNumber": 119
+        },
+        {
+          "caller": "formatDate",
+          "callee": "String(date.getMonth() + 1).padStart",
+          "lineNumber": 119
+        },
+        {
+          "caller": "formatDate",
+          "callee": "String",
+          "lineNumber": 119
+        },
+        {
+          "caller": "formatDate",
+          "callee": "date.getMonth",
+          "lineNumber": 119
+        },
+        {
+          "caller": "formatDate",
+          "callee": "String(date.getDate()).padStart",
+          "lineNumber": 119
+        },
+        {
+          "caller": "formatDate",
+          "callee": "String",
+          "lineNumber": 119
+        },
+        {
+          "caller": "formatDate",
+          "callee": "date.getDate",
+          "lineNumber": 119
+        },
+        {
+          "caller": "loadPanel",
+          "callee": "translator",
+          "lineNumber": 125
+        },
+        {
+          "caller": "loadPanel",
+          "callee": "setStatus",
+          "lineNumber": 126
+        },
+        {
+          "caller": "loadPanel",
+          "callee": "t",
+          "lineNumber": 126
+        },
+        {
+          "caller": "loadPanel",
+          "callee": "window.KLineChart.computeRange",
+          "lineNumber": 128
+        },
+        {
+          "caller": "loadPanel",
+          "callee": "window.KLineChart.fetchCandles",
+          "lineNumber": 129
+        },
+        {
+          "caller": "loadPanel",
+          "callee": "window.KLineChart.bucketInterval",
+          "lineNumber": 131
+        },
+        {
+          "caller": "loadPanel",
+          "callee": "fetch",
+          "lineNumber": 135
+        },
+        {
+          "caller": "loadPanel",
+          "callee": "setStatus",
+          "lineNumber": 138
+        },
+        {
+          "caller": "loadPanel",
+          "callee": "t",
+          "lineNumber": 138
+        },
+        {
+          "caller": "loadPanel",
+          "callee": "renderChart",
+          "lineNumber": 141
+        },
+        {
+          "caller": "loadPanel",
+          "callee": "setStatus",
+          "lineNumber": 143
+        },
+        {
+          "caller": "loadPanel",
+          "callee": "localizeError",
+          "lineNumber": 143
+        },
+        {
+          "caller": "loadPanel",
+          "callee": "String",
+          "lineNumber": 143
+        },
+        {
+          "caller": "wirePanel",
+          "callee": "panel.querySelectorAll(\"[data-interval]\").forEach",
+          "lineNumber": 148
+        },
+        {
+          "caller": "wirePanel",
+          "callee": "panel.querySelectorAll",
+          "lineNumber": 148
+        },
+        {
+          "caller": "wirePanel",
+          "callee": "button.addEventListener",
+          "lineNumber": 149
+        },
+        {
+          "caller": "wirePanel",
+          "callee": "Number",
+          "lineNumber": 150
+        },
+        {
+          "caller": "wirePanel",
+          "callee": "panel.querySelectorAll(\"[data-interval]\").forEach",
+          "lineNumber": 151
+        },
+        {
+          "caller": "wirePanel",
+          "callee": "panel.querySelectorAll",
+          "lineNumber": 151
+        },
+        {
+          "caller": "wirePanel",
+          "callee": "other.classList.remove",
+          "lineNumber": 151
+        },
+        {
+          "caller": "wirePanel",
+          "callee": "button.classList.add",
+          "lineNumber": 152
+        },
+        {
+          "caller": "wirePanel",
+          "callee": "loadPanel",
+          "lineNumber": 153
+        },
+        {
+          "caller": "wirePanel",
+          "callee": "panel.querySelector(\".chart-close\")?.addEventListener",
+          "lineNumber": 156
+        },
+        {
+          "caller": "wirePanel",
+          "callee": "panel.querySelector",
+          "lineNumber": 156
+        },
+        {
+          "caller": "wirePanel",
+          "callee": "toggleRow",
+          "lineNumber": 158
+        },
+        {
+          "caller": "expand",
+          "callee": "button.closest",
+          "lineNumber": 164
+        },
+        {
+          "caller": "expand",
+          "callee": "ensurePanel",
+          "lineNumber": 168
+        },
+        {
+          "caller": "expand",
+          "callee": "toggleRow",
+          "lineNumber": 170
+        },
+        {
+          "caller": "expand",
+          "callee": "Number",
+          "lineNumber": 173
+        },
+        {
+          "caller": "expand",
+          "callee": "panel.querySelector",
+          "lineNumber": 173
+        },
+        {
+          "caller": "expand",
+          "callee": "loadPanel",
+          "lineNumber": 174
+        },
+        {
+          "caller": "attach",
+          "callee": "list.addEventListener",
+          "lineNumber": 180
+        },
+        {
+          "caller": "attach",
+          "callee": "event.target.closest",
+          "lineNumber": 181
+        },
+        {
+          "caller": "attach",
+          "callee": "event.preventDefault",
+          "lineNumber": 183
+        },
+        {
+          "caller": "attach",
+          "callee": "expand",
+          "lineNumber": 184
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "web/synthesis.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 63,
+      "nonEmptyLines": 48,
+      "functions": [
+        {
+          "name": "_text",
+          "startLine": 9,
+          "endLine": 16,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "_source_material",
+          "startLine": 19,
+          "endLine": 31,
+          "params": [
+            "final_state",
+            "limit"
+          ]
+        },
+        {
+          "name": "generate_executive_summary",
+          "startLine": 34,
+          "endLine": 57,
+          "params": [
+            "llm",
+            "ticker",
+            "output_language",
+            "final_state"
+          ]
+        },
+        {
+          "name": "save_executive_summary",
+          "startLine": 60,
+          "endLine": 63,
+          "params": [
+            "report_dir",
+            "summary"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_text",
+          "line": 9,
+          "isDefault": false
+        },
+        {
+          "name": "_source_material",
+          "line": 19,
+          "isDefault": false
+        },
+        {
+          "name": "generate_executive_summary",
+          "line": 34,
+          "isDefault": false
+        },
+        {
+          "name": "save_executive_summary",
+          "line": 60,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_text",
+          "callee": "isinstance",
+          "lineNumber": 12
+        },
+        {
+          "caller": "_text",
+          "callee": "isinstance",
+          "lineNumber": 14
+        },
+        {
+          "caller": "_text",
+          "callee": "\"\\n\".join",
+          "lineNumber": 15
+        },
+        {
+          "caller": "_text",
+          "callee": "_text",
+          "lineNumber": 15
+        },
+        {
+          "caller": "_text",
+          "callee": "str",
+          "lineNumber": 16
+        },
+        {
+          "caller": "_source_material",
+          "callee": "final_state.get",
+          "lineNumber": 21
+        },
+        {
+          "caller": "_source_material",
+          "callee": "final_state.get",
+          "lineNumber": 22
+        },
+        {
+          "caller": "_source_material",
+          "callee": "final_state.get",
+          "lineNumber": 23
+        },
+        {
+          "caller": "_source_material",
+          "callee": "final_state.get",
+          "lineNumber": 24
+        },
+        {
+          "caller": "_source_material",
+          "callee": "final_state.get",
+          "lineNumber": 25
+        },
+        {
+          "caller": "_source_material",
+          "callee": "final_state.get",
+          "lineNumber": 26
+        },
+        {
+          "caller": "_source_material",
+          "callee": "(final_state.get(\"risk_debate_state\") or {}).get",
+          "lineNumber": 27
+        },
+        {
+          "caller": "_source_material",
+          "callee": "final_state.get",
+          "lineNumber": 27
+        },
+        {
+          "caller": "_source_material",
+          "callee": "final_state.get",
+          "lineNumber": 28
+        },
+        {
+          "caller": "_source_material",
+          "callee": "\"\\n\\n\".join",
+          "lineNumber": 30
+        },
+        {
+          "caller": "_source_material",
+          "callee": "_text",
+          "lineNumber": 30
+        },
+        {
+          "caller": "_source_material",
+          "callee": "_text(value).strip",
+          "lineNumber": 30
+        },
+        {
+          "caller": "_source_material",
+          "callee": "_text",
+          "lineNumber": 30
+        },
+        {
+          "caller": "generate_executive_summary",
+          "callee": "_source_material",
+          "lineNumber": 52
+        },
+        {
+          "caller": "generate_executive_summary",
+          "callee": "llm.invoke",
+          "lineNumber": 53
+        },
+        {
+          "caller": "generate_executive_summary",
+          "callee": "getattr",
+          "lineNumber": 54
+        },
+        {
+          "caller": "generate_executive_summary",
+          "callee": "isinstance",
+          "lineNumber": 55
+        },
+        {
+          "caller": "generate_executive_summary",
+          "callee": "\"\\n\".join",
+          "lineNumber": 56
+        },
+        {
+          "caller": "generate_executive_summary",
+          "callee": "item.get",
+          "lineNumber": 56
+        },
+        {
+          "caller": "generate_executive_summary",
+          "callee": "isinstance",
+          "lineNumber": 56
+        },
+        {
+          "caller": "generate_executive_summary",
+          "callee": "str",
+          "lineNumber": 56
+        },
+        {
+          "caller": "generate_executive_summary",
+          "callee": "_text(content).strip",
+          "lineNumber": 57
+        },
+        {
+          "caller": "generate_executive_summary",
+          "callee": "_text",
+          "lineNumber": 57
+        },
+        {
+          "caller": "save_executive_summary",
+          "callee": "Path",
+          "lineNumber": 61
+        },
+        {
+          "caller": "save_executive_summary",
+          "callee": "path.write_text",
+          "lineNumber": 62
+        },
+        {
+          "caller": "save_executive_summary",
+          "callee": "summary.strip",
+          "lineNumber": 62
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    }
+  ]
+}

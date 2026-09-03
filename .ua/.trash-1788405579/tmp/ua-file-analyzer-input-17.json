@@ -1,0 +1,70 @@
+{
+  "projectRoot": "/Users/shenkang/workroom/languages/agent/TradingAgents",
+  "batchFiles": [
+    {
+      "path": "docs/superpowers/specs/2026-08-26-web-analysis-console-design.md",
+      "language": "markdown",
+      "sizeLines": 329,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-27-personal-investor-platform-design.md",
+      "language": "markdown",
+      "sizeLines": 379,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-27-web-report-library-models-language-design.md",
+      "language": "markdown",
+      "sizeLines": 181,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-31-platform-reliability-operations-design.md",
+      "language": "markdown",
+      "sizeLines": 253,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-31-rating-localization-design.md",
+      "language": "markdown",
+      "sizeLines": 61,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-01-analysis-timeout-recovery-design.md",
+      "language": "markdown",
+      "sizeLines": 247,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-01-compact-section-headers-design.md",
+      "language": "markdown",
+      "sizeLines": 30,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-02-scheduled-analysis-design.md",
+      "language": "markdown",
+      "sizeLines": 369,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-02-ui-modern-redesign-design.md",
+      "language": "markdown",
+      "sizeLines": 219,
+      "fileCategory": "docs"
+    }
+  ],
+  "batchImportData": {
+    "docs/superpowers/specs/2026-08-26-web-analysis-console-design.md": [],
+    "docs/superpowers/specs/2026-08-27-personal-investor-platform-design.md": [],
+    "docs/superpowers/specs/2026-08-27-web-report-library-models-language-design.md": [],
+    "docs/superpowers/specs/2026-08-31-platform-reliability-operations-design.md": [],
+    "docs/superpowers/specs/2026-08-31-rating-localization-design.md": [],
+    "docs/superpowers/specs/2026-09-01-analysis-timeout-recovery-design.md": [],
+    "docs/superpowers/specs/2026-09-01-compact-section-headers-design.md": [],
+    "docs/superpowers/specs/2026-09-02-scheduled-analysis-design.md": [],
+    "docs/superpowers/specs/2026-09-02-ui-modern-redesign-design.md": []
+  }
+}

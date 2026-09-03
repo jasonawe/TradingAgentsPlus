@@ -1,0 +1,1034 @@
+{
+  "projectRoot": "/Users/shenkang/workroom/languages/agent/TradingAgents",
+  "batchFiles": [
+    {
+      "path": "tests/test_checkpoint_resume.py",
+      "language": "python",
+      "sizeLines": 218,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_chunk3_contract_fixes.py",
+      "language": "python",
+      "sizeLines": 92,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_error_classifier.py",
+      "language": "python",
+      "sizeLines": 133,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_run_manager_concurrency.py",
+      "language": "python",
+      "sizeLines": 140,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_safe_ticker_component.py",
+      "language": "python",
+      "sizeLines": 57,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_api.py",
+      "language": "python",
+      "sizeLines": 538,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_api_recovery.py",
+      "language": "python",
+      "sizeLines": 179,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_artifacts.py",
+      "language": "python",
+      "sizeLines": 257,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_history.py",
+      "language": "python",
+      "sizeLines": 214,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_lease.py",
+      "language": "python",
+      "sizeLines": 163,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_manager.py",
+      "language": "python",
+      "sizeLines": 672,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_markdown.py",
+      "language": "python",
+      "sizeLines": 42,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_models.py",
+      "language": "python",
+      "sizeLines": 305,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_repositories.py",
+      "language": "python",
+      "sizeLines": 324,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_retry.py",
+      "language": "python",
+      "sizeLines": 256,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_runner.py",
+      "language": "python",
+      "sizeLines": 219,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_runner_recovery.py",
+      "language": "python",
+      "sizeLines": 135,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_settings.py",
+      "language": "python",
+      "sizeLines": 28,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_snapshots.py",
+      "language": "python",
+      "sizeLines": 93,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "tests/test_checkpoint_resume.py": [
+      "tradingagents/graph/checkpointer.py"
+    ],
+    "tests/test_chunk3_contract_fixes.py": [
+      "web/app.py",
+      "web/history.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_error_classifier.py": [
+      "web/error_classifier.py",
+      "web/error_codes.py"
+    ],
+    "tests/test_run_manager_concurrency.py": [
+      "web/manager.py",
+      "web/models.py"
+    ],
+    "tests/test_safe_ticker_component.py": [
+      "tradingagents/dataflows/utils.py"
+    ],
+    "tests/test_web_api.py": [
+      "web/app.py",
+      "web/history.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_api_recovery.py": [
+      "web/app.py",
+      "web/error_codes.py",
+      "web/manager.py",
+      "web/models.py"
+    ],
+    "tests/test_web_artifacts.py": [
+      "web/artifacts.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_history.py": [
+      "web/history.py",
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_lease.py": [
+      "web/error_codes.py",
+      "web/lease.py",
+      "web/manager.py",
+      "web/models.py"
+    ],
+    "tests/test_web_manager.py": [
+      "web/manager.py",
+      "web/models.py"
+    ],
+    "tests/test_web_markdown.py": [
+      "web/markdown.py"
+    ],
+    "tests/test_web_models.py": [
+      "web/config.py",
+      "web/models.py"
+    ],
+    "tests/test_web_repositories.py": [
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_retry.py": [
+      "tradingagents/graph/checkpointer.py",
+      "web/checkpoint_resume.py",
+      "web/error_codes.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_runner.py": [
+      "web/manager.py",
+      "web/models.py",
+      "web/runner.py"
+    ],
+    "tests/test_web_runner_recovery.py": [
+      "web/artifacts.py",
+      "web/error_codes.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/runner.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_settings.py": [
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_snapshots.py": [
+      "web/snapshots.py"
+    ]
+  },
+  "neighborMap": {
+    "tests/test_checkpoint_resume.py": [
+      {
+        "path": "tradingagents/graph/checkpointer.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_db_path",
+          "thread_id",
+          "get_checkpointer",
+          "has_checkpoint",
+          "checkpoint_step",
+          "clear_all_checkpoints",
+          "clear_checkpoint"
+        ]
+      }
+    ],
+    "tests/test_chunk3_contract_fixes.py": [
+      {
+        "path": "web/app.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_record_json",
+          "_error",
+          "_safe_filename",
+          "_config_view",
+          "_watchlist_view",
+          "_event_sse",
+          "_cursor",
+          "create_app",
+          "_request_disconnected"
+        ]
+      },
+      {
+        "path": "web/history.py",
+        "batchIndex": 6,
+        "symbols": [
+          "ReportNotFound",
+          "_legacy_digest",
+          "_ReportEntry",
+          "ReportHistory"
+        ]
+      },
+      {
+        "path": "web/manager.py",
+        "batchIndex": 6,
+        "symbols": [
+          "MaxConcurrentRunsError",
+          "AssetBusyError",
+          "EventBatch",
+          "_ManagedRun",
+          "RunManager"
+        ]
+      },
+      {
+        "path": "web/models.py",
+        "batchIndex": 6,
+        "symbols": [
+          "RunStatus",
+          "EventName",
+          "AnalysisRequest",
+          "RunRecord",
+          "HistoryRecord",
+          "EventPayload",
+          "RunSnapshotPayload",
+          "RunStartedPayload",
+          "PhaseChangedPayload",
+          "AgentStatusPayload",
+          "ProgressPayload",
+          "MessagePayload",
+          "ActivityPayload",
+          "RunCompletedPayload",
+          "RunFailedPayload",
+          "RunCancelledPayload",
+          "RunInterruptedPayload",
+          "RunTimedOutPayload",
+          "EventEnvelope"
+        ]
+      },
+      {
+        "path": "web/repositories.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_now",
+          "_row",
+          "WatchlistRepository",
+          "QuoteRepository",
+          "SnapshotRepository",
+          "SettingsRepository",
+          "AnalysisRunRepository",
+          "ReportIndexRepository",
+          "ProviderHealthRepository",
+          "ReportRepository"
+        ]
+      },
+      {
+        "path": "web/storage.py",
+        "batchIndex": 6,
+        "symbols": [
+          "SQLiteStore"
+        ]
+      }
+    ],
+    "tests/test_error_classifier.py": [
+      {
+        "path": "web/error_classifier.py",
+        "batchIndex": 6,
+        "symbols": [
+          "ProviderErrorInfo",
+          "_sanitize_detail",
+          "_looks_like_timeout",
+          "_looks_like_rate_limit",
+          "_looks_like_auth",
+          "_looks_like_unavailable",
+          "_extract_status_code",
+          "classify_provider_exception",
+          "worker_error_info"
+        ]
+      },
+      {
+        "path": "web/error_codes.py",
+        "batchIndex": 6,
+        "symbols": [
+          "TerminalReason"
+        ]
+      }
+    ],
+    "tests/test_run_manager_concurrency.py": [
+      {
+        "path": "web/manager.py",
+        "batchIndex": 6,
+        "symbols": [
+          "MaxConcurrentRunsError",
+          "AssetBusyError",
+          "EventBatch",
+          "_ManagedRun",
+          "RunManager"
+        ]
+      },
+      {
+        "path": "web/models.py",
+        "batchIndex": 6,
+        "symbols": [
+          "RunStatus",
+          "EventName",
+          "AnalysisRequest",
+          "RunRecord",
+          "HistoryRecord",
+          "EventPayload",
+          "RunSnapshotPayload",
+          "RunStartedPayload",
+          "PhaseChangedPayload",
+          "AgentStatusPayload",
+          "ProgressPayload",
+          "MessagePayload",
+          "ActivityPayload",
+          "RunCompletedPayload",
+          "RunFailedPayload",
+          "RunCancelledPayload",
+          "RunInterruptedPayload",
+          "RunTimedOutPayload",
+          "EventEnvelope"
+        ]
+      }
+    ],
+    "tests/test_safe_ticker_component.py": [
+      {
+        "path": "tradingagents/dataflows/utils.py",
+        "batchIndex": 6,
+        "symbols": [
+          "safe_ticker_component",
+          "save_output",
+          "get_current_date",
+          "decorate_all_methods",
+          "get_next_weekday"
+        ]
+      }
+    ],
+    "tests/test_web_api.py": [
+      {
+        "path": "web/app.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_record_json",
+          "_error",
+          "_safe_filename",
+          "_config_view",
+          "_watchlist_view",
+          "_event_sse",
+          "_cursor",
+          "create_app",
+          "_request_disconnected"
+        ]
+      },
+      {
+        "path": "web/history.py",
+        "batchIndex": 6,
+        "symbols": [
+          "ReportNotFound",
+          "_legacy_digest",
+          "_ReportEntry",
+          "ReportHistory"
+        ]
+      },
+      {
+        "path": "web/manager.py",
+        "batchIndex": 6,
+        "symbols": [
+          "MaxConcurrentRunsError",
+          "AssetBusyError",
+          "EventBatch",
+          "_ManagedRun",
+          "RunManager"
+        ]
+      },
+      {
+        "path": "web/models.py",
+        "batchIndex": 6,
+        "symbols": [
+          "RunStatus",
+          "EventName",
+          "AnalysisRequest",
+          "RunRecord",
+          "HistoryRecord",
+          "EventPayload",
+          "RunSnapshotPayload",
+          "RunStartedPayload",
+          "PhaseChangedPayload",
+          "AgentStatusPayload",
+          "ProgressPayload",
+          "MessagePayload",
+          "ActivityPayload",
+          "RunCompletedPayload",
+          "RunFailedPayload",
+          "RunCancelledPayload",
+          "RunInterruptedPayload",
+          "RunTimedOutPayload",
+          "EventEnvelope"
+        ]
+      },
+      {
+        "path": "web/repositories.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_now",
+          "_row",
+          "WatchlistRepository",
+          "QuoteRepository",
+          "SnapshotRepository",
+          "SettingsRepository",
+          "AnalysisRunRepository",
+          "ReportIndexRepository",
+          "ProviderHealthRepository",
+          "ReportRepository"
+        ]
+      },
+      {
+        "path": "web/storage.py",
+        "batchIndex": 6,
+        "symbols": [
+          "SQLiteStore"
+        ]
+      }
+    ],
+    "tests/test_web_api_recovery.py": [
+      {
+        "path": "web/app.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_record_json",
+          "_error",
+          "_safe_filename",
+          "_config_view",
+          "_watchlist_view",
+          "_event_sse",
+          "_cursor",
+          "create_app",
+          "_request_disconnected"
+        ]
+      },
+      {
+        "path": "web/error_codes.py",
+        "batchIndex": 6,
+        "symbols": [
+          "TerminalReason"
+        ]
+      },
+      {
+        "path": "web/manager.py",
+        "batchIndex": 6,
+        "symbols": [
+          "MaxConcurrentRunsError",
+          "AssetBusyError",
+          "EventBatch",
+          "_ManagedRun",
+          "RunManager"
+        ]
+      },
+      {
+        "path": "web/models.py",
+        "batchIndex": 6,
+        "symbols": [
+          "RunStatus",
+          "EventName",
+          "AnalysisRequest",
+          "RunRecord",
+          "HistoryRecord",
+          "EventPayload",
+          "RunSnapshotPayload",
+          "RunStartedPayload",
+          "PhaseChangedPayload",
+          "AgentStatusPayload",
+          "ProgressPayload",
+          "MessagePayload",
+          "ActivityPayload",
+          "RunCompletedPayload",
+          "RunFailedPayload",
+          "RunCancelledPayload",
+          "RunInterruptedPayload",
+          "RunTimedOutPayload",
+          "EventEnvelope"
+        ]
+      }
+    ],
+    "tests/test_web_artifacts.py": [
+      {
+        "path": "web/artifacts.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_now_iso",
+          "ArtifactRecord",
+          "_decode_row",
+          "ArtifactRepository"
+        ]
+      },
+      {
+        "path": "web/manager.py",
+        "batchIndex": 6,
+        "symbols": [
+          "MaxConcurrentRunsError",
+          "AssetBusyError",
+          "EventBatch",
+          "_ManagedRun",
+          "RunManager"
+        ]
+      },
+      {
+        "path": "web/models.py",
+        "batchIndex": 6,
+        "symbols": [
+          "RunStatus",
+          "EventName",
+          "AnalysisRequest",
+          "RunRecord",
+          "HistoryRecord",
+          "EventPayload",
+          "RunSnapshotPayload",
+          "RunStartedPayload",
+          "PhaseChangedPayload",
+          "AgentStatusPayload",
+          "ProgressPayload",
+          "MessagePayload",
+          "ActivityPayload",
+          "RunCompletedPayload",
+          "RunFailedPayload",
+          "RunCancelledPayload",
+          "RunInterruptedPayload",
+          "RunTimedOutPayload",
+          "EventEnvelope"
+        ]
+      },
+      {
+        "path": "web/storage.py",
+        "batchIndex": 6,
+        "symbols": [
+          "SQLiteStore"
+        ]
+      }
+    ],
+    "tests/test_web_history.py": [
+      {
+        "path": "web/history.py",
+        "batchIndex": 6,
+        "symbols": [
+          "ReportNotFound",
+          "_legacy_digest",
+          "_ReportEntry",
+          "ReportHistory"
+        ]
+      },
+      {
+        "path": "web/repositories.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_now",
+          "_row",
+          "WatchlistRepository",
+          "QuoteRepository",
+          "SnapshotRepository",
+          "SettingsRepository",
+          "AnalysisRunRepository",
+          "ReportIndexRepository",
+          "ProviderHealthRepository",
+          "ReportRepository"
+        ]
+      },
+      {
+        "path": "web/storage.py",
+        "batchIndex": 6,
+        "symbols": [
+          "SQLiteStore"
+        ]
+      }
+    ],
+    "tests/test_web_lease.py": [
+      {
+        "path": "web/error_codes.py",
+        "batchIndex": 6,
+        "symbols": [
+          "TerminalReason"
+        ]
+      },
+      {
+        "path": "web/lease.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_RunManagerLike",
+          "generate_owner_token",
+          "WorkerLease"
+        ]
+      },
+      {
+        "path": "web/manager.py",
+        "batchIndex": 6,
+        "symbols": [
+          "MaxConcurrentRunsError",
+          "AssetBusyError",
+          "EventBatch",
+          "_ManagedRun",
+          "RunManager"
+        ]
+      },
+      {
+        "path": "web/models.py",
+        "batchIndex": 6,
+        "symbols": [
+          "RunStatus",
+          "EventName",
+          "AnalysisRequest",
+          "RunRecord",
+          "HistoryRecord",
+          "EventPayload",
+          "RunSnapshotPayload",
+          "RunStartedPayload",
+          "PhaseChangedPayload",
+          "AgentStatusPayload",
+          "ProgressPayload",
+          "MessagePayload",
+          "ActivityPayload",
+          "RunCompletedPayload",
+          "RunFailedPayload",
+          "RunCancelledPayload",
+          "RunInterruptedPayload",
+          "RunTimedOutPayload",
+          "EventEnvelope"
+        ]
+      }
+    ],
+    "tests/test_web_manager.py": [
+      {
+        "path": "web/manager.py",
+        "batchIndex": 6,
+        "symbols": [
+          "MaxConcurrentRunsError",
+          "AssetBusyError",
+          "EventBatch",
+          "_ManagedRun",
+          "RunManager"
+        ]
+      },
+      {
+        "path": "web/models.py",
+        "batchIndex": 6,
+        "symbols": [
+          "RunStatus",
+          "EventName",
+          "AnalysisRequest",
+          "RunRecord",
+          "HistoryRecord",
+          "EventPayload",
+          "RunSnapshotPayload",
+          "RunStartedPayload",
+          "PhaseChangedPayload",
+          "AgentStatusPayload",
+          "ProgressPayload",
+          "MessagePayload",
+          "ActivityPayload",
+          "RunCompletedPayload",
+          "RunFailedPayload",
+          "RunCancelledPayload",
+          "RunInterruptedPayload",
+          "RunTimedOutPayload",
+          "EventEnvelope"
+        ]
+      }
+    ],
+    "tests/test_web_markdown.py": [
+      {
+        "path": "web/markdown.py",
+        "batchIndex": 6,
+        "symbols": [
+          "render_markdown"
+        ]
+      }
+    ],
+    "tests/test_web_models.py": [
+      {
+        "path": "web/config.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_parse_integer_setting",
+          "resolve_run_lifecycle_config",
+          "market_data_catalog",
+          "_options",
+          "model_catalog",
+          "resolve_model_config"
+        ]
+      },
+      {
+        "path": "web/models.py",
+        "batchIndex": 6,
+        "symbols": [
+          "RunStatus",
+          "EventName",
+          "AnalysisRequest",
+          "RunRecord",
+          "HistoryRecord",
+          "EventPayload",
+          "RunSnapshotPayload",
+          "RunStartedPayload",
+          "PhaseChangedPayload",
+          "AgentStatusPayload",
+          "ProgressPayload",
+          "MessagePayload",
+          "ActivityPayload",
+          "RunCompletedPayload",
+          "RunFailedPayload",
+          "RunCancelledPayload",
+          "RunInterruptedPayload",
+          "RunTimedOutPayload",
+          "EventEnvelope"
+        ]
+      }
+    ],
+    "tests/test_web_repositories.py": [
+      {
+        "path": "web/repositories.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_now",
+          "_row",
+          "WatchlistRepository",
+          "QuoteRepository",
+          "SnapshotRepository",
+          "SettingsRepository",
+          "AnalysisRunRepository",
+          "ReportIndexRepository",
+          "ProviderHealthRepository",
+          "ReportRepository"
+        ]
+      },
+      {
+        "path": "web/storage.py",
+        "batchIndex": 6,
+        "symbols": [
+          "SQLiteStore"
+        ]
+      }
+    ],
+    "tests/test_web_retry.py": [
+      {
+        "path": "tradingagents/graph/checkpointer.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_db_path",
+          "thread_id",
+          "get_checkpointer",
+          "has_checkpoint",
+          "checkpoint_step",
+          "clear_all_checkpoints",
+          "clear_checkpoint"
+        ]
+      },
+      {
+        "path": "web/checkpoint_resume.py",
+        "batchIndex": 6,
+        "symbols": [
+          "build_checkpoint_signature",
+          "thread_id_for_run",
+          "checkpoint_id",
+          "checkpoint_available",
+          "checkpoint_step_value",
+          "clear_checkpoint_for_signature",
+          "checkpoint_metadata_for_signature",
+          "retention_until",
+          "is_retained"
+        ]
+      },
+      {
+        "path": "web/error_codes.py",
+        "batchIndex": 6,
+        "symbols": [
+          "TerminalReason"
+        ]
+      },
+      {
+        "path": "web/manager.py",
+        "batchIndex": 6,
+        "symbols": [
+          "MaxConcurrentRunsError",
+          "AssetBusyError",
+          "EventBatch",
+          "_ManagedRun",
+          "RunManager"
+        ]
+      },
+      {
+        "path": "web/models.py",
+        "batchIndex": 6,
+        "symbols": [
+          "RunStatus",
+          "EventName",
+          "AnalysisRequest",
+          "RunRecord",
+          "HistoryRecord",
+          "EventPayload",
+          "RunSnapshotPayload",
+          "RunStartedPayload",
+          "PhaseChangedPayload",
+          "AgentStatusPayload",
+          "ProgressPayload",
+          "MessagePayload",
+          "ActivityPayload",
+          "RunCompletedPayload",
+          "RunFailedPayload",
+          "RunCancelledPayload",
+          "RunInterruptedPayload",
+          "RunTimedOutPayload",
+          "EventEnvelope"
+        ]
+      },
+      {
+        "path": "web/storage.py",
+        "batchIndex": 6,
+        "symbols": [
+          "SQLiteStore"
+        ]
+      }
+    ],
+    "tests/test_web_runner.py": [
+      {
+        "path": "web/manager.py",
+        "batchIndex": 6,
+        "symbols": [
+          "MaxConcurrentRunsError",
+          "AssetBusyError",
+          "EventBatch",
+          "_ManagedRun",
+          "RunManager"
+        ]
+      },
+      {
+        "path": "web/models.py",
+        "batchIndex": 6,
+        "symbols": [
+          "RunStatus",
+          "EventName",
+          "AnalysisRequest",
+          "RunRecord",
+          "HistoryRecord",
+          "EventPayload",
+          "RunSnapshotPayload",
+          "RunStartedPayload",
+          "PhaseChangedPayload",
+          "AgentStatusPayload",
+          "ProgressPayload",
+          "MessagePayload",
+          "ActivityPayload",
+          "RunCompletedPayload",
+          "RunFailedPayload",
+          "RunCancelledPayload",
+          "RunInterruptedPayload",
+          "RunTimedOutPayload",
+          "EventEnvelope"
+        ]
+      },
+      {
+        "path": "web/runner.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_is_partial",
+          "WebRunRunner",
+          "run_web_analysis"
+        ]
+      }
+    ],
+    "tests/test_web_runner_recovery.py": [
+      {
+        "path": "web/artifacts.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_now_iso",
+          "ArtifactRecord",
+          "_decode_row",
+          "ArtifactRepository"
+        ]
+      },
+      {
+        "path": "web/error_codes.py",
+        "batchIndex": 6,
+        "symbols": [
+          "TerminalReason"
+        ]
+      },
+      {
+        "path": "web/manager.py",
+        "batchIndex": 6,
+        "symbols": [
+          "MaxConcurrentRunsError",
+          "AssetBusyError",
+          "EventBatch",
+          "_ManagedRun",
+          "RunManager"
+        ]
+      },
+      {
+        "path": "web/models.py",
+        "batchIndex": 6,
+        "symbols": [
+          "RunStatus",
+          "EventName",
+          "AnalysisRequest",
+          "RunRecord",
+          "HistoryRecord",
+          "EventPayload",
+          "RunSnapshotPayload",
+          "RunStartedPayload",
+          "PhaseChangedPayload",
+          "AgentStatusPayload",
+          "ProgressPayload",
+          "MessagePayload",
+          "ActivityPayload",
+          "RunCompletedPayload",
+          "RunFailedPayload",
+          "RunCancelledPayload",
+          "RunInterruptedPayload",
+          "RunTimedOutPayload",
+          "EventEnvelope"
+        ]
+      },
+      {
+        "path": "web/runner.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_is_partial",
+          "WebRunRunner",
+          "run_web_analysis"
+        ]
+      },
+      {
+        "path": "web/storage.py",
+        "batchIndex": 6,
+        "symbols": [
+          "SQLiteStore"
+        ]
+      }
+    ],
+    "tests/test_web_settings.py": [
+      {
+        "path": "web/repositories.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_now",
+          "_row",
+          "WatchlistRepository",
+          "QuoteRepository",
+          "SnapshotRepository",
+          "SettingsRepository",
+          "AnalysisRunRepository",
+          "ReportIndexRepository",
+          "ProviderHealthRepository",
+          "ReportRepository"
+        ]
+      },
+      {
+        "path": "web/storage.py",
+        "batchIndex": 6,
+        "symbols": [
+          "SQLiteStore"
+        ]
+      }
+    ],
+    "tests/test_web_snapshots.py": [
+      {
+        "path": "web/snapshots.py",
+        "batchIndex": 6,
+        "symbols": [
+          "SnapshotCorruptError",
+          "_normalize",
+          "canonical_bytes",
+          "_sha256",
+          "SnapshotStore",
+          "DataSnapshotRecorder",
+          "SnapshotAwareDataProvider"
+        ]
+      }
+    ]
+  }
+}

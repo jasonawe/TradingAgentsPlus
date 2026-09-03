@@ -1,0 +1,186 @@
+{
+  "projectRoot": "/Users/shenkang/workroom/languages/agent/TradingAgents",
+  "batchFiles": [
+    {
+      "path": ".superpowers/brainstorm/41801-1787718122/.server-stopped",
+      "language": "unknown",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".superpowers/brainstorm/70330-1787815068/.server-stopped",
+      "language": "unknown",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".superpowers/brainstorm/70330-1787815068/portfolio-layout-options.html",
+      "language": "html",
+      "sizeLines": 62,
+      "fileCategory": "markup"
+    },
+    {
+      "path": ".superpowers/brainstorm/81139-1787817330/.server-stopped",
+      "language": "unknown",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".ua/.understandignore",
+      "language": "unknown",
+      "sizeLines": 155,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".ua/config.json",
+      "language": "json",
+      "sizeLines": 3,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".ua/intermediate/raw-scan.json",
+      "language": "json",
+      "sizeLines": 915,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".ua/intermediate/scan-result.json",
+      "language": "json",
+      "sizeLines": 1435,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".ua/tmp/synthesize-scan.mjs",
+      "language": "javascript",
+      "sizeLines": 22,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".ua/tmp/ua-scan-files.stderr",
+      "language": "stderr",
+      "sizeLines": 0,
+      "fileCategory": "code"
+    },
+    {
+      "path": "cli/static/welcome.txt",
+      "language": "txt",
+      "sizeLines": 7,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "tests/__init__.py",
+      "language": "python",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/conftest.py",
+      "language": "python",
+      "sizeLines": 67,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_cli_env_skip.py",
+      "language": "python",
+      "sizeLines": 149,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_ollama_base_url.py",
+      "language": "python",
+      "sizeLines": 196,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_packaging_contract.py",
+      "language": "python",
+      "sizeLines": 9,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_browser.py",
+      "language": "python",
+      "sizeLines": 265,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_static.py",
+      "language": "python",
+      "sizeLines": 388,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_synthesis.py",
+      "language": "python",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/__init__.py",
+      "language": "python",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/app.js",
+      "language": "javascript",
+      "sizeLines": 421,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/i18n.js",
+      "language": "javascript",
+      "sizeLines": 351,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/i18n.test.js",
+      "language": "javascript",
+      "sizeLines": 51,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/index.html",
+      "language": "html",
+      "sizeLines": 232,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "web/static/kline-chart.js",
+      "language": "javascript",
+      "sizeLines": 236,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    ".superpowers/brainstorm/41801-1787718122/.server-stopped": [],
+    ".superpowers/brainstorm/70330-1787815068/.server-stopped": [],
+    ".superpowers/brainstorm/70330-1787815068/portfolio-layout-options.html": [],
+    ".superpowers/brainstorm/81139-1787817330/.server-stopped": [],
+    ".ua/.understandignore": [],
+    ".ua/config.json": [],
+    ".ua/intermediate/raw-scan.json": [],
+    ".ua/intermediate/scan-result.json": [],
+    ".ua/tmp/synthesize-scan.mjs": [],
+    ".ua/tmp/ua-scan-files.stderr": [],
+    "cli/static/welcome.txt": [],
+    "tests/__init__.py": [],
+    "tests/conftest.py": [],
+    "tests/test_cli_env_skip.py": [],
+    "tests/test_ollama_base_url.py": [],
+    "tests/test_packaging_contract.py": [],
+    "tests/test_web_browser.py": [],
+    "tests/test_web_static.py": [],
+    "tests/test_web_synthesis.py": [
+      "web/synthesis.py"
+    ],
+    "tradingagents/__init__.py": [],
+    "web/static/app.js": [],
+    "web/static/i18n.js": [],
+    "web/static/i18n.test.js": [
+      "web/static/i18n.js"
+    ],
+    "web/static/index.html": [],
+    "web/static/kline-chart.js": []
+  }
+}

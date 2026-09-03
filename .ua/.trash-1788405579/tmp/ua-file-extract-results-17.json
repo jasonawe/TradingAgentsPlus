@@ -1,0 +1,1077 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 9,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 9,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 9
+    }
+  },
+  "results": [
+    {
+      "path": "docs/superpowers/specs/2026-08-26-web-analysis-console-design.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 329,
+      "nonEmptyLines": 229,
+      "sections": [
+        {
+          "heading": "TradingAgents Web Analysis Console Design",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Goal",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "Scope",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "In scope",
+          "level": 3,
+          "line": 13
+        },
+        {
+          "heading": "Out of scope for the first release",
+          "level": 3,
+          "line": 27
+        },
+        {
+          "heading": "Existing-System Constraints",
+          "level": 2,
+          "line": 36
+        },
+        {
+          "heading": "User Experience",
+          "level": 2,
+          "line": 44
+        },
+        {
+          "heading": "Initial view",
+          "level": 3,
+          "line": 48
+        },
+        {
+          "heading": "Running view",
+          "level": 3,
+          "line": 58
+        },
+        {
+          "heading": "Completed view",
+          "level": 3,
+          "line": 69
+        },
+        {
+          "heading": "Failure and cancellation views",
+          "level": 3,
+          "line": 79
+        },
+        {
+          "heading": "Architecture",
+          "level": 2,
+          "line": 83
+        },
+        {
+          "heading": "Server package",
+          "level": 3,
+          "line": 85
+        },
+        {
+          "heading": "Core integration",
+          "level": 3,
+          "line": 102
+        },
+        {
+          "heading": "Task execution",
+          "level": 3,
+          "line": 120
+        },
+        {
+          "heading": "Event flow",
+          "level": 3,
+          "line": 138
+        },
+        {
+          "heading": "API Contract",
+          "level": 2,
+          "line": 149
+        },
+        {
+          "heading": "`GET /`",
+          "level": 3,
+          "line": 151
+        },
+        {
+          "heading": "`GET /api/config`",
+          "level": 3,
+          "line": 155
+        },
+        {
+          "heading": "`POST /api/runs`",
+          "level": 3,
+          "line": 159
+        },
+        {
+          "heading": "`GET /api/runs/{run_id}`",
+          "level": 3,
+          "line": 184
+        },
+        {
+          "heading": "`GET /api/runs/{run_id}/events`",
+          "level": 3,
+          "line": 188
+        },
+        {
+          "heading": "`POST /api/runs/{run_id}/cancel`",
+          "level": 3,
+          "line": 222
+        },
+        {
+          "heading": "Launch command",
+          "level": 3,
+          "line": 226
+        },
+        {
+          "heading": "`GET /api/history`",
+          "level": 3,
+          "line": 230
+        },
+        {
+          "heading": "`GET /api/history/{run_id}`",
+          "level": 3,
+          "line": 234
+        },
+        {
+          "heading": "`GET /api/history/{run_id}/download`",
+          "level": 3,
+          "line": 238
+        },
+        {
+          "heading": "Request Semantics",
+          "level": 2,
+          "line": 242
+        },
+        {
+          "heading": "Progress Mapping",
+          "level": 2,
+          "line": 254
+        },
+        {
+          "heading": "Persistence and History",
+          "level": 2,
+          "line": 262
+        },
+        {
+          "heading": "Error Handling and Security",
+          "level": 2,
+          "line": 278
+        },
+        {
+          "heading": "Testing Strategy",
+          "level": 2,
+          "line": 290
+        },
+        {
+          "heading": "Unit/API tests",
+          "level": 3,
+          "line": 292
+        },
+        {
+          "heading": "Browser smoke test",
+          "level": 3,
+          "line": 304
+        },
+        {
+          "heading": "Existing checks",
+          "level": 3,
+          "line": 315
+        },
+        {
+          "heading": "Acceptance Criteria",
+          "level": 2,
+          "line": 319
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 36
+      }
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-27-personal-investor-platform-design.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 379,
+      "nonEmptyLines": 274,
+      "sections": [
+        {
+          "heading": "TradingAgents 个人投资者研究平台设计规格",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "1. 产品定位",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "2. 用户与核心任务",
+          "level": 2,
+          "line": 18
+        },
+        {
+          "heading": "3. 范围",
+          "level": 2,
+          "line": 29
+        },
+        {
+          "heading": "本期包含（MVP）",
+          "level": 3,
+          "line": 31
+        },
+        {
+          "heading": "本期不包含",
+          "level": 3,
+          "line": 49
+        },
+        {
+          "heading": "后续阶段",
+          "level": 3,
+          "line": 58
+        },
+        {
+          "heading": "4. 信息架构与交互",
+          "level": 2,
+          "line": 62
+        },
+        {
+          "heading": "4.1 首页：我的关注",
+          "level": 3,
+          "line": 66
+        },
+        {
+          "heading": "4.2 资产详情",
+          "level": 3,
+          "line": 80
+        },
+        {
+          "heading": "4.3 新建分析",
+          "level": 3,
+          "line": 93
+        },
+        {
+          "heading": "4.4 分析任务",
+          "level": 3,
+          "line": 108
+        },
+        {
+          "heading": "4.5 报告详情",
+          "level": 3,
+          "line": 121
+        },
+        {
+          "heading": "4.6 报告库",
+          "level": 3,
+          "line": 135
+        },
+        {
+          "heading": "5. 行情和研究数据架构",
+          "level": 2,
+          "line": 139
+        },
+        {
+          "heading": "5.1 统一数据契约与行情字段",
+          "level": 3,
+          "line": 150
+        },
+        {
+          "heading": "5.2 供应商路由",
+          "level": 3,
+          "line": 170
+        },
+        {
+          "heading": "5.3 缓存和过期",
+          "level": 3,
+          "line": 196
+        },
+        {
+          "heading": "6. 可扩展存储设计",
+          "level": 2,
+          "line": 205
+        },
+        {
+          "heading": "6.1 领域实体",
+          "level": 3,
+          "line": 209
+        },
+        {
+          "heading": "6.2 迁移边界",
+          "level": 3,
+          "line": 222
+        },
+        {
+          "heading": "6.3 一致性和恢复",
+          "level": 3,
+          "line": 234
+        },
+        {
+          "heading": "7. 设置和数据快照契约",
+          "level": 2,
+          "line": 246
+        },
+        {
+          "heading": "8. API 草案",
+          "level": 2,
+          "line": 282
+        },
+        {
+          "heading": "关注列表（MVP）",
+          "level": 3,
+          "line": 284
+        },
+        {
+          "heading": "行情",
+          "level": 3,
+          "line": 298
+        },
+        {
+          "heading": "分析和报告",
+          "level": 3,
+          "line": 339
+        },
+        {
+          "heading": "9. 验收标准",
+          "level": 2,
+          "line": 343
+        },
+        {
+          "heading": "10. 实施顺序",
+          "level": 2,
+          "line": 362
+        },
+        {
+          "heading": "MVP",
+          "level": 3,
+          "line": 364
+        },
+        {
+          "heading": "后续扩展",
+          "level": 3,
+          "line": 374
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 31
+      }
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-27-web-report-library-models-language-design.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 181,
+      "nonEmptyLines": 135,
+      "sections": [
+        {
+          "heading": "TradingAgents Web Report Library, Model Selection, and Output Languages",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Goal",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "Scope",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "In scope",
+          "level": 3,
+          "line": 13
+        },
+        {
+          "heading": "Out of scope",
+          "level": 3,
+          "line": 26
+        },
+        {
+          "heading": "Existing-System Constraints",
+          "level": 2,
+          "line": 33
+        },
+        {
+          "heading": "User Experience",
+          "level": 2,
+          "line": 43
+        },
+        {
+          "heading": "Report library",
+          "level": 3,
+          "line": 45
+        },
+        {
+          "heading": "Model and language controls",
+          "level": 3,
+          "line": 57
+        },
+        {
+          "heading": "Architecture",
+          "level": 2,
+          "line": 70
+        },
+        {
+          "heading": "Server changes",
+          "level": 3,
+          "line": 72
+        },
+        {
+          "heading": "Browser changes",
+          "level": 3,
+          "line": 85
+        },
+        {
+          "heading": "Data Flow",
+          "level": 2,
+          "line": 94
+        },
+        {
+          "heading": "API Contract",
+          "level": 2,
+          "line": 105
+        },
+        {
+          "heading": "`GET /api/config`",
+          "level": 3,
+          "line": 107
+        },
+        {
+          "heading": "`POST /api/runs`",
+          "level": 3,
+          "line": 137
+        },
+        {
+          "heading": "Run/history metadata",
+          "level": 3,
+          "line": 152
+        },
+        {
+          "heading": "Validation and Error Handling",
+          "level": 2,
+          "line": 156
+        },
+        {
+          "heading": "Testing",
+          "level": 2,
+          "line": 167
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 19
+      }
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-31-platform-reliability-operations-design.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 253,
+      "nonEmptyLines": 194,
+      "sections": [
+        {
+          "heading": "TradingAgentsPlus 平台可靠性与可观测性改进设计",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "目标",
+          "level": 2,
+          "line": 6
+        },
+        {
+          "heading": "现状与约束",
+          "level": 2,
+          "line": 10
+        },
+        {
+          "heading": "设计总览",
+          "level": 2,
+          "line": 19
+        },
+        {
+          "heading": "1. 质量基线与告警",
+          "level": 3,
+          "line": 21
+        },
+        {
+          "heading": "2. 分析任务心跳、超时和终态校验",
+          "level": 3,
+          "line": 27
+        },
+        {
+          "heading": "3. SQLite 报告索引与分页",
+          "level": 3,
+          "line": 65
+        },
+        {
+          "heading": "4. 行情数据源健康度与缓存过期",
+          "level": 3,
+          "line": 144
+        },
+        {
+          "heading": "5. 中文多语言资源",
+          "level": 3,
+          "line": 191
+        },
+        {
+          "heading": "数据流",
+          "level": 2,
+          "line": 203
+        },
+        {
+          "heading": "错误处理与兼容性",
+          "level": 2,
+          "line": 220
+        },
+        {
+          "heading": "测试策略",
+          "level": 2,
+          "line": 228
+        },
+        {
+          "heading": "非目标",
+          "level": 2,
+          "line": 239
+        },
+        {
+          "heading": "验收标准",
+          "level": 2,
+          "line": 246
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 14
+      }
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-31-rating-localization-design.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 61,
+      "nonEmptyLines": 45,
+      "sections": [
+        {
+          "heading": "投资评级中文显示设计",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "内部简报",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "决策",
+          "level": 2,
+          "line": 16
+        },
+        {
+          "heading": "应用范围",
+          "level": 2,
+          "line": 36
+        },
+        {
+          "heading": "状态与韧性",
+          "level": 2,
+          "line": 47
+        },
+        {
+          "heading": "验证",
+          "level": 2,
+          "line": 55
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 6
+      }
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-01-analysis-timeout-recovery-design.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 247,
+      "nonEmptyLines": 175,
+      "sections": [
+        {
+          "heading": "TradingAgentsPlus 分析超时与阶段恢复设计",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "背景",
+          "level": 2,
+          "line": 6
+        },
+        {
+          "heading": "目标",
+          "level": 2,
+          "line": 18
+        },
+        {
+          "heading": "非目标",
+          "level": 2,
+          "line": 26
+        },
+        {
+          "heading": "方案选择",
+          "level": 2,
+          "line": 33
+        },
+        {
+          "heading": "方案 A：只增大心跳阈值",
+          "level": 3,
+          "line": 35
+        },
+        {
+          "heading": "方案 B：独立 Worker 租约、结构化错误和阶段成果持久化",
+          "level": 3,
+          "line": 39
+        },
+        {
+          "heading": "方案 C：完整持久化任务队列和分布式恢复",
+          "level": 3,
+          "line": 43
+        },
+        {
+          "heading": "总体架构",
+          "level": 2,
+          "line": 47
+        },
+        {
+          "heading": "第一阶段：可靠终态与部分报告",
+          "level": 2,
+          "line": 63
+        },
+        {
+          "heading": "1. 分离租约与活动时间",
+          "level": 3,
+          "line": 65
+        },
+        {
+          "heading": "2. 模型请求预算和错误分类",
+          "level": 3,
+          "line": 90
+        },
+        {
+          "heading": "3. 阶段成果持久化",
+          "level": 3,
+          "line": 118
+        },
+        {
+          "heading": "4. 页面交互",
+          "level": 3,
+          "line": 160
+        },
+        {
+          "heading": "第二阶段：从 checkpoint 创建重试任务",
+          "level": 2,
+          "line": 171
+        },
+        {
+          "heading": "状态和并发约束",
+          "level": 2,
+          "line": 191
+        },
+        {
+          "heading": "数据迁移与兼容性",
+          "level": 2,
+          "line": 200
+        },
+        {
+          "heading": "可观测性",
+          "level": 2,
+          "line": 208
+        },
+        {
+          "heading": "测试策略",
+          "level": 2,
+          "line": 218
+        },
+        {
+          "heading": "分阶段验收标准",
+          "level": 2,
+          "line": 232
+        },
+        {
+          "heading": "第一阶段",
+          "level": 3,
+          "line": 234
+        },
+        {
+          "heading": "第二阶段",
+          "level": 3,
+          "line": 242
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 22
+      }
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-01-compact-section-headers-design.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 30,
+      "nonEmptyLines": 20,
+      "sections": [
+        {
+          "heading": "紧凑栏目标题设计",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "目标",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "信息层级",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "操作布局",
+          "level": 2,
+          "line": 14
+        },
+        {
+          "heading": "兼容性",
+          "level": 2,
+          "line": 20
+        },
+        {
+          "heading": "验收",
+          "level": 2,
+          "line": 26
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 6
+      }
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-02-scheduled-analysis-design.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 369,
+      "nonEmptyLines": 293,
+      "sections": [
+        {
+          "heading": "2026-09-02 — Scheduled Analysis Jobs Design",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Background",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "Goal",
+          "level": 2,
+          "line": 26
+        },
+        {
+          "heading": "Non-Goals",
+          "level": 2,
+          "line": 36
+        },
+        {
+          "heading": "User Stories",
+          "level": 2,
+          "line": 44
+        },
+        {
+          "heading": "Data Model",
+          "level": 2,
+          "line": 58
+        },
+        {
+          "heading": "New table: `scheduled_jobs`",
+          "level": 3,
+          "line": 60
+        },
+        {
+          "heading": "New table: `scheduled_run_logs`",
+          "level": 3,
+          "line": 78
+        },
+        {
+          "heading": "Two new settings entries",
+          "level": 3,
+          "line": 98
+        },
+        {
+          "heading": "API Surface",
+          "level": 2,
+          "line": 107
+        },
+        {
+          "heading": "Reads",
+          "level": 3,
+          "line": 112
+        },
+        {
+          "heading": "Mutations",
+          "level": 3,
+          "line": 119
+        },
+        {
+          "heading": "Validation",
+          "level": 3,
+          "line": 147
+        },
+        {
+          "heading": "Scheduler",
+          "level": 2,
+          "line": 156
+        },
+        {
+          "heading": "Manager Concurrency Changes",
+          "level": 2,
+          "line": 190
+        },
+        {
+          "heading": "UI",
+          "level": 2,
+          "line": 208
+        },
+        {
+          "heading": "Page layout (`/scheduled`)",
+          "level": 3,
+          "line": 217
+        },
+        {
+          "heading": "Forms",
+          "level": 3,
+          "line": 235
+        },
+        {
+          "heading": "Empty state",
+          "level": 3,
+          "line": 243
+        },
+        {
+          "heading": "History view",
+          "level": 3,
+          "line": 247
+        },
+        {
+          "heading": "Internationalization",
+          "level": 2,
+          "line": 252
+        },
+        {
+          "heading": "Testing Strategy",
+          "level": 2,
+          "line": 261
+        },
+        {
+          "heading": "Unit tests",
+          "level": 3,
+          "line": 263
+        },
+        {
+          "heading": "Integration tests",
+          "level": 3,
+          "line": 272
+        },
+        {
+          "heading": "Manager concurrency tests",
+          "level": 3,
+          "line": 283
+        },
+        {
+          "heading": "Frontend tests",
+          "level": 3,
+          "line": 290
+        },
+        {
+          "heading": "Caller Impact (manager concurrency)",
+          "level": 2,
+          "line": 298
+        },
+        {
+          "heading": "Migration",
+          "level": 2,
+          "line": 324
+        },
+        {
+          "heading": "Risks & Mitigations",
+          "level": 2,
+          "line": 330
+        },
+        {
+          "heading": "Open Questions",
+          "level": 2,
+          "line": 346
+        },
+        {
+          "heading": "Implementation Status",
+          "level": 2,
+          "line": 350
+        },
+        {
+          "heading": "Plan 1 summary",
+          "level": 3,
+          "line": 356
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 32
+      }
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-02-ui-modern-redesign-design.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 219,
+      "nonEmptyLines": 174,
+      "sections": [
+        {
+          "heading": "2026-09-02 — UI Modern Redesign (Direction C)",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Goal",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "Scope",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "Design Tokens",
+          "level": 2,
+          "line": 32
+        },
+        {
+          "heading": "Layout",
+          "level": 2,
+          "line": 91
+        },
+        {
+          "heading": "Components",
+          "level": 2,
+          "line": 111
+        },
+        {
+          "heading": "Per-View Layouts",
+          "level": 2,
+          "line": 127
+        },
+        {
+          "heading": "Watchlist (setup)",
+          "level": 3,
+          "line": 129
+        },
+        {
+          "heading": "Asset detail",
+          "level": 3,
+          "line": 136
+        },
+        {
+          "heading": "New Analysis form",
+          "level": 3,
+          "line": 147
+        },
+        {
+          "heading": "Active jobs",
+          "level": 3,
+          "line": 157
+        },
+        {
+          "heading": "Report detail",
+          "level": 3,
+          "line": 164
+        },
+        {
+          "heading": "Library",
+          "level": 3,
+          "line": 171
+        },
+        {
+          "heading": "Settings",
+          "level": 3,
+          "line": 178
+        },
+        {
+          "heading": "Implementation Phases",
+          "level": 2,
+          "line": 185
+        },
+        {
+          "heading": "Out of Scope",
+          "level": 2,
+          "line": 204
+        },
+        {
+          "heading": "Risks",
+          "level": 2,
+          "line": 212
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 17
+      }
+    }
+  ]
+}

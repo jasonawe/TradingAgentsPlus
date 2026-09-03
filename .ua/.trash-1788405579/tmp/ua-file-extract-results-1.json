@@ -1,0 +1,4430 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 32,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 32,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 32,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": [
+    {
+      "path": "scripts/smoke_structured_output.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 174,
+      "nonEmptyLines": 143,
+      "functions": [
+        {
+          "name": "_make_rm_state",
+          "startLine": 55,
+          "endLine": 66,
+          "params": []
+        },
+        {
+          "name": "_make_trader_state",
+          "startLine": 69,
+          "endLine": 73,
+          "params": [
+            "investment_plan"
+          ]
+        },
+        {
+          "name": "_make_pm_state",
+          "startLine": 76,
+          "endLine": 97,
+          "params": [
+            "investment_plan",
+            "trader_plan"
+          ]
+        },
+        {
+          "name": "_print_section",
+          "startLine": 100,
+          "endLine": 102,
+          "params": [
+            "title",
+            "content"
+          ]
+        },
+        {
+          "name": "main",
+          "startLine": 105,
+          "endLine": 170,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "_make_rm_state",
+          "line": 55,
+          "isDefault": false
+        },
+        {
+          "name": "_make_trader_state",
+          "line": 69,
+          "isDefault": false
+        },
+        {
+          "name": "_make_pm_state",
+          "line": 76,
+          "isDefault": false
+        },
+        {
+          "name": "_print_section",
+          "line": 100,
+          "isDefault": false
+        },
+        {
+          "name": "main",
+          "line": 105,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_print_section",
+          "callee": "print",
+          "lineNumber": 102
+        },
+        {
+          "caller": "main",
+          "callee": "argparse.ArgumentParser",
+          "lineNumber": 106
+        },
+        {
+          "caller": "main",
+          "callee": "parser.add_argument",
+          "lineNumber": 107
+        },
+        {
+          "caller": "main",
+          "callee": "list",
+          "lineNumber": 107
+        },
+        {
+          "caller": "main",
+          "callee": "PROVIDER_DEFAULTS.keys",
+          "lineNumber": 107
+        },
+        {
+          "caller": "main",
+          "callee": "parser.add_argument",
+          "lineNumber": 108
+        },
+        {
+          "caller": "main",
+          "callee": "parser.add_argument",
+          "lineNumber": 109
+        },
+        {
+          "caller": "main",
+          "callee": "parser.parse_args",
+          "lineNumber": 110
+        },
+        {
+          "caller": "main",
+          "callee": "print",
+          "lineNumber": 116
+        },
+        {
+          "caller": "main",
+          "callee": "print",
+          "lineNumber": 117
+        },
+        {
+          "caller": "main",
+          "callee": "print",
+          "lineNumber": 118
+        },
+        {
+          "caller": "main",
+          "callee": "create_llm_client",
+          "lineNumber": 121
+        },
+        {
+          "caller": "main",
+          "callee": "create_llm_client",
+          "lineNumber": 122
+        },
+        {
+          "caller": "main",
+          "callee": "deep_client.get_llm",
+          "lineNumber": 123
+        },
+        {
+          "caller": "main",
+          "callee": "quick_client.get_llm",
+          "lineNumber": 124
+        },
+        {
+          "caller": "main",
+          "callee": "create_research_manager",
+          "lineNumber": 127
+        },
+        {
+          "caller": "main",
+          "callee": "rm",
+          "lineNumber": 128
+        },
+        {
+          "caller": "main",
+          "callee": "_make_rm_state",
+          "lineNumber": 128
+        },
+        {
+          "caller": "main",
+          "callee": "_print_section",
+          "lineNumber": 130
+        },
+        {
+          "caller": "main",
+          "callee": "create_trader",
+          "lineNumber": 133
+        },
+        {
+          "caller": "main",
+          "callee": "trader",
+          "lineNumber": 134
+        },
+        {
+          "caller": "main",
+          "callee": "_make_trader_state",
+          "lineNumber": 134
+        },
+        {
+          "caller": "main",
+          "callee": "_print_section",
+          "lineNumber": 136
+        },
+        {
+          "caller": "main",
+          "callee": "create_portfolio_manager",
+          "lineNumber": 139
+        },
+        {
+          "caller": "main",
+          "callee": "pm",
+          "lineNumber": 140
+        },
+        {
+          "caller": "main",
+          "callee": "_make_pm_state",
+          "lineNumber": 140
+        },
+        {
+          "caller": "main",
+          "callee": "_print_section",
+          "lineNumber": 142
+        },
+        {
+          "caller": "main",
+          "callee": "SignalProcessor",
+          "lineNumber": 145
+        },
+        {
+          "caller": "main",
+          "callee": "sp.process_signal",
+          "lineNumber": 146
+        },
+        {
+          "caller": "main",
+          "callee": "_print_section",
+          "lineNumber": 147
+        },
+        {
+          "caller": "main",
+          "callee": "print",
+          "lineNumber": 157
+        },
+        {
+          "caller": "main",
+          "callee": "print",
+          "lineNumber": 162
+        },
+        {
+          "caller": "main",
+          "callee": "int",
+          "lineNumber": 163
+        },
+        {
+          "caller": "main",
+          "callee": "print",
+          "lineNumber": 165
+        },
+        {
+          "caller": "main",
+          "callee": "print",
+          "lineNumber": 167
+        },
+        {
+          "caller": "main",
+          "callee": "print",
+          "lineNumber": 169
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 5,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tests/test_i18n_coverage.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 59,
+      "nonEmptyLines": 49,
+      "functions": [
+        {
+          "name": "test_report_agent_applies_language_instruction",
+          "startLine": 52,
+          "endLine": 59,
+          "params": [
+            "rel"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "TestLanguageInstruction",
+          "startLine": 36,
+          "endLine": 47,
+          "methods": [
+            "test_english_adds_no_tokens",
+            "test_non_english_emits_directive"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestLanguageInstruction",
+          "line": 35,
+          "isDefault": false
+        },
+        {
+          "name": "test_report_agent_applies_language_instruction",
+          "line": 50,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_english_adds_no_tokens",
+          "callee": "set_config",
+          "lineNumber": 39
+        },
+        {
+          "caller": "test_english_adds_no_tokens",
+          "callee": "get_language_instruction",
+          "lineNumber": 40
+        },
+        {
+          "caller": "test_non_english_emits_directive",
+          "callee": "set_config",
+          "lineNumber": 44
+        },
+        {
+          "caller": "test_non_english_emits_directive",
+          "callee": "get_language_instruction",
+          "lineNumber": 45
+        },
+        {
+          "caller": "test_report_agent_applies_language_instruction",
+          "callee": "path.exists",
+          "lineNumber": 54
+        },
+        {
+          "caller": "test_report_agent_applies_language_instruction",
+          "callee": "path.read_text",
+          "lineNumber": 55
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "tests/test_instrument_identity.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 170,
+      "nonEmptyLines": 143,
+      "classes": [
+        {
+          "name": "ResolveInstrumentIdentityTests",
+          "startLine": 19,
+          "endLine": 65,
+          "methods": [
+            "setUp",
+            "test_resolves_company_metadata_from_yfinance",
+            "test_falls_back_to_short_name",
+            "test_skips_placeholder_values",
+            "test_fails_open_on_exception",
+            "test_result_is_cached"
+          ],
+          "properties": []
+        },
+        {
+          "name": "BuildInstrumentContextTests",
+          "startLine": 69,
+          "endLine": 96,
+          "methods": [
+            "test_mentions_exact_symbol_without_identity",
+            "test_injects_resolved_identity",
+            "test_crypto_uses_name_label_and_keeps_hint"
+          ],
+          "properties": []
+        },
+        {
+          "name": "GetInstrumentContextFromStateTests",
+          "startLine": 100,
+          "endLine": 118,
+          "methods": [
+            "test_prefers_precomputed_context",
+            "test_fallback_is_network_free_ticker_only",
+            "test_fallback_respects_asset_type"
+          ],
+          "properties": []
+        },
+        {
+          "name": "ContextAnchoredPlaceholderTests",
+          "startLine": 122,
+          "endLine": 166,
+          "methods": [
+            "_run",
+            "test_placeholder_is_not_bare_continue",
+            "test_placeholder_carries_resolved_identity",
+            "test_old_messages_are_removed",
+            "test_safe_defaults_when_state_minimal"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "ResolveInstrumentIdentityTests",
+          "line": 18,
+          "isDefault": false
+        },
+        {
+          "name": "BuildInstrumentContextTests",
+          "line": 68,
+          "isDefault": false
+        },
+        {
+          "name": "GetInstrumentContextFromStateTests",
+          "line": 99,
+          "isDefault": false
+        },
+        {
+          "name": "ContextAnchoredPlaceholderTests",
+          "line": 121,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "setUp",
+          "callee": "resolve_instrument_identity.cache_clear",
+          "lineNumber": 21
+        },
+        {
+          "caller": "test_resolves_company_metadata_from_yfinance",
+          "callee": "patch",
+          "lineNumber": 24
+        },
+        {
+          "caller": "test_resolves_company_metadata_from_yfinance",
+          "callee": "resolve_instrument_identity",
+          "lineNumber": 33
+        },
+        {
+          "caller": "test_resolves_company_metadata_from_yfinance",
+          "callee": "mock.assert_called_once_with",
+          "lineNumber": 34
+        },
+        {
+          "caller": "test_resolves_company_metadata_from_yfinance",
+          "callee": "self.assertEqual",
+          "lineNumber": 35
+        },
+        {
+          "caller": "test_resolves_company_metadata_from_yfinance",
+          "callee": "self.assertEqual",
+          "lineNumber": 36
+        },
+        {
+          "caller": "test_resolves_company_metadata_from_yfinance",
+          "callee": "self.assertEqual",
+          "lineNumber": 37
+        },
+        {
+          "caller": "test_resolves_company_metadata_from_yfinance",
+          "callee": "self.assertEqual",
+          "lineNumber": 38
+        },
+        {
+          "caller": "test_falls_back_to_short_name",
+          "callee": "patch",
+          "lineNumber": 41
+        },
+        {
+          "caller": "test_falls_back_to_short_name",
+          "callee": "resolve_instrument_identity",
+          "lineNumber": 43
+        },
+        {
+          "caller": "test_falls_back_to_short_name",
+          "callee": "self.assertEqual",
+          "lineNumber": 44
+        },
+        {
+          "caller": "test_skips_placeholder_values",
+          "callee": "patch",
+          "lineNumber": 47
+        },
+        {
+          "caller": "test_skips_placeholder_values",
+          "callee": "resolve_instrument_identity",
+          "lineNumber": 49
+        },
+        {
+          "caller": "test_skips_placeholder_values",
+          "callee": "self.assertEqual",
+          "lineNumber": 50
+        },
+        {
+          "caller": "test_fails_open_on_exception",
+          "callee": "patch",
+          "lineNumber": 53
+        },
+        {
+          "caller": "test_fails_open_on_exception",
+          "callee": "RuntimeError",
+          "lineNumber": 55
+        },
+        {
+          "caller": "test_fails_open_on_exception",
+          "callee": "self.assertEqual",
+          "lineNumber": 57
+        },
+        {
+          "caller": "test_fails_open_on_exception",
+          "callee": "resolve_instrument_identity",
+          "lineNumber": 57
+        },
+        {
+          "caller": "test_result_is_cached",
+          "callee": "patch",
+          "lineNumber": 60
+        },
+        {
+          "caller": "test_result_is_cached",
+          "callee": "resolve_instrument_identity",
+          "lineNumber": 62
+        },
+        {
+          "caller": "test_result_is_cached",
+          "callee": "resolve_instrument_identity",
+          "lineNumber": 63
+        },
+        {
+          "caller": "test_result_is_cached",
+          "callee": "mock.assert_called_once",
+          "lineNumber": 64
+        },
+        {
+          "caller": "test_result_is_cached",
+          "callee": "self.assertEqual",
+          "lineNumber": 65
+        },
+        {
+          "caller": "test_mentions_exact_symbol_without_identity",
+          "callee": "build_instrument_context",
+          "lineNumber": 71
+        },
+        {
+          "caller": "test_mentions_exact_symbol_without_identity",
+          "callee": "self.assertIn",
+          "lineNumber": 72
+        },
+        {
+          "caller": "test_mentions_exact_symbol_without_identity",
+          "callee": "self.assertIn",
+          "lineNumber": 73
+        },
+        {
+          "caller": "test_mentions_exact_symbol_without_identity",
+          "callee": "self.assertNotIn",
+          "lineNumber": 74
+        },
+        {
+          "caller": "test_injects_resolved_identity",
+          "callee": "build_instrument_context",
+          "lineNumber": 77
+        },
+        {
+          "caller": "test_injects_resolved_identity",
+          "callee": "self.assertIn",
+          "lineNumber": 86
+        },
+        {
+          "caller": "test_injects_resolved_identity",
+          "callee": "self.assertIn",
+          "lineNumber": 87
+        },
+        {
+          "caller": "test_injects_resolved_identity",
+          "callee": "self.assertIn",
+          "lineNumber": 88
+        },
+        {
+          "caller": "test_injects_resolved_identity",
+          "callee": "self.assertIn",
+          "lineNumber": 89
+        },
+        {
+          "caller": "test_crypto_uses_name_label_and_keeps_hint",
+          "callee": "build_instrument_context",
+          "lineNumber": 92
+        },
+        {
+          "caller": "test_crypto_uses_name_label_and_keeps_hint",
+          "callee": "self.assertIn",
+          "lineNumber": 95
+        },
+        {
+          "caller": "test_crypto_uses_name_label_and_keeps_hint",
+          "callee": "self.assertIn",
+          "lineNumber": 96
+        },
+        {
+          "caller": "test_prefers_precomputed_context",
+          "callee": "self.assertEqual",
+          "lineNumber": 103
+        },
+        {
+          "caller": "test_prefers_precomputed_context",
+          "callee": "get_instrument_context_from_state",
+          "lineNumber": 103
+        },
+        {
+          "caller": "test_fallback_is_network_free_ticker_only",
+          "callee": "patch",
+          "lineNumber": 107
+        },
+        {
+          "caller": "test_fallback_is_network_free_ticker_only",
+          "callee": "get_instrument_context_from_state",
+          "lineNumber": 108
+        },
+        {
+          "caller": "test_fallback_is_network_free_ticker_only",
+          "callee": "mock.assert_not_called",
+          "lineNumber": 111
+        },
+        {
+          "caller": "test_fallback_is_network_free_ticker_only",
+          "callee": "self.assertIn",
+          "lineNumber": 112
+        },
+        {
+          "caller": "test_fallback_respects_asset_type",
+          "callee": "get_instrument_context_from_state",
+          "lineNumber": 115
+        },
+        {
+          "caller": "test_fallback_respects_asset_type",
+          "callee": "self.assertIn",
+          "lineNumber": 118
+        },
+        {
+          "caller": "_run",
+          "callee": "HumanMessage",
+          "lineNumber": 128
+        },
+        {
+          "caller": "_run",
+          "callee": "AIMessage",
+          "lineNumber": 129
+        },
+        {
+          "caller": "_run",
+          "callee": "create_msg_delete",
+          "lineNumber": 133
+        },
+        {
+          "caller": "test_placeholder_is_not_bare_continue",
+          "callee": "self._run",
+          "lineNumber": 136
+        },
+        {
+          "caller": "test_placeholder_is_not_bare_continue",
+          "callee": "self.assertIsInstance",
+          "lineNumber": 140
+        },
+        {
+          "caller": "test_placeholder_is_not_bare_continue",
+          "callee": "self.assertNotEqual",
+          "lineNumber": 141
+        },
+        {
+          "caller": "test_placeholder_is_not_bare_continue",
+          "callee": "placeholder.content.strip",
+          "lineNumber": 141
+        },
+        {
+          "caller": "test_placeholder_carries_resolved_identity",
+          "callee": "self._run",
+          "lineNumber": 144
+        },
+        {
+          "caller": "test_placeholder_carries_resolved_identity",
+          "callee": "self.assertIn",
+          "lineNumber": 152
+        },
+        {
+          "caller": "test_placeholder_carries_resolved_identity",
+          "callee": "self.assertIn",
+          "lineNumber": 153
+        },
+        {
+          "caller": "test_old_messages_are_removed",
+          "callee": "self._run",
+          "lineNumber": 156
+        },
+        {
+          "caller": "test_old_messages_are_removed",
+          "callee": "isinstance",
+          "lineNumber": 157
+        },
+        {
+          "caller": "test_old_messages_are_removed",
+          "callee": "isinstance",
+          "lineNumber": 158
+        },
+        {
+          "caller": "test_old_messages_are_removed",
+          "callee": "self.assertEqual",
+          "lineNumber": 159
+        },
+        {
+          "caller": "test_old_messages_are_removed",
+          "callee": "len",
+          "lineNumber": 159
+        },
+        {
+          "caller": "test_old_messages_are_removed",
+          "callee": "self.assertEqual",
+          "lineNumber": 160
+        },
+        {
+          "caller": "test_old_messages_are_removed",
+          "callee": "len",
+          "lineNumber": 160
+        },
+        {
+          "caller": "test_safe_defaults_when_state_minimal",
+          "callee": "create_msg_delete",
+          "lineNumber": 163
+        },
+        {
+          "caller": "test_safe_defaults_when_state_minimal",
+          "callee": "self.assertNotEqual",
+          "lineNumber": 165
+        },
+        {
+          "caller": "test_safe_defaults_when_state_minimal",
+          "callee": "placeholder.content.strip",
+          "lineNumber": 165
+        },
+        {
+          "caller": "test_safe_defaults_when_state_minimal",
+          "callee": "self.assertIn",
+          "lineNumber": 166
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 4,
+        "functionCount": 0,
+        "classCount": 4
+      }
+    },
+    {
+      "path": "tests/test_market_data_validator.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 76,
+      "nonEmptyLines": 62,
+      "functions": [
+        {
+          "name": "_sample_ohlcv",
+          "startLine": 11,
+          "endLine": 21,
+          "params": []
+        }
+      ],
+      "classes": [
+        {
+          "name": "TestVerifiedSnapshot",
+          "startLine": 25,
+          "endLine": 63,
+          "methods": [
+            "test_excludes_future_rows",
+            "test_uses_previous_trading_day_when_date_is_weekend",
+            "test_raises_when_no_rows_on_or_before_date",
+            "test_raises_on_empty_data",
+            "test_look_back_window_capped_at_30"
+          ],
+          "properties": []
+        },
+        {
+          "name": "TestTool",
+          "startLine": 67,
+          "endLine": 76,
+          "methods": [
+            "test_tool_delegates_to_builder"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "_sample_ohlcv",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "TestVerifiedSnapshot",
+          "line": 24,
+          "isDefault": false
+        },
+        {
+          "name": "TestTool",
+          "line": 66,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_sample_ohlcv",
+          "callee": "pd.bdate_range",
+          "lineNumber": 12
+        },
+        {
+          "caller": "_sample_ohlcv",
+          "callee": "range",
+          "lineNumber": 13
+        },
+        {
+          "caller": "_sample_ohlcv",
+          "callee": "len",
+          "lineNumber": 13
+        },
+        {
+          "caller": "_sample_ohlcv",
+          "callee": "pd.DataFrame",
+          "lineNumber": 14
+        },
+        {
+          "caller": "_sample_ohlcv",
+          "callee": "range",
+          "lineNumber": 20
+        },
+        {
+          "caller": "_sample_ohlcv",
+          "callee": "len",
+          "lineNumber": 20
+        },
+        {
+          "caller": "test_excludes_future_rows",
+          "callee": "pd.concat",
+          "lineNumber": 27
+        },
+        {
+          "caller": "test_excludes_future_rows",
+          "callee": "_sample_ohlcv",
+          "lineNumber": 28
+        },
+        {
+          "caller": "test_excludes_future_rows",
+          "callee": "pd.DataFrame",
+          "lineNumber": 29
+        },
+        {
+          "caller": "test_excludes_future_rows",
+          "callee": "pd.Timestamp",
+          "lineNumber": 29
+        },
+        {
+          "caller": "test_excludes_future_rows",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 32
+        },
+        {
+          "caller": "test_excludes_future_rows",
+          "callee": "validator.build_verified_market_snapshot",
+          "lineNumber": 34
+        },
+        {
+          "caller": "test_uses_previous_trading_day_when_date_is_weekend",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 42
+        },
+        {
+          "caller": "test_uses_previous_trading_day_when_date_is_weekend",
+          "callee": "_sample_ohlcv",
+          "lineNumber": 42
+        },
+        {
+          "caller": "test_uses_previous_trading_day_when_date_is_weekend",
+          "callee": "validator.build_verified_market_snapshot",
+          "lineNumber": 44
+        },
+        {
+          "caller": "test_raises_when_no_rows_on_or_before_date",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 49
+        },
+        {
+          "caller": "test_raises_when_no_rows_on_or_before_date",
+          "callee": "_sample_ohlcv",
+          "lineNumber": 49
+        },
+        {
+          "caller": "test_raises_when_no_rows_on_or_before_date",
+          "callee": "pytest.raises",
+          "lineNumber": 50
+        },
+        {
+          "caller": "test_raises_when_no_rows_on_or_before_date",
+          "callee": "validator.build_verified_market_snapshot",
+          "lineNumber": 51
+        },
+        {
+          "caller": "test_raises_on_empty_data",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 54
+        },
+        {
+          "caller": "test_raises_on_empty_data",
+          "callee": "pd.DataFrame",
+          "lineNumber": 54
+        },
+        {
+          "caller": "test_raises_on_empty_data",
+          "callee": "pytest.raises",
+          "lineNumber": 55
+        },
+        {
+          "caller": "test_raises_on_empty_data",
+          "callee": "validator.build_verified_market_snapshot",
+          "lineNumber": 56
+        },
+        {
+          "caller": "test_look_back_window_capped_at_30",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 59
+        },
+        {
+          "caller": "test_look_back_window_capped_at_30",
+          "callee": "_sample_ohlcv",
+          "lineNumber": 59
+        },
+        {
+          "caller": "test_look_back_window_capped_at_30",
+          "callee": "validator.build_verified_market_snapshot",
+          "lineNumber": 60
+        },
+        {
+          "caller": "test_look_back_window_capped_at_30",
+          "callee": "snap.splitlines",
+          "lineNumber": 62
+        },
+        {
+          "caller": "test_look_back_window_capped_at_30",
+          "callee": "ln.startswith",
+          "lineNumber": 62
+        },
+        {
+          "caller": "test_look_back_window_capped_at_30",
+          "callee": "len",
+          "lineNumber": 63
+        },
+        {
+          "caller": "test_tool_delegates_to_builder",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 72
+        },
+        {
+          "caller": "test_tool_delegates_to_builder",
+          "callee": "_sample_ohlcv",
+          "lineNumber": 72
+        },
+        {
+          "caller": "test_tool_delegates_to_builder",
+          "callee": "get_verified_market_snapshot.invoke",
+          "lineNumber": 73
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 3,
+        "functionCount": 1,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "tests/test_news_analyst_prompt.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 25,
+      "nonEmptyLines": 18,
+      "functions": [
+        {
+          "name": "test_get_news_takes_ticker_not_query",
+          "startLine": 15,
+          "endLine": 18,
+          "params": []
+        },
+        {
+          "name": "test_news_prompt_matches_get_news_signature",
+          "startLine": 22,
+          "endLine": 25,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "test_get_news_takes_ticker_not_query",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "test_news_prompt_matches_get_news_signature",
+          "line": 21,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_get_news_takes_ticker_not_query",
+          "callee": "set",
+          "lineNumber": 16
+        },
+        {
+          "caller": "test_get_news_takes_ticker_not_query",
+          "callee": "get_news.args.keys",
+          "lineNumber": 16
+        },
+        {
+          "caller": "test_news_prompt_matches_get_news_signature",
+          "callee": "inspect.getsource",
+          "lineNumber": 23
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tests/test_structured_agent_prompts.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 147,
+      "nonEmptyLines": 121,
+      "functions": [
+        {
+          "name": "_capturing_llm",
+          "startLine": 25,
+          "endLine": 33,
+          "params": [
+            "captured",
+            "result"
+          ]
+        },
+        {
+          "name": "_prompt_text",
+          "startLine": 36,
+          "endLine": 43,
+          "params": [
+            "prompt"
+          ]
+        },
+        {
+          "name": "test_trader_prompt_states_constraint",
+          "startLine": 47,
+          "endLine": 56,
+          "params": []
+        },
+        {
+          "name": "test_research_manager_prompt_states_constraint",
+          "startLine": 60,
+          "endLine": 77,
+          "params": []
+        },
+        {
+          "name": "test_portfolio_manager_prompt_states_constraint",
+          "startLine": 81,
+          "endLine": 105,
+          "params": []
+        },
+        {
+          "name": "test_sentiment_prompt_states_constraint",
+          "startLine": 109,
+          "endLine": 129,
+          "params": [
+            "monkeypatch"
+          ]
+        },
+        {
+          "name": "test_tool_using_analysts_keep_their_date_guidance",
+          "startLine": 133,
+          "endLine": 139,
+          "params": []
+        },
+        {
+          "name": "test_constraint_text_is_unambiguous",
+          "startLine": 143,
+          "endLine": 147,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "_capturing_llm",
+          "line": 25,
+          "isDefault": false
+        },
+        {
+          "name": "_prompt_text",
+          "line": 36,
+          "isDefault": false
+        },
+        {
+          "name": "test_trader_prompt_states_constraint",
+          "line": 46,
+          "isDefault": false
+        },
+        {
+          "name": "test_research_manager_prompt_states_constraint",
+          "line": 59,
+          "isDefault": false
+        },
+        {
+          "name": "test_portfolio_manager_prompt_states_constraint",
+          "line": 80,
+          "isDefault": false
+        },
+        {
+          "name": "test_sentiment_prompt_states_constraint",
+          "line": 108,
+          "isDefault": false
+        },
+        {
+          "name": "test_tool_using_analysts_keep_their_date_guidance",
+          "line": 132,
+          "isDefault": false
+        },
+        {
+          "name": "test_constraint_text_is_unambiguous",
+          "line": 142,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_capturing_llm",
+          "callee": "MagicMock",
+          "lineNumber": 27
+        },
+        {
+          "caller": "_capturing_llm",
+          "callee": "captured.__setitem__",
+          "lineNumber": 29
+        },
+        {
+          "caller": "_capturing_llm",
+          "callee": "MagicMock",
+          "lineNumber": 31
+        },
+        {
+          "caller": "_prompt_text",
+          "callee": "isinstance",
+          "lineNumber": 38
+        },
+        {
+          "caller": "_prompt_text",
+          "callee": "parts.append",
+          "lineNumber": 42
+        },
+        {
+          "caller": "_prompt_text",
+          "callee": "m.get",
+          "lineNumber": 42
+        },
+        {
+          "caller": "_prompt_text",
+          "callee": "isinstance",
+          "lineNumber": 42
+        },
+        {
+          "caller": "_prompt_text",
+          "callee": "getattr",
+          "lineNumber": 42
+        },
+        {
+          "caller": "_prompt_text",
+          "callee": "\"\\n\".join",
+          "lineNumber": 43
+        },
+        {
+          "caller": "_prompt_text",
+          "callee": "str",
+          "lineNumber": 43
+        },
+        {
+          "caller": "test_trader_prompt_states_constraint",
+          "callee": "_capturing_llm",
+          "lineNumber": 51
+        },
+        {
+          "caller": "test_trader_prompt_states_constraint",
+          "callee": "TraderProposal",
+          "lineNumber": 51
+        },
+        {
+          "caller": "test_trader_prompt_states_constraint",
+          "callee": "create_trader",
+          "lineNumber": 52
+        },
+        {
+          "caller": "test_trader_prompt_states_constraint",
+          "callee": "_prompt_text",
+          "lineNumber": 56
+        },
+        {
+          "caller": "test_research_manager_prompt_states_constraint",
+          "callee": "_capturing_llm",
+          "lineNumber": 64
+        },
+        {
+          "caller": "test_research_manager_prompt_states_constraint",
+          "callee": "ResearchPlan",
+          "lineNumber": 66
+        },
+        {
+          "caller": "test_research_manager_prompt_states_constraint",
+          "callee": "create_research_manager",
+          "lineNumber": 70
+        },
+        {
+          "caller": "test_research_manager_prompt_states_constraint",
+          "callee": "_prompt_text",
+          "lineNumber": 77
+        },
+        {
+          "caller": "test_portfolio_manager_prompt_states_constraint",
+          "callee": "_capturing_llm",
+          "lineNumber": 85
+        },
+        {
+          "caller": "test_portfolio_manager_prompt_states_constraint",
+          "callee": "PortfolioDecision",
+          "lineNumber": 87
+        },
+        {
+          "caller": "test_portfolio_manager_prompt_states_constraint",
+          "callee": "create_portfolio_manager",
+          "lineNumber": 99
+        },
+        {
+          "caller": "test_portfolio_manager_prompt_states_constraint",
+          "callee": "_prompt_text",
+          "lineNumber": 105
+        },
+        {
+          "caller": "test_sentiment_prompt_states_constraint",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 113
+        },
+        {
+          "caller": "test_sentiment_prompt_states_constraint",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 114
+        },
+        {
+          "caller": "test_sentiment_prompt_states_constraint",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 115
+        },
+        {
+          "caller": "test_sentiment_prompt_states_constraint",
+          "callee": "_capturing_llm",
+          "lineNumber": 118
+        },
+        {
+          "caller": "test_sentiment_prompt_states_constraint",
+          "callee": "SentimentReport",
+          "lineNumber": 118
+        },
+        {
+          "caller": "test_sentiment_prompt_states_constraint",
+          "callee": "sentiment.create_sentiment_analyst",
+          "lineNumber": 122
+        },
+        {
+          "caller": "test_sentiment_prompt_states_constraint",
+          "callee": "_prompt_text",
+          "lineNumber": 126
+        },
+        {
+          "caller": "test_tool_using_analysts_keep_their_date_guidance",
+          "callee": "inspect.getsource",
+          "lineNumber": 139
+        },
+        {
+          "caller": "test_constraint_text_is_unambiguous",
+          "callee": "NO_EXTERNAL_TOOLS.lower",
+          "lineNumber": 144
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 8,
+        "functionCount": 8,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tests/test_structured_agents.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 408,
+      "nonEmptyLines": 349,
+      "functions": [
+        {
+          "name": "_make_trader_state",
+          "startLine": 130,
+          "endLine": 134,
+          "params": []
+        },
+        {
+          "name": "_structured_trader_llm",
+          "startLine": 137,
+          "endLine": 152,
+          "params": [
+            "captured",
+            "proposal"
+          ]
+        },
+        {
+          "name": "test_invoke_structured_falls_back_when_result_is_none",
+          "startLine": 156,
+          "endLine": 170,
+          "params": []
+        },
+        {
+          "name": "_make_rm_state",
+          "startLine": 221,
+          "endLine": 232,
+          "params": []
+        },
+        {
+          "name": "_structured_rm_llm",
+          "startLine": 235,
+          "endLine": 248,
+          "params": [
+            "captured",
+            "plan"
+          ]
+        },
+        {
+          "name": "_make_sentiment_state",
+          "startLine": 341,
+          "endLine": 347,
+          "params": []
+        },
+        {
+          "name": "_structured_sentiment_llm",
+          "startLine": 350,
+          "endLine": 365,
+          "params": [
+            "captured",
+            "report"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "TestRenderTraderProposal",
+          "startLine": 37,
+          "endLine": 68,
+          "methods": [
+            "test_minimal_required_fields",
+            "test_optional_fields_included_when_present",
+            "test_optional_fields_omitted_when_absent"
+          ],
+          "properties": []
+        },
+        {
+          "name": "TestNullishFloatCoercion",
+          "startLine": 72,
+          "endLine": 98,
+          "methods": [
+            "test_trader_nullish_strings_coerce_to_none",
+            "test_trader_real_numeric_string_still_parses",
+            "test_pm_nullish_price_target_coerces_to_none"
+          ],
+          "properties": []
+        },
+        {
+          "name": "TestRenderResearchPlan",
+          "startLine": 102,
+          "endLine": 122,
+          "methods": [
+            "test_required_fields",
+            "test_all_5_tier_ratings_render"
+          ],
+          "properties": []
+        },
+        {
+          "name": "TestTraderAgent",
+          "startLine": 174,
+          "endLine": 213,
+          "methods": [
+            "test_structured_path_produces_rendered_markdown",
+            "test_prompt_includes_investment_plan",
+            "test_falls_back_to_freetext_when_structured_unavailable"
+          ],
+          "properties": []
+        },
+        {
+          "name": "TestResearchManagerAgent",
+          "startLine": 252,
+          "endLine": 285,
+          "methods": [
+            "test_structured_path_produces_rendered_markdown",
+            "test_prompt_uses_5_tier_rating_scale",
+            "test_falls_back_to_freetext_when_structured_unavailable"
+          ],
+          "properties": []
+        },
+        {
+          "name": "TestRenderSentimentReport",
+          "startLine": 294,
+          "endLine": 338,
+          "methods": [
+            "test_header_contains_band_and_score",
+            "test_header_contains_confidence",
+            "test_narrative_preserved_in_output",
+            "test_all_six_bands_render",
+            "test_score_out_of_range_rejected"
+          ],
+          "properties": []
+        },
+        {
+          "name": "TestSentimentAnalystAgent",
+          "startLine": 369,
+          "endLine": 408,
+          "methods": [
+            "test_structured_path_produces_rendered_markdown",
+            "test_sentiment_report_also_in_messages",
+            "test_prompt_contains_ticker",
+            "test_falls_back_to_freetext_when_structured_unavailable",
+            "test_falls_back_to_freetext_when_structured_call_fails"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestRenderTraderProposal",
+          "line": 36,
+          "isDefault": false
+        },
+        {
+          "name": "TestNullishFloatCoercion",
+          "line": 71,
+          "isDefault": false
+        },
+        {
+          "name": "TestRenderResearchPlan",
+          "line": 101,
+          "isDefault": false
+        },
+        {
+          "name": "_make_trader_state",
+          "line": 130,
+          "isDefault": false
+        },
+        {
+          "name": "_structured_trader_llm",
+          "line": 137,
+          "isDefault": false
+        },
+        {
+          "name": "test_invoke_structured_falls_back_when_result_is_none",
+          "line": 155,
+          "isDefault": false
+        },
+        {
+          "name": "TestTraderAgent",
+          "line": 173,
+          "isDefault": false
+        },
+        {
+          "name": "_make_rm_state",
+          "line": 221,
+          "isDefault": false
+        },
+        {
+          "name": "_structured_rm_llm",
+          "line": 235,
+          "isDefault": false
+        },
+        {
+          "name": "TestResearchManagerAgent",
+          "line": 251,
+          "isDefault": false
+        },
+        {
+          "name": "TestRenderSentimentReport",
+          "line": 293,
+          "isDefault": false
+        },
+        {
+          "name": "_make_sentiment_state",
+          "line": 341,
+          "isDefault": false
+        },
+        {
+          "name": "_structured_sentiment_llm",
+          "line": 350,
+          "isDefault": false
+        },
+        {
+          "name": "TestSentimentAnalystAgent",
+          "line": 368,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_minimal_required_fields",
+          "callee": "TraderProposal",
+          "lineNumber": 39
+        },
+        {
+          "caller": "test_minimal_required_fields",
+          "callee": "render_trader_proposal",
+          "lineNumber": 40
+        },
+        {
+          "caller": "test_optional_fields_included_when_present",
+          "callee": "TraderProposal",
+          "lineNumber": 48
+        },
+        {
+          "caller": "test_optional_fields_included_when_present",
+          "callee": "render_trader_proposal",
+          "lineNumber": 55
+        },
+        {
+          "caller": "test_optional_fields_omitted_when_absent",
+          "callee": "TraderProposal",
+          "lineNumber": 63
+        },
+        {
+          "caller": "test_optional_fields_omitted_when_absent",
+          "callee": "render_trader_proposal",
+          "lineNumber": 64
+        },
+        {
+          "caller": "test_trader_nullish_strings_coerce_to_none",
+          "callee": "TraderProposal",
+          "lineNumber": 78
+        },
+        {
+          "caller": "test_trader_real_numeric_string_still_parses",
+          "callee": "TraderProposal",
+          "lineNumber": 88
+        },
+        {
+          "caller": "test_pm_nullish_price_target_coerces_to_none",
+          "callee": "PortfolioDecision",
+          "lineNumber": 92
+        },
+        {
+          "caller": "test_required_fields",
+          "callee": "ResearchPlan",
+          "lineNumber": 104
+        },
+        {
+          "caller": "test_required_fields",
+          "callee": "render_research_plan",
+          "lineNumber": 109
+        },
+        {
+          "caller": "test_all_5_tier_ratings_render",
+          "callee": "ResearchPlan",
+          "lineNumber": 116
+        },
+        {
+          "caller": "test_all_5_tier_ratings_render",
+          "callee": "render_research_plan",
+          "lineNumber": 121
+        },
+        {
+          "caller": "_structured_trader_llm",
+          "callee": "TraderProposal",
+          "lineNumber": 142
+        },
+        {
+          "caller": "_structured_trader_llm",
+          "callee": "MagicMock",
+          "lineNumber": 146
+        },
+        {
+          "caller": "_structured_trader_llm",
+          "callee": "captured.__setitem__",
+          "lineNumber": 148
+        },
+        {
+          "caller": "_structured_trader_llm",
+          "callee": "MagicMock",
+          "lineNumber": 150
+        },
+        {
+          "caller": "test_invoke_structured_falls_back_when_result_is_none",
+          "callee": "MagicMock",
+          "lineNumber": 161
+        },
+        {
+          "caller": "test_invoke_structured_falls_back_when_result_is_none",
+          "callee": "MagicMock",
+          "lineNumber": 163
+        },
+        {
+          "caller": "test_invoke_structured_falls_back_when_result_is_none",
+          "callee": "MagicMock",
+          "lineNumber": 164
+        },
+        {
+          "caller": "test_invoke_structured_falls_back_when_result_is_none",
+          "callee": "invoke_structured_or_freetext",
+          "lineNumber": 166
+        },
+        {
+          "caller": "test_invoke_structured_falls_back_when_result_is_none",
+          "callee": "plain.invoke.assert_called_once",
+          "lineNumber": 170
+        },
+        {
+          "caller": "test_structured_path_produces_rendered_markdown",
+          "callee": "TraderProposal",
+          "lineNumber": 177
+        },
+        {
+          "caller": "test_structured_path_produces_rendered_markdown",
+          "callee": "_structured_trader_llm",
+          "lineNumber": 184
+        },
+        {
+          "caller": "test_structured_path_produces_rendered_markdown",
+          "callee": "create_trader",
+          "lineNumber": 185
+        },
+        {
+          "caller": "test_structured_path_produces_rendered_markdown",
+          "callee": "trader",
+          "lineNumber": 186
+        },
+        {
+          "caller": "test_structured_path_produces_rendered_markdown",
+          "callee": "_make_trader_state",
+          "lineNumber": 186
+        },
+        {
+          "caller": "test_prompt_includes_investment_plan",
+          "callee": "_structured_trader_llm",
+          "lineNumber": 196
+        },
+        {
+          "caller": "test_prompt_includes_investment_plan",
+          "callee": "create_trader",
+          "lineNumber": 197
+        },
+        {
+          "caller": "test_prompt_includes_investment_plan",
+          "callee": "trader",
+          "lineNumber": 198
+        },
+        {
+          "caller": "test_prompt_includes_investment_plan",
+          "callee": "_make_trader_state",
+          "lineNumber": 198
+        },
+        {
+          "caller": "test_prompt_includes_investment_plan",
+          "callee": "any",
+          "lineNumber": 201
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_unavailable",
+          "callee": "MagicMock",
+          "lineNumber": 208
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_unavailable",
+          "callee": "NotImplementedError",
+          "lineNumber": 209
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_unavailable",
+          "callee": "MagicMock",
+          "lineNumber": 210
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_unavailable",
+          "callee": "create_trader",
+          "lineNumber": 211
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_unavailable",
+          "callee": "trader",
+          "lineNumber": 212
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_unavailable",
+          "callee": "_make_trader_state",
+          "lineNumber": 212
+        },
+        {
+          "caller": "_structured_rm_llm",
+          "callee": "ResearchPlan",
+          "lineNumber": 237
+        },
+        {
+          "caller": "_structured_rm_llm",
+          "callee": "MagicMock",
+          "lineNumber": 242
+        },
+        {
+          "caller": "_structured_rm_llm",
+          "callee": "captured.__setitem__",
+          "lineNumber": 244
+        },
+        {
+          "caller": "_structured_rm_llm",
+          "callee": "MagicMock",
+          "lineNumber": 246
+        },
+        {
+          "caller": "test_structured_path_produces_rendered_markdown",
+          "callee": "ResearchPlan",
+          "lineNumber": 255
+        },
+        {
+          "caller": "test_structured_path_produces_rendered_markdown",
+          "callee": "_structured_rm_llm",
+          "lineNumber": 260
+        },
+        {
+          "caller": "test_structured_path_produces_rendered_markdown",
+          "callee": "create_research_manager",
+          "lineNumber": 261
+        },
+        {
+          "caller": "test_structured_path_produces_rendered_markdown",
+          "callee": "rm",
+          "lineNumber": 262
+        },
+        {
+          "caller": "test_structured_path_produces_rendered_markdown",
+          "callee": "_make_rm_state",
+          "lineNumber": 262
+        },
+        {
+          "caller": "test_prompt_uses_5_tier_rating_scale",
+          "callee": "_structured_rm_llm",
+          "lineNumber": 271
+        },
+        {
+          "caller": "test_prompt_uses_5_tier_rating_scale",
+          "callee": "create_research_manager",
+          "lineNumber": 272
+        },
+        {
+          "caller": "test_prompt_uses_5_tier_rating_scale",
+          "callee": "rm",
+          "lineNumber": 273
+        },
+        {
+          "caller": "test_prompt_uses_5_tier_rating_scale",
+          "callee": "_make_rm_state",
+          "lineNumber": 273
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_unavailable",
+          "callee": "MagicMock",
+          "lineNumber": 280
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_unavailable",
+          "callee": "NotImplementedError",
+          "lineNumber": 281
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_unavailable",
+          "callee": "MagicMock",
+          "lineNumber": 282
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_unavailable",
+          "callee": "create_research_manager",
+          "lineNumber": 283
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_unavailable",
+          "callee": "rm",
+          "lineNumber": 284
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_unavailable",
+          "callee": "_make_rm_state",
+          "lineNumber": 284
+        },
+        {
+          "caller": "test_header_contains_band_and_score",
+          "callee": "SentimentReport",
+          "lineNumber": 296
+        },
+        {
+          "caller": "test_header_contains_band_and_score",
+          "callee": "render_sentiment_report",
+          "lineNumber": 302
+        },
+        {
+          "caller": "test_header_contains_confidence",
+          "callee": "SentimentReport",
+          "lineNumber": 307
+        },
+        {
+          "caller": "test_header_contains_confidence",
+          "callee": "render_sentiment_report",
+          "lineNumber": 313
+        },
+        {
+          "caller": "test_narrative_preserved_in_output",
+          "callee": "SentimentReport",
+          "lineNumber": 317
+        },
+        {
+          "caller": "test_narrative_preserved_in_output",
+          "callee": "render_sentiment_report",
+          "lineNumber": 323
+        },
+        {
+          "caller": "test_all_six_bands_render",
+          "callee": "SentimentReport",
+          "lineNumber": 327
+        },
+        {
+          "caller": "test_all_six_bands_render",
+          "callee": "render_sentiment_report",
+          "lineNumber": 331
+        },
+        {
+          "caller": "test_score_out_of_range_rejected",
+          "callee": "pytest.raises",
+          "lineNumber": 334
+        },
+        {
+          "caller": "test_score_out_of_range_rejected",
+          "callee": "SentimentReport",
+          "lineNumber": 335
+        },
+        {
+          "caller": "_structured_sentiment_llm",
+          "callee": "SentimentReport",
+          "lineNumber": 354
+        },
+        {
+          "caller": "_structured_sentiment_llm",
+          "callee": "MagicMock",
+          "lineNumber": 359
+        },
+        {
+          "caller": "_structured_sentiment_llm",
+          "callee": "captured.__setitem__",
+          "lineNumber": 361
+        },
+        {
+          "caller": "_structured_sentiment_llm",
+          "callee": "MagicMock",
+          "lineNumber": 363
+        },
+        {
+          "caller": "test_structured_path_produces_rendered_markdown",
+          "callee": "SentimentReport",
+          "lineNumber": 372
+        },
+        {
+          "caller": "test_structured_path_produces_rendered_markdown",
+          "callee": "create_sentiment_analyst",
+          "lineNumber": 376
+        },
+        {
+          "caller": "test_structured_path_produces_rendered_markdown",
+          "callee": "_structured_sentiment_llm",
+          "lineNumber": 376
+        },
+        {
+          "caller": "test_structured_path_produces_rendered_markdown",
+          "callee": "analyst",
+          "lineNumber": 377
+        },
+        {
+          "caller": "test_structured_path_produces_rendered_markdown",
+          "callee": "_make_sentiment_state",
+          "lineNumber": 377
+        },
+        {
+          "caller": "test_sentiment_report_also_in_messages",
+          "callee": "create_sentiment_analyst",
+          "lineNumber": 384
+        },
+        {
+          "caller": "test_sentiment_report_also_in_messages",
+          "callee": "_structured_sentiment_llm",
+          "lineNumber": 384
+        },
+        {
+          "caller": "test_sentiment_report_also_in_messages",
+          "callee": "analyst",
+          "lineNumber": 385
+        },
+        {
+          "caller": "test_sentiment_report_also_in_messages",
+          "callee": "_make_sentiment_state",
+          "lineNumber": 385
+        },
+        {
+          "caller": "test_sentiment_report_also_in_messages",
+          "callee": "len",
+          "lineNumber": 386
+        },
+        {
+          "caller": "test_prompt_contains_ticker",
+          "callee": "create_sentiment_analyst",
+          "lineNumber": 391
+        },
+        {
+          "caller": "test_prompt_contains_ticker",
+          "callee": "_structured_sentiment_llm",
+          "lineNumber": 391
+        },
+        {
+          "caller": "test_prompt_contains_ticker",
+          "callee": "_make_sentiment_state",
+          "lineNumber": 391
+        },
+        {
+          "caller": "test_prompt_contains_ticker",
+          "callee": "any",
+          "lineNumber": 392
+        },
+        {
+          "caller": "test_prompt_contains_ticker",
+          "callee": "str",
+          "lineNumber": 392
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_unavailable",
+          "callee": "MagicMock",
+          "lineNumber": 396
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_unavailable",
+          "callee": "NotImplementedError",
+          "lineNumber": 397
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_unavailable",
+          "callee": "MagicMock",
+          "lineNumber": 398
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_unavailable",
+          "callee": "create_sentiment_analyst",
+          "lineNumber": 399
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_unavailable",
+          "callee": "_make_sentiment_state",
+          "lineNumber": 399
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_call_fails",
+          "callee": "MagicMock",
+          "lineNumber": 403
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_call_fails",
+          "callee": "ValueError",
+          "lineNumber": 404
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_call_fails",
+          "callee": "MagicMock",
+          "lineNumber": 405
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_call_fails",
+          "callee": "MagicMock",
+          "lineNumber": 407
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_call_fails",
+          "callee": "create_sentiment_analyst",
+          "lineNumber": 408
+        },
+        {
+          "caller": "test_falls_back_to_freetext_when_structured_call_fails",
+          "callee": "_make_sentiment_state",
+          "lineNumber": 408
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 14,
+        "functionCount": 7,
+        "classCount": 7
+      }
+    },
+    {
+      "path": "tradingagents/agents/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 37,
+      "nonEmptyLines": 36,
+      "metrics": {
+        "importCount": 14,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/analysts/fundamentals_analyst.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 69,
+      "nonEmptyLines": 56,
+      "functions": [
+        {
+          "name": "create_fundamentals_analyst",
+          "startLine": 13,
+          "endLine": 69,
+          "params": [
+            "llm"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "create_fundamentals_analyst",
+          "line": 13,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "fundamentals_analyst_node",
+          "callee": "get_instrument_context_from_state",
+          "lineNumber": 16
+        },
+        {
+          "caller": "fundamentals_analyst_node",
+          "callee": "get_language_instruction",
+          "lineNumber": 29
+        },
+        {
+          "caller": "fundamentals_analyst_node",
+          "callee": "ChatPromptTemplate.from_messages",
+          "lineNumber": 32
+        },
+        {
+          "caller": "fundamentals_analyst_node",
+          "callee": "MessagesPlaceholder",
+          "lineNumber": 46
+        },
+        {
+          "caller": "fundamentals_analyst_node",
+          "callee": "prompt.partial",
+          "lineNumber": 50
+        },
+        {
+          "caller": "fundamentals_analyst_node",
+          "callee": "prompt.partial",
+          "lineNumber": 51
+        },
+        {
+          "caller": "fundamentals_analyst_node",
+          "callee": "\", \".join",
+          "lineNumber": 51
+        },
+        {
+          "caller": "fundamentals_analyst_node",
+          "callee": "prompt.partial",
+          "lineNumber": 52
+        },
+        {
+          "caller": "fundamentals_analyst_node",
+          "callee": "prompt.partial",
+          "lineNumber": 53
+        },
+        {
+          "caller": "fundamentals_analyst_node",
+          "callee": "llm.bind_tools",
+          "lineNumber": 55
+        },
+        {
+          "caller": "fundamentals_analyst_node",
+          "callee": "chain.invoke",
+          "lineNumber": 57
+        },
+        {
+          "caller": "fundamentals_analyst_node",
+          "callee": "len",
+          "lineNumber": 61
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/analysts/market_analyst.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 95,
+      "nonEmptyLines": 73,
+      "functions": [
+        {
+          "name": "create_market_analyst",
+          "startLine": 12,
+          "endLine": 95,
+          "params": [
+            "llm"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "create_market_analyst",
+          "line": 12,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "market_analyst_node",
+          "callee": "get_instrument_context_from_state",
+          "lineNumber": 16
+        },
+        {
+          "caller": "market_analyst_node",
+          "callee": "get_language_instruction",
+          "lineNumber": 55
+        },
+        {
+          "caller": "market_analyst_node",
+          "callee": "ChatPromptTemplate.from_messages",
+          "lineNumber": 58
+        },
+        {
+          "caller": "market_analyst_node",
+          "callee": "MessagesPlaceholder",
+          "lineNumber": 72
+        },
+        {
+          "caller": "market_analyst_node",
+          "callee": "prompt.partial",
+          "lineNumber": 76
+        },
+        {
+          "caller": "market_analyst_node",
+          "callee": "prompt.partial",
+          "lineNumber": 77
+        },
+        {
+          "caller": "market_analyst_node",
+          "callee": "\", \".join",
+          "lineNumber": 77
+        },
+        {
+          "caller": "market_analyst_node",
+          "callee": "prompt.partial",
+          "lineNumber": 78
+        },
+        {
+          "caller": "market_analyst_node",
+          "callee": "prompt.partial",
+          "lineNumber": 79
+        },
+        {
+          "caller": "market_analyst_node",
+          "callee": "llm.bind_tools",
+          "lineNumber": 81
+        },
+        {
+          "caller": "market_analyst_node",
+          "callee": "chain.invoke",
+          "lineNumber": 83
+        },
+        {
+          "caller": "market_analyst_node",
+          "callee": "len",
+          "lineNumber": 87
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/analysts/news_analyst.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 69,
+      "nonEmptyLines": 57,
+      "functions": [
+        {
+          "name": "create_news_analyst",
+          "startLine": 13,
+          "endLine": 69,
+          "params": [
+            "llm"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "create_news_analyst",
+          "line": 13,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "news_analyst_node",
+          "callee": "state.get",
+          "lineNumber": 16
+        },
+        {
+          "caller": "news_analyst_node",
+          "callee": "get_instrument_context_from_state",
+          "lineNumber": 18
+        },
+        {
+          "caller": "news_analyst_node",
+          "callee": "get_language_instruction",
+          "lineNumber": 30
+        },
+        {
+          "caller": "news_analyst_node",
+          "callee": "ChatPromptTemplate.from_messages",
+          "lineNumber": 33
+        },
+        {
+          "caller": "news_analyst_node",
+          "callee": "MessagesPlaceholder",
+          "lineNumber": 47
+        },
+        {
+          "caller": "news_analyst_node",
+          "callee": "prompt.partial",
+          "lineNumber": 51
+        },
+        {
+          "caller": "news_analyst_node",
+          "callee": "prompt.partial",
+          "lineNumber": 52
+        },
+        {
+          "caller": "news_analyst_node",
+          "callee": "\", \".join",
+          "lineNumber": 52
+        },
+        {
+          "caller": "news_analyst_node",
+          "callee": "prompt.partial",
+          "lineNumber": 53
+        },
+        {
+          "caller": "news_analyst_node",
+          "callee": "prompt.partial",
+          "lineNumber": 54
+        },
+        {
+          "caller": "news_analyst_node",
+          "callee": "llm.bind_tools",
+          "lineNumber": 56
+        },
+        {
+          "caller": "news_analyst_node",
+          "callee": "chain.invoke",
+          "lineNumber": 57
+        },
+        {
+          "caller": "news_analyst_node",
+          "callee": "len",
+          "lineNumber": 61
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/analysts/sentiment_analyst.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 210,
+      "nonEmptyLines": 162,
+      "functions": [
+        {
+          "name": "_seven_days_back",
+          "startLine": 47,
+          "endLine": 48,
+          "params": [
+            "trade_date"
+          ]
+        },
+        {
+          "name": "create_sentiment_analyst",
+          "startLine": 51,
+          "endLine": 123,
+          "params": [
+            "llm"
+          ]
+        },
+        {
+          "name": "_build_system_message",
+          "startLine": 126,
+          "endLine": 188,
+          "params": [
+            "ticker",
+            "start_date",
+            "end_date",
+            "news_block",
+            "stocktwits_block",
+            "reddit_block"
+          ]
+        },
+        {
+          "name": "create_social_media_analyst",
+          "startLine": 194,
+          "endLine": 210,
+          "params": [
+            "llm"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_seven_days_back",
+          "line": 47,
+          "isDefault": false
+        },
+        {
+          "name": "create_sentiment_analyst",
+          "line": 51,
+          "isDefault": false
+        },
+        {
+          "name": "_build_system_message",
+          "line": 126,
+          "isDefault": false
+        },
+        {
+          "name": "create_social_media_analyst",
+          "line": 194,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_seven_days_back",
+          "callee": "(datetime.strptime(trade_date, \"%Y-%m-%d\") - timedelta(days=7)).strftime",
+          "lineNumber": 48
+        },
+        {
+          "caller": "_seven_days_back",
+          "callee": "datetime.strptime",
+          "lineNumber": 48
+        },
+        {
+          "caller": "_seven_days_back",
+          "callee": "timedelta",
+          "lineNumber": 48
+        },
+        {
+          "caller": "create_sentiment_analyst",
+          "callee": "bind_structured",
+          "lineNumber": 59
+        },
+        {
+          "caller": "sentiment_analyst_node",
+          "callee": "_seven_days_back",
+          "lineNumber": 64
+        },
+        {
+          "caller": "sentiment_analyst_node",
+          "callee": "get_instrument_context_from_state",
+          "lineNumber": 65
+        },
+        {
+          "caller": "sentiment_analyst_node",
+          "callee": "get_news.func",
+          "lineNumber": 70
+        },
+        {
+          "caller": "sentiment_analyst_node",
+          "callee": "fetch_stocktwits_messages",
+          "lineNumber": 71
+        },
+        {
+          "caller": "sentiment_analyst_node",
+          "callee": "fetch_reddit_posts",
+          "lineNumber": 72
+        },
+        {
+          "caller": "sentiment_analyst_node",
+          "callee": "_build_system_message",
+          "lineNumber": 74
+        },
+        {
+          "caller": "sentiment_analyst_node",
+          "callee": "ChatPromptTemplate.from_messages",
+          "lineNumber": 83
+        },
+        {
+          "caller": "sentiment_analyst_node",
+          "callee": "MessagesPlaceholder",
+          "lineNumber": 97
+        },
+        {
+          "caller": "sentiment_analyst_node",
+          "callee": "prompt.partial",
+          "lineNumber": 101
+        },
+        {
+          "caller": "sentiment_analyst_node",
+          "callee": "prompt.partial",
+          "lineNumber": 102
+        },
+        {
+          "caller": "sentiment_analyst_node",
+          "callee": "prompt.partial",
+          "lineNumber": 103
+        },
+        {
+          "caller": "sentiment_analyst_node",
+          "callee": "prompt.format_messages",
+          "lineNumber": 108
+        },
+        {
+          "caller": "sentiment_analyst_node",
+          "callee": "invoke_structured_or_freetext",
+          "lineNumber": 110
+        },
+        {
+          "caller": "sentiment_analyst_node",
+          "callee": "AIMessage",
+          "lineNumber": 119
+        },
+        {
+          "caller": "_build_system_message",
+          "callee": "get_language_instruction",
+          "lineNumber": 188
+        },
+        {
+          "caller": "create_social_media_analyst",
+          "callee": "warnings.warn",
+          "lineNumber": 204
+        },
+        {
+          "caller": "create_social_media_analyst",
+          "callee": "create_sentiment_analyst",
+          "lineNumber": 210
+        }
+      ],
+      "metrics": {
+        "importCount": 5,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/analysts/social_media_analyst.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 23,
+      "nonEmptyLines": 18,
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/managers/portfolio_manager.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 95,
+      "nonEmptyLines": 75,
+      "functions": [
+        {
+          "name": "create_portfolio_manager",
+          "startLine": 25,
+          "endLine": 95,
+          "params": [
+            "llm"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "create_portfolio_manager",
+          "line": 25,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "create_portfolio_manager",
+          "callee": "bind_structured",
+          "lineNumber": 26
+        },
+        {
+          "caller": "portfolio_manager_node",
+          "callee": "get_instrument_context_from_state",
+          "lineNumber": 29
+        },
+        {
+          "caller": "portfolio_manager_node",
+          "callee": "state.get",
+          "lineNumber": 36
+        },
+        {
+          "caller": "portfolio_manager_node",
+          "callee": "get_language_instruction",
+          "lineNumber": 67
+        },
+        {
+          "caller": "portfolio_manager_node",
+          "callee": "invoke_structured_or_freetext",
+          "lineNumber": 69
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/managers/research_manager.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 70,
+      "nonEmptyLines": 52,
+      "functions": [
+        {
+          "name": "create_research_manager",
+          "startLine": 17,
+          "endLine": 70,
+          "params": [
+            "llm"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "create_research_manager",
+          "line": 17,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "create_research_manager",
+          "callee": "bind_structured",
+          "lineNumber": 18
+        },
+        {
+          "caller": "research_manager_node",
+          "callee": "get_instrument_context_from_state",
+          "lineNumber": 21
+        },
+        {
+          "caller": "research_manager_node",
+          "callee": "state[\"investment_debate_state\"].get",
+          "lineNumber": 22
+        },
+        {
+          "caller": "research_manager_node",
+          "callee": "get_language_instruction",
+          "lineNumber": 46
+        },
+        {
+          "caller": "research_manager_node",
+          "callee": "invoke_structured_or_freetext",
+          "lineNumber": 48
+        },
+        {
+          "caller": "research_manager_node",
+          "callee": "investment_debate_state.get",
+          "lineNumber": 58
+        },
+        {
+          "caller": "research_manager_node",
+          "callee": "investment_debate_state.get",
+          "lineNumber": 59
+        },
+        {
+          "caller": "research_manager_node",
+          "callee": "investment_debate_state.get",
+          "lineNumber": 60
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/researchers/bear_researcher.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 63,
+      "nonEmptyLines": 50,
+      "functions": [
+        {
+          "name": "create_bear_researcher",
+          "startLine": 7,
+          "endLine": 63,
+          "params": [
+            "llm"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "create_bear_researcher",
+          "line": 7,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "bear_node",
+          "callee": "investment_debate_state.get",
+          "lineNumber": 10
+        },
+        {
+          "caller": "bear_node",
+          "callee": "investment_debate_state.get",
+          "lineNumber": 11
+        },
+        {
+          "caller": "bear_node",
+          "callee": "investment_debate_state.get",
+          "lineNumber": 13
+        },
+        {
+          "caller": "bear_node",
+          "callee": "get_instrument_context_from_state",
+          "lineNumber": 18
+        },
+        {
+          "caller": "bear_node",
+          "callee": "state.get",
+          "lineNumber": 19
+        },
+        {
+          "caller": "bear_node",
+          "callee": "get_language_instruction",
+          "lineNumber": 47
+        },
+        {
+          "caller": "bear_node",
+          "callee": "llm.invoke",
+          "lineNumber": 49
+        },
+        {
+          "caller": "bear_node",
+          "callee": "investment_debate_state.get",
+          "lineNumber": 56
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/researchers/bull_researcher.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 61,
+      "nonEmptyLines": 50,
+      "functions": [
+        {
+          "name": "create_bull_researcher",
+          "startLine": 7,
+          "endLine": 61,
+          "params": [
+            "llm"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "create_bull_researcher",
+          "line": 7,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "bull_node",
+          "callee": "investment_debate_state.get",
+          "lineNumber": 10
+        },
+        {
+          "caller": "bull_node",
+          "callee": "investment_debate_state.get",
+          "lineNumber": 11
+        },
+        {
+          "caller": "bull_node",
+          "callee": "investment_debate_state.get",
+          "lineNumber": 13
+        },
+        {
+          "caller": "bull_node",
+          "callee": "get_instrument_context_from_state",
+          "lineNumber": 18
+        },
+        {
+          "caller": "bull_node",
+          "callee": "state.get",
+          "lineNumber": 19
+        },
+        {
+          "caller": "bull_node",
+          "callee": "get_language_instruction",
+          "lineNumber": 45
+        },
+        {
+          "caller": "bull_node",
+          "callee": "llm.invoke",
+          "lineNumber": 47
+        },
+        {
+          "caller": "bull_node",
+          "callee": "investment_debate_state.get",
+          "lineNumber": 54
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/risk_mgmt/aggressive_debator.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 59,
+      "nonEmptyLines": 44,
+      "functions": [
+        {
+          "name": "create_aggressive_debator",
+          "startLine": 7,
+          "endLine": 59,
+          "params": [
+            "llm"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "create_aggressive_debator",
+          "line": 7,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "aggressive_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 10
+        },
+        {
+          "caller": "aggressive_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 11
+        },
+        {
+          "caller": "aggressive_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 13
+        },
+        {
+          "caller": "aggressive_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 14
+        },
+        {
+          "caller": "aggressive_node",
+          "callee": "get_instrument_context_from_state",
+          "lineNumber": 20
+        },
+        {
+          "caller": "aggressive_node",
+          "callee": "get_language_instruction",
+          "lineNumber": 37
+        },
+        {
+          "caller": "aggressive_node",
+          "callee": "llm.invoke",
+          "lineNumber": 39
+        },
+        {
+          "caller": "aggressive_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 46
+        },
+        {
+          "caller": "aggressive_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 47
+        },
+        {
+          "caller": "aggressive_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 50
+        },
+        {
+          "caller": "aggressive_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 51
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/risk_mgmt/conservative_debator.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 61,
+      "nonEmptyLines": 46,
+      "functions": [
+        {
+          "name": "create_conservative_debator",
+          "startLine": 7,
+          "endLine": 61,
+          "params": [
+            "llm"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "create_conservative_debator",
+          "line": 7,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "conservative_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 10
+        },
+        {
+          "caller": "conservative_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 11
+        },
+        {
+          "caller": "conservative_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 13
+        },
+        {
+          "caller": "conservative_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 14
+        },
+        {
+          "caller": "conservative_node",
+          "callee": "get_instrument_context_from_state",
+          "lineNumber": 20
+        },
+        {
+          "caller": "conservative_node",
+          "callee": "get_language_instruction",
+          "lineNumber": 37
+        },
+        {
+          "caller": "conservative_node",
+          "callee": "llm.invoke",
+          "lineNumber": 39
+        },
+        {
+          "caller": "conservative_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 45
+        },
+        {
+          "caller": "conservative_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 47
+        },
+        {
+          "caller": "conservative_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 49
+        },
+        {
+          "caller": "conservative_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 53
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/risk_mgmt/neutral_debator.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 59,
+      "nonEmptyLines": 44,
+      "functions": [
+        {
+          "name": "create_neutral_debator",
+          "startLine": 7,
+          "endLine": 59,
+          "params": [
+            "llm"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "create_neutral_debator",
+          "line": 7,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "neutral_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 10
+        },
+        {
+          "caller": "neutral_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 11
+        },
+        {
+          "caller": "neutral_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 13
+        },
+        {
+          "caller": "neutral_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 14
+        },
+        {
+          "caller": "neutral_node",
+          "callee": "get_instrument_context_from_state",
+          "lineNumber": 20
+        },
+        {
+          "caller": "neutral_node",
+          "callee": "get_language_instruction",
+          "lineNumber": 37
+        },
+        {
+          "caller": "neutral_node",
+          "callee": "llm.invoke",
+          "lineNumber": 39
+        },
+        {
+          "caller": "neutral_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 45
+        },
+        {
+          "caller": "neutral_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 46
+        },
+        {
+          "caller": "neutral_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 49
+        },
+        {
+          "caller": "neutral_node",
+          "callee": "risk_debate_state.get",
+          "lineNumber": 52
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/schemas.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 341,
+      "nonEmptyLines": 283,
+      "functions": [
+        {
+          "name": "_coerce_optional_float",
+          "startLine": 33,
+          "endLine": 36,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "render_research_plan",
+          "startLine": 105,
+          "endLine": 113,
+          "params": [
+            "plan"
+          ]
+        },
+        {
+          "name": "render_trader_proposal",
+          "startLine": 158,
+          "endLine": 180,
+          "params": [
+            "proposal"
+          ]
+        },
+        {
+          "name": "render_pm_decision",
+          "startLine": 231,
+          "endLine": 250,
+          "params": [
+            "decision"
+          ]
+        },
+        {
+          "name": "render_sentiment_report",
+          "startLine": 328,
+          "endLine": 341,
+          "params": [
+            "report"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "PortfolioRating",
+          "startLine": 44,
+          "endLine": 51,
+          "methods": [],
+          "properties": []
+        },
+        {
+          "name": "TraderAction",
+          "startLine": 54,
+          "endLine": 65,
+          "methods": [],
+          "properties": []
+        },
+        {
+          "name": "ResearchPlan",
+          "startLine": 73,
+          "endLine": 102,
+          "methods": [],
+          "properties": [
+            "recommendation",
+            "rationale",
+            "strategic_actions"
+          ]
+        },
+        {
+          "name": "TraderProposal",
+          "startLine": 121,
+          "endLine": 155,
+          "methods": [
+            "_nullish_float_to_none"
+          ],
+          "properties": [
+            "action",
+            "reasoning",
+            "entry_price",
+            "stop_loss",
+            "position_sizing"
+          ]
+        },
+        {
+          "name": "PortfolioDecision",
+          "startLine": 188,
+          "endLine": 228,
+          "methods": [
+            "_nullish_float_to_none"
+          ],
+          "properties": [
+            "rating",
+            "executive_summary",
+            "investment_thesis",
+            "price_target",
+            "time_horizon"
+          ]
+        },
+        {
+          "name": "SentimentBand",
+          "startLine": 258,
+          "endLine": 270,
+          "methods": [],
+          "properties": []
+        },
+        {
+          "name": "SentimentReport",
+          "startLine": 273,
+          "endLine": 325,
+          "methods": [],
+          "properties": [
+            "overall_band",
+            "overall_score",
+            "confidence",
+            "narrative"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_coerce_optional_float",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "PortfolioRating",
+          "line": 44,
+          "isDefault": false
+        },
+        {
+          "name": "TraderAction",
+          "line": 54,
+          "isDefault": false
+        },
+        {
+          "name": "ResearchPlan",
+          "line": 73,
+          "isDefault": false
+        },
+        {
+          "name": "render_research_plan",
+          "line": 105,
+          "isDefault": false
+        },
+        {
+          "name": "TraderProposal",
+          "line": 121,
+          "isDefault": false
+        },
+        {
+          "name": "render_trader_proposal",
+          "line": 158,
+          "isDefault": false
+        },
+        {
+          "name": "PortfolioDecision",
+          "line": 188,
+          "isDefault": false
+        },
+        {
+          "name": "render_pm_decision",
+          "line": 231,
+          "isDefault": false
+        },
+        {
+          "name": "SentimentBand",
+          "line": 258,
+          "isDefault": false
+        },
+        {
+          "name": "SentimentReport",
+          "line": 273,
+          "isDefault": false
+        },
+        {
+          "name": "render_sentiment_report",
+          "line": 328,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_coerce_optional_float",
+          "callee": "isinstance",
+          "lineNumber": 34
+        },
+        {
+          "caller": "_coerce_optional_float",
+          "callee": "value.strip().lower",
+          "lineNumber": 34
+        },
+        {
+          "caller": "_coerce_optional_float",
+          "callee": "value.strip",
+          "lineNumber": 34
+        },
+        {
+          "caller": "render_research_plan",
+          "callee": "\"\\n\".join",
+          "lineNumber": 107
+        },
+        {
+          "caller": "_nullish_float_to_none",
+          "callee": "_coerce_optional_float",
+          "lineNumber": 155
+        },
+        {
+          "caller": "render_trader_proposal",
+          "callee": "parts.extend",
+          "lineNumber": 171
+        },
+        {
+          "caller": "render_trader_proposal",
+          "callee": "parts.extend",
+          "lineNumber": 173
+        },
+        {
+          "caller": "render_trader_proposal",
+          "callee": "parts.extend",
+          "lineNumber": 175
+        },
+        {
+          "caller": "render_trader_proposal",
+          "callee": "parts.extend",
+          "lineNumber": 176
+        },
+        {
+          "caller": "render_trader_proposal",
+          "callee": "proposal.action.value.upper",
+          "lineNumber": 178
+        },
+        {
+          "caller": "render_trader_proposal",
+          "callee": "\"\\n\".join",
+          "lineNumber": 180
+        },
+        {
+          "caller": "_nullish_float_to_none",
+          "callee": "_coerce_optional_float",
+          "lineNumber": 228
+        },
+        {
+          "caller": "render_pm_decision",
+          "callee": "parts.extend",
+          "lineNumber": 247
+        },
+        {
+          "caller": "render_pm_decision",
+          "callee": "parts.extend",
+          "lineNumber": 249
+        },
+        {
+          "caller": "render_pm_decision",
+          "callee": "\"\\n\".join",
+          "lineNumber": 250
+        },
+        {
+          "caller": "render_sentiment_report",
+          "callee": "\"\\n\".join",
+          "lineNumber": 335
+        },
+        {
+          "caller": "render_sentiment_report",
+          "callee": "report.confidence.capitalize",
+          "lineNumber": 338
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 12,
+        "functionCount": 5,
+        "classCount": 7
+      }
+    },
+    {
+      "path": "tradingagents/agents/trader/trader.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 67,
+      "nonEmptyLines": 56,
+      "functions": [
+        {
+          "name": "create_trader",
+          "startLine": 21,
+          "endLine": 67,
+          "params": [
+            "llm"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "create_trader",
+          "line": 21,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "create_trader",
+          "callee": "bind_structured",
+          "lineNumber": 22
+        },
+        {
+          "caller": "trader_node",
+          "callee": "get_instrument_context_from_state",
+          "lineNumber": 26
+        },
+        {
+          "caller": "trader_node",
+          "callee": "get_language_instruction",
+          "lineNumber": 37
+        },
+        {
+          "caller": "trader_node",
+          "callee": "invoke_structured_or_freetext",
+          "lineNumber": 53
+        },
+        {
+          "caller": "trader_node",
+          "callee": "AIMessage",
+          "lineNumber": 62
+        },
+        {
+          "caller": "create_trader",
+          "callee": "functools.partial",
+          "lineNumber": 67
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/utils/agent_utils.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 217,
+      "nonEmptyLines": 184,
+      "functions": [
+        {
+          "name": "get_language_instruction",
+          "startLine": 52,
+          "endLine": 65,
+          "params": []
+        },
+        {
+          "name": "_clean_identity_value",
+          "startLine": 68,
+          "endLine": 75,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "resolve_instrument_identity",
+          "startLine": 79,
+          "endLine": 119,
+          "params": [
+            "ticker"
+          ]
+        },
+        {
+          "name": "build_instrument_context",
+          "startLine": 122,
+          "endLine": 169,
+          "params": [
+            "ticker",
+            "asset_type",
+            "identity"
+          ]
+        },
+        {
+          "name": "get_instrument_context_from_state",
+          "startLine": 172,
+          "endLine": 187,
+          "params": [
+            "state"
+          ]
+        },
+        {
+          "name": "create_msg_delete",
+          "startLine": 190,
+          "endLine": 214,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "get_language_instruction",
+          "line": 52,
+          "isDefault": false
+        },
+        {
+          "name": "_clean_identity_value",
+          "line": 68,
+          "isDefault": false
+        },
+        {
+          "name": "resolve_instrument_identity",
+          "line": 78,
+          "isDefault": false
+        },
+        {
+          "name": "build_instrument_context",
+          "line": 122,
+          "isDefault": false
+        },
+        {
+          "name": "get_instrument_context_from_state",
+          "line": 172,
+          "isDefault": false
+        },
+        {
+          "name": "create_msg_delete",
+          "line": 190,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "get_language_instruction",
+          "callee": "get_config().get",
+          "lineNumber": 62
+        },
+        {
+          "caller": "get_language_instruction",
+          "callee": "get_config",
+          "lineNumber": 62
+        },
+        {
+          "caller": "get_language_instruction",
+          "callee": "lang.strip().lower",
+          "lineNumber": 63
+        },
+        {
+          "caller": "get_language_instruction",
+          "callee": "lang.strip",
+          "lineNumber": 63
+        },
+        {
+          "caller": "_clean_identity_value",
+          "callee": "isinstance",
+          "lineNumber": 70
+        },
+        {
+          "caller": "_clean_identity_value",
+          "callee": "value.strip",
+          "lineNumber": 72
+        },
+        {
+          "caller": "_clean_identity_value",
+          "callee": "cleaned.lower",
+          "lineNumber": 73
+        },
+        {
+          "caller": "resolve_instrument_identity",
+          "callee": "yf.Ticker",
+          "lineNumber": 99
+        },
+        {
+          "caller": "resolve_instrument_identity",
+          "callee": "normalize_symbol",
+          "lineNumber": 99
+        },
+        {
+          "caller": "resolve_instrument_identity",
+          "callee": "logger.debug",
+          "lineNumber": 101
+        },
+        {
+          "caller": "resolve_instrument_identity",
+          "callee": "_clean_identity_value",
+          "lineNumber": 105
+        },
+        {
+          "caller": "resolve_instrument_identity",
+          "callee": "info.get",
+          "lineNumber": 105
+        },
+        {
+          "caller": "resolve_instrument_identity",
+          "callee": "_clean_identity_value",
+          "lineNumber": 105
+        },
+        {
+          "caller": "resolve_instrument_identity",
+          "callee": "info.get",
+          "lineNumber": 106
+        },
+        {
+          "caller": "resolve_instrument_identity",
+          "callee": "_clean_identity_value",
+          "lineNumber": 116
+        },
+        {
+          "caller": "resolve_instrument_identity",
+          "callee": "info.get",
+          "lineNumber": 116
+        },
+        {
+          "caller": "build_instrument_context",
+          "callee": "identity.get",
+          "lineNumber": 144
+        },
+        {
+          "caller": "build_instrument_context",
+          "callee": "identity.get",
+          "lineNumber": 144
+        },
+        {
+          "caller": "build_instrument_context",
+          "callee": "details.append",
+          "lineNumber": 146
+        },
+        {
+          "caller": "build_instrument_context",
+          "callee": "identity.get",
+          "lineNumber": 147
+        },
+        {
+          "caller": "build_instrument_context",
+          "callee": "identity.get",
+          "lineNumber": 147
+        },
+        {
+          "caller": "build_instrument_context",
+          "callee": "details.append",
+          "lineNumber": 149
+        },
+        {
+          "caller": "build_instrument_context",
+          "callee": "details.append",
+          "lineNumber": 151
+        },
+        {
+          "caller": "build_instrument_context",
+          "callee": "details.append",
+          "lineNumber": 153
+        },
+        {
+          "caller": "build_instrument_context",
+          "callee": "identity.get",
+          "lineNumber": 154
+        },
+        {
+          "caller": "build_instrument_context",
+          "callee": "details.append",
+          "lineNumber": 155
+        },
+        {
+          "caller": "build_instrument_context",
+          "callee": "'; '.join",
+          "lineNumber": 159
+        },
+        {
+          "caller": "get_instrument_context_from_state",
+          "callee": "state.get",
+          "lineNumber": 181
+        },
+        {
+          "caller": "get_instrument_context_from_state",
+          "callee": "isinstance",
+          "lineNumber": 182
+        },
+        {
+          "caller": "get_instrument_context_from_state",
+          "callee": "context.strip",
+          "lineNumber": 182
+        },
+        {
+          "caller": "get_instrument_context_from_state",
+          "callee": "build_instrument_context",
+          "lineNumber": 184
+        },
+        {
+          "caller": "get_instrument_context_from_state",
+          "callee": "str",
+          "lineNumber": 185
+        },
+        {
+          "caller": "get_instrument_context_from_state",
+          "callee": "state.get",
+          "lineNumber": 186
+        },
+        {
+          "caller": "delete_messages",
+          "callee": "RemoveMessage",
+          "lineNumber": 202
+        },
+        {
+          "caller": "delete_messages",
+          "callee": "get_instrument_context_from_state",
+          "lineNumber": 204
+        },
+        {
+          "caller": "delete_messages",
+          "callee": "state.get",
+          "lineNumber": 205
+        },
+        {
+          "caller": "delete_messages",
+          "callee": "HumanMessage",
+          "lineNumber": 206
+        }
+      ],
+      "metrics": {
+        "importCount": 7,
+        "exportCount": 6,
+        "functionCount": 6,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/utils/core_stock_tools.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 24,
+      "nonEmptyLines": 20,
+      "functions": [
+        {
+          "name": "get_stock_data",
+          "startLine": 9,
+          "endLine": 24,
+          "params": [
+            "symbol",
+            "start_date",
+            "end_date"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "get_stock_data",
+          "line": 8,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "get_stock_data",
+          "callee": "route_to_vendor",
+          "lineNumber": 24
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/utils/fundamental_data_tools.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 79,
+      "nonEmptyLines": 69,
+      "functions": [
+        {
+          "name": "get_fundamentals",
+          "startLine": 9,
+          "endLine": 22,
+          "params": [
+            "ticker",
+            "curr_date"
+          ]
+        },
+        {
+          "name": "get_balance_sheet",
+          "startLine": 26,
+          "endLine": 41,
+          "params": [
+            "ticker",
+            "freq",
+            "curr_date"
+          ]
+        },
+        {
+          "name": "get_cashflow",
+          "startLine": 45,
+          "endLine": 60,
+          "params": [
+            "ticker",
+            "freq",
+            "curr_date"
+          ]
+        },
+        {
+          "name": "get_income_statement",
+          "startLine": 64,
+          "endLine": 79,
+          "params": [
+            "ticker",
+            "freq",
+            "curr_date"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "get_fundamentals",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "get_balance_sheet",
+          "line": 25,
+          "isDefault": false
+        },
+        {
+          "name": "get_cashflow",
+          "line": 44,
+          "isDefault": false
+        },
+        {
+          "name": "get_income_statement",
+          "line": 63,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "get_fundamentals",
+          "callee": "route_to_vendor",
+          "lineNumber": 22
+        },
+        {
+          "caller": "get_balance_sheet",
+          "callee": "route_to_vendor",
+          "lineNumber": 41
+        },
+        {
+          "caller": "get_cashflow",
+          "callee": "route_to_vendor",
+          "lineNumber": 60
+        },
+        {
+          "caller": "get_income_statement",
+          "callee": "route_to_vendor",
+          "lineNumber": 79
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/utils/macro_data_tools.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 36,
+      "nonEmptyLines": 30,
+      "functions": [
+        {
+          "name": "get_macro_indicators",
+          "startLine": 9,
+          "endLine": 36,
+          "params": [
+            "indicator",
+            "curr_date",
+            "look_back_days"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "get_macro_indicators",
+          "line": 8,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "get_macro_indicators",
+          "callee": "route_to_vendor",
+          "lineNumber": 36
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/utils/market_data_validation_tools.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 23,
+      "nonEmptyLines": 18,
+      "functions": [
+        {
+          "name": "get_verified_market_snapshot",
+          "startLine": 9,
+          "endLine": 23,
+          "params": [
+            "symbol",
+            "curr_date",
+            "look_back_days"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "get_verified_market_snapshot",
+          "line": 8,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "get_verified_market_snapshot",
+          "callee": "build_verified_market_snapshot",
+          "lineNumber": 23
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/utils/news_data_tools.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 60,
+      "nonEmptyLines": 52,
+      "functions": [
+        {
+          "name": "get_news",
+          "startLine": 9,
+          "endLine": 24,
+          "params": [
+            "ticker",
+            "start_date",
+            "end_date"
+          ]
+        },
+        {
+          "name": "get_global_news",
+          "startLine": 27,
+          "endLine": 46,
+          "params": [
+            "curr_date",
+            "look_back_days",
+            "limit"
+          ]
+        },
+        {
+          "name": "get_insider_transactions",
+          "startLine": 49,
+          "endLine": 60,
+          "params": [
+            "ticker"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "get_news",
+          "line": 8,
+          "isDefault": false
+        },
+        {
+          "name": "get_global_news",
+          "line": 26,
+          "isDefault": false
+        },
+        {
+          "name": "get_insider_transactions",
+          "line": 48,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "get_news",
+          "callee": "route_to_vendor",
+          "lineNumber": 24
+        },
+        {
+          "caller": "get_global_news",
+          "callee": "route_to_vendor",
+          "lineNumber": 46
+        },
+        {
+          "caller": "get_insider_transactions",
+          "callee": "route_to_vendor",
+          "lineNumber": 60
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/utils/prediction_markets_tools.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 31,
+      "nonEmptyLines": 25,
+      "functions": [
+        {
+          "name": "get_prediction_markets",
+          "startLine": 9,
+          "endLine": 31,
+          "params": [
+            "topic",
+            "limit"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "get_prediction_markets",
+          "line": 8,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "get_prediction_markets",
+          "callee": "route_to_vendor",
+          "lineNumber": 31
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/utils/structured.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 89,
+      "nonEmptyLines": 73,
+      "functions": [
+        {
+          "name": "bind_structured",
+          "startLine": 42,
+          "endLine": 56,
+          "params": [
+            "llm",
+            "schema",
+            "agent_name"
+          ]
+        },
+        {
+          "name": "invoke_structured_or_freetext",
+          "startLine": 59,
+          "endLine": 89,
+          "params": [
+            "structured_llm",
+            "plain_llm",
+            "prompt",
+            "render",
+            "agent_name"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "bind_structured",
+          "line": 42,
+          "isDefault": false
+        },
+        {
+          "name": "invoke_structured_or_freetext",
+          "line": 59,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "bind_structured",
+          "callee": "llm.with_structured_output",
+          "lineNumber": 49
+        },
+        {
+          "caller": "bind_structured",
+          "callee": "logger.warning",
+          "lineNumber": 51
+        },
+        {
+          "caller": "invoke_structured_or_freetext",
+          "callee": "structured_llm.invoke",
+          "lineNumber": 75
+        },
+        {
+          "caller": "invoke_structured_or_freetext",
+          "callee": "ValueError",
+          "lineNumber": 80
+        },
+        {
+          "caller": "invoke_structured_or_freetext",
+          "callee": "render",
+          "lineNumber": 81
+        },
+        {
+          "caller": "invoke_structured_or_freetext",
+          "callee": "logger.warning",
+          "lineNumber": 83
+        },
+        {
+          "caller": "invoke_structured_or_freetext",
+          "callee": "plain_llm.invoke",
+          "lineNumber": 88
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/agents/utils/technical_indicators_tools.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 35,
+      "nonEmptyLines": 31,
+      "functions": [
+        {
+          "name": "get_indicators",
+          "startLine": 9,
+          "endLine": 35,
+          "params": [
+            "symbol",
+            "indicator",
+            "curr_date",
+            "look_back_days"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "get_indicators",
+          "line": 8,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "get_indicators",
+          "callee": "i.strip().lower",
+          "lineNumber": 28
+        },
+        {
+          "caller": "get_indicators",
+          "callee": "i.strip",
+          "lineNumber": 28
+        },
+        {
+          "caller": "get_indicators",
+          "callee": "indicator.split",
+          "lineNumber": 28
+        },
+        {
+          "caller": "get_indicators",
+          "callee": "i.strip",
+          "lineNumber": 28
+        },
+        {
+          "caller": "get_indicators",
+          "callee": "results.append",
+          "lineNumber": 32
+        },
+        {
+          "caller": "get_indicators",
+          "callee": "route_to_vendor",
+          "lineNumber": 32
+        },
+        {
+          "caller": "get_indicators",
+          "callee": "results.append",
+          "lineNumber": 34
+        },
+        {
+          "caller": "get_indicators",
+          "callee": "str",
+          "lineNumber": 34
+        },
+        {
+          "caller": "get_indicators",
+          "callee": "\"\\n\\n\".join",
+          "lineNumber": 35
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/dataflows/market_data_validator.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 123,
+      "nonEmptyLines": 103,
+      "functions": [
+        {
+          "name": "_verified_rows",
+          "startLine": 28,
+          "endLine": 45,
+          "params": [
+            "symbol",
+            "curr_date"
+          ]
+        },
+        {
+          "name": "_fmt",
+          "startLine": 48,
+          "endLine": 59,
+          "params": [
+            "value"
+          ]
+        },
+        {
+          "name": "build_verified_market_snapshot",
+          "startLine": 62,
+          "endLine": 123,
+          "params": [
+            "symbol",
+            "curr_date",
+            "look_back_days",
+            "indicators"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "_verified_rows",
+          "line": 28,
+          "isDefault": false
+        },
+        {
+          "name": "_fmt",
+          "line": 48,
+          "isDefault": false
+        },
+        {
+          "name": "build_verified_market_snapshot",
+          "line": 62,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_verified_rows",
+          "callee": "load_ohlcv",
+          "lineNumber": 35
+        },
+        {
+          "caller": "_verified_rows",
+          "callee": "ValueError",
+          "lineNumber": 37
+        },
+        {
+          "caller": "_verified_rows",
+          "callee": "data.copy",
+          "lineNumber": 39
+        },
+        {
+          "caller": "_verified_rows",
+          "callee": "pd.to_datetime",
+          "lineNumber": 40
+        },
+        {
+          "caller": "_verified_rows",
+          "callee": "df.dropna",
+          "lineNumber": 41
+        },
+        {
+          "caller": "_verified_rows",
+          "callee": "df[df[\"Date\"] <= pd.to_datetime(curr_date)].sort_values",
+          "lineNumber": 42
+        },
+        {
+          "caller": "_verified_rows",
+          "callee": "pd.to_datetime",
+          "lineNumber": 42
+        },
+        {
+          "caller": "_verified_rows",
+          "callee": "ValueError",
+          "lineNumber": 44
+        },
+        {
+          "caller": "_fmt",
+          "callee": "pd.isna",
+          "lineNumber": 49
+        },
+        {
+          "caller": "_fmt",
+          "callee": "isinstance",
+          "lineNumber": 51
+        },
+        {
+          "caller": "_fmt",
+          "callee": "value.strftime",
+          "lineNumber": 52
+        },
+        {
+          "caller": "_fmt",
+          "callee": "isinstance",
+          "lineNumber": 53
+        },
+        {
+          "caller": "_fmt",
+          "callee": "str",
+          "lineNumber": 54
+        },
+        {
+          "caller": "_fmt",
+          "callee": "isinstance",
+          "lineNumber": 55
+        },
+        {
+          "caller": "_fmt",
+          "callee": "str",
+          "lineNumber": 56
+        },
+        {
+          "caller": "_fmt",
+          "callee": "isinstance",
+          "lineNumber": 57
+        },
+        {
+          "caller": "_fmt",
+          "callee": "str",
+          "lineNumber": 59
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "_verified_rows",
+          "lineNumber": 72
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "wrap",
+          "lineNumber": 73
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "df.copy",
+          "lineNumber": 73
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "tuple",
+          "lineNumber": 75
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "_fmt",
+          "lineNumber": 80
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "type",
+          "lineNumber": 82
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "_fmt",
+          "lineNumber": 85
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "max",
+          "lineNumber": 86
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "min",
+          "lineNumber": 86
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "int",
+          "lineNumber": 86
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "df.tail",
+          "lineNumber": 87
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "symbol.upper",
+          "lineNumber": 90
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "lines.append",
+          "lineNumber": 102
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "_fmt",
+          "lineNumber": 102
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "latest.get",
+          "lineNumber": 102
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "indicator_values.items",
+          "lineNumber": 106
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "lines.append",
+          "lineNumber": 107
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "len",
+          "lineNumber": 109
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "recent.iterrows",
+          "lineNumber": 111
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "lines.append",
+          "lineNumber": 112
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "_fmt",
+          "lineNumber": 112
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "_fmt",
+          "lineNumber": 112
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "row.get",
+          "lineNumber": 112
+        },
+        {
+          "caller": "build_verified_market_snapshot",
+          "callee": "\"\\n\".join",
+          "lineNumber": 123
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    }
+  ]
+}

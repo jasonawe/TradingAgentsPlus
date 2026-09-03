@@ -1,0 +1,1277 @@
+{
+  "nodes": [
+    {
+      "id": "file:tests/test_checkpoint_resume.py",
+      "type": "file",
+      "name": "test_checkpoint_resume.py",
+      "filePath": "tests/test_checkpoint_resume.py",
+      "summary": "覆盖 test_checkpoint_resume.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_checkpoint_resume.py:_node_a",
+      "type": "function",
+      "name": "_node_a",
+      "filePath": "tests/test_checkpoint_resume.py",
+      "lineRange": [
+        25,
+        26
+      ],
+      "summary": "位于 tests/test_checkpoint_resume.py 的函数 _node_a，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_checkpoint_resume.py:_node_b",
+      "type": "function",
+      "name": "_node_b",
+      "filePath": "tests/test_checkpoint_resume.py",
+      "lineRange": [
+        29,
+        32
+      ],
+      "summary": "位于 tests/test_checkpoint_resume.py 的函数 _node_b，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_checkpoint_resume.py:_build_graph",
+      "type": "function",
+      "name": "_build_graph",
+      "filePath": "tests/test_checkpoint_resume.py",
+      "lineRange": [
+        35,
+        42
+      ],
+      "summary": "位于 tests/test_checkpoint_resume.py 的函数 _build_graph，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_checkpoint_resume.py:_SimpleState",
+      "type": "class",
+      "name": "_SimpleState",
+      "filePath": "tests/test_checkpoint_resume.py",
+      "lineRange": [
+        21,
+        22
+      ],
+      "summary": "位于 tests/test_checkpoint_resume.py 的类 _SimpleState，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_checkpoint_resume.py:TestCheckpointResume",
+      "type": "class",
+      "name": "TestCheckpointResume",
+      "filePath": "tests/test_checkpoint_resume.py",
+      "lineRange": [
+        45,
+        140
+      ],
+      "summary": "位于 tests/test_checkpoint_resume.py 的类 TestCheckpointResume，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:tests/test_checkpoint_resume.py:TestCheckpointSignature",
+      "type": "class",
+      "name": "TestCheckpointSignature",
+      "filePath": "tests/test_checkpoint_resume.py",
+      "lineRange": [
+        143,
+        214
+      ],
+      "summary": "位于 tests/test_checkpoint_resume.py 的类 TestCheckpointSignature，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_chunk3_contract_fixes.py",
+      "type": "file",
+      "name": "test_chunk3_contract_fixes.py",
+      "filePath": "tests/test_chunk3_contract_fixes.py",
+      "summary": "覆盖 test_chunk3_contract_fixes.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_chunk3_contract_fixes.py:_request",
+      "type": "function",
+      "name": "_request",
+      "filePath": "tests/test_chunk3_contract_fixes.py",
+      "lineRange": [
+        13,
+        21
+      ],
+      "summary": "位于 tests/test_chunk3_contract_fixes.py 的函数 _request，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_chunk3_contract_fixes.py:test_market_contracts_are_flattened_and_errors_are_chinese",
+      "type": "function",
+      "name": "test_market_contracts_are_flattened_and_errors_are_chinese",
+      "filePath": "tests/test_chunk3_contract_fixes.py",
+      "lineRange": [
+        24,
+        40
+      ],
+      "summary": "位于 tests/test_chunk3_contract_fixes.py 的函数 test_market_contracts_are_flattened_and_errors_are_chinese，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_chunk3_contract_fixes.py:test_output_language_environment_overrides_sqlite",
+      "type": "function",
+      "name": "test_output_language_environment_overrides_sqlite",
+      "filePath": "tests/test_chunk3_contract_fixes.py",
+      "lineRange": [
+        43,
+        51
+      ],
+      "summary": "位于 tests/test_chunk3_contract_fixes.py 的函数 test_output_language_environment_overrides_sqlite，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_chunk3_contract_fixes.py:test_run_effective_metadata_is_stored",
+      "type": "function",
+      "name": "test_run_effective_metadata_is_stored",
+      "filePath": "tests/test_chunk3_contract_fixes.py",
+      "lineRange": [
+        54,
+        62
+      ],
+      "summary": "位于 tests/test_chunk3_contract_fixes.py 的函数 test_run_effective_metadata_is_stored，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_chunk3_contract_fixes.py:test_restart_marks_run_interrupted_and_emits_only_interrupted",
+      "type": "function",
+      "name": "test_restart_marks_run_interrupted_and_emits_only_interrupted",
+      "filePath": "tests/test_chunk3_contract_fixes.py",
+      "lineRange": [
+        65,
+        75
+      ],
+      "summary": "位于 tests/test_chunk3_contract_fixes.py 的函数 test_restart_marks_run_interrupted_and_emits_only_interrupted，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_chunk3_contract_fixes.py:test_watchlist_patch_supports_position_with_cas",
+      "type": "function",
+      "name": "test_watchlist_patch_supports_position_with_cas",
+      "filePath": "tests/test_chunk3_contract_fixes.py",
+      "lineRange": [
+        78,
+        83
+      ],
+      "summary": "位于 tests/test_chunk3_contract_fixes.py 的函数 test_watchlist_patch_supports_position_with_cas，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_chunk3_contract_fixes.py:test_legacy_signal_maps_to_rating",
+      "type": "function",
+      "name": "test_legacy_signal_maps_to_rating",
+      "filePath": "tests/test_chunk3_contract_fixes.py",
+      "lineRange": [
+        86,
+        92
+      ],
+      "summary": "位于 tests/test_chunk3_contract_fixes.py 的函数 test_legacy_signal_maps_to_rating，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_error_classifier.py",
+      "type": "file",
+      "name": "test_error_classifier.py",
+      "filePath": "tests/test_error_classifier.py",
+      "summary": "覆盖 test_error_classifier.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_error_classifier.py:test_classify_provider_exception_maps_to_stable_reason",
+      "type": "function",
+      "name": "test_classify_provider_exception_maps_to_stable_reason",
+      "filePath": "tests/test_error_classifier.py",
+      "lineRange": [
+        49,
+        58
+      ],
+      "summary": "位于 tests/test_error_classifier.py 的函数 test_classify_provider_exception_maps_to_stable_reason，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_error_classifier.py:test_data_source_classification_uses_dedicated_codes",
+      "type": "function",
+      "name": "test_data_source_classification_uses_dedicated_codes",
+      "filePath": "tests/test_error_classifier.py",
+      "lineRange": [
+        61,
+        67
+      ],
+      "summary": "位于 tests/test_error_classifier.py 的函数 test_data_source_classification_uses_dedicated_codes，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_error_classifier.py:test_classifier_propagates_provider_metadata",
+      "type": "function",
+      "name": "test_classifier_propagates_provider_metadata",
+      "filePath": "tests/test_error_classifier.py",
+      "lineRange": [
+        70,
+        83
+      ],
+      "summary": "位于 tests/test_error_classifier.py 的函数 test_classifier_propagates_provider_metadata，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_error_classifier.py:test_classifier_does_not_leak_original_message_in_user_text",
+      "type": "function",
+      "name": "test_classifier_does_not_leak_original_message_in_user_text",
+      "filePath": "tests/test_error_classifier.py",
+      "lineRange": [
+        86,
+        96
+      ],
+      "summary": "位于 tests/test_error_classifier.py 的函数 test_classifier_does_not_leak_original_message_in_user_text，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_error_classifier.py:test_classifier_safe_detail_truncates_and_strips_newlines",
+      "type": "function",
+      "name": "test_classifier_safe_detail_truncates_and_strips_newlines",
+      "filePath": "tests/test_error_classifier.py",
+      "lineRange": [
+        99,
+        106
+      ],
+      "summary": "位于 tests/test_error_classifier.py 的函数 test_classifier_safe_detail_truncates_and_strips_newlines，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_error_classifier.py:test_worker_error_info_uses_worker_error_code",
+      "type": "function",
+      "name": "test_worker_error_info_uses_worker_error_code",
+      "filePath": "tests/test_error_classifier.py",
+      "lineRange": [
+        109,
+        113
+      ],
+      "summary": "位于 tests/test_error_classifier.py 的函数 test_worker_error_info_uses_worker_error_code，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_error_classifier.py:test_retryable_reasons_align_with_provider_failures",
+      "type": "function",
+      "name": "test_retryable_reasons_align_with_provider_failures",
+      "filePath": "tests/test_error_classifier.py",
+      "lineRange": [
+        116,
+        133
+      ],
+      "summary": "位于 tests/test_error_classifier.py 的函数 test_retryable_reasons_align_with_provider_failures，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_error_classifier.py:_StatusError",
+      "type": "class",
+      "name": "_StatusError",
+      "filePath": "tests/test_error_classifier.py",
+      "lineRange": [
+        16,
+        19
+      ],
+      "summary": "位于 tests/test_error_classifier.py 的类 _StatusError，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_error_classifier.py:_Response",
+      "type": "class",
+      "name": "_Response",
+      "filePath": "tests/test_error_classifier.py",
+      "lineRange": [
+        22,
+        24
+      ],
+      "summary": "位于 tests/test_error_classifier.py 的类 _Response，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_error_classifier.py:_WrappedError",
+      "type": "class",
+      "name": "_WrappedError",
+      "filePath": "tests/test_error_classifier.py",
+      "lineRange": [
+        27,
+        30
+      ],
+      "summary": "位于 tests/test_error_classifier.py 的类 _WrappedError，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_run_manager_concurrency.py",
+      "type": "file",
+      "name": "test_run_manager_concurrency.py",
+      "filePath": "tests/test_run_manager_concurrency.py",
+      "summary": "覆盖 test_run_manager_concurrency.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_run_manager_concurrency.py:_stub_request",
+      "type": "function",
+      "name": "_stub_request",
+      "filePath": "tests/test_run_manager_concurrency.py",
+      "lineRange": [
+        19,
+        27
+      ],
+      "summary": "位于 tests/test_run_manager_concurrency.py 的函数 _stub_request，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_run_manager_concurrency.py:_managed_stub",
+      "type": "function",
+      "name": "_managed_stub",
+      "filePath": "tests/test_run_manager_concurrency.py",
+      "lineRange": [
+        30,
+        42
+      ],
+      "summary": "位于 tests/test_run_manager_concurrency.py 的函数 _managed_stub，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_run_manager_concurrency.py:test_concurrent_runs_cap_reads_default_when_settings_missing",
+      "type": "function",
+      "name": "test_concurrent_runs_cap_reads_default_when_settings_missing",
+      "filePath": "tests/test_run_manager_concurrency.py",
+      "lineRange": [
+        48,
+        50
+      ],
+      "summary": "位于 tests/test_run_manager_concurrency.py 的函数 test_concurrent_runs_cap_reads_default_when_settings_missing，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_run_manager_concurrency.py:test_concurrent_runs_cap_clamps_out_of_range",
+      "type": "function",
+      "name": "test_concurrent_runs_cap_clamps_out_of_range",
+      "filePath": "tests/test_run_manager_concurrency.py",
+      "lineRange": [
+        53,
+        62
+      ],
+      "summary": "位于 tests/test_run_manager_concurrency.py 的函数 test_concurrent_runs_cap_clamps_out_of_range，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_run_manager_concurrency.py:test_active_run_ids_starts_empty",
+      "type": "function",
+      "name": "test_active_run_ids_starts_empty",
+      "filePath": "tests/test_run_manager_concurrency.py",
+      "lineRange": [
+        68,
+        71
+      ],
+      "summary": "位于 tests/test_run_manager_concurrency.py 的函数 test_active_run_ids_starts_empty，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_run_manager_concurrency.py:test_active_run_id_returns_member_when_multiple",
+      "type": "function",
+      "name": "test_active_run_id_returns_member_when_multiple",
+      "filePath": "tests/test_run_manager_concurrency.py",
+      "lineRange": [
+        74,
+        77
+      ],
+      "summary": "位于 tests/test_run_manager_concurrency.py 的函数 test_active_run_id_returns_member_when_multiple，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_run_manager_concurrency.py:test_start_run_rejects_when_at_cap",
+      "type": "function",
+      "name": "test_start_run_rejects_when_at_cap",
+      "filePath": "tests/test_run_manager_concurrency.py",
+      "lineRange": [
+        83,
+        88
+      ],
+      "summary": "位于 tests/test_run_manager_concurrency.py 的函数 test_start_run_rejects_when_at_cap，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_run_manager_concurrency.py:test_start_run_rejects_duplicate_ticker",
+      "type": "function",
+      "name": "test_start_run_rejects_duplicate_ticker",
+      "filePath": "tests/test_run_manager_concurrency.py",
+      "lineRange": [
+        91,
+        97
+      ],
+      "summary": "位于 tests/test_run_manager_concurrency.py 的函数 test_start_run_rejects_duplicate_ticker，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_run_manager_concurrency.py:test_start_run_inserts_into_active_set",
+      "type": "function",
+      "name": "test_start_run_inserts_into_active_set",
+      "filePath": "tests/test_run_manager_concurrency.py",
+      "lineRange": [
+        103,
+        107
+      ],
+      "summary": "位于 tests/test_run_manager_concurrency.py 的函数 test_start_run_inserts_into_active_set，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_run_manager_concurrency.py:test_finish_removes_from_active_set",
+      "type": "function",
+      "name": "test_finish_removes_from_active_set",
+      "filePath": "tests/test_run_manager_concurrency.py",
+      "lineRange": [
+        110,
+        115
+      ],
+      "summary": "位于 tests/test_run_manager_concurrency.py 的函数 test_finish_removes_from_active_set，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_run_manager_concurrency.py:test_executor_grows_to_match_cap",
+      "type": "function",
+      "name": "test_executor_grows_to_match_cap",
+      "filePath": "tests/test_run_manager_concurrency.py",
+      "lineRange": [
+        121,
+        125
+      ],
+      "summary": "位于 tests/test_run_manager_concurrency.py 的函数 test_executor_grows_to_match_cap，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_run_manager_concurrency.py:test_three_runs_in_flight_simultaneously",
+      "type": "function",
+      "name": "test_three_runs_in_flight_simultaneously",
+      "filePath": "tests/test_run_manager_concurrency.py",
+      "lineRange": [
+        128,
+        140
+      ],
+      "summary": "位于 tests/test_run_manager_concurrency.py 的函数 test_three_runs_in_flight_simultaneously，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_safe_ticker_component.py",
+      "type": "file",
+      "name": "test_safe_ticker_component.py",
+      "filePath": "tests/test_safe_ticker_component.py",
+      "summary": "覆盖 test_safe_ticker_component.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_safe_ticker_component.py:TestSafeTickerComponent",
+      "type": "class",
+      "name": "TestSafeTickerComponent",
+      "filePath": "tests/test_safe_ticker_component.py",
+      "lineRange": [
+        12,
+        53
+      ],
+      "summary": "位于 tests/test_safe_ticker_component.py 的类 TestSafeTickerComponent，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:tests/test_checkpoint_resume.py",
+      "target": "function:tests/test_checkpoint_resume.py:_node_a",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_checkpoint_resume.py",
+      "target": "function:tests/test_checkpoint_resume.py:_node_b",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_checkpoint_resume.py",
+      "target": "function:tests/test_checkpoint_resume.py:_build_graph",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_checkpoint_resume.py",
+      "target": "class:tests/test_checkpoint_resume.py:_SimpleState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_checkpoint_resume.py",
+      "target": "class:tests/test_checkpoint_resume.py:TestCheckpointResume",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_checkpoint_resume.py",
+      "target": "class:tests/test_checkpoint_resume.py:TestCheckpointSignature",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_checkpoint_resume.py",
+      "target": "class:tests/test_checkpoint_resume.py:_SimpleState",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_checkpoint_resume.py",
+      "target": "function:tests/test_checkpoint_resume.py:_node_a",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_checkpoint_resume.py",
+      "target": "function:tests/test_checkpoint_resume.py:_node_b",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_checkpoint_resume.py",
+      "target": "function:tests/test_checkpoint_resume.py:_build_graph",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_checkpoint_resume.py",
+      "target": "class:tests/test_checkpoint_resume.py:TestCheckpointResume",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_checkpoint_resume.py",
+      "target": "class:tests/test_checkpoint_resume.py:TestCheckpointSignature",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_checkpoint_resume.py",
+      "target": "file:tradingagents/graph/checkpointer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "function:tests/test_chunk3_contract_fixes.py:_request",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "function:tests/test_chunk3_contract_fixes.py:test_market_contracts_are_flattened_and_errors_are_chinese",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "function:tests/test_chunk3_contract_fixes.py:test_output_language_environment_overrides_sqlite",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "function:tests/test_chunk3_contract_fixes.py:test_run_effective_metadata_is_stored",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "function:tests/test_chunk3_contract_fixes.py:test_restart_marks_run_interrupted_and_emits_only_interrupted",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "function:tests/test_chunk3_contract_fixes.py:test_watchlist_patch_supports_position_with_cas",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "function:tests/test_chunk3_contract_fixes.py:test_legacy_signal_maps_to_rating",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "function:tests/test_chunk3_contract_fixes.py:_request",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "function:tests/test_chunk3_contract_fixes.py:test_market_contracts_are_flattened_and_errors_are_chinese",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "function:tests/test_chunk3_contract_fixes.py:test_output_language_environment_overrides_sqlite",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "function:tests/test_chunk3_contract_fixes.py:test_run_effective_metadata_is_stored",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "function:tests/test_chunk3_contract_fixes.py:test_restart_marks_run_interrupted_and_emits_only_interrupted",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "function:tests/test_chunk3_contract_fixes.py:test_watchlist_patch_supports_position_with_cas",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "function:tests/test_chunk3_contract_fixes.py:test_legacy_signal_maps_to_rating",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "file:web/app.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "file:web/history.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "file:web/repositories.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_chunk3_contract_fixes.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "function:tests/test_error_classifier.py:test_classify_provider_exception_maps_to_stable_reason",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "function:tests/test_error_classifier.py:test_data_source_classification_uses_dedicated_codes",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "function:tests/test_error_classifier.py:test_classifier_propagates_provider_metadata",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "function:tests/test_error_classifier.py:test_classifier_does_not_leak_original_message_in_user_text",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "function:tests/test_error_classifier.py:test_classifier_safe_detail_truncates_and_strips_newlines",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "function:tests/test_error_classifier.py:test_worker_error_info_uses_worker_error_code",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "function:tests/test_error_classifier.py:test_retryable_reasons_align_with_provider_failures",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "class:tests/test_error_classifier.py:_StatusError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "class:tests/test_error_classifier.py:_Response",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "class:tests/test_error_classifier.py:_WrappedError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "class:tests/test_error_classifier.py:_StatusError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "class:tests/test_error_classifier.py:_Response",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "class:tests/test_error_classifier.py:_WrappedError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "function:tests/test_error_classifier.py:test_classify_provider_exception_maps_to_stable_reason",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "function:tests/test_error_classifier.py:test_data_source_classification_uses_dedicated_codes",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "function:tests/test_error_classifier.py:test_classifier_propagates_provider_metadata",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "function:tests/test_error_classifier.py:test_classifier_does_not_leak_original_message_in_user_text",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "function:tests/test_error_classifier.py:test_classifier_safe_detail_truncates_and_strips_newlines",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "function:tests/test_error_classifier.py:test_worker_error_info_uses_worker_error_code",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "function:tests/test_error_classifier.py:test_retryable_reasons_align_with_provider_failures",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "file:web/error_classifier.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_error_classifier.py",
+      "target": "file:web/error_codes.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:_stub_request",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:_managed_stub",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:test_concurrent_runs_cap_reads_default_when_settings_missing",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:test_concurrent_runs_cap_clamps_out_of_range",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:test_active_run_ids_starts_empty",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:test_active_run_id_returns_member_when_multiple",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:test_start_run_rejects_when_at_cap",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:test_start_run_rejects_duplicate_ticker",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:test_start_run_inserts_into_active_set",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:test_finish_removes_from_active_set",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:test_executor_grows_to_match_cap",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:test_three_runs_in_flight_simultaneously",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:_stub_request",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:_managed_stub",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:test_concurrent_runs_cap_reads_default_when_settings_missing",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:test_concurrent_runs_cap_clamps_out_of_range",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:test_active_run_ids_starts_empty",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:test_active_run_id_returns_member_when_multiple",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:test_start_run_rejects_when_at_cap",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:test_start_run_rejects_duplicate_ticker",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:test_start_run_inserts_into_active_set",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:test_finish_removes_from_active_set",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:test_executor_grows_to_match_cap",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "function:tests/test_run_manager_concurrency.py:test_three_runs_in_flight_simultaneously",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_run_manager_concurrency.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_safe_ticker_component.py",
+      "target": "class:tests/test_safe_ticker_component.py:TestSafeTickerComponent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_safe_ticker_component.py",
+      "target": "class:tests/test_safe_ticker_component.py:TestSafeTickerComponent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_safe_ticker_component.py",
+      "target": "file:tradingagents/dataflows/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

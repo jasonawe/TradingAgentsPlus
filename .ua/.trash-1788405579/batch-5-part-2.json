@@ -1,0 +1,2266 @@
+{
+  "nodes": [
+    {
+      "id": "file:tests/test_web_api.py",
+      "type": "file",
+      "name": "test_web_api.py",
+      "filePath": "tests/test_web_api.py",
+      "summary": "覆盖 test_web_api.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_web_api.py:_request",
+      "type": "function",
+      "name": "_request",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        20,
+        30
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 _request，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:harness",
+      "type": "function",
+      "name": "harness",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        49,
+        66
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 harness，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:test_index_and_config_are_public_and_redacted",
+      "type": "function",
+      "name": "test_index_and_config_are_public_and_redacted",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        69,
+        87
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 test_index_and_config_are_public_and_redacted，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:test_console_routes_serve_the_single_page_entrypoint",
+      "type": "function",
+      "name": "test_console_routes_serve_the_single_page_entrypoint",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        91,
+        97
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 test_console_routes_serve_the_single_page_entrypoint，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:test_create_get_conflict_and_cancel",
+      "type": "function",
+      "name": "test_create_get_conflict_and_cancel",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        100,
+        118
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 test_create_get_conflict_and_cancel，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:test_active_run_endpoint_returns_the_current_running_analysis",
+      "type": "function",
+      "name": "test_active_run_endpoint_returns_the_current_running_analysis",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        121,
+        136
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 test_active_run_endpoint_returns_the_current_running_analysis，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:test_validation_and_unknown_run_errors",
+      "type": "function",
+      "name": "test_validation_and_unknown_run_errors",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        139,
+        149
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 test_validation_and_unknown_run_errors，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:test_validation_does_not_emit_starlette_status_deprecation",
+      "type": "function",
+      "name": "test_validation_does_not_emit_starlette_status_deprecation",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        152,
+        163
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 test_validation_does_not_emit_starlette_status_deprecation，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:test_create_app_injects_lifecycle_config_and_start_run_freezes_it",
+      "type": "function",
+      "name": "test_create_app_injects_lifecycle_config_and_start_run_freezes_it",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        166,
+        203
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 test_create_app_injects_lifecycle_config_and_start_run_freezes_it，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:test_create_app_rejects_invalid_lifecycle_configuration",
+      "type": "function",
+      "name": "test_create_app_rejects_invalid_lifecycle_configuration",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        206,
+        219
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 test_create_app_rejects_invalid_lifecycle_configuration，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:test_sse_emits_envelopes_and_last_event_id_wins",
+      "type": "function",
+      "name": "test_sse_emits_envelopes_and_last_event_id_wins",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        222,
+        244
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 test_sse_emits_envelopes_and_last_event_id_wins，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:test_sse_snapshot_has_no_id_and_exposes_locked_replay_cut",
+      "type": "function",
+      "name": "test_sse_snapshot_has_no_id_and_exposes_locked_replay_cut",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        247,
+        271
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 test_sse_snapshot_has_no_id_and_exposes_locked_replay_cut，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:test_fastapi_lifespan_stops_manager_watchdog",
+      "type": "function",
+      "name": "test_fastapi_lifespan_stops_manager_watchdog",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        274,
+        284
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 test_fastapi_lifespan_stops_manager_watchdog，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:test_history_detail_and_download_are_allowlisted",
+      "type": "function",
+      "name": "test_history_detail_and_download_are_allowlisted",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        287,
+        328
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 test_history_detail_and_download_are_allowlisted，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_web_api.py:test_history_pagination_filters_and_preserves_legacy_response",
+      "type": "function",
+      "name": "test_history_pagination_filters_and_preserves_legacy_response",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        331,
+        366
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 test_history_pagination_filters_and_preserves_legacy_response，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:test_history_pagination_rejects_invalid_parameters",
+      "type": "function",
+      "name": "test_history_pagination_rejects_invalid_parameters",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        380,
+        383
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 test_history_pagination_rejects_invalid_parameters，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:test_market_provider_health_is_exposed_in_provider_and_settings_views",
+      "type": "function",
+      "name": "test_market_provider_health_is_exposed_in_provider_and_settings_views",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        386,
+        398
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 test_market_provider_health_is_exposed_in_provider_and_settings_views，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:_sse_data",
+      "type": "function",
+      "name": "_sse_data",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        401,
+        405
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 _sse_data，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:test_list_runs_for_ticker_filters_orders_and_caps",
+      "type": "function",
+      "name": "test_list_runs_for_ticker_filters_orders_and_caps",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        408,
+        435
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 test_list_runs_for_ticker_filters_orders_and_caps，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:test_list_runs_for_ticker_isolates_tickers",
+      "type": "function",
+      "name": "test_list_runs_for_ticker_isolates_tickers",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        438,
+        452
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 test_list_runs_for_ticker_isolates_tickers，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:test_asset_runs_endpoint_returns_only_matching_ticker",
+      "type": "function",
+      "name": "test_asset_runs_endpoint_returns_only_matching_ticker",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        455,
+        484
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 test_asset_runs_endpoint_returns_only_matching_ticker，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:test_runs_active_returns_list",
+      "type": "function",
+      "name": "test_runs_active_returns_list",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        486,
+        495
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 test_runs_active_returns_list，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:test_runs_active_lists_each_in_flight_run",
+      "type": "function",
+      "name": "test_runs_active_lists_each_in_flight_run",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        498,
+        517
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 test_runs_active_lists_each_in_flight_run，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api.py:test_three_runs_admitted_then_409",
+      "type": "function",
+      "name": "test_three_runs_admitted_then_409",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        519,
+        537
+      ],
+      "summary": "位于 tests/test_web_api.py 的函数 test_three_runs_admitted_then_409，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_web_api.py:BlockingRunner",
+      "type": "class",
+      "name": "BlockingRunner",
+      "filePath": "tests/test_web_api.py",
+      "lineRange": [
+        33,
+        45
+      ],
+      "summary": "位于 tests/test_web_api.py 的类 BlockingRunner，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_web_api_recovery.py",
+      "type": "file",
+      "name": "test_web_api_recovery.py",
+      "filePath": "tests/test_web_api_recovery.py",
+      "summary": "覆盖 test_web_api_recovery.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_web_api_recovery.py:_request",
+      "type": "function",
+      "name": "_request",
+      "filePath": "tests/test_web_api_recovery.py",
+      "lineRange": [
+        15,
+        24
+      ],
+      "summary": "位于 tests/test_web_api_recovery.py 的函数 _request，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api_recovery.py:_build_app",
+      "type": "function",
+      "name": "_build_app",
+      "filePath": "tests/test_web_api_recovery.py",
+      "lineRange": [
+        27,
+        33
+      ],
+      "summary": "位于 tests/test_web_api_recovery.py 的函数 _build_app，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api_recovery.py:test_get_artifacts_returns_empty_list_for_just_started_run",
+      "type": "function",
+      "name": "test_get_artifacts_returns_empty_list_for_just_started_run",
+      "filePath": "tests/test_web_api_recovery.py",
+      "lineRange": [
+        36,
+        48
+      ],
+      "summary": "位于 tests/test_web_api_recovery.py 的函数 test_get_artifacts_returns_empty_list_for_just_started_run，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api_recovery.py:test_get_artifacts_returns_partial_after_provider_failure",
+      "type": "function",
+      "name": "test_get_artifacts_returns_partial_after_provider_failure",
+      "filePath": "tests/test_web_api_recovery.py",
+      "lineRange": [
+        51,
+        83
+      ],
+      "summary": "位于 tests/test_web_api_recovery.py 的函数 test_get_artifacts_returns_partial_after_provider_failure，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api_recovery.py:test_get_artifacts_404_for_unknown_run",
+      "type": "function",
+      "name": "test_get_artifacts_404_for_unknown_run",
+      "filePath": "tests/test_web_api_recovery.py",
+      "lineRange": [
+        86,
+        91
+      ],
+      "summary": "位于 tests/test_web_api_recovery.py 的函数 test_get_artifacts_404_for_unknown_run，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api_recovery.py:test_retry_endpoint_returns_409_when_not_retryable",
+      "type": "function",
+      "name": "test_retry_endpoint_returns_409_when_not_retryable",
+      "filePath": "tests/test_web_api_recovery.py",
+      "lineRange": [
+        94,
+        107
+      ],
+      "summary": "位于 tests/test_web_api_recovery.py 的函数 test_retry_endpoint_returns_409_when_not_retryable，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api_recovery.py:test_retry_endpoint_returns_409_when_no_checkpoint",
+      "type": "function",
+      "name": "test_retry_endpoint_returns_409_when_no_checkpoint",
+      "filePath": "tests/test_web_api_recovery.py",
+      "lineRange": [
+        110,
+        126
+      ],
+      "summary": "位于 tests/test_web_api_recovery.py 的函数 test_retry_endpoint_returns_409_when_no_checkpoint，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api_recovery.py:test_get_run_includes_recovery_fields",
+      "type": "function",
+      "name": "test_get_run_includes_recovery_fields",
+      "filePath": "tests/test_web_api_recovery.py",
+      "lineRange": [
+        129,
+        154
+      ],
+      "summary": "位于 tests/test_web_api_recovery.py 的函数 test_get_run_includes_recovery_fields，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_api_recovery.py:test_get_run_artifact_counts_visible_to_clients",
+      "type": "function",
+      "name": "test_get_run_artifact_counts_visible_to_clients",
+      "filePath": "tests/test_web_api_recovery.py",
+      "lineRange": [
+        157,
+        179
+      ],
+      "summary": "位于 tests/test_web_api_recovery.py 的函数 test_get_run_artifact_counts_visible_to_clients，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_web_artifacts.py",
+      "type": "file",
+      "name": "test_web_artifacts.py",
+      "filePath": "tests/test_web_artifacts.py",
+      "summary": "覆盖 test_web_artifacts.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_web_artifacts.py:_request",
+      "type": "function",
+      "name": "_request",
+      "filePath": "tests/test_web_artifacts.py",
+      "lineRange": [
+        17,
+        24
+      ],
+      "summary": "位于 tests/test_web_artifacts.py 的函数 _request，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_artifacts.py:test_artifact_types_and_statuses_are_whitelisted",
+      "type": "function",
+      "name": "test_artifact_types_and_statuses_are_whitelisted",
+      "filePath": "tests/test_web_artifacts.py",
+      "lineRange": [
+        27,
+        29
+      ],
+      "summary": "位于 tests/test_web_artifacts.py 的函数 test_artifact_types_and_statuses_are_whitelisted，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_artifacts.py:test_repository_rejects_unknown_artifact_type",
+      "type": "function",
+      "name": "test_repository_rejects_unknown_artifact_type",
+      "filePath": "tests/test_web_artifacts.py",
+      "lineRange": [
+        32,
+        49
+      ],
+      "summary": "位于 tests/test_web_artifacts.py 的函数 test_repository_rejects_unknown_artifact_type，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_artifacts.py:test_upsert_is_idempotent_and_preserves_created_at",
+      "type": "function",
+      "name": "test_upsert_is_idempotent_and_preserves_created_at",
+      "filePath": "tests/test_web_artifacts.py",
+      "lineRange": [
+        52,
+        87
+      ],
+      "summary": "位于 tests/test_web_artifacts.py 的函数 test_upsert_is_idempotent_and_preserves_created_at，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_artifacts.py:test_list_orders_by_sequence_and_returns_latest_state",
+      "type": "function",
+      "name": "test_list_orders_by_sequence_and_returns_latest_state",
+      "filePath": "tests/test_web_artifacts.py",
+      "lineRange": [
+        90,
+        141
+      ],
+      "summary": "位于 tests/test_web_artifacts.py 的函数 test_list_orders_by_sequence_and_returns_latest_state，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_web_artifacts.py:test_get_run_populates_artifact_counts",
+      "type": "function",
+      "name": "test_get_run_populates_artifact_counts",
+      "filePath": "tests/test_web_artifacts.py",
+      "lineRange": [
+        144,
+        177
+      ],
+      "summary": "位于 tests/test_web_artifacts.py 的函数 test_get_run_populates_artifact_counts，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_artifacts.py:test_artifacts_survive_a_failed_run_and_remain_readable",
+      "type": "function",
+      "name": "test_artifacts_survive_a_failed_run_and_remain_readable",
+      "filePath": "tests/test_web_artifacts.py",
+      "lineRange": [
+        180,
+        223
+      ],
+      "summary": "位于 tests/test_web_artifacts.py 的函数 test_artifacts_survive_a_failed_run_and_remain_readable，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_web_artifacts.py:test_partial_artifact_is_not_promoted_to_completed",
+      "type": "function",
+      "name": "test_partial_artifact_is_not_promoted_to_completed",
+      "filePath": "tests/test_web_artifacts.py",
+      "lineRange": [
+        226,
+        257
+      ],
+      "summary": "位于 tests/test_web_artifacts.py 的函数 test_partial_artifact_is_not_promoted_to_completed，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_web_history.py",
+      "type": "file",
+      "name": "test_web_history.py",
+      "filePath": "tests/test_web_history.py",
+      "summary": "覆盖 test_web_history.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_web_history.py:write_report",
+      "type": "function",
+      "name": "write_report",
+      "filePath": "tests/test_web_history.py",
+      "lineRange": [
+        11,
+        27
+      ],
+      "summary": "位于 tests/test_web_history.py 的函数 write_report，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_history.py:test_indexes_web_and_legacy_roots_newest_first",
+      "type": "function",
+      "name": "test_indexes_web_and_legacy_roots_newest_first",
+      "filePath": "tests/test_web_history.py",
+      "lineRange": [
+        30,
+        51
+      ],
+      "summary": "位于 tests/test_web_history.py 的函数 test_indexes_web_and_legacy_roots_newest_first，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_history.py:test_detail_has_complete_report_and_all_explicit_sections",
+      "type": "function",
+      "name": "test_detail_has_complete_report_and_all_explicit_sections",
+      "filePath": "tests/test_web_history.py",
+      "lineRange": [
+        54,
+        69
+      ],
+      "summary": "位于 tests/test_web_history.py 的函数 test_detail_has_complete_report_and_all_explicit_sections，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_history.py:test_detail_reads_optional_executive_summary",
+      "type": "function",
+      "name": "test_detail_reads_optional_executive_summary",
+      "filePath": "tests/test_web_history.py",
+      "lineRange": [
+        72,
+        77
+      ],
+      "summary": "位于 tests/test_web_history.py 的函数 test_detail_reads_optional_executive_summary，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_history.py:test_legacy_id_is_root_qualified_and_collisions_are_stable",
+      "type": "function",
+      "name": "test_legacy_id_is_root_qualified_and_collisions_are_stable",
+      "filePath": "tests/test_web_history.py",
+      "lineRange": [
+        80,
+        92
+      ],
+      "summary": "位于 tests/test_web_history.py 的函数 test_legacy_id_is_root_qualified_and_collisions_are_stable，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_history.py:test_rejects_traversal_and_outside_paths",
+      "type": "function",
+      "name": "test_rejects_traversal_and_outside_paths",
+      "filePath": "tests/test_web_history.py",
+      "lineRange": [
+        95,
+        101
+      ],
+      "summary": "位于 tests/test_web_history.py 的函数 test_rejects_traversal_and_outside_paths，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_history.py:test_missing_generated_metadata_is_null",
+      "type": "function",
+      "name": "test_missing_generated_metadata_is_null",
+      "filePath": "tests/test_web_history.py",
+      "lineRange": [
+        104,
+        107
+      ],
+      "summary": "位于 tests/test_web_history.py 的函数 test_missing_generated_metadata_is_null，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_history.py:test_unpublished_web_report_in_tmp_is_not_indexed",
+      "type": "function",
+      "name": "test_unpublished_web_report_in_tmp_is_not_indexed",
+      "filePath": "tests/test_web_history.py",
+      "lineRange": [
+        110,
+        119
+      ],
+      "summary": "位于 tests/test_web_history.py 的函数 test_unpublished_web_report_in_tmp_is_not_indexed，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_history.py:test_web_report_in_tmp_is_never_indexed_even_with_publish_markers",
+      "type": "function",
+      "name": "test_web_report_in_tmp_is_never_indexed_even_with_publish_markers",
+      "filePath": "tests/test_web_history.py",
+      "lineRange": [
+        122,
+        130
+      ],
+      "summary": "位于 tests/test_web_history.py 的函数 test_web_report_in_tmp_is_never_indexed_even_with_publish_markers，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_history.py:test_completed_legacy_web_report_without_marker_remains_visible",
+      "type": "function",
+      "name": "test_completed_legacy_web_report_without_marker_remains_visible",
+      "filePath": "tests/test_web_history.py",
+      "lineRange": [
+        133,
+        142
+      ],
+      "summary": "位于 tests/test_web_history.py 的函数 test_completed_legacy_web_report_without_marker_remains_visible，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_history.py:test_indexed_history_rebuilds_once_and_marks_deleted_files_missing",
+      "type": "function",
+      "name": "test_indexed_history_rebuilds_once_and_marks_deleted_files_missing",
+      "filePath": "tests/test_web_history.py",
+      "lineRange": [
+        145,
+        160
+      ],
+      "summary": "位于 tests/test_web_history.py 的函数 test_indexed_history_rebuilds_once_and_marks_deleted_files_missing，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_history.py:test_outbox_backed_report_is_immediately_readable",
+      "type": "function",
+      "name": "test_outbox_backed_report_is_immediately_readable",
+      "filePath": "tests/test_web_history.py",
+      "lineRange": [
+        163,
+        177
+      ],
+      "summary": "位于 tests/test_web_history.py 的函数 test_outbox_backed_report_is_immediately_readable，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_history.py:test_new_web_publication_requires_full_gate_before_indexing",
+      "type": "function",
+      "name": "test_new_web_publication_requires_full_gate_before_indexing",
+      "filePath": "tests/test_web_history.py",
+      "lineRange": [
+        180,
+        195
+      ],
+      "summary": "位于 tests/test_web_history.py 的函数 test_new_web_publication_requires_full_gate_before_indexing，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_history.py:test_exact_detail_falls_back_to_cached_canonical_path_when_index_fails",
+      "type": "function",
+      "name": "test_exact_detail_falls_back_to_cached_canonical_path_when_index_fails",
+      "filePath": "tests/test_web_history.py",
+      "lineRange": [
+        198,
+        214
+      ],
+      "summary": "位于 tests/test_web_history.py 的函数 test_exact_detail_falls_back_to_cached_canonical_path_when_index_fails，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_web_lease.py",
+      "type": "file",
+      "name": "test_web_lease.py",
+      "filePath": "tests/test_web_lease.py",
+      "summary": "覆盖 test_web_lease.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_web_lease.py:_request",
+      "type": "function",
+      "name": "_request",
+      "filePath": "tests/test_web_lease.py",
+      "lineRange": [
+        27,
+        34
+      ],
+      "summary": "位于 tests/test_web_lease.py 的函数 _request，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_lease.py:test_generate_owner_token_is_unique_and_unpredictable",
+      "type": "function",
+      "name": "test_generate_owner_token_is_unique_and_unpredictable",
+      "filePath": "tests/test_web_lease.py",
+      "lineRange": [
+        37,
+        41
+      ],
+      "summary": "位于 tests/test_web_lease.py 的函数 test_generate_owner_token_is_unique_and_unpredictable，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_lease.py:test_lease_renews_on_interval_until_future_settles",
+      "type": "function",
+      "name": "test_lease_renews_on_interval_until_future_settles",
+      "filePath": "tests/test_web_lease.py",
+      "lineRange": [
+        44,
+        59
+      ],
+      "summary": "位于 tests/test_web_lease.py 的函数 test_lease_renews_on_interval_until_future_settles，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_lease.py:test_lease_stops_renewing_when_future_completes",
+      "type": "function",
+      "name": "test_lease_stops_renewing_when_future_completes",
+      "filePath": "tests/test_web_lease.py",
+      "lineRange": [
+        62,
+        79
+      ],
+      "summary": "位于 tests/test_web_lease.py 的函数 test_lease_stops_renewing_when_future_completes，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_lease.py:test_stale_owner_token_is_rejected",
+      "type": "function",
+      "name": "test_stale_owner_token_is_rejected",
+      "filePath": "tests/test_web_lease.py",
+      "lineRange": [
+        82,
+        94
+      ],
+      "summary": "位于 tests/test_web_lease.py 的函数 test_stale_owner_token_is_rejected，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_lease.py:test_lease_expiry_does_not_falsely_terminate_long_model_call",
+      "type": "function",
+      "name": "test_lease_expiry_does_not_falsely_terminate_long_model_call",
+      "filePath": "tests/test_web_lease.py",
+      "lineRange": [
+        97,
+        141
+      ],
+      "summary": "位于 tests/test_web_lease.py 的函数 test_lease_expiry_does_not_falsely_terminate_long_model_call，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_web_lease.py:test_lease_expiry_transitions_to_interrupted_when_worker_dies",
+      "type": "function",
+      "name": "test_lease_expiry_transitions_to_interrupted_when_worker_dies",
+      "filePath": "tests/test_web_lease.py",
+      "lineRange": [
+        144,
+        163
+      ],
+      "summary": "位于 tests/test_web_lease.py 的函数 test_lease_expiry_transitions_to_interrupted_when_worker_dies，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_web_lease.py:_FakeManager",
+      "type": "class",
+      "name": "_FakeManager",
+      "filePath": "tests/test_web_lease.py",
+      "lineRange": [
+        15,
+        24
+      ],
+      "summary": "位于 tests/test_web_lease.py 的类 _FakeManager，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:_request",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:harness",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_index_and_config_are_public_and_redacted",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_console_routes_serve_the_single_page_entrypoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_create_get_conflict_and_cancel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_active_run_endpoint_returns_the_current_running_analysis",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_validation_and_unknown_run_errors",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_validation_does_not_emit_starlette_status_deprecation",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_create_app_injects_lifecycle_config_and_start_run_freezes_it",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_create_app_rejects_invalid_lifecycle_configuration",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_sse_emits_envelopes_and_last_event_id_wins",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_sse_snapshot_has_no_id_and_exposes_locked_replay_cut",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_fastapi_lifespan_stops_manager_watchdog",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_history_detail_and_download_are_allowlisted",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_history_pagination_filters_and_preserves_legacy_response",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_history_pagination_rejects_invalid_parameters",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_market_provider_health_is_exposed_in_provider_and_settings_views",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:_sse_data",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_list_runs_for_ticker_filters_orders_and_caps",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_list_runs_for_ticker_isolates_tickers",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_asset_runs_endpoint_returns_only_matching_ticker",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_runs_active_returns_list",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_runs_active_lists_each_in_flight_run",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_three_runs_admitted_then_409",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "class:tests/test_web_api.py:BlockingRunner",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:_request",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "class:tests/test_web_api.py:BlockingRunner",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:harness",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_index_and_config_are_public_and_redacted",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_console_routes_serve_the_single_page_entrypoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_create_get_conflict_and_cancel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_active_run_endpoint_returns_the_current_running_analysis",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_validation_and_unknown_run_errors",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_validation_does_not_emit_starlette_status_deprecation",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_create_app_injects_lifecycle_config_and_start_run_freezes_it",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_create_app_rejects_invalid_lifecycle_configuration",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_sse_emits_envelopes_and_last_event_id_wins",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_sse_snapshot_has_no_id_and_exposes_locked_replay_cut",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_fastapi_lifespan_stops_manager_watchdog",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_history_detail_and_download_are_allowlisted",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_history_pagination_filters_and_preserves_legacy_response",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_history_pagination_rejects_invalid_parameters",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_market_provider_health_is_exposed_in_provider_and_settings_views",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:_sse_data",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_list_runs_for_ticker_filters_orders_and_caps",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_list_runs_for_ticker_isolates_tickers",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_asset_runs_endpoint_returns_only_matching_ticker",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_runs_active_returns_list",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_runs_active_lists_each_in_flight_run",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "function:tests/test_web_api.py:test_three_runs_admitted_then_409",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "file:web/app.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "file:web/history.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "file:web/repositories.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_api.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "function:tests/test_web_api_recovery.py:_request",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "function:tests/test_web_api_recovery.py:_build_app",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "function:tests/test_web_api_recovery.py:test_get_artifacts_returns_empty_list_for_just_started_run",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "function:tests/test_web_api_recovery.py:test_get_artifacts_returns_partial_after_provider_failure",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "function:tests/test_web_api_recovery.py:test_get_artifacts_404_for_unknown_run",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "function:tests/test_web_api_recovery.py:test_retry_endpoint_returns_409_when_not_retryable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "function:tests/test_web_api_recovery.py:test_retry_endpoint_returns_409_when_no_checkpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "function:tests/test_web_api_recovery.py:test_get_run_includes_recovery_fields",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "function:tests/test_web_api_recovery.py:test_get_run_artifact_counts_visible_to_clients",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "function:tests/test_web_api_recovery.py:_request",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "function:tests/test_web_api_recovery.py:_build_app",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "function:tests/test_web_api_recovery.py:test_get_artifacts_returns_empty_list_for_just_started_run",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "function:tests/test_web_api_recovery.py:test_get_artifacts_returns_partial_after_provider_failure",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "function:tests/test_web_api_recovery.py:test_get_artifacts_404_for_unknown_run",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "function:tests/test_web_api_recovery.py:test_retry_endpoint_returns_409_when_not_retryable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "function:tests/test_web_api_recovery.py:test_retry_endpoint_returns_409_when_no_checkpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "function:tests/test_web_api_recovery.py:test_get_run_includes_recovery_fields",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "function:tests/test_web_api_recovery.py:test_get_run_artifact_counts_visible_to_clients",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "file:web/app.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "file:web/error_codes.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_api_recovery.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "function:tests/test_web_artifacts.py:_request",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "function:tests/test_web_artifacts.py:test_artifact_types_and_statuses_are_whitelisted",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "function:tests/test_web_artifacts.py:test_repository_rejects_unknown_artifact_type",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "function:tests/test_web_artifacts.py:test_upsert_is_idempotent_and_preserves_created_at",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "function:tests/test_web_artifacts.py:test_list_orders_by_sequence_and_returns_latest_state",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "function:tests/test_web_artifacts.py:test_get_run_populates_artifact_counts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "function:tests/test_web_artifacts.py:test_artifacts_survive_a_failed_run_and_remain_readable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "function:tests/test_web_artifacts.py:test_partial_artifact_is_not_promoted_to_completed",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "function:tests/test_web_artifacts.py:_request",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "function:tests/test_web_artifacts.py:test_artifact_types_and_statuses_are_whitelisted",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "function:tests/test_web_artifacts.py:test_repository_rejects_unknown_artifact_type",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "function:tests/test_web_artifacts.py:test_upsert_is_idempotent_and_preserves_created_at",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "function:tests/test_web_artifacts.py:test_list_orders_by_sequence_and_returns_latest_state",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "function:tests/test_web_artifacts.py:test_get_run_populates_artifact_counts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "function:tests/test_web_artifacts.py:test_artifacts_survive_a_failed_run_and_remain_readable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "function:tests/test_web_artifacts.py:test_partial_artifact_is_not_promoted_to_completed",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "file:web/artifacts.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_artifacts.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:write_report",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_indexes_web_and_legacy_roots_newest_first",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_detail_has_complete_report_and_all_explicit_sections",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_detail_reads_optional_executive_summary",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_legacy_id_is_root_qualified_and_collisions_are_stable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_rejects_traversal_and_outside_paths",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_missing_generated_metadata_is_null",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_unpublished_web_report_in_tmp_is_not_indexed",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_web_report_in_tmp_is_never_indexed_even_with_publish_markers",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_completed_legacy_web_report_without_marker_remains_visible",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_indexed_history_rebuilds_once_and_marks_deleted_files_missing",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_outbox_backed_report_is_immediately_readable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_new_web_publication_requires_full_gate_before_indexing",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_exact_detail_falls_back_to_cached_canonical_path_when_index_fails",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:write_report",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_indexes_web_and_legacy_roots_newest_first",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_detail_has_complete_report_and_all_explicit_sections",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_detail_reads_optional_executive_summary",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_legacy_id_is_root_qualified_and_collisions_are_stable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_rejects_traversal_and_outside_paths",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_missing_generated_metadata_is_null",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_unpublished_web_report_in_tmp_is_not_indexed",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_web_report_in_tmp_is_never_indexed_even_with_publish_markers",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_completed_legacy_web_report_without_marker_remains_visible",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_indexed_history_rebuilds_once_and_marks_deleted_files_missing",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_outbox_backed_report_is_immediately_readable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_new_web_publication_requires_full_gate_before_indexing",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "function:tests/test_web_history.py:test_exact_detail_falls_back_to_cached_canonical_path_when_index_fails",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "file:web/history.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "file:web/repositories.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_history.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "function:tests/test_web_lease.py:_request",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "function:tests/test_web_lease.py:test_generate_owner_token_is_unique_and_unpredictable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "function:tests/test_web_lease.py:test_lease_renews_on_interval_until_future_settles",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "function:tests/test_web_lease.py:test_lease_stops_renewing_when_future_completes",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "function:tests/test_web_lease.py:test_stale_owner_token_is_rejected",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "function:tests/test_web_lease.py:test_lease_expiry_does_not_falsely_terminate_long_model_call",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "function:tests/test_web_lease.py:test_lease_expiry_transitions_to_interrupted_when_worker_dies",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "class:tests/test_web_lease.py:_FakeManager",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "class:tests/test_web_lease.py:_FakeManager",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "function:tests/test_web_lease.py:_request",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "function:tests/test_web_lease.py:test_generate_owner_token_is_unique_and_unpredictable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "function:tests/test_web_lease.py:test_lease_renews_on_interval_until_future_settles",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "function:tests/test_web_lease.py:test_lease_stops_renewing_when_future_completes",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "function:tests/test_web_lease.py:test_stale_owner_token_is_rejected",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "function:tests/test_web_lease.py:test_lease_expiry_does_not_falsely_terminate_long_model_call",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "function:tests/test_web_lease.py:test_lease_expiry_transitions_to_interrupted_when_worker_dies",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "file:web/error_codes.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "file:web/lease.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_lease.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

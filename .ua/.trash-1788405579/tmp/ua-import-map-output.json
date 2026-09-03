@@ -1,0 +1,810 @@
+{
+  "scriptCompleted": true,
+  "stats": {
+    "filesScanned": 253,
+    "filesWithImports": 157,
+    "totalEdges": 390
+  },
+  "importMap": {
+    ".dockerignore": [],
+    ".env.enterprise.example": [],
+    ".env.example": [],
+    ".github/workflows/ci.yml": [],
+    ".superpowers/brainstorm/41801-1787718122/.server-stopped": [],
+    ".superpowers/brainstorm/41801-1787718122/console-layout.html": [],
+    ".superpowers/brainstorm/41801-1787718122/visual-style.html": [],
+    ".superpowers/brainstorm/41801-1787718122/waiting-architecture.html": [],
+    ".superpowers/brainstorm/70330-1787815068/.server-stopped": [],
+    ".superpowers/brainstorm/70330-1787815068/portfolio-layout-options.html": [],
+    ".superpowers/brainstorm/81139-1787817330/.server-stopped": [],
+    ".superpowers/brainstorm/81139-1787817330/portfolio-layout-options.html": [],
+    ".superpowers/brainstorm/81139-1787817330/report-reading-options.html": [],
+    ".superpowers/brainstorm/81139-1787817330/waiting-architecture.html": [],
+    ".ua/.understandignore": [],
+    ".ua/config.json": [],
+    ".ua/intermediate/raw-scan.json": [],
+    ".ua/intermediate/scan-result.json": [],
+    ".ua/tmp/import-input.json": [],
+    ".ua/tmp/import-output.json": [],
+    ".ua/tmp/synthesize-scan.mjs": [],
+    ".ua/tmp/ua-import-map-input.json": [],
+    ".ua/tmp/ua-import-map-output.json": [],
+    ".ua/tmp/ua-scan-files.json": [],
+    ".ua/tmp/ua-scan-files.stderr": [],
+    "CHANGELOG.md": [],
+    "Dockerfile": [],
+    "README.md": [],
+    "cli/__init__.py": [],
+    "cli/announcements.py": [
+      "cli/config.py"
+    ],
+    "cli/config.py": [],
+    "cli/main.py": [
+      "cli/announcements.py",
+      "cli/stats_handler.py",
+      "cli/utils.py",
+      "tradingagents/default_config.py",
+      "tradingagents/graph/analyst_execution.py",
+      "tradingagents/graph/trading_graph.py",
+      "tradingagents/reporting.py"
+    ],
+    "cli/models.py": [],
+    "cli/static/welcome.txt": [],
+    "cli/stats_handler.py": [],
+    "cli/utils.py": [
+      "cli/models.py",
+      "tradingagents/llm_clients/api_key_env.py",
+      "tradingagents/llm_clients/model_catalog.py"
+    ],
+    "docker-compose.yml": [],
+    "docs/superpowers/plans/2026-08-26-web-analysis-console-plan.md": [],
+    "docs/superpowers/plans/2026-08-27-personal-investor-platform-plan.md": [],
+    "docs/superpowers/plans/2026-08-27-web-report-library-models-language-plan.md": [],
+    "docs/superpowers/plans/2026-08-28-report-publish-integrity-plan.md": [],
+    "docs/superpowers/plans/2026-08-31-platform-reliability-operations-plan.md": [],
+    "docs/superpowers/plans/2026-08-31-rating-localization-plan.md": [],
+    "docs/superpowers/plans/2026-09-01-compact-section-headers.md": [],
+    "docs/superpowers/plans/2026-09-02-manager-concurrency.md": [],
+    "docs/superpowers/specs/2026-08-26-web-analysis-console-design.md": [],
+    "docs/superpowers/specs/2026-08-27-personal-investor-platform-design.md": [],
+    "docs/superpowers/specs/2026-08-27-web-report-library-models-language-design.md": [],
+    "docs/superpowers/specs/2026-08-31-platform-reliability-operations-design.md": [],
+    "docs/superpowers/specs/2026-08-31-rating-localization-design.md": [],
+    "docs/superpowers/specs/2026-09-01-analysis-timeout-recovery-design.md": [],
+    "docs/superpowers/specs/2026-09-01-compact-section-headers-design.md": [],
+    "docs/superpowers/specs/2026-09-02-scheduled-analysis-design.md": [],
+    "docs/superpowers/specs/2026-09-02-ui-modern-redesign-design.md": [],
+    "main.py": [
+      "tradingagents/default_config.py",
+      "tradingagents/graph/trading_graph.py"
+    ],
+    "pyproject.toml": [],
+    "requirements.txt": [],
+    "scripts/smoke_structured_output.py": [
+      "tradingagents/agents/managers/portfolio_manager.py",
+      "tradingagents/agents/managers/research_manager.py",
+      "tradingagents/agents/trader/trader.py",
+      "tradingagents/graph/signal_processing.py",
+      "tradingagents/llm_clients/__init__.py"
+    ],
+    "test.py": [
+      "tradingagents/dataflows/y_finance.py"
+    ],
+    "tests/__init__.py": [],
+    "tests/conftest.py": [],
+    "tests/test_alpha_vantage_hardening.py": [
+      "tradingagents/dataflows/alpha_vantage_common.py",
+      "tradingagents/dataflows/alpha_vantage_fundamentals.py"
+    ],
+    "tests/test_analyst_execution.py": [
+      "tradingagents/graph/analyst_execution.py"
+    ],
+    "tests/test_anthropic_effort.py": [
+      "tradingagents/llm_clients/__init__.py"
+    ],
+    "tests/test_api_key_env.py": [
+      "tradingagents/llm_clients/api_key_env.py"
+    ],
+    "tests/test_bedrock_provider.py": [
+      "tradingagents/llm_clients/api_key_env.py",
+      "tradingagents/llm_clients/factory.py",
+      "tradingagents/llm_clients/validators.py"
+    ],
+    "tests/test_capabilities.py": [
+      "tradingagents/llm_clients/capabilities.py"
+    ],
+    "tests/test_checkpoint_resume.py": [
+      "tradingagents/graph/checkpointer.py"
+    ],
+    "tests/test_chunk3_contract_fixes.py": [
+      "web/app.py",
+      "web/history.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_cli_config_precedence.py": [
+      "cli/main.py"
+    ],
+    "tests/test_cli_env_skip.py": [],
+    "tests/test_cli_no_console.py": [
+      "cli/main.py"
+    ],
+    "tests/test_cli_symbol_handling.py": [
+      "cli/models.py",
+      "cli/utils.py",
+      "tradingagents/dataflows/symbol_utils.py"
+    ],
+    "tests/test_crypto_asset_mode.py": [
+      "cli/models.py",
+      "cli/utils.py",
+      "tradingagents/graph/propagation.py"
+    ],
+    "tests/test_dataflows_config.py": [
+      "tradingagents/dataflows/config.py",
+      "tradingagents/default_config.py"
+    ],
+    "tests/test_date_boundaries.py": [
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/stockstats_utils.py",
+      "tradingagents/dataflows/y_finance.py"
+    ],
+    "tests/test_deepseek_reasoning.py": [
+      "tradingagents/llm_clients/openai_client.py"
+    ],
+    "tests/test_env_overrides.py": [
+      "tradingagents/default_config.py"
+    ],
+    "tests/test_error_classifier.py": [
+      "web/error_classifier.py",
+      "web/error_codes.py"
+    ],
+    "tests/test_fred.py": [
+      "tradingagents/dataflows/__init__.py",
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/fred.py",
+      "tradingagents/dataflows/interface.py",
+      "tradingagents/default_config.py"
+    ],
+    "tests/test_google_api_key.py": [
+      "tradingagents/llm_clients/google_client.py"
+    ],
+    "tests/test_google_thinking_level.py": [
+      "tradingagents/llm_clients/google_client.py"
+    ],
+    "tests/test_graph_stream_callbacks.py": [
+      "tradingagents/graph/propagation.py",
+      "tradingagents/graph/trading_graph.py"
+    ],
+    "tests/test_i18n_coverage.py": [
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tests/test_instrument_identity.py": [
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tests/test_llm_max_retries.py": [
+      "tradingagents/default_config.py",
+      "tradingagents/graph/trading_graph.py"
+    ],
+    "tests/test_llm_timeout.py": [
+      "tradingagents/dataflows/__init__.py",
+      "tradingagents/dataflows/alpha_vantage_common.py",
+      "tradingagents/dataflows/config.py",
+      "tradingagents/llm_clients/anthropic_client.py",
+      "tradingagents/llm_clients/azure_client.py",
+      "tradingagents/llm_clients/google_client.py",
+      "tradingagents/llm_clients/openai_client.py"
+    ],
+    "tests/test_market_data_validator.py": [
+      "tradingagents/dataflows/market_data_validator.py"
+    ],
+    "tests/test_market_localization.py": [
+      "web/market_localization.py"
+    ],
+    "tests/test_market_toolnode.py": [
+      "tradingagents/graph/trading_graph.py"
+    ],
+    "tests/test_memory_log.py": [
+      "tradingagents/agents/managers/portfolio_manager.py",
+      "tradingagents/agents/schemas.py",
+      "tradingagents/agents/utils/memory.py",
+      "tradingagents/graph/propagation.py",
+      "tradingagents/graph/reflection.py",
+      "tradingagents/graph/trading_graph.py"
+    ],
+    "tests/test_minimax.py": [
+      "tradingagents/llm_clients/openai_client.py"
+    ],
+    "tests/test_model_validation.py": [
+      "tradingagents/llm_clients/base_client.py",
+      "tradingagents/llm_clients/model_catalog.py",
+      "tradingagents/llm_clients/validators.py"
+    ],
+    "tests/test_news_analyst_prompt.py": [
+      "tradingagents/agents/analysts/news_analyst.py",
+      "tradingagents/agents/utils/news_data_tools.py"
+    ],
+    "tests/test_news_lookahead.py": [
+      "tradingagents/dataflows/yfinance_news.py"
+    ],
+    "tests/test_no_data_handling.py": [
+      "tradingagents/dataflows/__init__.py",
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/interface.py",
+      "tradingagents/dataflows/stockstats_utils.py",
+      "tradingagents/dataflows/symbol_utils.py"
+    ],
+    "tests/test_ohlcv_cache_freshness.py": [
+      "tradingagents/dataflows/stockstats_utils.py"
+    ],
+    "tests/test_ollama_base_url.py": [],
+    "tests/test_openai_compatible_provider.py": [
+      "tradingagents/llm_clients/api_key_env.py",
+      "tradingagents/llm_clients/factory.py",
+      "tradingagents/llm_clients/validators.py"
+    ],
+    "tests/test_openai_reasoning_effort.py": [
+      "tradingagents/llm_clients/openai_client.py"
+    ],
+    "tests/test_openai_responses_base_url.py": [
+      "tradingagents/llm_clients/openai_client.py"
+    ],
+    "tests/test_openrouter_model_select.py": [
+      "cli/__init__.py",
+      "cli/utils.py"
+    ],
+    "tests/test_packaging_contract.py": [],
+    "tests/test_polymarket.py": [
+      "tradingagents/dataflows/__init__.py",
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/interface.py",
+      "tradingagents/dataflows/polymarket.py",
+      "tradingagents/default_config.py"
+    ],
+    "tests/test_provider_registry.py": [
+      "tradingagents/llm_clients/openai_client.py"
+    ],
+    "tests/test_reddit_fallback.py": [
+      "tradingagents/dataflows/__init__.py",
+      "tradingagents/dataflows/reddit.py"
+    ],
+    "tests/test_reporting.py": [
+      "tradingagents/graph/trading_graph.py",
+      "tradingagents/reporting.py"
+    ],
+    "tests/test_risk_router_path_map.py": [
+      "tradingagents/graph/conditional_logic.py",
+      "tradingagents/graph/setup.py"
+    ],
+    "tests/test_run_manager_concurrency.py": [
+      "web/manager.py",
+      "web/models.py"
+    ],
+    "tests/test_safe_ticker_component.py": [
+      "tradingagents/dataflows/utils.py"
+    ],
+    "tests/test_signal_processing.py": [
+      "tradingagents/agents/utils/rating.py",
+      "tradingagents/graph/signal_processing.py"
+    ],
+    "tests/test_stockstats_date_column.py": [
+      "tradingagents/dataflows/__init__.py"
+    ],
+    "tests/test_stocktwits_resilience.py": [
+      "tradingagents/dataflows/__init__.py",
+      "tradingagents/dataflows/stocktwits.py"
+    ],
+    "tests/test_structured_agent_prompts.py": [
+      "tradingagents/agents/analysts/sentiment_analyst.py",
+      "tradingagents/agents/managers/portfolio_manager.py",
+      "tradingagents/agents/managers/research_manager.py",
+      "tradingagents/agents/trader/trader.py",
+      "tradingagents/agents/utils/structured.py"
+    ],
+    "tests/test_structured_agents.py": [
+      "tradingagents/agents/analysts/sentiment_analyst.py",
+      "tradingagents/agents/managers/research_manager.py",
+      "tradingagents/agents/schemas.py",
+      "tradingagents/agents/trader/trader.py"
+    ],
+    "tests/test_symbol_normalization_paths.py": [
+      "tradingagents/agents/utils/agent_utils.py",
+      "tradingagents/dataflows/yfinance_news.py",
+      "tradingagents/graph/trading_graph.py"
+    ],
+    "tests/test_symbol_utils.py": [
+      "tradingagents/dataflows/symbol_utils.py"
+    ],
+    "tests/test_temperature_config.py": [
+      "tradingagents/llm_clients/factory.py"
+    ],
+    "tests/test_ticker_symbol_handling.py": [
+      "cli/utils.py",
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tests/test_vendor_errors.py": [
+      "tradingagents/dataflows/__init__.py",
+      "tradingagents/dataflows/alpha_vantage_common.py",
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/errors.py",
+      "tradingagents/dataflows/fred.py",
+      "tradingagents/dataflows/interface.py",
+      "tradingagents/default_config.py"
+    ],
+    "tests/test_vendor_routing.py": [
+      "tradingagents/dataflows/__init__.py",
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/interface.py",
+      "tradingagents/dataflows/symbol_utils.py",
+      "tradingagents/default_config.py"
+    ],
+    "tests/test_web_api.py": [
+      "web/app.py",
+      "web/history.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_api_recovery.py": [
+      "web/app.py",
+      "web/error_codes.py",
+      "web/manager.py",
+      "web/models.py"
+    ],
+    "tests/test_web_artifacts.py": [
+      "web/artifacts.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_browser.py": [],
+    "tests/test_web_command.py": [
+      "cli/main.py"
+    ],
+    "tests/test_web_history.py": [
+      "web/history.py",
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_lease.py": [
+      "web/error_codes.py",
+      "web/lease.py",
+      "web/manager.py",
+      "web/models.py"
+    ],
+    "tests/test_web_manager.py": [
+      "web/manager.py",
+      "web/models.py"
+    ],
+    "tests/test_web_markdown.py": [
+      "web/markdown.py"
+    ],
+    "tests/test_web_market_data.py": [
+      "web/market_data.py",
+      "web/market_models.py"
+    ],
+    "tests/test_web_market_providers.py": [
+      "web/market_models.py",
+      "web/providers/alpha_vantage_provider.py",
+      "web/providers/yfinance_provider.py"
+    ],
+    "tests/test_web_models.py": [
+      "web/config.py",
+      "web/models.py"
+    ],
+    "tests/test_web_repositories.py": [
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_retry.py": [
+      "tradingagents/graph/checkpointer.py",
+      "web/checkpoint_resume.py",
+      "web/error_codes.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_runner.py": [
+      "web/manager.py",
+      "web/models.py",
+      "web/runner.py"
+    ],
+    "tests/test_web_runner_recovery.py": [
+      "web/artifacts.py",
+      "web/error_codes.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/runner.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_settings.py": [
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_snapshots.py": [
+      "web/snapshots.py"
+    ],
+    "tests/test_web_static.py": [],
+    "tests/test_web_storage.py": [
+      "web/storage.py"
+    ],
+    "tests/test_web_synthesis.py": [
+      "web/synthesis.py"
+    ],
+    "tests/test_yfinance_stale_ohlcv_guard.py": [
+      "tradingagents/dataflows/__init__.py",
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/interface.py",
+      "tradingagents/dataflows/stockstats_utils.py",
+      "tradingagents/dataflows/symbol_utils.py",
+      "tradingagents/dataflows/y_finance.py",
+      "tradingagents/default_config.py"
+    ],
+    "tradingagents/__init__.py": [],
+    "tradingagents/agents/__init__.py": [
+      "tradingagents/agents/analysts/fundamentals_analyst.py",
+      "tradingagents/agents/analysts/market_analyst.py",
+      "tradingagents/agents/analysts/news_analyst.py",
+      "tradingagents/agents/analysts/sentiment_analyst.py",
+      "tradingagents/agents/managers/portfolio_manager.py",
+      "tradingagents/agents/managers/research_manager.py",
+      "tradingagents/agents/researchers/bear_researcher.py",
+      "tradingagents/agents/researchers/bull_researcher.py",
+      "tradingagents/agents/risk_mgmt/aggressive_debator.py",
+      "tradingagents/agents/risk_mgmt/conservative_debator.py",
+      "tradingagents/agents/risk_mgmt/neutral_debator.py",
+      "tradingagents/agents/trader/trader.py",
+      "tradingagents/agents/utils/agent_states.py",
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tradingagents/agents/analysts/fundamentals_analyst.py": [
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tradingagents/agents/analysts/market_analyst.py": [
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tradingagents/agents/analysts/news_analyst.py": [
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tradingagents/agents/analysts/sentiment_analyst.py": [
+      "tradingagents/agents/schemas.py",
+      "tradingagents/agents/utils/agent_utils.py",
+      "tradingagents/agents/utils/structured.py",
+      "tradingagents/dataflows/reddit.py",
+      "tradingagents/dataflows/stocktwits.py"
+    ],
+    "tradingagents/agents/analysts/social_media_analyst.py": [
+      "tradingagents/agents/analysts/sentiment_analyst.py"
+    ],
+    "tradingagents/agents/managers/portfolio_manager.py": [
+      "tradingagents/agents/schemas.py",
+      "tradingagents/agents/utils/agent_utils.py",
+      "tradingagents/agents/utils/structured.py"
+    ],
+    "tradingagents/agents/managers/research_manager.py": [
+      "tradingagents/agents/schemas.py",
+      "tradingagents/agents/utils/agent_utils.py",
+      "tradingagents/agents/utils/structured.py"
+    ],
+    "tradingagents/agents/researchers/bear_researcher.py": [
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tradingagents/agents/researchers/bull_researcher.py": [
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tradingagents/agents/risk_mgmt/aggressive_debator.py": [
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tradingagents/agents/risk_mgmt/conservative_debator.py": [
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tradingagents/agents/risk_mgmt/neutral_debator.py": [
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tradingagents/agents/schemas.py": [],
+    "tradingagents/agents/trader/trader.py": [
+      "tradingagents/agents/schemas.py",
+      "tradingagents/agents/utils/agent_utils.py",
+      "tradingagents/agents/utils/structured.py"
+    ],
+    "tradingagents/agents/utils/agent_states.py": [],
+    "tradingagents/agents/utils/agent_utils.py": [
+      "tradingagents/agents/utils/core_stock_tools.py",
+      "tradingagents/agents/utils/fundamental_data_tools.py",
+      "tradingagents/agents/utils/macro_data_tools.py",
+      "tradingagents/agents/utils/market_data_validation_tools.py",
+      "tradingagents/agents/utils/news_data_tools.py",
+      "tradingagents/agents/utils/prediction_markets_tools.py",
+      "tradingagents/agents/utils/technical_indicators_tools.py"
+    ],
+    "tradingagents/agents/utils/core_stock_tools.py": [
+      "tradingagents/dataflows/interface.py"
+    ],
+    "tradingagents/agents/utils/fundamental_data_tools.py": [
+      "tradingagents/dataflows/interface.py"
+    ],
+    "tradingagents/agents/utils/macro_data_tools.py": [
+      "tradingagents/dataflows/interface.py"
+    ],
+    "tradingagents/agents/utils/market_data_validation_tools.py": [
+      "tradingagents/dataflows/market_data_validator.py"
+    ],
+    "tradingagents/agents/utils/memory.py": [
+      "tradingagents/agents/utils/rating.py"
+    ],
+    "tradingagents/agents/utils/news_data_tools.py": [
+      "tradingagents/dataflows/interface.py"
+    ],
+    "tradingagents/agents/utils/prediction_markets_tools.py": [
+      "tradingagents/dataflows/interface.py"
+    ],
+    "tradingagents/agents/utils/rating.py": [],
+    "tradingagents/agents/utils/structured.py": [],
+    "tradingagents/agents/utils/technical_indicators_tools.py": [
+      "tradingagents/dataflows/interface.py"
+    ],
+    "tradingagents/dataflows/__init__.py": [],
+    "tradingagents/dataflows/alpha_vantage.py": [
+      "tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "tradingagents/dataflows/alpha_vantage_indicator.py",
+      "tradingagents/dataflows/alpha_vantage_news.py",
+      "tradingagents/dataflows/alpha_vantage_stock.py"
+    ],
+    "tradingagents/dataflows/alpha_vantage_common.py": [
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/errors.py"
+    ],
+    "tradingagents/dataflows/alpha_vantage_fundamentals.py": [
+      "tradingagents/dataflows/alpha_vantage_common.py"
+    ],
+    "tradingagents/dataflows/alpha_vantage_indicator.py": [
+      "tradingagents/dataflows/alpha_vantage_common.py"
+    ],
+    "tradingagents/dataflows/alpha_vantage_news.py": [
+      "tradingagents/dataflows/alpha_vantage_common.py"
+    ],
+    "tradingagents/dataflows/alpha_vantage_stock.py": [
+      "tradingagents/dataflows/alpha_vantage_common.py"
+    ],
+    "tradingagents/dataflows/config.py": [
+      "tradingagents/default_config.py"
+    ],
+    "tradingagents/dataflows/errors.py": [],
+    "tradingagents/dataflows/fred.py": [
+      "tradingagents/dataflows/errors.py"
+    ],
+    "tradingagents/dataflows/interface.py": [
+      "tradingagents/dataflows/alpha_vantage.py",
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/errors.py",
+      "tradingagents/dataflows/fred.py",
+      "tradingagents/dataflows/polymarket.py",
+      "tradingagents/dataflows/y_finance.py",
+      "tradingagents/dataflows/yfinance_news.py"
+    ],
+    "tradingagents/dataflows/market_data_validator.py": [
+      "tradingagents/dataflows/stockstats_utils.py"
+    ],
+    "tradingagents/dataflows/polymarket.py": [],
+    "tradingagents/dataflows/reddit.py": [
+      "tradingagents/dataflows/symbol_utils.py"
+    ],
+    "tradingagents/dataflows/stockstats_utils.py": [
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/symbol_utils.py",
+      "tradingagents/dataflows/utils.py"
+    ],
+    "tradingagents/dataflows/stocktwits.py": [
+      "tradingagents/dataflows/symbol_utils.py"
+    ],
+    "tradingagents/dataflows/symbol_utils.py": [
+      "tradingagents/dataflows/errors.py"
+    ],
+    "tradingagents/dataflows/utils.py": [],
+    "tradingagents/dataflows/y_finance.py": [
+      "tradingagents/dataflows/stockstats_utils.py",
+      "tradingagents/dataflows/symbol_utils.py"
+    ],
+    "tradingagents/dataflows/yfinance_news.py": [
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/stockstats_utils.py",
+      "tradingagents/dataflows/symbol_utils.py"
+    ],
+    "tradingagents/default_config.py": [],
+    "tradingagents/graph/__init__.py": [
+      "tradingagents/graph/conditional_logic.py",
+      "tradingagents/graph/propagation.py",
+      "tradingagents/graph/reflection.py",
+      "tradingagents/graph/setup.py",
+      "tradingagents/graph/signal_processing.py",
+      "tradingagents/graph/trading_graph.py"
+    ],
+    "tradingagents/graph/analyst_execution.py": [],
+    "tradingagents/graph/checkpointer.py": [
+      "tradingagents/dataflows/utils.py"
+    ],
+    "tradingagents/graph/conditional_logic.py": [
+      "tradingagents/agents/utils/agent_states.py"
+    ],
+    "tradingagents/graph/propagation.py": [
+      "tradingagents/agents/utils/agent_states.py"
+    ],
+    "tradingagents/graph/reflection.py": [],
+    "tradingagents/graph/setup.py": [
+      "tradingagents/agents/__init__.py",
+      "tradingagents/agents/utils/agent_states.py",
+      "tradingagents/graph/analyst_execution.py",
+      "tradingagents/graph/conditional_logic.py"
+    ],
+    "tradingagents/graph/signal_processing.py": [
+      "tradingagents/agents/utils/rating.py"
+    ],
+    "tradingagents/graph/trading_graph.py": [
+      "tradingagents/agents/utils/agent_utils.py",
+      "tradingagents/agents/utils/memory.py",
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/utils.py",
+      "tradingagents/default_config.py",
+      "tradingagents/graph/checkpointer.py",
+      "tradingagents/graph/conditional_logic.py",
+      "tradingagents/graph/propagation.py",
+      "tradingagents/graph/reflection.py",
+      "tradingagents/graph/setup.py",
+      "tradingagents/graph/signal_processing.py",
+      "tradingagents/llm_clients/__init__.py",
+      "tradingagents/reporting.py"
+    ],
+    "tradingagents/llm_clients/__init__.py": [
+      "tradingagents/llm_clients/base_client.py",
+      "tradingagents/llm_clients/factory.py"
+    ],
+    "tradingagents/llm_clients/anthropic_client.py": [
+      "tradingagents/llm_clients/base_client.py",
+      "tradingagents/llm_clients/validators.py"
+    ],
+    "tradingagents/llm_clients/api_key_env.py": [],
+    "tradingagents/llm_clients/azure_client.py": [
+      "tradingagents/llm_clients/base_client.py"
+    ],
+    "tradingagents/llm_clients/base_client.py": [],
+    "tradingagents/llm_clients/bedrock_client.py": [
+      "tradingagents/llm_clients/base_client.py",
+      "tradingagents/llm_clients/validators.py"
+    ],
+    "tradingagents/llm_clients/capabilities.py": [],
+    "tradingagents/llm_clients/factory.py": [
+      "tradingagents/llm_clients/base_client.py"
+    ],
+    "tradingagents/llm_clients/google_client.py": [
+      "tradingagents/llm_clients/base_client.py",
+      "tradingagents/llm_clients/validators.py"
+    ],
+    "tradingagents/llm_clients/model_catalog.py": [],
+    "tradingagents/llm_clients/openai_client.py": [
+      "tradingagents/llm_clients/api_key_env.py",
+      "tradingagents/llm_clients/base_client.py",
+      "tradingagents/llm_clients/capabilities.py",
+      "tradingagents/llm_clients/validators.py"
+    ],
+    "tradingagents/llm_clients/validators.py": [
+      "tradingagents/llm_clients/model_catalog.py"
+    ],
+    "tradingagents/reporting.py": [],
+    "web/__init__.py": [
+      "web/models.py"
+    ],
+    "web/app.py": [
+      "tradingagents/default_config.py",
+      "web/artifacts.py",
+      "web/config.py",
+      "web/error_codes.py",
+      "web/history.py",
+      "web/manager.py",
+      "web/market_data.py",
+      "web/market_models.py",
+      "web/models.py",
+      "web/providers/__init__.py",
+      "web/repositories.py",
+      "web/runner.py",
+      "web/snapshots.py",
+      "web/storage.py"
+    ],
+    "web/artifacts.py": [
+      "web/storage.py"
+    ],
+    "web/checkpoint_resume.py": [
+      "tradingagents/graph/checkpointer.py"
+    ],
+    "web/config.py": [
+      "tradingagents/default_config.py",
+      "tradingagents/llm_clients/model_catalog.py"
+    ],
+    "web/error_classifier.py": [
+      "web/error_codes.py"
+    ],
+    "web/error_codes.py": [],
+    "web/history.py": [
+      "web/markdown.py",
+      "web/repositories.py"
+    ],
+    "web/lease.py": [],
+    "web/manager.py": [
+      "web/config.py",
+      "web/error_codes.py",
+      "web/lease.py",
+      "web/models.py",
+      "web/repositories.py"
+    ],
+    "web/markdown.py": [],
+    "web/market_data.py": [
+      "web/market_models.py"
+    ],
+    "web/market_localization.py": [],
+    "web/market_models.py": [
+      "web/market_localization.py"
+    ],
+    "web/migrations/001_personal_platform.sql": [],
+    "web/migrations/002_reliability_operations.sql": [],
+    "web/migrations/003_watchlist_newest_first.sql": [],
+    "web/migrations/004_analysis_timeout_recovery.sql": [],
+    "web/models.py": [
+      "cli/models.py",
+      "cli/utils.py"
+    ],
+    "web/providers/__init__.py": [
+      "web/providers/alpha_vantage_provider.py",
+      "web/providers/yfinance_provider.py"
+    ],
+    "web/providers/alpha_vantage_provider.py": [
+      "cli/utils.py",
+      "tradingagents/dataflows/alpha_vantage_common.py",
+      "web/market_models.py"
+    ],
+    "web/providers/yfinance_provider.py": [
+      "cli/utils.py",
+      "web/market_models.py"
+    ],
+    "web/repositories.py": [
+      "cli/utils.py",
+      "web/storage.py"
+    ],
+    "web/runner.py": [
+      "tradingagents/dataflows/utils.py",
+      "tradingagents/default_config.py",
+      "tradingagents/graph/propagation.py",
+      "tradingagents/graph/trading_graph.py",
+      "web/artifacts.py",
+      "web/checkpoint_resume.py",
+      "web/error_classifier.py",
+      "web/error_codes.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/snapshots.py"
+    ],
+    "web/snapshots.py": [],
+    "web/static/app.js": [],
+    "web/static/i18n.js": [],
+    "web/static/i18n.test.js": [
+      "web/static/i18n.js"
+    ],
+    "web/static/index.html": [],
+    "web/static/kline-chart.js": [],
+    "web/static/kline-chart.test.js": [
+      "web/static/kline-chart.js"
+    ],
+    "web/static/quote-refresh.js": [],
+    "web/static/quote-refresh.test.js": [
+      "web/static/quote-refresh.js"
+    ],
+    "web/static/rating-labels.js": [],
+    "web/static/rating-labels.test.js": [
+      "web/static/rating-labels.js"
+    ],
+    "web/static/styles.css": [],
+    "web/static/watchlist-chart.js": [],
+    "web/storage.py": [],
+    "web/synthesis.py": []
+  }
+}

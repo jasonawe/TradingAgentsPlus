@@ -1,0 +1,1677 @@
+{
+  "nodes": [
+    {
+      "id": "file:tests/test_web_storage.py",
+      "type": "file",
+      "name": "test_web_storage.py",
+      "filePath": "tests/test_web_storage.py",
+      "summary": "覆盖 test_web_storage.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_web_storage.py:test_store_migrates_schema_and_preserves_existing_web_runs",
+      "type": "function",
+      "name": "test_store_migrates_schema_and_preserves_existing_web_runs",
+      "filePath": "tests/test_web_storage.py",
+      "lineRange": [
+        9,
+        55
+      ],
+      "summary": "位于 tests/test_web_storage.py 的函数 test_store_migrates_schema_and_preserves_existing_web_runs，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_web_storage.py:test_v2_schema_matches_the_reliability_contract",
+      "type": "function",
+      "name": "test_v2_schema_matches_the_reliability_contract",
+      "filePath": "tests/test_web_storage.py",
+      "lineRange": [
+        58,
+        91
+      ],
+      "summary": "位于 tests/test_web_storage.py 的函数 test_v2_schema_matches_the_reliability_contract，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_storage.py:test_v3_reorders_existing_watchlist_items_newest_first",
+      "type": "function",
+      "name": "test_v3_reorders_existing_watchlist_items_newest_first",
+      "filePath": "tests/test_web_storage.py",
+      "lineRange": [
+        94,
+        128
+      ],
+      "summary": "位于 tests/test_web_storage.py 的函数 test_v3_reorders_existing_watchlist_items_newest_first，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_storage.py:test_failed_migration_rolls_back",
+      "type": "function",
+      "name": "test_failed_migration_rolls_back",
+      "filePath": "tests/test_web_storage.py",
+      "lineRange": [
+        131,
+        144
+      ],
+      "summary": "位于 tests/test_web_storage.py 的函数 test_failed_migration_rolls_back，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_storage.py:test_v2_python_hook_and_sql_roll_back_as_one_transaction",
+      "type": "function",
+      "name": "test_v2_python_hook_and_sql_roll_back_as_one_transaction",
+      "filePath": "tests/test_web_storage.py",
+      "lineRange": [
+        147,
+        169
+      ],
+      "summary": "位于 tests/test_web_storage.py 的函数 test_v2_python_hook_and_sql_roll_back_as_one_transaction，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_storage.py:test_migration_parser_handles_semicolons_in_strings_and_comments",
+      "type": "function",
+      "name": "test_migration_parser_handles_semicolons_in_strings_and_comments",
+      "filePath": "tests/test_web_storage.py",
+      "lineRange": [
+        172,
+        182
+      ],
+      "summary": "位于 tests/test_web_storage.py 的函数 test_migration_parser_handles_semicolons_in_strings_and_comments，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_storage.py:test_legacy_snapshots_table_is_renamed_without_parallel_storage",
+      "type": "function",
+      "name": "test_legacy_snapshots_table_is_renamed_without_parallel_storage",
+      "filePath": "tests/test_web_storage.py",
+      "lineRange": [
+        185,
+        204
+      ],
+      "summary": "位于 tests/test_web_storage.py 的函数 test_legacy_snapshots_table_is_renamed_without_parallel_storage，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_storage.py:test_old_web_runs_missing_columns_are_upgraded_and_loaded",
+      "type": "function",
+      "name": "test_old_web_runs_missing_columns_are_upgraded_and_loaded",
+      "filePath": "tests/test_web_storage.py",
+      "lineRange": [
+        207,
+        216
+      ],
+      "summary": "位于 tests/test_web_storage.py 的函数 test_old_web_runs_missing_columns_are_upgraded_and_loaded，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_storage.py:test_snapshots_only_database_merges_legacy_data",
+      "type": "function",
+      "name": "test_snapshots_only_database_merges_legacy_data",
+      "filePath": "tests/test_web_storage.py",
+      "lineRange": [
+        219,
+        230
+      ],
+      "summary": "位于 tests/test_web_storage.py 的函数 test_snapshots_only_database_merges_legacy_data，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_storage.py:test_app_manager_uses_the_same_store_boundary",
+      "type": "function",
+      "name": "test_app_manager_uses_the_same_store_boundary",
+      "filePath": "tests/test_web_storage.py",
+      "lineRange": [
+        233,
+        239
+      ],
+      "summary": "位于 tests/test_web_storage.py 的函数 test_app_manager_uses_the_same_store_boundary，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_storage.py:test_app_with_injected_manager_reuses_its_store",
+      "type": "function",
+      "name": "test_app_with_injected_manager_reuses_its_store",
+      "filePath": "tests/test_web_storage.py",
+      "lineRange": [
+        242,
+        251
+      ],
+      "summary": "位于 tests/test_web_storage.py 的函数 test_app_with_injected_manager_reuses_its_store，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_storage.py:test_in_memory_manager_is_attached_to_app_store_and_persists",
+      "type": "function",
+      "name": "test_in_memory_manager_is_attached_to_app_store_and_persists",
+      "filePath": "tests/test_web_storage.py",
+      "lineRange": [
+        254,
+        265
+      ],
+      "summary": "位于 tests/test_web_storage.py 的函数 test_in_memory_manager_is_attached_to_app_store_and_persists，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/dataflows/utils.py",
+      "type": "file",
+      "name": "utils.py",
+      "filePath": "tradingagents/dataflows/utils.py",
+      "summary": "实现 tradingagents/dataflows/utils.py 在交易分析系统中的核心逻辑，对外提供 safe_ticker_component、save_output、get_current_date 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/dataflows/utils.py:safe_ticker_component",
+      "type": "function",
+      "name": "safe_ticker_component",
+      "filePath": "tradingagents/dataflows/utils.py",
+      "lineRange": [
+        17,
+        42
+      ],
+      "summary": "位于 tradingagents/dataflows/utils.py 的函数 safe_ticker_component，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/utils.py:save_output",
+      "type": "function",
+      "name": "save_output",
+      "filePath": "tradingagents/dataflows/utils.py",
+      "lineRange": [
+        45,
+        48
+      ],
+      "summary": "位于 tradingagents/dataflows/utils.py 的函数 save_output，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/utils.py:get_current_date",
+      "type": "function",
+      "name": "get_current_date",
+      "filePath": "tradingagents/dataflows/utils.py",
+      "lineRange": [
+        51,
+        52
+      ],
+      "summary": "位于 tradingagents/dataflows/utils.py 的函数 get_current_date，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/utils.py:decorate_all_methods",
+      "type": "function",
+      "name": "decorate_all_methods",
+      "filePath": "tradingagents/dataflows/utils.py",
+      "lineRange": [
+        55,
+        62
+      ],
+      "summary": "位于 tradingagents/dataflows/utils.py 的函数 decorate_all_methods，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/utils.py:get_next_weekday",
+      "type": "function",
+      "name": "get_next_weekday",
+      "filePath": "tradingagents/dataflows/utils.py",
+      "lineRange": [
+        65,
+        75
+      ],
+      "summary": "位于 tradingagents/dataflows/utils.py 的函数 get_next_weekday，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/graph/checkpointer.py",
+      "type": "file",
+      "name": "checkpointer.py",
+      "filePath": "tradingagents/graph/checkpointer.py",
+      "summary": "实现 tradingagents/graph/checkpointer.py 在交易分析系统中的核心逻辑，对外提供 _db_path、thread_id、get_checkpointer 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/graph/checkpointer.py:_db_path",
+      "type": "function",
+      "name": "_db_path",
+      "filePath": "tradingagents/graph/checkpointer.py",
+      "lineRange": [
+        19,
+        25
+      ],
+      "summary": "位于 tradingagents/graph/checkpointer.py 的函数 _db_path，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/graph/checkpointer.py:thread_id",
+      "type": "function",
+      "name": "thread_id",
+      "filePath": "tradingagents/graph/checkpointer.py",
+      "lineRange": [
+        28,
+        38
+      ],
+      "summary": "位于 tradingagents/graph/checkpointer.py 的函数 thread_id，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/graph/checkpointer.py:get_checkpointer",
+      "type": "function",
+      "name": "get_checkpointer",
+      "filePath": "tradingagents/graph/checkpointer.py",
+      "lineRange": [
+        42,
+        51
+      ],
+      "summary": "位于 tradingagents/graph/checkpointer.py 的函数 get_checkpointer，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/graph/checkpointer.py:has_checkpoint",
+      "type": "function",
+      "name": "has_checkpoint",
+      "filePath": "tradingagents/graph/checkpointer.py",
+      "lineRange": [
+        54,
+        56
+      ],
+      "summary": "位于 tradingagents/graph/checkpointer.py 的函数 has_checkpoint，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/graph/checkpointer.py:checkpoint_step",
+      "type": "function",
+      "name": "checkpoint_step",
+      "filePath": "tradingagents/graph/checkpointer.py",
+      "lineRange": [
+        59,
+        70
+      ],
+      "summary": "位于 tradingagents/graph/checkpointer.py 的函数 checkpoint_step，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/graph/checkpointer.py:clear_all_checkpoints",
+      "type": "function",
+      "name": "clear_all_checkpoints",
+      "filePath": "tradingagents/graph/checkpointer.py",
+      "lineRange": [
+        73,
+        81
+      ],
+      "summary": "位于 tradingagents/graph/checkpointer.py 的函数 clear_all_checkpoints，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/graph/checkpointer.py:clear_checkpoint",
+      "type": "function",
+      "name": "clear_checkpoint",
+      "filePath": "tradingagents/graph/checkpointer.py",
+      "lineRange": [
+        84,
+        98
+      ],
+      "summary": "位于 tradingagents/graph/checkpointer.py 的函数 clear_checkpoint，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:web/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "web/__init__.py",
+      "summary": "实现 web/__init__.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:web/app.py",
+      "type": "file",
+      "name": "app.py",
+      "filePath": "web/app.py",
+      "summary": "实现 web/app.py 在交易分析系统中的核心逻辑，对外提供 _record_json、_error、_safe_filename 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/app.py:_record_json",
+      "type": "function",
+      "name": "_record_json",
+      "filePath": "web/app.py",
+      "lineRange": [
+        57,
+        58
+      ],
+      "summary": "位于 web/app.py 的函数 _record_json，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/app.py:_error",
+      "type": "function",
+      "name": "_error",
+      "filePath": "web/app.py",
+      "lineRange": [
+        61,
+        62
+      ],
+      "summary": "位于 web/app.py 的函数 _error，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/app.py:_safe_filename",
+      "type": "function",
+      "name": "_safe_filename",
+      "filePath": "web/app.py",
+      "lineRange": [
+        65,
+        67
+      ],
+      "summary": "位于 web/app.py 的函数 _safe_filename，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/app.py:_config_view",
+      "type": "function",
+      "name": "_config_view",
+      "filePath": "web/app.py",
+      "lineRange": [
+        70,
+        92
+      ],
+      "summary": "位于 web/app.py 的函数 _config_view，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/app.py:_watchlist_view",
+      "type": "function",
+      "name": "_watchlist_view",
+      "filePath": "web/app.py",
+      "lineRange": [
+        95,
+        97
+      ],
+      "summary": "位于 web/app.py 的函数 _watchlist_view，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/app.py:_event_sse",
+      "type": "function",
+      "name": "_event_sse",
+      "filePath": "web/app.py",
+      "lineRange": [
+        100,
+        107
+      ],
+      "summary": "位于 web/app.py 的函数 _event_sse，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/app.py:_cursor",
+      "type": "function",
+      "name": "_cursor",
+      "filePath": "web/app.py",
+      "lineRange": [
+        110,
+        119
+      ],
+      "summary": "位于 web/app.py 的函数 _cursor，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/app.py:create_app",
+      "type": "function",
+      "name": "create_app",
+      "filePath": "web/app.py",
+      "lineRange": [
+        122,
+        694
+      ],
+      "summary": "位于 web/app.py 的函数 create_app，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/app.py:_request_disconnected",
+      "type": "function",
+      "name": "_request_disconnected",
+      "filePath": "web/app.py",
+      "lineRange": [
+        697,
+        705
+      ],
+      "summary": "位于 web/app.py 的函数 _request_disconnected，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:web/artifacts.py",
+      "type": "file",
+      "name": "artifacts.py",
+      "filePath": "web/artifacts.py",
+      "summary": "实现 web/artifacts.py 在交易分析系统中的核心逻辑，对外提供 _now_iso、ArtifactRecord、_decode_row 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/artifacts.py:_now_iso",
+      "type": "function",
+      "name": "_now_iso",
+      "filePath": "web/artifacts.py",
+      "lineRange": [
+        32,
+        33
+      ],
+      "summary": "位于 web/artifacts.py 的函数 _now_iso，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/artifacts.py:_decode_row",
+      "type": "function",
+      "name": "_decode_row",
+      "filePath": "web/artifacts.py",
+      "lineRange": [
+        64,
+        79
+      ],
+      "summary": "位于 web/artifacts.py 的函数 _decode_row，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:web/artifacts.py:ArtifactRecord",
+      "type": "class",
+      "name": "ArtifactRecord",
+      "filePath": "web/artifacts.py",
+      "lineRange": [
+        37,
+        61
+      ],
+      "summary": "位于 web/artifacts.py 的类 ArtifactRecord，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/artifacts.py:ArtifactRepository",
+      "type": "class",
+      "name": "ArtifactRepository",
+      "filePath": "web/artifacts.py",
+      "lineRange": [
+        82,
+        183
+      ],
+      "summary": "位于 web/artifacts.py 的类 ArtifactRepository，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/checkpoint_resume.py",
+      "type": "file",
+      "name": "checkpoint_resume.py",
+      "filePath": "web/checkpoint_resume.py",
+      "summary": "实现 web/checkpoint_resume.py 在交易分析系统中的核心逻辑，对外提供 build_checkpoint_signature、thread_id_for_run、checkpoint_id 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:web/checkpoint_resume.py:build_checkpoint_signature",
+      "type": "function",
+      "name": "build_checkpoint_signature",
+      "filePath": "web/checkpoint_resume.py",
+      "lineRange": [
+        29,
+        56
+      ],
+      "summary": "位于 web/checkpoint_resume.py 的函数 build_checkpoint_signature，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/checkpoint_resume.py:thread_id_for_run",
+      "type": "function",
+      "name": "thread_id_for_run",
+      "filePath": "web/checkpoint_resume.py",
+      "lineRange": [
+        59,
+        60
+      ],
+      "summary": "位于 web/checkpoint_resume.py 的函数 thread_id_for_run，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/checkpoint_resume.py:checkpoint_id",
+      "type": "function",
+      "name": "checkpoint_id",
+      "filePath": "web/checkpoint_resume.py",
+      "lineRange": [
+        63,
+        64
+      ],
+      "summary": "位于 web/checkpoint_resume.py 的函数 checkpoint_id，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/checkpoint_resume.py:checkpoint_available",
+      "type": "function",
+      "name": "checkpoint_available",
+      "filePath": "web/checkpoint_resume.py",
+      "lineRange": [
+        67,
+        80
+      ],
+      "summary": "位于 web/checkpoint_resume.py 的函数 checkpoint_available，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/checkpoint_resume.py:checkpoint_step_value",
+      "type": "function",
+      "name": "checkpoint_step_value",
+      "filePath": "web/checkpoint_resume.py",
+      "lineRange": [
+        83,
+        89
+      ],
+      "summary": "位于 web/checkpoint_resume.py 的函数 checkpoint_step_value，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/checkpoint_resume.py:clear_checkpoint_for_signature",
+      "type": "function",
+      "name": "clear_checkpoint_for_signature",
+      "filePath": "web/checkpoint_resume.py",
+      "lineRange": [
+        92,
+        98
+      ],
+      "summary": "位于 web/checkpoint_resume.py 的函数 clear_checkpoint_for_signature，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/checkpoint_resume.py:checkpoint_metadata_for_signature",
+      "type": "function",
+      "name": "checkpoint_metadata_for_signature",
+      "filePath": "web/checkpoint_resume.py",
+      "lineRange": [
+        101,
+        117
+      ],
+      "summary": "位于 web/checkpoint_resume.py 的函数 checkpoint_metadata_for_signature，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/checkpoint_resume.py:retention_until",
+      "type": "function",
+      "name": "retention_until",
+      "filePath": "web/checkpoint_resume.py",
+      "lineRange": [
+        120,
+        126
+      ],
+      "summary": "位于 web/checkpoint_resume.py 的函数 retention_until，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/checkpoint_resume.py:is_retained",
+      "type": "function",
+      "name": "is_retained",
+      "filePath": "web/checkpoint_resume.py",
+      "lineRange": [
+        129,
+        133
+      ],
+      "summary": "位于 web/checkpoint_resume.py 的函数 is_retained，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_store_migrates_schema_and_preserves_existing_web_runs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_v2_schema_matches_the_reliability_contract",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_v3_reorders_existing_watchlist_items_newest_first",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_failed_migration_rolls_back",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_v2_python_hook_and_sql_roll_back_as_one_transaction",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_migration_parser_handles_semicolons_in_strings_and_comments",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_legacy_snapshots_table_is_renamed_without_parallel_storage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_old_web_runs_missing_columns_are_upgraded_and_loaded",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_snapshots_only_database_merges_legacy_data",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_app_manager_uses_the_same_store_boundary",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_app_with_injected_manager_reuses_its_store",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_in_memory_manager_is_attached_to_app_store_and_persists",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_store_migrates_schema_and_preserves_existing_web_runs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_v2_schema_matches_the_reliability_contract",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_v3_reorders_existing_watchlist_items_newest_first",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_failed_migration_rolls_back",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_v2_python_hook_and_sql_roll_back_as_one_transaction",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_migration_parser_handles_semicolons_in_strings_and_comments",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_legacy_snapshots_table_is_renamed_without_parallel_storage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_old_web_runs_missing_columns_are_upgraded_and_loaded",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_snapshots_only_database_merges_legacy_data",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_app_manager_uses_the_same_store_boundary",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_app_with_injected_manager_reuses_its_store",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "function:tests/test_web_storage.py:test_in_memory_manager_is_attached_to_app_store_and_persists",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_storage.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/utils.py",
+      "target": "function:tradingagents/dataflows/utils.py:safe_ticker_component",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/utils.py",
+      "target": "function:tradingagents/dataflows/utils.py:save_output",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/utils.py",
+      "target": "function:tradingagents/dataflows/utils.py:get_current_date",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/utils.py",
+      "target": "function:tradingagents/dataflows/utils.py:decorate_all_methods",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/utils.py",
+      "target": "function:tradingagents/dataflows/utils.py:get_next_weekday",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/utils.py",
+      "target": "function:tradingagents/dataflows/utils.py:safe_ticker_component",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/utils.py",
+      "target": "function:tradingagents/dataflows/utils.py:save_output",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/utils.py",
+      "target": "function:tradingagents/dataflows/utils.py:get_current_date",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/utils.py",
+      "target": "function:tradingagents/dataflows/utils.py:decorate_all_methods",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/utils.py",
+      "target": "function:tradingagents/dataflows/utils.py:get_next_weekday",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/checkpointer.py",
+      "target": "function:tradingagents/graph/checkpointer.py:_db_path",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/graph/checkpointer.py",
+      "target": "function:tradingagents/graph/checkpointer.py:thread_id",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/graph/checkpointer.py",
+      "target": "function:tradingagents/graph/checkpointer.py:get_checkpointer",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/graph/checkpointer.py",
+      "target": "function:tradingagents/graph/checkpointer.py:has_checkpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/graph/checkpointer.py",
+      "target": "function:tradingagents/graph/checkpointer.py:checkpoint_step",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/graph/checkpointer.py",
+      "target": "function:tradingagents/graph/checkpointer.py:clear_all_checkpoints",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/graph/checkpointer.py",
+      "target": "function:tradingagents/graph/checkpointer.py:clear_checkpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/graph/checkpointer.py",
+      "target": "function:tradingagents/graph/checkpointer.py:_db_path",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/checkpointer.py",
+      "target": "function:tradingagents/graph/checkpointer.py:thread_id",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/checkpointer.py",
+      "target": "function:tradingagents/graph/checkpointer.py:get_checkpointer",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/checkpointer.py",
+      "target": "function:tradingagents/graph/checkpointer.py:has_checkpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/checkpointer.py",
+      "target": "function:tradingagents/graph/checkpointer.py:checkpoint_step",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/checkpointer.py",
+      "target": "function:tradingagents/graph/checkpointer.py:clear_all_checkpoints",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/checkpointer.py",
+      "target": "function:tradingagents/graph/checkpointer.py:clear_checkpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/checkpointer.py",
+      "target": "file:tradingagents/dataflows/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/__init__.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "function:web/app.py:_record_json",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "function:web/app.py:_error",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "function:web/app.py:_safe_filename",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "function:web/app.py:_config_view",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "function:web/app.py:_watchlist_view",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "function:web/app.py:_event_sse",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "function:web/app.py:_cursor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "function:web/app.py:create_app",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "function:web/app.py:_request_disconnected",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "function:web/app.py:_record_json",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "function:web/app.py:_error",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "function:web/app.py:_safe_filename",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "function:web/app.py:_config_view",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "function:web/app.py:_watchlist_view",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "function:web/app.py:_event_sse",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "function:web/app.py:_cursor",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "function:web/app.py:create_app",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "function:web/app.py:_request_disconnected",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/artifacts.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/error_codes.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/history.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/market_data.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/market_models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/providers/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/repositories.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/runner.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/snapshots.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/app.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/artifacts.py",
+      "target": "function:web/artifacts.py:_now_iso",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/artifacts.py",
+      "target": "function:web/artifacts.py:_decode_row",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/artifacts.py",
+      "target": "class:web/artifacts.py:ArtifactRecord",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/artifacts.py",
+      "target": "class:web/artifacts.py:ArtifactRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/artifacts.py",
+      "target": "function:web/artifacts.py:_now_iso",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/artifacts.py",
+      "target": "class:web/artifacts.py:ArtifactRecord",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/artifacts.py",
+      "target": "function:web/artifacts.py:_decode_row",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/artifacts.py",
+      "target": "class:web/artifacts.py:ArtifactRepository",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/artifacts.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/checkpoint_resume.py",
+      "target": "function:web/checkpoint_resume.py:build_checkpoint_signature",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/checkpoint_resume.py",
+      "target": "function:web/checkpoint_resume.py:thread_id_for_run",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/checkpoint_resume.py",
+      "target": "function:web/checkpoint_resume.py:checkpoint_id",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/checkpoint_resume.py",
+      "target": "function:web/checkpoint_resume.py:checkpoint_available",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/checkpoint_resume.py",
+      "target": "function:web/checkpoint_resume.py:checkpoint_step_value",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/checkpoint_resume.py",
+      "target": "function:web/checkpoint_resume.py:clear_checkpoint_for_signature",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/checkpoint_resume.py",
+      "target": "function:web/checkpoint_resume.py:checkpoint_metadata_for_signature",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/checkpoint_resume.py",
+      "target": "function:web/checkpoint_resume.py:retention_until",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/checkpoint_resume.py",
+      "target": "function:web/checkpoint_resume.py:is_retained",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/checkpoint_resume.py",
+      "target": "function:web/checkpoint_resume.py:build_checkpoint_signature",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/checkpoint_resume.py",
+      "target": "function:web/checkpoint_resume.py:thread_id_for_run",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/checkpoint_resume.py",
+      "target": "function:web/checkpoint_resume.py:checkpoint_id",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/checkpoint_resume.py",
+      "target": "function:web/checkpoint_resume.py:checkpoint_available",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/checkpoint_resume.py",
+      "target": "function:web/checkpoint_resume.py:checkpoint_step_value",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/checkpoint_resume.py",
+      "target": "function:web/checkpoint_resume.py:clear_checkpoint_for_signature",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/checkpoint_resume.py",
+      "target": "function:web/checkpoint_resume.py:checkpoint_metadata_for_signature",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/checkpoint_resume.py",
+      "target": "function:web/checkpoint_resume.py:retention_until",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/checkpoint_resume.py",
+      "target": "function:web/checkpoint_resume.py:is_retained",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/checkpoint_resume.py",
+      "target": "file:tradingagents/graph/checkpointer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

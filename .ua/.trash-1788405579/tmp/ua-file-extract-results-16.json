@@ -1,0 +1,491 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 8,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 8,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 8
+    }
+  },
+  "results": [
+    {
+      "path": "docs/superpowers/plans/2026-08-26-web-analysis-console-plan.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 459,
+      "nonEmptyLines": 298,
+      "sections": [
+        {
+          "heading": "Web Analysis Console Implementation Plan",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Chunk 1: Core Streaming and Packaging",
+          "level": 2,
+          "line": 13
+        },
+        {
+          "heading": "Task 1: Define the public graph callback contract",
+          "level": 3,
+          "line": 15
+        },
+        {
+          "heading": "Task 2: Add the web package and install surface",
+          "level": 3,
+          "line": 111
+        },
+        {
+          "heading": "Chunk 2: Run Manager, Events, and Runner",
+          "level": 2,
+          "line": 162
+        },
+        {
+          "heading": "Task 3: Implement bounded run management and SSE event storage",
+          "level": 3,
+          "line": 164
+        },
+        {
+          "heading": "Task 4: Adapt graph chunks into safe web events and reports",
+          "level": 3,
+          "line": 209
+        },
+        {
+          "heading": "Chunk 3: History and HTTP API",
+          "level": 2,
+          "line": 258
+        },
+        {
+          "heading": "Task 5: Implement safe report history discovery",
+          "level": 3,
+          "line": 260
+        },
+        {
+          "heading": "Task 6: Add FastAPI routes and SSE transport",
+          "level": 3,
+          "line": 297
+        },
+        {
+          "heading": "Chunk 4: Browser UI and Verification",
+          "level": 2,
+          "line": 346
+        },
+        {
+          "heading": "Task 7: Build the Editorial Briefing browser client",
+          "level": 3,
+          "line": 348
+        },
+        {
+          "heading": "Task 8: Documentation, package smoke test, and full verification",
+          "level": 3,
+          "line": 392
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 13
+      }
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-27-personal-investor-platform-plan.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 314,
+      "nonEmptyLines": 184,
+      "sections": [
+        {
+          "heading": "TradingAgents 个人投资者平台 Implementation Plan",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Chunk 1: Storage Boundary and SQLite Migrations",
+          "level": 2,
+          "line": 15
+        },
+        {
+          "heading": "Chunk 2: Quote DTOs, Provider Routing, and Cache Semantics",
+          "level": 2,
+          "line": 69
+        },
+        {
+          "heading": "Chunk 3: Watchlist, Settings, and Analysis API Contracts",
+          "level": 2,
+          "line": 118
+        },
+        {
+          "heading": "Chunk 4: Snapshot-Aware Analysis and Atomic Report Publication",
+          "level": 2,
+          "line": 170
+        },
+        {
+          "heading": "Chunk 5: Chinese Research Platform UI",
+          "level": 2,
+          "line": 223
+        },
+        {
+          "heading": "Chunk 6: Documentation, Full Verification, and Delivery",
+          "level": 2,
+          "line": 273
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 7
+      }
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-27-web-report-library-models-language-plan.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 41,
+      "nonEmptyLines": 27,
+      "sections": [
+        {
+          "heading": "Web Report Library, Model Selection, and Output Languages Implementation Plan",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Chunk 1: Backend Contracts and Configuration",
+          "level": 2,
+          "line": 13
+        },
+        {
+          "heading": "Chunk 2: Report Library and Form Controls",
+          "level": 2,
+          "line": 24
+        },
+        {
+          "heading": "Chunk 3: Verification and Delivery",
+          "level": 2,
+          "line": 34
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-28-report-publish-integrity-plan.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 43,
+      "nonEmptyLines": 29,
+      "sections": [
+        {
+          "heading": "Decision Report Publish Integrity Implementation Plan",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Task 1: Serialize LangChain state safely",
+          "level": 3,
+          "line": 13
+        },
+        {
+          "heading": "Task 2: Hide unpublished web reports from history",
+          "level": 3,
+          "line": 24
+        },
+        {
+          "heading": "Task 3: Verify the publishing contract",
+          "level": 3,
+          "line": 35
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-31-platform-reliability-operations-plan.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 632,
+      "nonEmptyLines": 434,
+      "sections": [
+        {
+          "heading": "TradingAgentsPlus 平台可靠性与可观测性实施计划",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Chunk 1: Quality Baseline and Warning Cleanup",
+          "level": 2,
+          "line": 15
+        },
+        {
+          "heading": "Task 1: Make Ruff and compile checks clean",
+          "level": 3,
+          "line": 17
+        },
+        {
+          "heading": "Chunk 2: Run Heartbeat, Deadline, and Terminal Integrity",
+          "level": 2,
+          "line": 67
+        },
+        {
+          "heading": "Task 2: Add v2 run lifecycle persistence",
+          "level": 3,
+          "line": 69
+        },
+        {
+          "heading": "Task 3: Implement watchdog, heartbeats, monotonic progress, and recovery",
+          "level": 3,
+          "line": 140
+        },
+        {
+          "heading": "Chunk 3: SQLite Report Index and Server Pagination",
+          "level": 2,
+          "line": 231
+        },
+        {
+          "heading": "Task 4: Add report index, outbox, and rebuild path",
+          "level": 3,
+          "line": 233
+        },
+        {
+          "heading": "Task 5: Add compatible pagination API and report-library controls",
+          "level": 3,
+          "line": 305
+        },
+        {
+          "heading": "Chunk 4: Provider Health and Quote Freshness",
+          "level": 2,
+          "line": 361
+        },
+        {
+          "heading": "Task 6: Persist and expose provider health",
+          "level": 3,
+          "line": 363
+        },
+        {
+          "heading": "Task 7: Normalize cache age and make 5-second refresh resilient",
+          "level": 3,
+          "line": 417
+        },
+        {
+          "heading": "Chunk 5: Unified Chinese UI Resources",
+          "level": 2,
+          "line": 476
+        },
+        {
+          "heading": "Task 8: Centralize Chinese labels and dynamic value localization",
+          "level": 3,
+          "line": 478
+        },
+        {
+          "heading": "Chunk 6: Full Verification and Documentation",
+          "level": 2,
+          "line": 559
+        },
+        {
+          "heading": "Task 9: Validate the integrated platform",
+          "level": 3,
+          "line": 561
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 16
+      }
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-31-rating-localization-plan.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 111,
+      "nonEmptyLines": 66,
+      "sections": [
+        {
+          "heading": "Investment Rating Localization Implementation Plan",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Chunk 1: Shared rating formatter and UI integration",
+          "level": 2,
+          "line": 13
+        },
+        {
+          "heading": "Task 1: Specify formatter behavior with failing tests",
+          "level": 3,
+          "line": 15
+        },
+        {
+          "heading": "Task 2: Integrate the formatter into every structured rating surface",
+          "level": 3,
+          "line": 52
+        },
+        {
+          "heading": "Task 3: Verify data and report regressions",
+          "level": 3,
+          "line": 90
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "docs/superpowers/plans/2026-09-01-compact-section-headers.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 42,
+      "nonEmptyLines": 27,
+      "sections": [
+        {
+          "heading": "Compact Section Headers Implementation Plan",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Chunk 1: Compact Page Hierarchy",
+          "level": 2,
+          "line": 13
+        },
+        {
+          "heading": "Task 1: Lock the intended markup and typography contract",
+          "level": 3,
+          "line": 15
+        },
+        {
+          "heading": "Task 2: Simplify static page headers",
+          "level": 3,
+          "line": 23
+        },
+        {
+          "heading": "Task 3: Verify the rendered routes",
+          "level": 3,
+          "line": 34
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "docs/superpowers/plans/2026-09-02-manager-concurrency.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 705,
+      "nonEmptyLines": 510,
+      "sections": [
+        {
+          "heading": "RunManager Concurrency Implementation Plan",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Chunk 1: Internal Manager Refactor (Keep API Contracts Identical)",
+          "level": 2,
+          "line": 15
+        },
+        {
+          "heading": "Task 1.1: Settings lookup + cap provider",
+          "level": 3,
+          "line": 17
+        },
+        {
+          "heading": "Task 1.2: Replace `_active_run_id` with `_active_run_ids`",
+          "level": 3,
+          "line": 101
+        },
+        {
+          "heading": "Task 1.3: Errors + capacity-aware `start_run`",
+          "level": 3,
+          "line": 184
+        },
+        {
+          "heading": "Task 1.4: Insert + evict active-run ids around lifecycle",
+          "level": 3,
+          "line": 307
+        },
+        {
+          "heading": "Task 1.5: Resize the executor to match the cap",
+          "level": 3,
+          "line": 367
+        },
+        {
+          "heading": "Chunk 2: API Contract + Error Mapping",
+          "level": 2,
+          "line": 456
+        },
+        {
+          "heading": "Task 2.1: `/api/runs/active` returns a list",
+          "level": 3,
+          "line": 458
+        },
+        {
+          "heading": "Chunk 3: Front-End Adaptation",
+          "level": 2,
+          "line": 536
+        },
+        {
+          "heading": "Task 3.1: Adapt `showActive` to iterate the list",
+          "level": 3,
+          "line": 538
+        },
+        {
+          "heading": "Chunk 4: Integration Test for Concurrent End-to-End",
+          "level": 2,
+          "line": 599
+        },
+        {
+          "heading": "Task 4.1: Live test — three POSTs succeed, fourth 409s",
+          "level": 3,
+          "line": 601
+        },
+        {
+          "heading": "Chunk 5: Docs + Spec Status",
+          "level": 2,
+          "line": 675
+        },
+        {
+          "heading": "Task 5.1: Update the spec status note + CHANGELOG",
+          "level": 3,
+          "line": 677
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 15
+      }
+    }
+  ]
+}
