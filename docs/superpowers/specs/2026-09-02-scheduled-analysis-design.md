@@ -350,8 +350,8 @@ None — all design questions resolved during brainstorming.
 ## Implementation Status
 
 - [x] Plan 1 — RunManager concurrency (`docs/superpowers/plans/2026-09-02-manager-concurrency.md`) — shipped
-- [ ] Plan 2 — Scheduled jobs core (data + APScheduler + trigger logic)
-- [ ] Plan 3 — Scheduled jobs UI
+- [x] Plan 2 — Scheduled jobs core (data + APScheduler + trigger logic) — shipped
+- [x] Plan 3 — Scheduled jobs UI — shipped
 
 ### Plan 1 summary
 
@@ -367,3 +367,26 @@ None — all design questions resolved during brainstorming.
 - Front-end `showActive` / `restoreActiveRun` use a new `pickActiveRun()`
   helper that selects the most-recently-queued run.
 
+### Plan 2 summary
+
+- SQLite migration 005 persists `scheduled_jobs`, `scheduled_run_logs`, and
+  scheduler settings; repository tests cover CRUD, validation, cascade, and
+  last-successful parameter lookup.
+- `ScheduledAnalysisService` owns APScheduler lifecycle, no-catch-up boot
+  registration, exact nominal fire timestamps, admission skip logs, run
+  submission, and terminal reconciliation.
+- `/api/scheduled/...` exposes job CRUD, toggle, run-now, history, Cron preview,
+  and scheduler settings. Watchlist deletion removes the asset schedule and logs
+  transactionally and resyncs the scheduler.
+- Retry preflight now uses the same per-asset and capacity admission checks as
+  actual retry execution.
+
+### Plan 3 summary
+
+- `/scheduled` is a dedicated workspace with task table, master switch, create
+  and edit form, live three-fire Cron preview, inline trigger history, run-now,
+  enable/disable, delete confirmation, and a concurrency settings drawer.
+- The page polls jobs and expanded logs every five seconds only while visible,
+  preserves form input on recoverable errors, and supports keyboard focus return.
+- Static tests and Playwright browser checks cover desktop and 390px mobile
+  layouts without horizontal overflow.

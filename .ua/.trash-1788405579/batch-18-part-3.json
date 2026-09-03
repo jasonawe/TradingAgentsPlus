@@ -1,0 +1,1685 @@
+{
+  "nodes": [
+    {
+      "id": "file:tests/test_ollama_base_url.py",
+      "type": "file",
+      "name": "test_ollama_base_url.py",
+      "filePath": "tests/test_ollama_base_url.py",
+      "summary": "项目文件 tests/test_ollama_base_url.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。",
+      "tags": [
+        "test",
+        "implementation",
+        "project-artifact"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_ollama_base_url.py:_resync_reloaded_modules",
+      "type": "function",
+      "name": "_resync_reloaded_modules",
+      "filePath": "tests/test_ollama_base_url.py",
+      "lineRange": [
+        12,
+        25
+      ],
+      "summary": "实现 _resync_reloaded_modules，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ollama_base_url.py:_reload_client",
+      "type": "function",
+      "name": "_reload_client",
+      "filePath": "tests/test_ollama_base_url.py",
+      "lineRange": [
+        31,
+        33
+      ],
+      "summary": "实现 _reload_client，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ollama_base_url.py:_base_url",
+      "type": "function",
+      "name": "_base_url",
+      "filePath": "tests/test_ollama_base_url.py",
+      "lineRange": [
+        36,
+        44
+      ],
+      "summary": "实现 _base_url，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ollama_base_url.py:test_resolver_returns_default_when_env_unset",
+      "type": "function",
+      "name": "test_resolver_returns_default_when_env_unset",
+      "filePath": "tests/test_ollama_base_url.py",
+      "lineRange": [
+        47,
+        50
+      ],
+      "summary": "实现 test_resolver_returns_default_when_env_unset，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ollama_base_url.py:test_resolver_returns_env_when_set",
+      "type": "function",
+      "name": "test_resolver_returns_env_when_set",
+      "filePath": "tests/test_ollama_base_url.py",
+      "lineRange": [
+        53,
+        56
+      ],
+      "summary": "实现 test_resolver_returns_env_when_set，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ollama_base_url.py:test_resolver_evaluation_is_call_time",
+      "type": "function",
+      "name": "test_resolver_evaluation_is_call_time",
+      "filePath": "tests/test_ollama_base_url.py",
+      "lineRange": [
+        59,
+        64
+      ],
+      "summary": "实现 test_resolver_evaluation_is_call_time，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ollama_base_url.py:test_resolver_does_not_affect_other_providers",
+      "type": "function",
+      "name": "test_resolver_does_not_affect_other_providers",
+      "filePath": "tests/test_ollama_base_url.py",
+      "lineRange": [
+        67,
+        72
+      ],
+      "summary": "实现 test_resolver_does_not_affect_other_providers，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ollama_base_url.py:test_client_get_llm_picks_up_env",
+      "type": "function",
+      "name": "test_client_get_llm_picks_up_env",
+      "filePath": "tests/test_ollama_base_url.py",
+      "lineRange": [
+        75,
+        81
+      ],
+      "summary": "实现 test_client_get_llm_picks_up_env，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ollama_base_url.py:test_explicit_base_url_overrides_env",
+      "type": "function",
+      "name": "test_explicit_base_url_overrides_env",
+      "filePath": "tests/test_ollama_base_url.py",
+      "lineRange": [
+        84,
+        95
+      ],
+      "summary": "实现 test_explicit_base_url_overrides_env，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ollama_base_url.py:test_cli_dropdown_uses_env",
+      "type": "function",
+      "name": "test_cli_dropdown_uses_env",
+      "filePath": "tests/test_ollama_base_url.py",
+      "lineRange": [
+        101,
+        111
+      ],
+      "summary": "实现 test_cli_dropdown_uses_env，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ollama_base_url.py:test_cli_dropdown_default_when_unset",
+      "type": "function",
+      "name": "test_cli_dropdown_default_when_unset",
+      "filePath": "tests/test_ollama_base_url.py",
+      "lineRange": [
+        114,
+        122
+      ],
+      "summary": "实现 test_cli_dropdown_default_when_unset，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ollama_base_url.py:test_confirm_endpoint_shows_default",
+      "type": "function",
+      "name": "test_confirm_endpoint_shows_default",
+      "filePath": "tests/test_ollama_base_url.py",
+      "lineRange": [
+        128,
+        136
+      ],
+      "summary": "实现 test_confirm_endpoint_shows_default，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ollama_base_url.py:test_confirm_endpoint_marks_env_origin",
+      "type": "function",
+      "name": "test_confirm_endpoint_marks_env_origin",
+      "filePath": "tests/test_ollama_base_url.py",
+      "lineRange": [
+        139,
+        146
+      ],
+      "summary": "实现 test_confirm_endpoint_marks_env_origin，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ollama_base_url.py:test_confirm_endpoint_warns_on_missing_scheme",
+      "type": "function",
+      "name": "test_confirm_endpoint_warns_on_missing_scheme",
+      "filePath": "tests/test_ollama_base_url.py",
+      "lineRange": [
+        149,
+        157
+      ],
+      "summary": "实现 test_confirm_endpoint_warns_on_missing_scheme，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ollama_base_url.py:test_confirm_endpoint_warns_on_non_default_port_remote",
+      "type": "function",
+      "name": "test_confirm_endpoint_warns_on_non_default_port_remote",
+      "filePath": "tests/test_ollama_base_url.py",
+      "lineRange": [
+        160,
+        167
+      ],
+      "summary": "实现 test_confirm_endpoint_warns_on_non_default_port_remote，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ollama_base_url.py:test_confirm_endpoint_quiet_on_local_no_port",
+      "type": "function",
+      "name": "test_confirm_endpoint_quiet_on_local_no_port",
+      "filePath": "tests/test_ollama_base_url.py",
+      "lineRange": [
+        170,
+        177
+      ],
+      "summary": "实现 test_confirm_endpoint_quiet_on_local_no_port，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ollama_base_url.py:test_ollama_model_labels_no_local_suffix",
+      "type": "function",
+      "name": "test_ollama_model_labels_no_local_suffix",
+      "filePath": "tests/test_ollama_base_url.py",
+      "lineRange": [
+        180,
+        185
+      ],
+      "summary": "实现 test_ollama_model_labels_no_local_suffix，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ollama_base_url.py:test_ollama_offers_custom_model_id",
+      "type": "function",
+      "name": "test_ollama_offers_custom_model_id",
+      "filePath": "tests/test_ollama_base_url.py",
+      "lineRange": [
+        188,
+        196
+      ],
+      "summary": "实现 test_ollama_offers_custom_model_id，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_packaging_contract.py",
+      "type": "file",
+      "name": "test_packaging_contract.py",
+      "filePath": "tests/test_packaging_contract.py",
+      "summary": "项目文件 tests/test_packaging_contract.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。",
+      "tags": [
+        "test",
+        "implementation",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_packaging_contract.py:test_runtime_dependencies_cover_web_markdown_imports",
+      "type": "function",
+      "name": "test_runtime_dependencies_cover_web_markdown_imports",
+      "filePath": "tests/test_packaging_contract.py",
+      "lineRange": [
+        4,
+        9
+      ],
+      "summary": "实现 test_runtime_dependencies_cover_web_markdown_imports，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_web_browser.py",
+      "type": "file",
+      "name": "test_web_browser.py",
+      "filePath": "tests/test_web_browser.py",
+      "summary": "项目文件 tests/test_web_browser.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。",
+      "tags": [
+        "test",
+        "implementation",
+        "project-artifact"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_web_browser.py:test_browser_harness_is_available_or_skipped",
+      "type": "function",
+      "name": "test_browser_harness_is_available_or_skipped",
+      "filePath": "tests/test_web_browser.py",
+      "lineRange": [
+        14,
+        19
+      ],
+      "summary": "实现 test_browser_harness_is_available_or_skipped，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_browser.py:test_browser_flow_contract_is_deterministic_and_local",
+      "type": "function",
+      "name": "test_browser_flow_contract_is_deterministic_and_local",
+      "filePath": "tests/test_web_browser.py",
+      "lineRange": [
+        22,
+        40
+      ],
+      "summary": "实现 test_browser_flow_contract_is_deterministic_and_local，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_browser.py:_free_port",
+      "type": "function",
+      "name": "_free_port",
+      "filePath": "tests/test_web_browser.py",
+      "lineRange": [
+        43,
+        46
+      ],
+      "summary": "实现 _free_port，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_browser.py:_wait_for_server",
+      "type": "function",
+      "name": "_wait_for_server",
+      "filePath": "tests/test_web_browser.py",
+      "lineRange": [
+        49,
+        59
+      ],
+      "summary": "实现 _wait_for_server，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_browser.py:test_real_browser_navigation_paging_timeout_and_quote_refresh",
+      "type": "function",
+      "name": "test_real_browser_navigation_paging_timeout_and_quote_refresh",
+      "filePath": "tests/test_web_browser.py",
+      "lineRange": [
+        62,
+        265
+      ],
+      "summary": "实现 test_real_browser_navigation_paging_timeout_and_quote_refresh，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tests/test_web_static.py",
+      "type": "file",
+      "name": "test_web_static.py",
+      "filePath": "tests/test_web_static.py",
+      "summary": "项目文件 tests/test_web_static.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。",
+      "tags": [
+        "test",
+        "implementation",
+        "project-artifact"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_static_console_assets_exist_and_are_self_contained",
+      "type": "function",
+      "name": "test_static_console_assets_exist_and_are_self_contained",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        7,
+        17
+      ],
+      "summary": "实现 test_static_console_assets_exist_and_are_self_contained，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_client_contract_covers_api_events_reconnect_and_safe_rendering",
+      "type": "function",
+      "name": "test_client_contract_covers_api_events_reconnect_and_safe_rendering",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        20,
+        33
+      ],
+      "summary": "实现 test_client_contract_covers_api_events_reconnect_and_safe_rendering，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_investment_ratings_use_shared_localized_formatter_at_display_boundaries",
+      "type": "function",
+      "name": "test_investment_ratings_use_shared_localized_formatter_at_display_boundaries",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        36,
+        65
+      ],
+      "summary": "实现 test_investment_ratings_use_shared_localized_formatter_at_display_boundaries，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_css_responsive_shell_collapses_below_mobile_breakpoint",
+      "type": "function",
+      "name": "test_css_responsive_shell_collapses_below_mobile_breakpoint",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        68,
+        79
+      ],
+      "summary": "实现 test_css_responsive_shell_collapses_below_mobile_breakpoint，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_css_foundation_uses_inter_token_and_constraint_layer",
+      "type": "function",
+      "name": "test_css_foundation_uses_inter_token_and_constraint_layer",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        82,
+        92
+      ],
+      "summary": "实现 test_css_foundation_uses_inter_token_and_constraint_layer，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_primary_views_have_visually_hidden_h1_for_landmark_a11y",
+      "type": "function",
+      "name": "test_primary_views_have_visually_hidden_h1_for_landmark_a11y",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        95,
+        108
+      ],
+      "summary": "实现 test_primary_views_have_visually_hidden_h1_for_landmark_a11y，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_foundation_uses_modern_saas_tokens_and_sidebar_shell",
+      "type": "function",
+      "name": "test_foundation_uses_modern_saas_tokens_and_sidebar_shell",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        111,
+        164
+      ],
+      "summary": "实现 test_foundation_uses_modern_saas_tokens_and_sidebar_shell，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_foundation_legacy_class_names_are_removed",
+      "type": "function",
+      "name": "test_foundation_legacy_class_names_are_removed",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        167,
+        173
+      ],
+      "summary": "实现 test_foundation_legacy_class_names_are_removed，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_active_view_hidden_states_override_layout_display_rules",
+      "type": "function",
+      "name": "test_active_view_hidden_states_override_layout_display_rules",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        176,
+        182
+      ],
+      "summary": "实现 test_active_view_hidden_states_override_layout_display_rules，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_markdown_report_wrapping_and_watchlist_assets_contract_holds",
+      "type": "function",
+      "name": "test_markdown_report_wrapping_and_watchlist_assets_contract_holds",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        185,
+        201
+      ],
+      "summary": "实现 test_markdown_report_wrapping_and_watchlist_assets_contract_holds，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_watchlist_is_separate_from_analysis_and_refreshes_quotes_periodically",
+      "type": "function",
+      "name": "test_watchlist_is_separate_from_analysis_and_refreshes_quotes_periodically",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        204,
+        220
+      ],
+      "summary": "实现 test_watchlist_is_separate_from_analysis_and_refreshes_quotes_periodically，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_quote_refresh_controller_and_freshness_labels_are_wired",
+      "type": "function",
+      "name": "test_quote_refresh_controller_and_freshness_labels_are_wired",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        223,
+        233
+      ],
+      "summary": "实现 test_quote_refresh_controller_and_freshness_labels_are_wired，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_client_restores_an_active_run_after_page_reload",
+      "type": "function",
+      "name": "test_client_restores_an_active_run_after_page_reload",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        236,
+        240
+      ],
+      "summary": "实现 test_client_restores_an_active_run_after_page_reload，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_client_uses_persisted_progress_and_keeps_market_identity_readable",
+      "type": "function",
+      "name": "test_client_uses_persisted_progress_and_keeps_market_identity_readable",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        243,
+        254
+      ],
+      "summary": "实现 test_client_uses_persisted_progress_and_keeps_market_identity_readable，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_client_routes_views_and_handles_browser_history",
+      "type": "function",
+      "name": "test_client_routes_views_and_handles_browser_history",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        257,
+        266
+      ],
+      "summary": "实现 test_client_routes_views_and_handles_browser_history，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_completed_report_hides_live_research_desk_panel",
+      "type": "function",
+      "name": "test_completed_report_hides_live_research_desk_panel",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        269,
+        278
+      ],
+      "summary": "实现 test_completed_report_hides_live_research_desk_panel，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_client_uses_chinese_product_chrome_and_keeps_report_language_selection",
+      "type": "function",
+      "name": "test_client_uses_chinese_product_chrome_and_keeps_report_language_selection",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        281,
+        296
+      ],
+      "summary": "实现 test_client_uses_chinese_product_chrome_and_keeps_report_language_selection，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_localized_client_does_not_leave_user_facing_literals_outside_dictionary",
+      "type": "function",
+      "name": "test_localized_client_does_not_leave_user_facing_literals_outside_dictionary",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        299,
+        310
+      ],
+      "summary": "实现 test_localized_client_does_not_leave_user_facing_literals_outside_dictionary，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_report_view_is_separate_from_live_progress_and_supports_interruptions",
+      "type": "function",
+      "name": "test_report_view_is_separate_from_live_progress_and_supports_interruptions",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        313,
+        331
+      ],
+      "summary": "实现 test_report_view_is_separate_from_live_progress_and_supports_interruptions，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_client_snapshot_replay_and_future_terminal_status_fallback",
+      "type": "function",
+      "name": "test_client_snapshot_replay_and_future_terminal_status_fallback",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        334,
+        345
+      ],
+      "summary": "实现 test_client_snapshot_replay_and_future_terminal_status_fallback，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_report_library_uses_server_pagination_and_request_sequencing",
+      "type": "function",
+      "name": "test_report_library_uses_server_pagination_and_request_sequencing",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        348,
+        357
+      ],
+      "summary": "实现 test_report_library_uses_server_pagination_and_request_sequencing，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_watchlist_form_explains_symbol_suffixes_per_asset_type",
+      "type": "function",
+      "name": "test_watchlist_form_explains_symbol_suffixes_per_asset_type",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        359,
+        379
+      ],
+      "summary": "实现 test_watchlist_form_explains_symbol_suffixes_per_asset_type，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_static.py:test_show_active_handles_runs_list_contract",
+      "type": "function",
+      "name": "test_show_active_handles_runs_list_contract",
+      "filePath": "tests/test_web_static.py",
+      "lineRange": [
+        381,
+        386
+      ],
+      "summary": "实现 test_show_active_handles_runs_list_contract，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_web_synthesis.py",
+      "type": "file",
+      "name": "test_web_synthesis.py",
+      "filePath": "tests/test_web_synthesis.py",
+      "summary": "项目文件 tests/test_web_synthesis.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。",
+      "tags": [
+        "test",
+        "implementation",
+        "project-artifact"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_web_synthesis.py:test_summary_uses_deep_model_and_requested_language",
+      "type": "function",
+      "name": "test_summary_uses_deep_model_and_requested_language",
+      "filePath": "tests/test_web_synthesis.py",
+      "lineRange": [
+        19,
+        34
+      ],
+      "summary": "实现 test_summary_uses_deep_model_and_requested_language，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_synthesis.py:test_summary_is_saved_as_a_separate_report_file",
+      "type": "function",
+      "name": "test_summary_is_saved_as_a_separate_report_file",
+      "filePath": "tests/test_web_synthesis.py",
+      "lineRange": [
+        37,
+        40
+      ],
+      "summary": "实现 test_summary_is_saved_as_a_separate_report_file，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_web_synthesis.py:FakeResponse",
+      "type": "class",
+      "name": "FakeResponse",
+      "filePath": "tests/test_web_synthesis.py",
+      "lineRange": [
+        6,
+        7
+      ],
+      "summary": "封装 FakeResponse，组织该模块的相关状态与行为。",
+      "tags": [
+        "implementation",
+        "class",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_web_synthesis.py:FakeLLM",
+      "type": "class",
+      "name": "FakeLLM",
+      "filePath": "tests/test_web_synthesis.py",
+      "lineRange": [
+        10,
+        16
+      ],
+      "summary": "封装 FakeLLM，组织该模块的相关状态与行为。",
+      "tags": [
+        "implementation",
+        "class",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "tradingagents/__init__.py",
+      "summary": "项目文件 tradingagents/__init__.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。",
+      "tags": [
+        "project-artifact",
+        "tradingagents",
+        "reference"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:web/static/app.js",
+      "type": "file",
+      "name": "app.js",
+      "filePath": "web/static/app.js",
+      "summary": "前端或脚本模块 app.js，实现页面交互、数据刷新、图表展示或本地化逻辑。",
+      "tags": [
+        "frontend",
+        "project-artifact",
+        "tradingagents"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:_resync_reloaded_modules",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:_resync_reloaded_modules",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:_reload_client",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:_reload_client",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:_base_url",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:_base_url",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_resolver_returns_default_when_env_unset",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_resolver_returns_default_when_env_unset",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_resolver_returns_env_when_set",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_resolver_returns_env_when_set",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_resolver_evaluation_is_call_time",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_resolver_evaluation_is_call_time",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_resolver_does_not_affect_other_providers",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_resolver_does_not_affect_other_providers",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_client_get_llm_picks_up_env",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_client_get_llm_picks_up_env",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_explicit_base_url_overrides_env",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_explicit_base_url_overrides_env",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_cli_dropdown_uses_env",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_cli_dropdown_uses_env",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_cli_dropdown_default_when_unset",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_cli_dropdown_default_when_unset",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_confirm_endpoint_shows_default",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_confirm_endpoint_shows_default",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_confirm_endpoint_marks_env_origin",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_confirm_endpoint_marks_env_origin",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_confirm_endpoint_warns_on_missing_scheme",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_confirm_endpoint_warns_on_missing_scheme",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_confirm_endpoint_warns_on_non_default_port_remote",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_confirm_endpoint_warns_on_non_default_port_remote",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_confirm_endpoint_quiet_on_local_no_port",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_confirm_endpoint_quiet_on_local_no_port",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_ollama_model_labels_no_local_suffix",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_ollama_model_labels_no_local_suffix",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_ollama_offers_custom_model_id",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ollama_base_url.py",
+      "target": "function:tests/test_ollama_base_url.py:test_ollama_offers_custom_model_id",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_packaging_contract.py",
+      "target": "function:tests/test_packaging_contract.py:test_runtime_dependencies_cover_web_markdown_imports",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_packaging_contract.py",
+      "target": "function:tests/test_packaging_contract.py:test_runtime_dependencies_cover_web_markdown_imports",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_browser.py",
+      "target": "function:tests/test_web_browser.py:test_browser_harness_is_available_or_skipped",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_browser.py",
+      "target": "function:tests/test_web_browser.py:test_browser_harness_is_available_or_skipped",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_browser.py",
+      "target": "function:tests/test_web_browser.py:test_browser_flow_contract_is_deterministic_and_local",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_browser.py",
+      "target": "function:tests/test_web_browser.py:test_browser_flow_contract_is_deterministic_and_local",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_browser.py",
+      "target": "function:tests/test_web_browser.py:_free_port",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_browser.py",
+      "target": "function:tests/test_web_browser.py:_free_port",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_browser.py",
+      "target": "function:tests/test_web_browser.py:_wait_for_server",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_browser.py",
+      "target": "function:tests/test_web_browser.py:_wait_for_server",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_browser.py",
+      "target": "function:tests/test_web_browser.py:test_real_browser_navigation_paging_timeout_and_quote_refresh",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_browser.py",
+      "target": "function:tests/test_web_browser.py:test_real_browser_navigation_paging_timeout_and_quote_refresh",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_static_console_assets_exist_and_are_self_contained",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_static_console_assets_exist_and_are_self_contained",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_client_contract_covers_api_events_reconnect_and_safe_rendering",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_client_contract_covers_api_events_reconnect_and_safe_rendering",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_investment_ratings_use_shared_localized_formatter_at_display_boundaries",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_investment_ratings_use_shared_localized_formatter_at_display_boundaries",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_css_responsive_shell_collapses_below_mobile_breakpoint",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_css_responsive_shell_collapses_below_mobile_breakpoint",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_css_foundation_uses_inter_token_and_constraint_layer",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_css_foundation_uses_inter_token_and_constraint_layer",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_primary_views_have_visually_hidden_h1_for_landmark_a11y",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_primary_views_have_visually_hidden_h1_for_landmark_a11y",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_foundation_uses_modern_saas_tokens_and_sidebar_shell",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_foundation_uses_modern_saas_tokens_and_sidebar_shell",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_foundation_legacy_class_names_are_removed",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_foundation_legacy_class_names_are_removed",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_active_view_hidden_states_override_layout_display_rules",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_active_view_hidden_states_override_layout_display_rules",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_markdown_report_wrapping_and_watchlist_assets_contract_holds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_markdown_report_wrapping_and_watchlist_assets_contract_holds",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_watchlist_is_separate_from_analysis_and_refreshes_quotes_periodically",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_watchlist_is_separate_from_analysis_and_refreshes_quotes_periodically",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_quote_refresh_controller_and_freshness_labels_are_wired",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_quote_refresh_controller_and_freshness_labels_are_wired",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_client_restores_an_active_run_after_page_reload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_client_restores_an_active_run_after_page_reload",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_client_uses_persisted_progress_and_keeps_market_identity_readable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_client_uses_persisted_progress_and_keeps_market_identity_readable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_client_routes_views_and_handles_browser_history",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_client_routes_views_and_handles_browser_history",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_completed_report_hides_live_research_desk_panel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_completed_report_hides_live_research_desk_panel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_client_uses_chinese_product_chrome_and_keeps_report_language_selection",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_client_uses_chinese_product_chrome_and_keeps_report_language_selection",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_localized_client_does_not_leave_user_facing_literals_outside_dictionary",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_localized_client_does_not_leave_user_facing_literals_outside_dictionary",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_report_view_is_separate_from_live_progress_and_supports_interruptions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_report_view_is_separate_from_live_progress_and_supports_interruptions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_client_snapshot_replay_and_future_terminal_status_fallback",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_client_snapshot_replay_and_future_terminal_status_fallback",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_report_library_uses_server_pagination_and_request_sequencing",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_report_library_uses_server_pagination_and_request_sequencing",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_watchlist_form_explains_symbol_suffixes_per_asset_type",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_watchlist_form_explains_symbol_suffixes_per_asset_type",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_show_active_handles_runs_list_contract",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_static.py",
+      "target": "function:tests/test_web_static.py:test_show_active_handles_runs_list_contract",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_synthesis.py",
+      "target": "file:web/synthesis.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_synthesis.py",
+      "target": "function:tests/test_web_synthesis.py:test_summary_uses_deep_model_and_requested_language",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_synthesis.py",
+      "target": "function:tests/test_web_synthesis.py:test_summary_uses_deep_model_and_requested_language",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_synthesis.py",
+      "target": "function:tests/test_web_synthesis.py:test_summary_is_saved_as_a_separate_report_file",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_synthesis.py",
+      "target": "function:tests/test_web_synthesis.py:test_summary_is_saved_as_a_separate_report_file",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_synthesis.py",
+      "target": "class:tests/test_web_synthesis.py:FakeResponse",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_synthesis.py",
+      "target": "class:tests/test_web_synthesis.py:FakeResponse",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_synthesis.py",
+      "target": "class:tests/test_web_synthesis.py:FakeLLM",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_synthesis.py",
+      "target": "class:tests/test_web_synthesis.py:FakeLLM",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

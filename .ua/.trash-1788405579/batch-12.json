@@ -1,0 +1,83 @@
+{
+  "nodes": [
+    {
+      "id": "config:.env.enterprise.example",
+      "type": "config",
+      "name": ".env.enterprise.example",
+      "filePath": ".env.enterprise.example",
+      "summary": "项目配置文件 .env.enterprise.example，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。",
+      "tags": [
+        "configuration",
+        "environment",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:.env.example",
+      "type": "config",
+      "name": ".env.example",
+      "filePath": ".env.example",
+      "summary": "项目配置文件 .env.example，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。",
+      "tags": [
+        "configuration",
+        "environment",
+        "project-artifact"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:CHANGELOG.md",
+      "type": "document",
+      "name": "CHANGELOG.md",
+      "filePath": "CHANGELOG.md",
+      "summary": "版本变更日志，按时间记录功能迭代、缺陷修复和兼容性调整。",
+      "tags": [
+        "documentation",
+        "project-artifact",
+        "tradingagents"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "项目入口文档，介绍 TradingAgents 的定位、安装配置、运行方式与主要能力。",
+      "tags": [
+        "documentation",
+        "entry-point",
+        "project-artifact"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "config:pyproject.toml",
+      "type": "config",
+      "name": "pyproject.toml",
+      "filePath": "pyproject.toml",
+      "summary": "项目配置文件 pyproject.toml，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。",
+      "tags": [
+        "configuration",
+        "project-artifact",
+        "tradingagents"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:requirements.txt",
+      "type": "document",
+      "name": "requirements.txt",
+      "filePath": "requirements.txt",
+      "summary": "设计或实施计划文档，围绕 requirements 描述目标、方案、任务拆分与验证要求。",
+      "tags": [
+        "documentation",
+        "project-artifact",
+        "tradingagents"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": []
+}

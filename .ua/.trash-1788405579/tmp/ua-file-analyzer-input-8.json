@@ -1,0 +1,139 @@
+{
+  "projectRoot": "/Users/shenkang/workroom/languages/agent/TradingAgents",
+  "batchFiles": [
+    {
+      "path": "tests/test_alpha_vantage_hardening.py",
+      "language": "python",
+      "sizeLines": 96,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/dataflows/alpha_vantage.py",
+      "language": "python",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/dataflows/alpha_vantage_common.py",
+      "language": "python",
+      "sizeLines": 160,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "language": "python",
+      "sizeLines": 64,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/dataflows/alpha_vantage_indicator.py",
+      "language": "python",
+      "sizeLines": 215,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/dataflows/alpha_vantage_news.py",
+      "language": "python",
+      "sizeLines": 72,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/dataflows/alpha_vantage_stock.py",
+      "language": "python",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "tests/test_alpha_vantage_hardening.py": [
+      "tradingagents/dataflows/alpha_vantage_common.py",
+      "tradingagents/dataflows/alpha_vantage_fundamentals.py"
+    ],
+    "tradingagents/dataflows/alpha_vantage.py": [
+      "tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "tradingagents/dataflows/alpha_vantage_indicator.py",
+      "tradingagents/dataflows/alpha_vantage_news.py",
+      "tradingagents/dataflows/alpha_vantage_stock.py"
+    ],
+    "tradingagents/dataflows/alpha_vantage_common.py": [
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/errors.py"
+    ],
+    "tradingagents/dataflows/alpha_vantage_fundamentals.py": [
+      "tradingagents/dataflows/alpha_vantage_common.py"
+    ],
+    "tradingagents/dataflows/alpha_vantage_indicator.py": [
+      "tradingagents/dataflows/alpha_vantage_common.py"
+    ],
+    "tradingagents/dataflows/alpha_vantage_news.py": [
+      "tradingagents/dataflows/alpha_vantage_common.py"
+    ],
+    "tradingagents/dataflows/alpha_vantage_stock.py": [
+      "tradingagents/dataflows/alpha_vantage_common.py"
+    ]
+  },
+  "neighborMap": {
+    "tradingagents/dataflows/alpha_vantage.py": [
+      {
+        "path": "tradingagents/dataflows/interface.py",
+        "batchIndex": 2,
+        "symbols": [
+          "get_category_for_method",
+          "get_vendor",
+          "route_to_vendor"
+        ]
+      }
+    ],
+    "tradingagents/dataflows/alpha_vantage_common.py": [
+      {
+        "path": "tradingagents/dataflows/config.py",
+        "batchIndex": 2,
+        "symbols": [
+          "initialize_config",
+          "set_config",
+          "get_config",
+          "get_request_timeout",
+          "external_request_checkpoint"
+        ]
+      },
+      {
+        "path": "tradingagents/dataflows/errors.py",
+        "batchIndex": 2,
+        "symbols": [
+          "VendorError",
+          "NoMarketDataError",
+          "VendorRateLimitError",
+          "VendorNotConfiguredError"
+        ]
+      },
+      {
+        "path": "tests/test_llm_timeout.py",
+        "batchIndex": 4,
+        "symbols": [
+          "Response",
+          "configure_deadline_policy",
+          "test_llm_timeout_is_resolved_for_each_actual_invocation",
+          "test_llm_without_deadline_supplier_preserves_existing_timeout_behavior",
+          "test_bedrock_resolves_timeout_at_each_invoke",
+          "test_alpha_vantage_caps_each_request_by_current_remaining_deadline",
+          "test_non_web_dataflow_config_clears_prior_run_scoped_deadline_callbacks"
+        ]
+      },
+      {
+        "path": "tests/test_vendor_errors.py",
+        "batchIndex": 2,
+        "symbols": [
+          "HierarchyTests",
+          "RouterHandlesBaseTypesTests"
+        ]
+      },
+      {
+        "path": "web/providers/alpha_vantage_provider.py",
+        "batchIndex": 7,
+        "symbols": [
+          "AlphaVantageProvider"
+        ]
+      }
+    ]
+  }
+}

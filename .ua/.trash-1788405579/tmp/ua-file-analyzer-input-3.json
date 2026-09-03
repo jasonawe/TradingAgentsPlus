@@ -1,0 +1,511 @@
+{
+  "projectRoot": "/Users/shenkang/workroom/languages/agent/TradingAgents",
+  "batchFiles": [
+    {
+      "path": "cli/announcements.py",
+      "language": "python",
+      "sizeLines": 52,
+      "fileCategory": "code"
+    },
+    {
+      "path": "cli/config.py",
+      "language": "python",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "cli/main.py",
+      "language": "python",
+      "sizeLines": 1347,
+      "fileCategory": "code"
+    },
+    {
+      "path": "cli/stats_handler.py",
+      "language": "python",
+      "sizeLines": 76,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_analyst_execution.py",
+      "language": "python",
+      "sizeLines": 90,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_cli_config_precedence.py",
+      "language": "python",
+      "sizeLines": 69,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_cli_no_console.py",
+      "language": "python",
+      "sizeLines": 57,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_graph_stream_callbacks.py",
+      "language": "python",
+      "sizeLines": 226,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_market_toolnode.py",
+      "language": "python",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_memory_log.py",
+      "language": "python",
+      "sizeLines": 871,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_reporting.py",
+      "language": "python",
+      "sizeLines": 50,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_risk_router_path_map.py",
+      "language": "python",
+      "sizeLines": 81,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_signal_processing.py",
+      "language": "python",
+      "sizeLines": 89,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_symbol_normalization_paths.py",
+      "language": "python",
+      "sizeLines": 75,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_command.py",
+      "language": "python",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/utils/agent_states.py",
+      "language": "python",
+      "sizeLines": 76,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/utils/memory.py",
+      "language": "python",
+      "sizeLines": 299,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/utils/rating.py",
+      "language": "python",
+      "sizeLines": 48,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/graph/__init__.py",
+      "language": "python",
+      "sizeLines": 18,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/graph/analyst_execution.py",
+      "language": "python",
+      "sizeLines": 135,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/graph/conditional_logic.py",
+      "language": "python",
+      "sizeLines": 73,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/graph/propagation.py",
+      "language": "python",
+      "sizeLines": 88,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/graph/reflection.py",
+      "language": "python",
+      "sizeLines": 57,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/graph/setup.py",
+      "language": "python",
+      "sizeLines": 156,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/graph/signal_processing.py",
+      "language": "python",
+      "sizeLines": 31,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/graph/trading_graph.py",
+      "language": "python",
+      "sizeLines": 576,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/reporting.py",
+      "language": "python",
+      "sizeLines": 101,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "cli/announcements.py": [
+      "cli/config.py"
+    ],
+    "cli/config.py": [],
+    "cli/main.py": [
+      "cli/announcements.py",
+      "cli/stats_handler.py",
+      "cli/utils.py",
+      "tradingagents/default_config.py",
+      "tradingagents/graph/analyst_execution.py",
+      "tradingagents/graph/trading_graph.py",
+      "tradingagents/reporting.py"
+    ],
+    "cli/stats_handler.py": [],
+    "tests/test_analyst_execution.py": [
+      "tradingagents/graph/analyst_execution.py"
+    ],
+    "tests/test_cli_config_precedence.py": [
+      "cli/main.py"
+    ],
+    "tests/test_cli_no_console.py": [
+      "cli/main.py"
+    ],
+    "tests/test_graph_stream_callbacks.py": [
+      "tradingagents/graph/propagation.py",
+      "tradingagents/graph/trading_graph.py"
+    ],
+    "tests/test_market_toolnode.py": [
+      "tradingagents/graph/trading_graph.py"
+    ],
+    "tests/test_memory_log.py": [
+      "tradingagents/agents/managers/portfolio_manager.py",
+      "tradingagents/agents/schemas.py",
+      "tradingagents/agents/utils/memory.py",
+      "tradingagents/graph/propagation.py",
+      "tradingagents/graph/reflection.py",
+      "tradingagents/graph/trading_graph.py"
+    ],
+    "tests/test_reporting.py": [
+      "tradingagents/graph/trading_graph.py",
+      "tradingagents/reporting.py"
+    ],
+    "tests/test_risk_router_path_map.py": [
+      "tradingagents/graph/conditional_logic.py",
+      "tradingagents/graph/setup.py"
+    ],
+    "tests/test_signal_processing.py": [
+      "tradingagents/agents/utils/rating.py",
+      "tradingagents/graph/signal_processing.py"
+    ],
+    "tests/test_symbol_normalization_paths.py": [
+      "tradingagents/agents/utils/agent_utils.py",
+      "tradingagents/dataflows/yfinance_news.py",
+      "tradingagents/graph/trading_graph.py"
+    ],
+    "tests/test_web_command.py": [
+      "cli/main.py"
+    ],
+    "tradingagents/agents/utils/agent_states.py": [],
+    "tradingagents/agents/utils/memory.py": [
+      "tradingagents/agents/utils/rating.py"
+    ],
+    "tradingagents/agents/utils/rating.py": [],
+    "tradingagents/graph/__init__.py": [
+      "tradingagents/graph/conditional_logic.py",
+      "tradingagents/graph/propagation.py",
+      "tradingagents/graph/reflection.py",
+      "tradingagents/graph/setup.py",
+      "tradingagents/graph/signal_processing.py",
+      "tradingagents/graph/trading_graph.py"
+    ],
+    "tradingagents/graph/analyst_execution.py": [],
+    "tradingagents/graph/conditional_logic.py": [
+      "tradingagents/agents/utils/agent_states.py"
+    ],
+    "tradingagents/graph/propagation.py": [
+      "tradingagents/agents/utils/agent_states.py"
+    ],
+    "tradingagents/graph/reflection.py": [],
+    "tradingagents/graph/setup.py": [
+      "tradingagents/agents/__init__.py",
+      "tradingagents/agents/utils/agent_states.py",
+      "tradingagents/graph/analyst_execution.py",
+      "tradingagents/graph/conditional_logic.py"
+    ],
+    "tradingagents/graph/signal_processing.py": [
+      "tradingagents/agents/utils/rating.py"
+    ],
+    "tradingagents/graph/trading_graph.py": [
+      "tradingagents/agents/utils/agent_utils.py",
+      "tradingagents/agents/utils/memory.py",
+      "tradingagents/dataflows/config.py",
+      "tradingagents/dataflows/utils.py",
+      "tradingagents/default_config.py",
+      "tradingagents/graph/checkpointer.py",
+      "tradingagents/graph/conditional_logic.py",
+      "tradingagents/graph/propagation.py",
+      "tradingagents/graph/reflection.py",
+      "tradingagents/graph/setup.py",
+      "tradingagents/graph/signal_processing.py",
+      "tradingagents/llm_clients/__init__.py",
+      "tradingagents/reporting.py"
+    ],
+    "tradingagents/reporting.py": []
+  },
+  "neighborMap": {
+    "cli/main.py": [
+      {
+        "path": "cli/utils.py",
+        "batchIndex": 7,
+        "symbols": [
+          "is_valid_ticker_input",
+          "get_ticker",
+          "normalize_ticker_symbol",
+          "detect_asset_type",
+          "filter_analysts_for_asset_type",
+          "get_analysis_date",
+          "select_analysts",
+          "select_research_depth",
+          "_fetch_openrouter_models",
+          "_require_text",
+          "select_openrouter_model",
+          "_prompt_custom_model_id",
+          "_select_model",
+          "select_shallow_thinking_agent",
+          "select_deep_thinking_agent",
+          "_llm_provider_table",
+          "provider_default_url",
+          "resolve_backend_url",
+          "prompt_openai_compatible_url",
+          "select_llm_provider",
+          "ask_openai_reasoning_effort",
+          "ask_anthropic_effort",
+          "ask_gemini_thinking_config",
+          "ask_glm_region",
+          "ask_qwen_region",
+          "ask_minimax_region",
+          "confirm_ollama_endpoint",
+          "ensure_api_key",
+          "ask_output_language"
+        ]
+      },
+      {
+        "path": "tradingagents/default_config.py",
+        "batchIndex": 2,
+        "symbols": [
+          "_coerce",
+          "_apply_env_overrides"
+        ]
+      }
+    ],
+    "tests/test_memory_log.py": [
+      {
+        "path": "tradingagents/agents/managers/portfolio_manager.py",
+        "batchIndex": 1,
+        "symbols": [
+          "create_portfolio_manager"
+        ]
+      },
+      {
+        "path": "tradingagents/agents/schemas.py",
+        "batchIndex": 1,
+        "symbols": [
+          "_coerce_optional_float",
+          "PortfolioRating",
+          "TraderAction",
+          "ResearchPlan",
+          "render_research_plan",
+          "TraderProposal",
+          "render_trader_proposal",
+          "PortfolioDecision",
+          "render_pm_decision",
+          "SentimentBand",
+          "SentimentReport",
+          "render_sentiment_report"
+        ]
+      }
+    ],
+    "tests/test_symbol_normalization_paths.py": [
+      {
+        "path": "tradingagents/agents/utils/agent_utils.py",
+        "batchIndex": 1,
+        "symbols": [
+          "get_language_instruction",
+          "_clean_identity_value",
+          "resolve_instrument_identity",
+          "build_instrument_context",
+          "get_instrument_context_from_state",
+          "create_msg_delete"
+        ]
+      },
+      {
+        "path": "tradingagents/dataflows/yfinance_news.py",
+        "batchIndex": 2,
+        "symbols": [
+          "_as_utc",
+          "_extract_article_data",
+          "_in_news_window",
+          "get_news_yfinance",
+          "get_global_news_yfinance"
+        ]
+      }
+    ],
+    "tradingagents/agents/utils/agent_states.py": [
+      {
+        "path": "tradingagents/agents/__init__.py",
+        "batchIndex": 1,
+        "symbols": []
+      }
+    ],
+    "tradingagents/graph/propagation.py": [
+      {
+        "path": "tests/test_crypto_asset_mode.py",
+        "batchIndex": 7,
+        "symbols": [
+          "CryptoAssetModeTests"
+        ]
+      },
+      {
+        "path": "web/runner.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_is_partial",
+          "WebRunRunner",
+          "run_web_analysis"
+        ]
+      }
+    ],
+    "tradingagents/graph/setup.py": [
+      {
+        "path": "tradingagents/agents/__init__.py",
+        "batchIndex": 1,
+        "symbols": []
+      }
+    ],
+    "tradingagents/graph/signal_processing.py": [
+      {
+        "path": "scripts/smoke_structured_output.py",
+        "batchIndex": 1,
+        "symbols": [
+          "_make_rm_state",
+          "_make_trader_state",
+          "_make_pm_state",
+          "_print_section",
+          "main"
+        ]
+      }
+    ],
+    "tradingagents/graph/trading_graph.py": [
+      {
+        "path": "tradingagents/agents/utils/agent_utils.py",
+        "batchIndex": 1,
+        "symbols": [
+          "get_language_instruction",
+          "_clean_identity_value",
+          "resolve_instrument_identity",
+          "build_instrument_context",
+          "get_instrument_context_from_state",
+          "create_msg_delete"
+        ]
+      },
+      {
+        "path": "tradingagents/dataflows/config.py",
+        "batchIndex": 2,
+        "symbols": [
+          "initialize_config",
+          "set_config",
+          "get_config",
+          "get_request_timeout",
+          "external_request_checkpoint"
+        ]
+      },
+      {
+        "path": "tradingagents/dataflows/utils.py",
+        "batchIndex": 6,
+        "symbols": [
+          "safe_ticker_component",
+          "save_output",
+          "get_current_date",
+          "decorate_all_methods",
+          "get_next_weekday"
+        ]
+      },
+      {
+        "path": "tradingagents/default_config.py",
+        "batchIndex": 2,
+        "symbols": [
+          "_coerce",
+          "_apply_env_overrides"
+        ]
+      },
+      {
+        "path": "tradingagents/graph/checkpointer.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_db_path",
+          "thread_id",
+          "get_checkpointer",
+          "has_checkpoint",
+          "checkpoint_step",
+          "clear_all_checkpoints",
+          "clear_checkpoint"
+        ]
+      },
+      {
+        "path": "tradingagents/llm_clients/__init__.py",
+        "batchIndex": 4,
+        "symbols": []
+      },
+      {
+        "path": "main.py",
+        "batchIndex": 2,
+        "symbols": []
+      },
+      {
+        "path": "tests/test_llm_max_retries.py",
+        "batchIndex": 2,
+        "symbols": [
+          "test_coerce_accepts_non_negative_ints_and_numeric_strings",
+          "test_coerce_rejects_negative",
+          "test_coerce_rejects_booleans",
+          "test_coerce_rejects_non_integers",
+          "_bare_graph",
+          "test_not_forwarded_when_unset",
+          "test_forwarded_across_providers",
+          "test_forwarded_env_string_is_coerced",
+          "test_invalid_config_value_fails_loudly",
+          "_reload_with_env",
+          "test_default_is_none",
+          "test_env_override_sets_config"
+        ]
+      },
+      {
+        "path": "web/runner.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_is_partial",
+          "WebRunRunner",
+          "run_web_analysis"
+        ]
+      }
+    ]
+  }
+}

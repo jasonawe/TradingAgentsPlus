@@ -247,7 +247,11 @@ class RunManager:
         target = request.ticker.strip().upper()
         for run_id in self._active_run_ids:
             existing = self._records.get(run_id)
-            if existing and existing.record.request.ticker.strip().upper() == target:
+            if (
+                existing
+                and existing.record.request.ticker.strip().upper() == target
+                and existing.record.request.asset_type == request.asset_type
+            ):
                 raise AssetBusyError(f"a run for {target} is already active")
 
     def start_run(
@@ -1073,8 +1077,12 @@ class RunManager:
                 return False, "reason_not_retryable"
             if state.record.resume_checkpoint_id is None:
                 return False, "checkpoint_unavailable"
-            if self._active_run_ids:
-                return False, "another_run_active"
+            try:
+                self._check_admission_locked(state.record.request)
+            except AssetBusyError:
+                return False, "asset_busy"
+            except MaxConcurrentRunsError:
+                return False, "capacity"
             return True, ""
 
     def set_checkpoint_retained_until(

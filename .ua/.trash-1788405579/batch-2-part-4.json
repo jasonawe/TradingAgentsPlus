@@ -1,0 +1,1419 @@
+{
+  "nodes": [
+    {
+      "id": "file:tradingagents/dataflows/reddit.py",
+      "type": "file",
+      "name": "reddit.py",
+      "filePath": "tradingagents/dataflows/reddit.py",
+      "summary": "实现 tradingagents/dataflows/reddit.py 在交易分析系统中的核心逻辑，对外提供 _search_qs、_iso_to_timestamp、_strip_html 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tradingagents/dataflows/reddit.py:_search_qs",
+      "type": "function",
+      "name": "_search_qs",
+      "filePath": "tradingagents/dataflows/reddit.py",
+      "lineRange": [
+        52,
+        59
+      ],
+      "summary": "位于 tradingagents/dataflows/reddit.py 的函数 _search_qs，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/reddit.py:_iso_to_timestamp",
+      "type": "function",
+      "name": "_iso_to_timestamp",
+      "filePath": "tradingagents/dataflows/reddit.py",
+      "lineRange": [
+        62,
+        70
+      ],
+      "summary": "位于 tradingagents/dataflows/reddit.py 的函数 _iso_to_timestamp，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/reddit.py:_strip_html",
+      "type": "function",
+      "name": "_strip_html",
+      "filePath": "tradingagents/dataflows/reddit.py",
+      "lineRange": [
+        73,
+        81
+      ],
+      "summary": "位于 tradingagents/dataflows/reddit.py 的函数 _strip_html，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/reddit.py:_retry_after_seconds",
+      "type": "function",
+      "name": "_retry_after_seconds",
+      "filePath": "tradingagents/dataflows/reddit.py",
+      "lineRange": [
+        84,
+        90
+      ],
+      "summary": "位于 tradingagents/dataflows/reddit.py 的函数 _retry_after_seconds，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/reddit.py:_fetch_subreddit_rss",
+      "type": "function",
+      "name": "_fetch_subreddit_rss",
+      "filePath": "tradingagents/dataflows/reddit.py",
+      "lineRange": [
+        93,
+        144
+      ],
+      "summary": "位于 tradingagents/dataflows/reddit.py 的函数 _fetch_subreddit_rss，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tradingagents/dataflows/reddit.py:_fetch_subreddit_json",
+      "type": "function",
+      "name": "_fetch_subreddit_json",
+      "filePath": "tradingagents/dataflows/reddit.py",
+      "lineRange": [
+        147,
+        173
+      ],
+      "summary": "位于 tradingagents/dataflows/reddit.py 的函数 _fetch_subreddit_json，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/reddit.py:_fetch_subreddit",
+      "type": "function",
+      "name": "_fetch_subreddit",
+      "filePath": "tradingagents/dataflows/reddit.py",
+      "lineRange": [
+        176,
+        188
+      ],
+      "summary": "位于 tradingagents/dataflows/reddit.py 的函数 _fetch_subreddit，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/reddit.py:fetch_reddit_posts",
+      "type": "function",
+      "name": "fetch_reddit_posts",
+      "filePath": "tradingagents/dataflows/reddit.py",
+      "lineRange": [
+        191,
+        250
+      ],
+      "summary": "位于 tradingagents/dataflows/reddit.py 的函数 fetch_reddit_posts，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tradingagents/dataflows/stockstats_utils.py",
+      "type": "file",
+      "name": "stockstats_utils.py",
+      "filePath": "tradingagents/dataflows/stockstats_utils.py",
+      "summary": "实现 tradingagents/dataflows/stockstats_utils.py 在交易分析系统中的核心逻辑，对外提供 yf_retry、_ensure_date_column、_clean_dataframe 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tradingagents/dataflows/stockstats_utils.py:yf_retry",
+      "type": "function",
+      "name": "yf_retry",
+      "filePath": "tradingagents/dataflows/stockstats_utils.py",
+      "lineRange": [
+        29,
+        45
+      ],
+      "summary": "位于 tradingagents/dataflows/stockstats_utils.py 的函数 yf_retry，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/stockstats_utils.py:_ensure_date_column",
+      "type": "function",
+      "name": "_ensure_date_column",
+      "filePath": "tradingagents/dataflows/stockstats_utils.py",
+      "lineRange": [
+        48,
+        60
+      ],
+      "summary": "位于 tradingagents/dataflows/stockstats_utils.py 的函数 _ensure_date_column，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/stockstats_utils.py:_clean_dataframe",
+      "type": "function",
+      "name": "_clean_dataframe",
+      "filePath": "tradingagents/dataflows/stockstats_utils.py",
+      "lineRange": [
+        63,
+        74
+      ],
+      "summary": "位于 tradingagents/dataflows/stockstats_utils.py 的函数 _clean_dataframe，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/stockstats_utils.py:_coerce_ohlcv_dates",
+      "type": "function",
+      "name": "_coerce_ohlcv_dates",
+      "filePath": "tradingagents/dataflows/stockstats_utils.py",
+      "lineRange": [
+        77,
+        91
+      ],
+      "summary": "位于 tradingagents/dataflows/stockstats_utils.py 的函数 _coerce_ohlcv_dates，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/stockstats_utils.py:_assert_ohlcv_not_stale",
+      "type": "function",
+      "name": "_assert_ohlcv_not_stale",
+      "filePath": "tradingagents/dataflows/stockstats_utils.py",
+      "lineRange": [
+        94,
+        128
+      ],
+      "summary": "位于 tradingagents/dataflows/stockstats_utils.py 的函数 _assert_ohlcv_not_stale，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/stockstats_utils.py:_needs_same_day_refresh",
+      "type": "function",
+      "name": "_needs_same_day_refresh",
+      "filePath": "tradingagents/dataflows/stockstats_utils.py",
+      "lineRange": [
+        131,
+        145
+      ],
+      "summary": "位于 tradingagents/dataflows/stockstats_utils.py 的函数 _needs_same_day_refresh，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/stockstats_utils.py:load_ohlcv",
+      "type": "function",
+      "name": "load_ohlcv",
+      "filePath": "tradingagents/dataflows/stockstats_utils.py",
+      "lineRange": [
+        148,
+        221
+      ],
+      "summary": "位于 tradingagents/dataflows/stockstats_utils.py 的函数 load_ohlcv，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tradingagents/dataflows/stockstats_utils.py:filter_financials_by_date",
+      "type": "function",
+      "name": "filter_financials_by_date",
+      "filePath": "tradingagents/dataflows/stockstats_utils.py",
+      "lineRange": [
+        224,
+        235
+      ],
+      "summary": "位于 tradingagents/dataflows/stockstats_utils.py 的函数 filter_financials_by_date，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tradingagents/dataflows/stockstats_utils.py:StockstatsUtils",
+      "type": "class",
+      "name": "StockstatsUtils",
+      "filePath": "tradingagents/dataflows/stockstats_utils.py",
+      "lineRange": [
+        238,
+        261
+      ],
+      "summary": "位于 tradingagents/dataflows/stockstats_utils.py 的类 StockstatsUtils，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tradingagents/dataflows/stocktwits.py",
+      "type": "file",
+      "name": "stocktwits.py",
+      "filePath": "tradingagents/dataflows/stocktwits.py",
+      "summary": "实现 tradingagents/dataflows/stocktwits.py 在交易分析系统中的核心逻辑，对外提供 _stocktwits_symbol、fetch_stocktwits_messages 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/dataflows/stocktwits.py:_stocktwits_symbol",
+      "type": "function",
+      "name": "_stocktwits_symbol",
+      "filePath": "tradingagents/dataflows/stocktwits.py",
+      "lineRange": [
+        30,
+        38
+      ],
+      "summary": "位于 tradingagents/dataflows/stocktwits.py 的函数 _stocktwits_symbol，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/stocktwits.py:fetch_stocktwits_messages",
+      "type": "function",
+      "name": "fetch_stocktwits_messages",
+      "filePath": "tradingagents/dataflows/stocktwits.py",
+      "lineRange": [
+        41,
+        96
+      ],
+      "summary": "位于 tradingagents/dataflows/stocktwits.py 的函数 fetch_stocktwits_messages，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "file",
+      "name": "symbol_utils.py",
+      "filePath": "tradingagents/dataflows/symbol_utils.py",
+      "summary": "实现 tradingagents/dataflows/symbol_utils.py 在交易分析系统中的核心逻辑，对外提供 crypto_base、_normalize_crypto、normalize_symbol 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/dataflows/symbol_utils.py:crypto_base",
+      "type": "function",
+      "name": "crypto_base",
+      "filePath": "tradingagents/dataflows/symbol_utils.py",
+      "lineRange": [
+        83,
+        95
+      ],
+      "summary": "位于 tradingagents/dataflows/symbol_utils.py 的函数 crypto_base，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/symbol_utils.py:_normalize_crypto",
+      "type": "function",
+      "name": "_normalize_crypto",
+      "filePath": "tradingagents/dataflows/symbol_utils.py",
+      "lineRange": [
+        98,
+        101
+      ],
+      "summary": "位于 tradingagents/dataflows/symbol_utils.py 的函数 _normalize_crypto，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/symbol_utils.py:normalize_symbol",
+      "type": "function",
+      "name": "normalize_symbol",
+      "filePath": "tradingagents/dataflows/symbol_utils.py",
+      "lineRange": [
+        104,
+        138
+      ],
+      "summary": "位于 tradingagents/dataflows/symbol_utils.py 的函数 normalize_symbol，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/symbol_utils.py:is_yahoo_safe",
+      "type": "function",
+      "name": "is_yahoo_safe",
+      "filePath": "tradingagents/dataflows/symbol_utils.py",
+      "lineRange": [
+        141,
+        143
+      ],
+      "summary": "位于 tradingagents/dataflows/symbol_utils.py 的函数 is_yahoo_safe，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/dataflows/y_finance.py",
+      "type": "file",
+      "name": "y_finance.py",
+      "filePath": "tradingagents/dataflows/y_finance.py",
+      "summary": "实现 tradingagents/dataflows/y_finance.py 在交易分析系统中的核心逻辑，对外提供 get_YFin_data_online、get_stock_stats_indicators_window、_get_stock_stats_bulk 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tradingagents/dataflows/y_finance.py:get_YFin_data_online",
+      "type": "function",
+      "name": "get_YFin_data_online",
+      "filePath": "tradingagents/dataflows/y_finance.py",
+      "lineRange": [
+        18,
+        70
+      ],
+      "summary": "位于 tradingagents/dataflows/y_finance.py 的函数 get_YFin_data_online，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tradingagents/dataflows/y_finance.py:get_stock_stats_indicators_window",
+      "type": "function",
+      "name": "get_stock_stats_indicators_window",
+      "filePath": "tradingagents/dataflows/y_finance.py",
+      "lineRange": [
+        72,
+        209
+      ],
+      "summary": "位于 tradingagents/dataflows/y_finance.py 的函数 get_stock_stats_indicators_window，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tradingagents/dataflows/y_finance.py:_get_stock_stats_bulk",
+      "type": "function",
+      "name": "_get_stock_stats_bulk",
+      "filePath": "tradingagents/dataflows/y_finance.py",
+      "lineRange": [
+        212,
+        243
+      ],
+      "summary": "位于 tradingagents/dataflows/y_finance.py 的函数 _get_stock_stats_bulk，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/y_finance.py:get_stockstats_indicator",
+      "type": "function",
+      "name": "get_stockstats_indicator",
+      "filePath": "tradingagents/dataflows/y_finance.py",
+      "lineRange": [
+        246,
+        271
+      ],
+      "summary": "位于 tradingagents/dataflows/y_finance.py 的函数 get_stockstats_indicator，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/y_finance.py:get_fundamentals",
+      "type": "function",
+      "name": "get_fundamentals",
+      "filePath": "tradingagents/dataflows/y_finance.py",
+      "lineRange": [
+        274,
+        338
+      ],
+      "summary": "位于 tradingagents/dataflows/y_finance.py 的函数 get_fundamentals，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tradingagents/dataflows/y_finance.py:get_balance_sheet",
+      "type": "function",
+      "name": "get_balance_sheet",
+      "filePath": "tradingagents/dataflows/y_finance.py",
+      "lineRange": [
+        341,
+        373
+      ],
+      "summary": "位于 tradingagents/dataflows/y_finance.py 的函数 get_balance_sheet，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/y_finance.py:get_cashflow",
+      "type": "function",
+      "name": "get_cashflow",
+      "filePath": "tradingagents/dataflows/y_finance.py",
+      "lineRange": [
+        376,
+        408
+      ],
+      "summary": "位于 tradingagents/dataflows/y_finance.py 的函数 get_cashflow，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/y_finance.py:get_income_statement",
+      "type": "function",
+      "name": "get_income_statement",
+      "filePath": "tradingagents/dataflows/y_finance.py",
+      "lineRange": [
+        411,
+        443
+      ],
+      "summary": "位于 tradingagents/dataflows/y_finance.py 的函数 get_income_statement，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/y_finance.py:get_insider_transactions",
+      "type": "function",
+      "name": "get_insider_transactions",
+      "filePath": "tradingagents/dataflows/y_finance.py",
+      "lineRange": [
+        446,
+        470
+      ],
+      "summary": "位于 tradingagents/dataflows/y_finance.py 的函数 get_insider_transactions，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/dataflows/yfinance_news.py",
+      "type": "file",
+      "name": "yfinance_news.py",
+      "filePath": "tradingagents/dataflows/yfinance_news.py",
+      "summary": "实现 tradingagents/dataflows/yfinance_news.py 在交易分析系统中的核心逻辑，对外提供 _as_utc、_extract_article_data、_in_news_window 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/dataflows/yfinance_news.py:_as_utc",
+      "type": "function",
+      "name": "_as_utc",
+      "filePath": "tradingagents/dataflows/yfinance_news.py",
+      "lineRange": [
+        14,
+        21
+      ],
+      "summary": "位于 tradingagents/dataflows/yfinance_news.py 的函数 _as_utc，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/yfinance_news.py:_extract_article_data",
+      "type": "function",
+      "name": "_extract_article_data",
+      "filePath": "tradingagents/dataflows/yfinance_news.py",
+      "lineRange": [
+        24,
+        69
+      ],
+      "summary": "位于 tradingagents/dataflows/yfinance_news.py 的函数 _extract_article_data，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tradingagents/dataflows/yfinance_news.py:_in_news_window",
+      "type": "function",
+      "name": "_in_news_window",
+      "filePath": "tradingagents/dataflows/yfinance_news.py",
+      "lineRange": [
+        72,
+        84
+      ],
+      "summary": "位于 tradingagents/dataflows/yfinance_news.py 的函数 _in_news_window，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/dataflows/yfinance_news.py:get_news_yfinance",
+      "type": "function",
+      "name": "get_news_yfinance",
+      "filePath": "tradingagents/dataflows/yfinance_news.py",
+      "lineRange": [
+        87,
+        144
+      ],
+      "summary": "位于 tradingagents/dataflows/yfinance_news.py 的函数 get_news_yfinance，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tradingagents/dataflows/yfinance_news.py:get_global_news_yfinance",
+      "type": "function",
+      "name": "get_global_news_yfinance",
+      "filePath": "tradingagents/dataflows/yfinance_news.py",
+      "lineRange": [
+        147,
+        232
+      ],
+      "summary": "位于 tradingagents/dataflows/yfinance_news.py 的函数 get_global_news_yfinance，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tradingagents/default_config.py",
+      "type": "file",
+      "name": "default_config.py",
+      "filePath": "tradingagents/default_config.py",
+      "summary": "实现 tradingagents/default_config.py 在交易分析系统中的核心逻辑，对外提供 _coerce、_apply_env_overrides 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/default_config.py:_coerce",
+      "type": "function",
+      "name": "_coerce",
+      "filePath": "tradingagents/default_config.py",
+      "lineRange": [
+        40,
+        60
+      ],
+      "summary": "位于 tradingagents/default_config.py 的函数 _coerce，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/default_config.py:_apply_env_overrides",
+      "type": "function",
+      "name": "_apply_env_overrides",
+      "filePath": "tradingagents/default_config.py",
+      "lineRange": [
+        63,
+        73
+      ],
+      "summary": "位于 tradingagents/default_config.py 的函数 _apply_env_overrides，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:tradingagents/dataflows/reddit.py",
+      "target": "function:tradingagents/dataflows/reddit.py:_search_qs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/reddit.py",
+      "target": "function:tradingagents/dataflows/reddit.py:_iso_to_timestamp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/reddit.py",
+      "target": "function:tradingagents/dataflows/reddit.py:_strip_html",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/reddit.py",
+      "target": "function:tradingagents/dataflows/reddit.py:_retry_after_seconds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/reddit.py",
+      "target": "function:tradingagents/dataflows/reddit.py:_fetch_subreddit_rss",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/reddit.py",
+      "target": "function:tradingagents/dataflows/reddit.py:_fetch_subreddit_json",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/reddit.py",
+      "target": "function:tradingagents/dataflows/reddit.py:_fetch_subreddit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/reddit.py",
+      "target": "function:tradingagents/dataflows/reddit.py:fetch_reddit_posts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/reddit.py",
+      "target": "function:tradingagents/dataflows/reddit.py:_search_qs",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/reddit.py",
+      "target": "function:tradingagents/dataflows/reddit.py:_iso_to_timestamp",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/reddit.py",
+      "target": "function:tradingagents/dataflows/reddit.py:_strip_html",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/reddit.py",
+      "target": "function:tradingagents/dataflows/reddit.py:_retry_after_seconds",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/reddit.py",
+      "target": "function:tradingagents/dataflows/reddit.py:_fetch_subreddit_rss",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/reddit.py",
+      "target": "function:tradingagents/dataflows/reddit.py:_fetch_subreddit_json",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/reddit.py",
+      "target": "function:tradingagents/dataflows/reddit.py:_fetch_subreddit",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/reddit.py",
+      "target": "function:tradingagents/dataflows/reddit.py:fetch_reddit_posts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/reddit.py",
+      "target": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "function:tradingagents/dataflows/stockstats_utils.py:yf_retry",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "function:tradingagents/dataflows/stockstats_utils.py:_ensure_date_column",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "function:tradingagents/dataflows/stockstats_utils.py:_clean_dataframe",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "function:tradingagents/dataflows/stockstats_utils.py:_coerce_ohlcv_dates",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "function:tradingagents/dataflows/stockstats_utils.py:_assert_ohlcv_not_stale",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "function:tradingagents/dataflows/stockstats_utils.py:_needs_same_day_refresh",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "function:tradingagents/dataflows/stockstats_utils.py:load_ohlcv",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "function:tradingagents/dataflows/stockstats_utils.py:filter_financials_by_date",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "class:tradingagents/dataflows/stockstats_utils.py:StockstatsUtils",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "function:tradingagents/dataflows/stockstats_utils.py:yf_retry",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "function:tradingagents/dataflows/stockstats_utils.py:_ensure_date_column",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "function:tradingagents/dataflows/stockstats_utils.py:_clean_dataframe",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "function:tradingagents/dataflows/stockstats_utils.py:_coerce_ohlcv_dates",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "function:tradingagents/dataflows/stockstats_utils.py:_assert_ohlcv_not_stale",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "function:tradingagents/dataflows/stockstats_utils.py:_needs_same_day_refresh",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "function:tradingagents/dataflows/stockstats_utils.py:load_ohlcv",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "function:tradingagents/dataflows/stockstats_utils.py:filter_financials_by_date",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "class:tradingagents/dataflows/stockstats_utils.py:StockstatsUtils",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/stockstats_utils.py",
+      "target": "file:tradingagents/dataflows/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/stocktwits.py",
+      "target": "function:tradingagents/dataflows/stocktwits.py:_stocktwits_symbol",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/stocktwits.py",
+      "target": "function:tradingagents/dataflows/stocktwits.py:fetch_stocktwits_messages",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/stocktwits.py",
+      "target": "function:tradingagents/dataflows/stocktwits.py:_stocktwits_symbol",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/stocktwits.py",
+      "target": "function:tradingagents/dataflows/stocktwits.py:fetch_stocktwits_messages",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/stocktwits.py",
+      "target": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/symbol_utils.py",
+      "target": "function:tradingagents/dataflows/symbol_utils.py:crypto_base",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/symbol_utils.py",
+      "target": "function:tradingagents/dataflows/symbol_utils.py:_normalize_crypto",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/symbol_utils.py",
+      "target": "function:tradingagents/dataflows/symbol_utils.py:normalize_symbol",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/symbol_utils.py",
+      "target": "function:tradingagents/dataflows/symbol_utils.py:is_yahoo_safe",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/symbol_utils.py",
+      "target": "function:tradingagents/dataflows/symbol_utils.py:crypto_base",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/symbol_utils.py",
+      "target": "function:tradingagents/dataflows/symbol_utils.py:_normalize_crypto",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/symbol_utils.py",
+      "target": "function:tradingagents/dataflows/symbol_utils.py:normalize_symbol",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/symbol_utils.py",
+      "target": "function:tradingagents/dataflows/symbol_utils.py:is_yahoo_safe",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/symbol_utils.py",
+      "target": "file:tradingagents/dataflows/errors.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "function:tradingagents/dataflows/y_finance.py:get_YFin_data_online",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "function:tradingagents/dataflows/y_finance.py:get_stock_stats_indicators_window",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "function:tradingagents/dataflows/y_finance.py:_get_stock_stats_bulk",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "function:tradingagents/dataflows/y_finance.py:get_stockstats_indicator",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "function:tradingagents/dataflows/y_finance.py:get_fundamentals",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "function:tradingagents/dataflows/y_finance.py:get_balance_sheet",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "function:tradingagents/dataflows/y_finance.py:get_cashflow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "function:tradingagents/dataflows/y_finance.py:get_income_statement",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "function:tradingagents/dataflows/y_finance.py:get_insider_transactions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "function:tradingagents/dataflows/y_finance.py:get_YFin_data_online",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "function:tradingagents/dataflows/y_finance.py:get_stock_stats_indicators_window",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "function:tradingagents/dataflows/y_finance.py:_get_stock_stats_bulk",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "function:tradingagents/dataflows/y_finance.py:get_stockstats_indicator",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "function:tradingagents/dataflows/y_finance.py:get_fundamentals",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "function:tradingagents/dataflows/y_finance.py:get_balance_sheet",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "function:tradingagents/dataflows/y_finance.py:get_cashflow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "function:tradingagents/dataflows/y_finance.py:get_income_statement",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "function:tradingagents/dataflows/y_finance.py:get_insider_transactions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "file:tradingagents/dataflows/stockstats_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/y_finance.py",
+      "target": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/yfinance_news.py",
+      "target": "function:tradingagents/dataflows/yfinance_news.py:_as_utc",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/yfinance_news.py",
+      "target": "function:tradingagents/dataflows/yfinance_news.py:_extract_article_data",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/yfinance_news.py",
+      "target": "function:tradingagents/dataflows/yfinance_news.py:_in_news_window",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/yfinance_news.py",
+      "target": "function:tradingagents/dataflows/yfinance_news.py:get_news_yfinance",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/yfinance_news.py",
+      "target": "function:tradingagents/dataflows/yfinance_news.py:get_global_news_yfinance",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/dataflows/yfinance_news.py",
+      "target": "function:tradingagents/dataflows/yfinance_news.py:_as_utc",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/yfinance_news.py",
+      "target": "function:tradingagents/dataflows/yfinance_news.py:_extract_article_data",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/yfinance_news.py",
+      "target": "function:tradingagents/dataflows/yfinance_news.py:_in_news_window",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/yfinance_news.py",
+      "target": "function:tradingagents/dataflows/yfinance_news.py:get_news_yfinance",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/yfinance_news.py",
+      "target": "function:tradingagents/dataflows/yfinance_news.py:get_global_news_yfinance",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/dataflows/yfinance_news.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/yfinance_news.py",
+      "target": "file:tradingagents/dataflows/stockstats_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/dataflows/yfinance_news.py",
+      "target": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/default_config.py",
+      "target": "function:tradingagents/default_config.py:_coerce",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/default_config.py",
+      "target": "function:tradingagents/default_config.py:_apply_env_overrides",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/default_config.py",
+      "target": "function:tradingagents/default_config.py:_coerce",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/default_config.py",
+      "target": "function:tradingagents/default_config.py:_apply_env_overrides",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

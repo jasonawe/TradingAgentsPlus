@@ -1,0 +1,4751 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 27,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 27,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 27,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": [
+    {
+      "path": "tests/test_anthropic_effort.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 114,
+      "nonEmptyLines": 98,
+      "functions": [
+        {
+          "name": "_capture_kwargs",
+          "startLine": 16,
+          "endLine": 22,
+          "params": [
+            "monkeypatch"
+          ]
+        },
+        {
+          "name": "_get_llm",
+          "startLine": 25,
+          "endLine": 32,
+          "params": [
+            "client"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "TestEffortGate",
+          "startLine": 36,
+          "endLine": 114,
+          "methods": [
+            "test_unsupported_models_do_not_receive_effort",
+            "test_current_opus_and_sonnet_receive_effort",
+            "test_future_opus_sonnet_inherit_effort_via_pattern",
+            "test_claude_5_family_receives_effort",
+            "test_mythos_preview_receives_effort",
+            "test_unknown_anthropic_model_does_not_receive_effort",
+            "test_other_kwargs_still_forwarded_when_effort_skipped"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "_capture_kwargs",
+          "line": 16,
+          "isDefault": false
+        },
+        {
+          "name": "_get_llm",
+          "line": 25,
+          "isDefault": false
+        },
+        {
+          "name": "TestEffortGate",
+          "line": 35,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_capture_kwargs",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 18
+        },
+        {
+          "caller": "_capture_kwargs",
+          "callee": "captured.setdefault",
+          "lineNumber": 20
+        },
+        {
+          "caller": "_get_llm",
+          "callee": "warnings.catch_warnings",
+          "lineNumber": 26
+        },
+        {
+          "caller": "_get_llm",
+          "callee": "warnings.filterwarnings",
+          "lineNumber": 27
+        },
+        {
+          "caller": "_get_llm",
+          "callee": "client.get_llm",
+          "lineNumber": 32
+        },
+        {
+          "caller": "test_unsupported_models_do_not_receive_effort",
+          "callee": "_capture_kwargs",
+          "lineNumber": 46
+        },
+        {
+          "caller": "test_unsupported_models_do_not_receive_effort",
+          "callee": "_get_llm",
+          "lineNumber": 47
+        },
+        {
+          "caller": "test_unsupported_models_do_not_receive_effort",
+          "callee": "mod.AnthropicClient",
+          "lineNumber": 47
+        },
+        {
+          "caller": "test_current_opus_and_sonnet_receive_effort",
+          "callee": "_capture_kwargs",
+          "lineNumber": 58
+        },
+        {
+          "caller": "test_current_opus_and_sonnet_receive_effort",
+          "callee": "_get_llm",
+          "lineNumber": 59
+        },
+        {
+          "caller": "test_current_opus_and_sonnet_receive_effort",
+          "callee": "mod.AnthropicClient",
+          "lineNumber": 59
+        },
+        {
+          "caller": "test_future_opus_sonnet_inherit_effort_via_pattern",
+          "callee": "_capture_kwargs",
+          "lineNumber": 68
+        },
+        {
+          "caller": "test_future_opus_sonnet_inherit_effort_via_pattern",
+          "callee": "_get_llm",
+          "lineNumber": 69
+        },
+        {
+          "caller": "test_future_opus_sonnet_inherit_effort_via_pattern",
+          "callee": "mod.AnthropicClient",
+          "lineNumber": 69
+        },
+        {
+          "caller": "test_claude_5_family_receives_effort",
+          "callee": "_capture_kwargs",
+          "lineNumber": 78
+        },
+        {
+          "caller": "test_claude_5_family_receives_effort",
+          "callee": "_get_llm",
+          "lineNumber": 79
+        },
+        {
+          "caller": "test_claude_5_family_receives_effort",
+          "callee": "mod.AnthropicClient",
+          "lineNumber": 79
+        },
+        {
+          "caller": "test_mythos_preview_receives_effort",
+          "callee": "_capture_kwargs",
+          "lineNumber": 83
+        },
+        {
+          "caller": "test_mythos_preview_receives_effort",
+          "callee": "_get_llm",
+          "lineNumber": 84
+        },
+        {
+          "caller": "test_mythos_preview_receives_effort",
+          "callee": "mod.AnthropicClient",
+          "lineNumber": 85
+        },
+        {
+          "caller": "test_unknown_anthropic_model_does_not_receive_effort",
+          "callee": "_capture_kwargs",
+          "lineNumber": 93
+        },
+        {
+          "caller": "test_unknown_anthropic_model_does_not_receive_effort",
+          "callee": "_get_llm",
+          "lineNumber": 94
+        },
+        {
+          "caller": "test_unknown_anthropic_model_does_not_receive_effort",
+          "callee": "mod.AnthropicClient",
+          "lineNumber": 95
+        },
+        {
+          "caller": "test_other_kwargs_still_forwarded_when_effort_skipped",
+          "callee": "_capture_kwargs",
+          "lineNumber": 103
+        },
+        {
+          "caller": "test_other_kwargs_still_forwarded_when_effort_skipped",
+          "callee": "mod.AnthropicClient(\n            model=\"claude-haiku-4-5\",\n            effort=\"medium\",\n            api_key=\"placeholder\",\n            max_tokens=1024,\n            timeout=30,\n        ).get_llm",
+          "lineNumber": 104
+        },
+        {
+          "caller": "test_other_kwargs_still_forwarded_when_effort_skipped",
+          "callee": "mod.AnthropicClient",
+          "lineNumber": 104
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 3,
+        "functionCount": 2,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "tests/test_api_key_env.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 148,
+      "nonEmptyLines": 110,
+      "functions": [
+        {
+          "name": "test_every_select_llm_provider_choice_has_an_entry",
+          "startLine": 15,
+          "endLine": 27,
+          "params": []
+        },
+        {
+          "name": "test_known_providers_resolve",
+          "startLine": 48,
+          "endLine": 49,
+          "params": [
+            "provider",
+            "env_var"
+          ]
+        },
+        {
+          "name": "test_ollama_has_no_key",
+          "startLine": 52,
+          "endLine": 53,
+          "params": []
+        },
+        {
+          "name": "test_unknown_provider_returns_none",
+          "startLine": 56,
+          "endLine": 57,
+          "params": []
+        },
+        {
+          "name": "test_case_insensitive_lookup",
+          "startLine": 60,
+          "endLine": 62,
+          "params": []
+        },
+        {
+          "name": "cli_utils",
+          "startLine": 69,
+          "endLine": 74,
+          "params": [
+            "monkeypatch"
+          ]
+        },
+        {
+          "name": "test_ensure_api_key_returns_existing",
+          "startLine": 77,
+          "endLine": 80,
+          "params": [
+            "monkeypatch",
+            "cli_utils"
+          ]
+        },
+        {
+          "name": "test_ensure_api_key_no_op_for_ollama",
+          "startLine": 83,
+          "endLine": 89,
+          "params": [
+            "monkeypatch",
+            "cli_utils"
+          ]
+        },
+        {
+          "name": "test_ensure_api_key_unknown_provider_no_prompt",
+          "startLine": 92,
+          "endLine": 96,
+          "params": [
+            "monkeypatch",
+            "cli_utils"
+          ]
+        },
+        {
+          "name": "test_ensure_api_key_prompts_and_writes_to_env",
+          "startLine": 99,
+          "endLine": 113,
+          "params": [
+            "monkeypatch",
+            "tmp_path",
+            "cli_utils"
+          ]
+        },
+        {
+          "name": "test_ensure_api_key_user_cancels_returns_none",
+          "startLine": 116,
+          "endLine": 131,
+          "params": [
+            "monkeypatch",
+            "tmp_path",
+            "cli_utils"
+          ]
+        },
+        {
+          "name": "test_ensure_api_key_updates_existing_env_file",
+          "startLine": 134,
+          "endLine": 148,
+          "params": [
+            "monkeypatch",
+            "tmp_path",
+            "cli_utils"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "test_every_select_llm_provider_choice_has_an_entry",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "test_known_providers_resolve",
+          "line": 30,
+          "isDefault": false
+        },
+        {
+          "name": "test_ollama_has_no_key",
+          "line": 52,
+          "isDefault": false
+        },
+        {
+          "name": "test_unknown_provider_returns_none",
+          "line": 56,
+          "isDefault": false
+        },
+        {
+          "name": "test_case_insensitive_lookup",
+          "line": 60,
+          "isDefault": false
+        },
+        {
+          "name": "cli_utils",
+          "line": 68,
+          "isDefault": false
+        },
+        {
+          "name": "test_ensure_api_key_returns_existing",
+          "line": 77,
+          "isDefault": false
+        },
+        {
+          "name": "test_ensure_api_key_no_op_for_ollama",
+          "line": 83,
+          "isDefault": false
+        },
+        {
+          "name": "test_ensure_api_key_unknown_provider_no_prompt",
+          "line": 92,
+          "isDefault": false
+        },
+        {
+          "name": "test_ensure_api_key_prompts_and_writes_to_env",
+          "line": 99,
+          "isDefault": false
+        },
+        {
+          "name": "test_ensure_api_key_user_cancels_returns_none",
+          "line": 116,
+          "isDefault": false
+        },
+        {
+          "name": "test_ensure_api_key_updates_existing_env_file",
+          "line": 134,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_every_select_llm_provider_choice_has_an_entry",
+          "callee": "expected.issubset",
+          "lineNumber": 27
+        },
+        {
+          "caller": "test_every_select_llm_provider_choice_has_an_entry",
+          "callee": "PROVIDER_API_KEY_ENV.keys",
+          "lineNumber": 27
+        },
+        {
+          "caller": "test_known_providers_resolve",
+          "callee": "get_api_key_env",
+          "lineNumber": 49
+        },
+        {
+          "caller": "test_ollama_has_no_key",
+          "callee": "get_api_key_env",
+          "lineNumber": 53
+        },
+        {
+          "caller": "test_unknown_provider_returns_none",
+          "callee": "get_api_key_env",
+          "lineNumber": 57
+        },
+        {
+          "caller": "test_case_insensitive_lookup",
+          "callee": "get_api_key_env",
+          "lineNumber": 61
+        },
+        {
+          "caller": "test_case_insensitive_lookup",
+          "callee": "get_api_key_env",
+          "lineNumber": 62
+        },
+        {
+          "caller": "cli_utils",
+          "callee": "importlib.reload",
+          "lineNumber": 74
+        },
+        {
+          "caller": "test_ensure_api_key_returns_existing",
+          "callee": "monkeypatch.setenv",
+          "lineNumber": 78
+        },
+        {
+          "caller": "test_ensure_api_key_returns_existing",
+          "callee": "cli_utils.ensure_api_key",
+          "lineNumber": 79
+        },
+        {
+          "caller": "test_ensure_api_key_no_op_for_ollama",
+          "callee": "monkeypatch.delenv",
+          "lineNumber": 85
+        },
+        {
+          "caller": "test_ensure_api_key_no_op_for_ollama",
+          "callee": "patch.object",
+          "lineNumber": 86
+        },
+        {
+          "caller": "test_ensure_api_key_no_op_for_ollama",
+          "callee": "cli_utils.ensure_api_key",
+          "lineNumber": 87
+        },
+        {
+          "caller": "test_ensure_api_key_no_op_for_ollama",
+          "callee": "mock_q.password.assert_not_called",
+          "lineNumber": 89
+        },
+        {
+          "caller": "test_ensure_api_key_unknown_provider_no_prompt",
+          "callee": "patch.object",
+          "lineNumber": 93
+        },
+        {
+          "caller": "test_ensure_api_key_unknown_provider_no_prompt",
+          "callee": "cli_utils.ensure_api_key",
+          "lineNumber": 94
+        },
+        {
+          "caller": "test_ensure_api_key_unknown_provider_no_prompt",
+          "callee": "mock_q.password.assert_not_called",
+          "lineNumber": 96
+        },
+        {
+          "caller": "test_ensure_api_key_prompts_and_writes_to_env",
+          "callee": "monkeypatch.delenv",
+          "lineNumber": 101
+        },
+        {
+          "caller": "test_ensure_api_key_prompts_and_writes_to_env",
+          "callee": "monkeypatch.chdir",
+          "lineNumber": 102
+        },
+        {
+          "caller": "test_ensure_api_key_prompts_and_writes_to_env",
+          "callee": "type",
+          "lineNumber": 104
+        },
+        {
+          "caller": "test_ensure_api_key_prompts_and_writes_to_env",
+          "callee": "staticmethod",
+          "lineNumber": 104
+        },
+        {
+          "caller": "test_ensure_api_key_prompts_and_writes_to_env",
+          "callee": "patch.object",
+          "lineNumber": 105
+        },
+        {
+          "caller": "test_ensure_api_key_prompts_and_writes_to_env",
+          "callee": "cli_utils.ensure_api_key",
+          "lineNumber": 106
+        },
+        {
+          "caller": "test_ensure_api_key_prompts_and_writes_to_env",
+          "callee": "env_file.exists",
+          "lineNumber": 111
+        },
+        {
+          "caller": "test_ensure_api_key_prompts_and_writes_to_env",
+          "callee": "env_file.read_text",
+          "lineNumber": 112
+        },
+        {
+          "caller": "test_ensure_api_key_prompts_and_writes_to_env",
+          "callee": "env_file.read_text",
+          "lineNumber": 113
+        },
+        {
+          "caller": "test_ensure_api_key_user_cancels_returns_none",
+          "callee": "monkeypatch.delenv",
+          "lineNumber": 118
+        },
+        {
+          "caller": "test_ensure_api_key_user_cancels_returns_none",
+          "callee": "monkeypatch.chdir",
+          "lineNumber": 119
+        },
+        {
+          "caller": "test_ensure_api_key_user_cancels_returns_none",
+          "callee": "type",
+          "lineNumber": 121
+        },
+        {
+          "caller": "test_ensure_api_key_user_cancels_returns_none",
+          "callee": "staticmethod",
+          "lineNumber": 121
+        },
+        {
+          "caller": "test_ensure_api_key_user_cancels_returns_none",
+          "callee": "patch.object",
+          "lineNumber": 122
+        },
+        {
+          "caller": "test_ensure_api_key_user_cancels_returns_none",
+          "callee": "cli_utils.ensure_api_key",
+          "lineNumber": 123
+        },
+        {
+          "caller": "test_ensure_api_key_user_cancels_returns_none",
+          "callee": "env_file.exists",
+          "lineNumber": 130
+        },
+        {
+          "caller": "test_ensure_api_key_user_cancels_returns_none",
+          "callee": "env_file.read_text",
+          "lineNumber": 131
+        },
+        {
+          "caller": "test_ensure_api_key_updates_existing_env_file",
+          "callee": "monkeypatch.delenv",
+          "lineNumber": 136
+        },
+        {
+          "caller": "test_ensure_api_key_updates_existing_env_file",
+          "callee": "monkeypatch.chdir",
+          "lineNumber": 137
+        },
+        {
+          "caller": "test_ensure_api_key_updates_existing_env_file",
+          "callee": "env_file.write_text",
+          "lineNumber": 139
+        },
+        {
+          "caller": "test_ensure_api_key_updates_existing_env_file",
+          "callee": "type",
+          "lineNumber": 141
+        },
+        {
+          "caller": "test_ensure_api_key_updates_existing_env_file",
+          "callee": "staticmethod",
+          "lineNumber": 141
+        },
+        {
+          "caller": "test_ensure_api_key_updates_existing_env_file",
+          "callee": "patch.object",
+          "lineNumber": 142
+        },
+        {
+          "caller": "test_ensure_api_key_updates_existing_env_file",
+          "callee": "cli_utils.ensure_api_key",
+          "lineNumber": 143
+        },
+        {
+          "caller": "test_ensure_api_key_updates_existing_env_file",
+          "callee": "env_file.read_text",
+          "lineNumber": 145
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 12,
+        "functionCount": 12,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tests/test_bedrock_provider.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 80,
+      "nonEmptyLines": 61,
+      "functions": [
+        {
+          "name": "test_factory_routes_bedrock",
+          "startLine": 17,
+          "endLine": 19,
+          "params": []
+        },
+        {
+          "name": "test_bedrock_any_model_and_no_key_env",
+          "startLine": 23,
+          "endLine": 26,
+          "params": []
+        },
+        {
+          "name": "test_helpful_error_when_langchain_aws_absent",
+          "startLine": 30,
+          "endLine": 35,
+          "params": [
+            "monkeypatch"
+          ]
+        },
+        {
+          "name": "_capture_kwargs",
+          "startLine": 38,
+          "endLine": 49,
+          "params": [
+            "monkeypatch"
+          ]
+        },
+        {
+          "name": "test_bearer_token_passed_as_api_key",
+          "startLine": 53,
+          "endLine": 60,
+          "params": [
+            "monkeypatch"
+          ]
+        },
+        {
+          "name": "test_no_bearer_token_omits_api_key",
+          "startLine": 64,
+          "endLine": 69,
+          "params": [
+            "monkeypatch"
+          ]
+        },
+        {
+          "name": "test_construction_when_extra_installed",
+          "startLine": 73,
+          "endLine": 80,
+          "params": [
+            "monkeypatch"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "test_factory_routes_bedrock",
+          "line": 16,
+          "isDefault": false
+        },
+        {
+          "name": "test_bedrock_any_model_and_no_key_env",
+          "line": 22,
+          "isDefault": false
+        },
+        {
+          "name": "test_helpful_error_when_langchain_aws_absent",
+          "line": 29,
+          "isDefault": false
+        },
+        {
+          "name": "_capture_kwargs",
+          "line": 38,
+          "isDefault": false
+        },
+        {
+          "name": "test_bearer_token_passed_as_api_key",
+          "line": 52,
+          "isDefault": false
+        },
+        {
+          "name": "test_no_bearer_token_omits_api_key",
+          "line": 63,
+          "isDefault": false
+        },
+        {
+          "name": "test_construction_when_extra_installed",
+          "line": 72,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_factory_routes_bedrock",
+          "callee": "create_llm_client",
+          "lineNumber": 18
+        },
+        {
+          "caller": "test_factory_routes_bedrock",
+          "callee": "type",
+          "lineNumber": 19
+        },
+        {
+          "caller": "test_bedrock_any_model_and_no_key_env",
+          "callee": "validate_model",
+          "lineNumber": 24
+        },
+        {
+          "caller": "test_bedrock_any_model_and_no_key_env",
+          "callee": "get_api_key_env",
+          "lineNumber": 26
+        },
+        {
+          "caller": "test_helpful_error_when_langchain_aws_absent",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 32
+        },
+        {
+          "caller": "test_helpful_error_when_langchain_aws_absent",
+          "callee": "monkeypatch.setitem",
+          "lineNumber": 33
+        },
+        {
+          "caller": "test_helpful_error_when_langchain_aws_absent",
+          "callee": "pytest.raises",
+          "lineNumber": 34
+        },
+        {
+          "caller": "test_helpful_error_when_langchain_aws_absent",
+          "callee": "create_llm_client(\"bedrock\", \"m\").get_llm",
+          "lineNumber": 35
+        },
+        {
+          "caller": "test_helpful_error_when_langchain_aws_absent",
+          "callee": "create_llm_client",
+          "lineNumber": 35
+        },
+        {
+          "caller": "__init__",
+          "callee": "captured.update",
+          "lineNumber": 46
+        },
+        {
+          "caller": "_capture_kwargs",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 48
+        },
+        {
+          "caller": "test_bearer_token_passed_as_api_key",
+          "callee": "_capture_kwargs",
+          "lineNumber": 55
+        },
+        {
+          "caller": "test_bearer_token_passed_as_api_key",
+          "callee": "monkeypatch.setenv",
+          "lineNumber": 56
+        },
+        {
+          "caller": "test_bearer_token_passed_as_api_key",
+          "callee": "monkeypatch.setenv",
+          "lineNumber": 57
+        },
+        {
+          "caller": "test_bearer_token_passed_as_api_key",
+          "callee": "create_llm_client(\"bedrock\", \"us.anthropic.claude-opus-4-8-v1:0\").get_llm",
+          "lineNumber": 58
+        },
+        {
+          "caller": "test_bearer_token_passed_as_api_key",
+          "callee": "create_llm_client",
+          "lineNumber": 58
+        },
+        {
+          "caller": "test_no_bearer_token_omits_api_key",
+          "callee": "_capture_kwargs",
+          "lineNumber": 66
+        },
+        {
+          "caller": "test_no_bearer_token_omits_api_key",
+          "callee": "monkeypatch.delenv",
+          "lineNumber": 67
+        },
+        {
+          "caller": "test_no_bearer_token_omits_api_key",
+          "callee": "create_llm_client(\"bedrock\", \"us.anthropic.claude-opus-4-8-v1:0\").get_llm",
+          "lineNumber": 68
+        },
+        {
+          "caller": "test_no_bearer_token_omits_api_key",
+          "callee": "create_llm_client",
+          "lineNumber": 68
+        },
+        {
+          "caller": "test_construction_when_extra_installed",
+          "callee": "pytest.importorskip",
+          "lineNumber": 74
+        },
+        {
+          "caller": "test_construction_when_extra_installed",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 76
+        },
+        {
+          "caller": "test_construction_when_extra_installed",
+          "callee": "monkeypatch.setenv",
+          "lineNumber": 77
+        },
+        {
+          "caller": "test_construction_when_extra_installed",
+          "callee": "create_llm_client(\"bedrock\", \"us.anthropic.claude-sonnet-5\").get_llm",
+          "lineNumber": 78
+        },
+        {
+          "caller": "test_construction_when_extra_installed",
+          "callee": "create_llm_client",
+          "lineNumber": 78
+        },
+        {
+          "caller": "test_construction_when_extra_installed",
+          "callee": "type",
+          "lineNumber": 79
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 7,
+        "functionCount": 7,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tests/test_capabilities.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 124,
+      "nonEmptyLines": 92,
+      "functions": [
+        {
+          "name": "test_capabilities_dataclass_is_frozen",
+          "startLine": 120,
+          "endLine": 124,
+          "params": []
+        }
+      ],
+      "classes": [
+        {
+          "name": "TestExactIdMatches",
+          "startLine": 13,
+          "endLine": 31,
+          "methods": [
+            "test_deepseek_chat_supports_tool_choice",
+            "test_deepseek_reasoner_rejects_tool_choice",
+            "test_deepseek_v4_flash_rejects_tool_choice",
+            "test_deepseek_v4_pro_rejects_tool_choice"
+          ],
+          "properties": []
+        },
+        {
+          "name": "TestPatternMatches",
+          "startLine": 35,
+          "endLine": 57,
+          "methods": [
+            "test_future_deepseek_v5_inherits_thinking_quirks",
+            "test_future_deepseek_v9_inherits_thinking_quirks",
+            "test_reasoner_variant_inherits_thinking_quirks",
+            "test_minimax_m3_inherits_thinking_quirks",
+            "test_future_minimax_m4_highspeed_inherits_thinking_quirks"
+          ],
+          "properties": []
+        },
+        {
+          "name": "TestMinimaxExactMatches",
+          "startLine": 61,
+          "endLine": 93,
+          "methods": [
+            "test_m2_7_rejects_tool_choice",
+            "test_m2_7_highspeed_rejects_tool_choice",
+            "test_m2_1_rejects_tool_choice",
+            "test_m2_base_rejects_tool_choice",
+            "test_m2_x_requires_reasoning_split",
+            "test_future_m3_inherits_reasoning_split",
+            "test_non_reasoning_minimax_does_not_get_reasoning_split"
+          ],
+          "properties": []
+        },
+        {
+          "name": "TestDefault",
+          "startLine": 97,
+          "endLine": 116,
+          "methods": [
+            "test_gpt_default",
+            "test_grok_default",
+            "test_unknown_model_default",
+            "test_exact_match_precedes_pattern"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestExactIdMatches",
+          "line": 12,
+          "isDefault": false
+        },
+        {
+          "name": "TestPatternMatches",
+          "line": 34,
+          "isDefault": false
+        },
+        {
+          "name": "TestMinimaxExactMatches",
+          "line": 60,
+          "isDefault": false
+        },
+        {
+          "name": "TestDefault",
+          "line": 96,
+          "isDefault": false
+        },
+        {
+          "name": "test_capabilities_dataclass_is_frozen",
+          "line": 119,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_deepseek_chat_supports_tool_choice",
+          "callee": "get_capabilities",
+          "lineNumber": 15
+        },
+        {
+          "caller": "test_deepseek_reasoner_rejects_tool_choice",
+          "callee": "get_capabilities",
+          "lineNumber": 19
+        },
+        {
+          "caller": "test_deepseek_v4_flash_rejects_tool_choice",
+          "callee": "get_capabilities",
+          "lineNumber": 24
+        },
+        {
+          "caller": "test_deepseek_v4_pro_rejects_tool_choice",
+          "callee": "get_capabilities",
+          "lineNumber": 29
+        },
+        {
+          "caller": "test_future_deepseek_v5_inherits_thinking_quirks",
+          "callee": "get_capabilities",
+          "lineNumber": 39
+        },
+        {
+          "caller": "test_future_deepseek_v9_inherits_thinking_quirks",
+          "callee": "get_capabilities",
+          "lineNumber": 44
+        },
+        {
+          "caller": "test_reasoner_variant_inherits_thinking_quirks",
+          "callee": "get_capabilities",
+          "lineNumber": 48
+        },
+        {
+          "caller": "test_minimax_m3_inherits_thinking_quirks",
+          "callee": "get_capabilities",
+          "lineNumber": 52
+        },
+        {
+          "caller": "test_future_minimax_m4_highspeed_inherits_thinking_quirks",
+          "callee": "get_capabilities",
+          "lineNumber": 56
+        },
+        {
+          "caller": "test_m2_7_rejects_tool_choice",
+          "callee": "get_capabilities",
+          "lineNumber": 66
+        },
+        {
+          "caller": "test_m2_7_highspeed_rejects_tool_choice",
+          "callee": "get_capabilities",
+          "lineNumber": 71
+        },
+        {
+          "caller": "test_m2_1_rejects_tool_choice",
+          "callee": "get_capabilities",
+          "lineNumber": 74
+        },
+        {
+          "caller": "test_m2_base_rejects_tool_choice",
+          "callee": "get_capabilities",
+          "lineNumber": 77
+        },
+        {
+          "caller": "test_m2_x_requires_reasoning_split",
+          "callee": "get_capabilities",
+          "lineNumber": 83
+        },
+        {
+          "caller": "test_future_m3_inherits_reasoning_split",
+          "callee": "get_capabilities",
+          "lineNumber": 86
+        },
+        {
+          "caller": "test_non_reasoning_minimax_does_not_get_reasoning_split",
+          "callee": "get_capabilities",
+          "lineNumber": 93
+        },
+        {
+          "caller": "test_gpt_default",
+          "callee": "get_capabilities",
+          "lineNumber": 101
+        },
+        {
+          "caller": "test_grok_default",
+          "callee": "get_capabilities",
+          "lineNumber": 106
+        },
+        {
+          "caller": "test_unknown_model_default",
+          "callee": "get_capabilities",
+          "lineNumber": 110
+        },
+        {
+          "caller": "test_exact_match_precedes_pattern",
+          "callee": "get_capabilities",
+          "lineNumber": 115
+        },
+        {
+          "caller": "test_capabilities_dataclass_is_frozen",
+          "callee": "get_capabilities",
+          "lineNumber": 122
+        },
+        {
+          "caller": "test_capabilities_dataclass_is_frozen",
+          "callee": "pytest.raises",
+          "lineNumber": 123
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 5,
+        "functionCount": 1,
+        "classCount": 4
+      }
+    },
+    {
+      "path": "tests/test_deepseek_reasoning.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 239,
+      "nonEmptyLines": 195,
+      "functions": [
+        {
+          "name": "_bound_kwargs",
+          "startLine": 123,
+          "endLine": 126,
+          "params": [
+            "runnable"
+          ]
+        },
+        {
+          "name": "_has_real_deepseek_key",
+          "startLine": 187,
+          "endLine": 189,
+          "params": []
+        }
+      ],
+      "classes": [
+        {
+          "name": "TestInputToMessages",
+          "startLine": 34,
+          "endLine": 47,
+          "methods": [
+            "test_list_input_returned_as_is",
+            "test_chat_prompt_value_unwrapped",
+            "test_string_input_yields_empty_list"
+          ],
+          "properties": []
+        },
+        {
+          "name": "TestDeepSeekReasoningContent",
+          "startLine": 56,
+          "endLine": 115,
+          "methods": [
+            "_client",
+            "test_capture_on_receive",
+            "test_propagate_on_send",
+            "test_propagate_through_chat_prompt_value"
+          ],
+          "properties": []
+        },
+        {
+          "name": "TestStructuredOutputCapabilityDispatch",
+          "startLine": 130,
+          "endLine": 179,
+          "methods": [
+            "_client",
+            "test_chat_sends_tool_choice",
+            "test_reasoner_suppresses_tool_choice",
+            "test_v4_flash_suppresses_tool_choice",
+            "test_v4_pro_suppresses_tool_choice",
+            "test_future_v_variant_via_regex",
+            "test_schema_is_still_bound_as_tool"
+          ],
+          "properties": []
+        },
+        {
+          "name": "TestDeepSeekLiveStructuredOutput",
+          "startLine": 197,
+          "endLine": 223,
+          "methods": [
+            "test_v4_flash_returns_structured_output"
+          ],
+          "properties": []
+        },
+        {
+          "name": "TestBaseClassIsolation",
+          "startLine": 232,
+          "endLine": 239,
+          "methods": [
+            "test_normalized_does_not_propagate_reasoning_content"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestInputToMessages",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "TestDeepSeekReasoningContent",
+          "line": 55,
+          "isDefault": false
+        },
+        {
+          "name": "_bound_kwargs",
+          "line": 123,
+          "isDefault": false
+        },
+        {
+          "name": "TestStructuredOutputCapabilityDispatch",
+          "line": 129,
+          "isDefault": false
+        },
+        {
+          "name": "_has_real_deepseek_key",
+          "line": 187,
+          "isDefault": false
+        },
+        {
+          "name": "TestDeepSeekLiveStructuredOutput",
+          "line": 192,
+          "isDefault": false
+        },
+        {
+          "name": "TestBaseClassIsolation",
+          "line": 231,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_list_input_returned_as_is",
+          "callee": "HumanMessage",
+          "lineNumber": 36
+        },
+        {
+          "caller": "test_list_input_returned_as_is",
+          "callee": "_input_to_messages",
+          "lineNumber": 37
+        },
+        {
+          "caller": "test_chat_prompt_value_unwrapped",
+          "callee": "HumanMessage",
+          "lineNumber": 40
+        },
+        {
+          "caller": "test_chat_prompt_value_unwrapped",
+          "callee": "ChatPromptValue",
+          "lineNumber": 41
+        },
+        {
+          "caller": "test_chat_prompt_value_unwrapped",
+          "callee": "_input_to_messages",
+          "lineNumber": 42
+        },
+        {
+          "caller": "test_string_input_yields_empty_list",
+          "callee": "_input_to_messages",
+          "lineNumber": 47
+        },
+        {
+          "caller": "_client",
+          "callee": "os.environ.setdefault",
+          "lineNumber": 58
+        },
+        {
+          "caller": "_client",
+          "callee": "DeepSeekChatOpenAI",
+          "lineNumber": 59
+        },
+        {
+          "caller": "test_capture_on_receive",
+          "callee": "self._client",
+          "lineNumber": 68
+        },
+        {
+          "caller": "test_capture_on_receive",
+          "callee": "client._create_chat_result",
+          "lineNumber": 69
+        },
+        {
+          "caller": "test_propagate_on_send",
+          "callee": "self._client",
+          "lineNumber": 92
+        },
+        {
+          "caller": "test_propagate_on_send",
+          "callee": "AIMessage",
+          "lineNumber": 93
+        },
+        {
+          "caller": "test_propagate_on_send",
+          "callee": "HumanMessage",
+          "lineNumber": 97
+        },
+        {
+          "caller": "test_propagate_on_send",
+          "callee": "client._get_request_payload",
+          "lineNumber": 98
+        },
+        {
+          "caller": "test_propagate_on_send",
+          "callee": "m.get",
+          "lineNumber": 100
+        },
+        {
+          "caller": "test_propagate_through_chat_prompt_value",
+          "callee": "self._client",
+          "lineNumber": 107
+        },
+        {
+          "caller": "test_propagate_through_chat_prompt_value",
+          "callee": "AIMessage",
+          "lineNumber": 108
+        },
+        {
+          "caller": "test_propagate_through_chat_prompt_value",
+          "callee": "ChatPromptValue",
+          "lineNumber": 112
+        },
+        {
+          "caller": "test_propagate_through_chat_prompt_value",
+          "callee": "HumanMessage",
+          "lineNumber": 112
+        },
+        {
+          "caller": "test_propagate_through_chat_prompt_value",
+          "callee": "client._get_request_payload",
+          "lineNumber": 113
+        },
+        {
+          "caller": "test_propagate_through_chat_prompt_value",
+          "callee": "m.get",
+          "lineNumber": 114
+        },
+        {
+          "caller": "_bound_kwargs",
+          "callee": "hasattr",
+          "lineNumber": 125
+        },
+        {
+          "caller": "_bound_kwargs",
+          "callee": "getattr",
+          "lineNumber": 126
+        },
+        {
+          "caller": "_client",
+          "callee": "DeepSeekChatOpenAI",
+          "lineNumber": 140
+        },
+        {
+          "caller": "test_chat_sends_tool_choice",
+          "callee": "self._client(\"deepseek-chat\").with_structured_output",
+          "lineNumber": 145
+        },
+        {
+          "caller": "test_chat_sends_tool_choice",
+          "callee": "self._client",
+          "lineNumber": 145
+        },
+        {
+          "caller": "test_chat_sends_tool_choice",
+          "callee": "_bound_kwargs(bound).get",
+          "lineNumber": 146
+        },
+        {
+          "caller": "test_chat_sends_tool_choice",
+          "callee": "_bound_kwargs",
+          "lineNumber": 146
+        },
+        {
+          "caller": "test_reasoner_suppresses_tool_choice",
+          "callee": "self._client(\"deepseek-reasoner\").with_structured_output",
+          "lineNumber": 149
+        },
+        {
+          "caller": "test_reasoner_suppresses_tool_choice",
+          "callee": "self._client",
+          "lineNumber": 149
+        },
+        {
+          "caller": "test_reasoner_suppresses_tool_choice",
+          "callee": "_bound_kwargs(bound).get",
+          "lineNumber": 152
+        },
+        {
+          "caller": "test_reasoner_suppresses_tool_choice",
+          "callee": "_bound_kwargs",
+          "lineNumber": 152
+        },
+        {
+          "caller": "test_reasoner_suppresses_tool_choice",
+          "callee": "_bound_kwargs",
+          "lineNumber": 153
+        },
+        {
+          "caller": "test_v4_flash_suppresses_tool_choice",
+          "callee": "self._client(\"deepseek-v4-flash\").with_structured_output",
+          "lineNumber": 156
+        },
+        {
+          "caller": "test_v4_flash_suppresses_tool_choice",
+          "callee": "self._client",
+          "lineNumber": 156
+        },
+        {
+          "caller": "test_v4_flash_suppresses_tool_choice",
+          "callee": "_bound_kwargs(bound).get",
+          "lineNumber": 157
+        },
+        {
+          "caller": "test_v4_flash_suppresses_tool_choice",
+          "callee": "_bound_kwargs",
+          "lineNumber": 157
+        },
+        {
+          "caller": "test_v4_flash_suppresses_tool_choice",
+          "callee": "_bound_kwargs",
+          "lineNumber": 158
+        },
+        {
+          "caller": "test_v4_pro_suppresses_tool_choice",
+          "callee": "self._client(\"deepseek-v4-pro\").with_structured_output",
+          "lineNumber": 161
+        },
+        {
+          "caller": "test_v4_pro_suppresses_tool_choice",
+          "callee": "self._client",
+          "lineNumber": 161
+        },
+        {
+          "caller": "test_v4_pro_suppresses_tool_choice",
+          "callee": "_bound_kwargs(bound).get",
+          "lineNumber": 162
+        },
+        {
+          "caller": "test_v4_pro_suppresses_tool_choice",
+          "callee": "_bound_kwargs",
+          "lineNumber": 162
+        },
+        {
+          "caller": "test_v4_pro_suppresses_tool_choice",
+          "callee": "_bound_kwargs",
+          "lineNumber": 163
+        },
+        {
+          "caller": "test_future_v_variant_via_regex",
+          "callee": "self._client(\"deepseek-v5-hypothetical\").with_structured_output",
+          "lineNumber": 167
+        },
+        {
+          "caller": "test_future_v_variant_via_regex",
+          "callee": "self._client",
+          "lineNumber": 167
+        },
+        {
+          "caller": "test_future_v_variant_via_regex",
+          "callee": "_bound_kwargs(bound).get",
+          "lineNumber": 168
+        },
+        {
+          "caller": "test_future_v_variant_via_regex",
+          "callee": "_bound_kwargs",
+          "lineNumber": 168
+        },
+        {
+          "caller": "test_future_v_variant_via_regex",
+          "callee": "_bound_kwargs",
+          "lineNumber": 169
+        },
+        {
+          "caller": "test_schema_is_still_bound_as_tool",
+          "callee": "self._client(\"deepseek-reasoner\").with_structured_output",
+          "lineNumber": 174
+        },
+        {
+          "caller": "test_schema_is_still_bound_as_tool",
+          "callee": "self._client",
+          "lineNumber": 174
+        },
+        {
+          "caller": "test_schema_is_still_bound_as_tool",
+          "callee": "_bound_kwargs",
+          "lineNumber": 175
+        },
+        {
+          "caller": "test_schema_is_still_bound_as_tool",
+          "callee": "kwargs.get",
+          "lineNumber": 176
+        },
+        {
+          "caller": "test_schema_is_still_bound_as_tool",
+          "callee": "any",
+          "lineNumber": 177
+        },
+        {
+          "caller": "test_schema_is_still_bound_as_tool",
+          "callee": "t.get(\"function\", {}).get",
+          "lineNumber": 178
+        },
+        {
+          "caller": "test_schema_is_still_bound_as_tool",
+          "callee": "t.get",
+          "lineNumber": 178
+        },
+        {
+          "caller": "_has_real_deepseek_key",
+          "callee": "os.environ.get",
+          "lineNumber": 188
+        },
+        {
+          "caller": "_has_real_deepseek_key",
+          "callee": "bool",
+          "lineNumber": 189
+        },
+        {
+          "caller": "test_v4_flash_returns_structured_output",
+          "callee": "DeepSeekChatOpenAI",
+          "lineNumber": 210
+        },
+        {
+          "caller": "test_v4_flash_returns_structured_output",
+          "callee": "client.with_structured_output",
+          "lineNumber": 216
+        },
+        {
+          "caller": "test_v4_flash_returns_structured_output",
+          "callee": "bound.invoke",
+          "lineNumber": 217
+        },
+        {
+          "caller": "test_v4_flash_returns_structured_output",
+          "callee": "isinstance",
+          "lineNumber": 221
+        },
+        {
+          "caller": "test_normalized_does_not_propagate_reasoning_content",
+          "callee": "hasattr",
+          "lineNumber": 236
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 7,
+        "functionCount": 2,
+        "classCount": 5
+      }
+    },
+    {
+      "path": "tests/test_google_api_key.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 31,
+      "nonEmptyLines": 23,
+      "classes": [
+        {
+          "name": "TestGoogleApiKeyStandardization",
+          "startLine": 10,
+          "endLine": 27,
+          "methods": [
+            "test_api_key_handling"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "TestGoogleApiKeyStandardization",
+          "line": 9,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_api_key_handling",
+          "callee": "self.subTest",
+          "lineNumber": 22
+        },
+        {
+          "caller": "test_api_key_handling",
+          "callee": "mock_chat.reset_mock",
+          "lineNumber": 23
+        },
+        {
+          "caller": "test_api_key_handling",
+          "callee": "GoogleClient",
+          "lineNumber": 24
+        },
+        {
+          "caller": "test_api_key_handling",
+          "callee": "client.get_llm",
+          "lineNumber": 25
+        },
+        {
+          "caller": "test_api_key_handling",
+          "callee": "self.assertEqual",
+          "lineNumber": 27
+        },
+        {
+          "caller": "test_api_key_handling",
+          "callee": "call_kwargs.get",
+          "lineNumber": 27
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "tests/test_google_thinking_level.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 46,
+      "nonEmptyLines": 32,
+      "functions": [
+        {
+          "name": "_captured_kwargs",
+          "startLine": 15,
+          "endLine": 23,
+          "params": [
+            "model",
+            "**kwargs"
+          ]
+        },
+        {
+          "name": "test_flash_passes_thinking_level_through",
+          "startLine": 27,
+          "endLine": 30,
+          "params": [
+            "level"
+          ]
+        },
+        {
+          "name": "test_pro_remaps_minimal_to_low",
+          "startLine": 33,
+          "endLine": 35,
+          "params": []
+        },
+        {
+          "name": "test_pro_keeps_high",
+          "startLine": 38,
+          "endLine": 40,
+          "params": []
+        },
+        {
+          "name": "test_no_thinking_level_is_omitted",
+          "startLine": 43,
+          "endLine": 46,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "_captured_kwargs",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "test_flash_passes_thinking_level_through",
+          "line": 26,
+          "isDefault": false
+        },
+        {
+          "name": "test_pro_remaps_minimal_to_low",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "test_pro_keeps_high",
+          "line": 38,
+          "isDefault": false
+        },
+        {
+          "name": "test_no_thinking_level_is_omitted",
+          "line": 43,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_captured_kwargs",
+          "callee": "mock.patch.object",
+          "lineNumber": 17
+        },
+        {
+          "caller": "_captured_kwargs",
+          "callee": "__import__",
+          "lineNumber": 18
+        },
+        {
+          "caller": "_captured_kwargs",
+          "callee": "captured.setdefault",
+          "lineNumber": 20
+        },
+        {
+          "caller": "_captured_kwargs",
+          "callee": "GoogleClient(model, api_key=\"x\", **kwargs).get_llm",
+          "lineNumber": 22
+        },
+        {
+          "caller": "_captured_kwargs",
+          "callee": "GoogleClient",
+          "lineNumber": 22
+        },
+        {
+          "caller": "test_flash_passes_thinking_level_through",
+          "callee": "_captured_kwargs",
+          "lineNumber": 28
+        },
+        {
+          "caller": "test_pro_remaps_minimal_to_low",
+          "callee": "_captured_kwargs",
+          "lineNumber": 34
+        },
+        {
+          "caller": "test_pro_keeps_high",
+          "callee": "_captured_kwargs",
+          "lineNumber": 39
+        },
+        {
+          "caller": "test_no_thinking_level_is_omitted",
+          "callee": "_captured_kwargs",
+          "lineNumber": 44
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 5,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tests/test_llm_timeout.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 158,
+      "nonEmptyLines": 130,
+      "functions": [
+        {
+          "name": "configure_deadline_policy",
+          "startLine": 17,
+          "endLine": 22,
+          "params": [
+            "llm",
+            "deadline_supplier",
+            "timeout_cap",
+            "checkpoint"
+          ]
+        },
+        {
+          "name": "test_llm_timeout_is_resolved_for_each_actual_invocation",
+          "startLine": 43,
+          "endLine": 65,
+          "params": [
+            "monkeypatch",
+            "normalized",
+            "parent_path"
+          ]
+        },
+        {
+          "name": "test_llm_without_deadline_supplier_preserves_existing_timeout_behavior",
+          "startLine": 68,
+          "endLine": 81,
+          "params": [
+            "monkeypatch"
+          ]
+        },
+        {
+          "name": "test_bedrock_resolves_timeout_at_each_invoke",
+          "startLine": 84,
+          "endLine": 110,
+          "params": [
+            "monkeypatch"
+          ]
+        },
+        {
+          "name": "test_alpha_vantage_caps_each_request_by_current_remaining_deadline",
+          "startLine": 113,
+          "endLine": 145,
+          "params": [
+            "monkeypatch"
+          ]
+        },
+        {
+          "name": "test_non_web_dataflow_config_clears_prior_run_scoped_deadline_callbacks",
+          "startLine": 148,
+          "endLine": 158,
+          "params": []
+        }
+      ],
+      "classes": [
+        {
+          "name": "Response",
+          "startLine": 13,
+          "endLine": 14,
+          "methods": [],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "Response",
+          "line": 13,
+          "isDefault": false
+        },
+        {
+          "name": "configure_deadline_policy",
+          "line": 17,
+          "isDefault": false
+        },
+        {
+          "name": "test_llm_timeout_is_resolved_for_each_actual_invocation",
+          "line": 25,
+          "isDefault": false
+        },
+        {
+          "name": "test_llm_without_deadline_supplier_preserves_existing_timeout_behavior",
+          "line": 68,
+          "isDefault": false
+        },
+        {
+          "name": "test_bedrock_resolves_timeout_at_each_invoke",
+          "line": 84,
+          "isDefault": false
+        },
+        {
+          "name": "test_alpha_vantage_caps_each_request_by_current_remaining_deadline",
+          "line": 113,
+          "isDefault": false
+        },
+        {
+          "name": "test_non_web_dataflow_config_clears_prior_run_scoped_deadline_callbacks",
+          "line": 148,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "configure_deadline_policy",
+          "callee": "object.__setattr__",
+          "lineNumber": 20
+        },
+        {
+          "caller": "configure_deadline_policy",
+          "callee": "object.__setattr__",
+          "lineNumber": 21
+        },
+        {
+          "caller": "configure_deadline_policy",
+          "callee": "object.__setattr__",
+          "lineNumber": 22
+        },
+        {
+          "caller": "test_llm_timeout_is_resolved_for_each_actual_invocation",
+          "callee": "iter",
+          "lineNumber": 48
+        },
+        {
+          "caller": "fake_invoke",
+          "callee": "captured.append",
+          "lineNumber": 51
+        },
+        {
+          "caller": "fake_invoke",
+          "callee": "kwargs.get",
+          "lineNumber": 51
+        },
+        {
+          "caller": "fake_invoke",
+          "callee": "Response",
+          "lineNumber": 52
+        },
+        {
+          "caller": "test_llm_timeout_is_resolved_for_each_actual_invocation",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 54
+        },
+        {
+          "caller": "test_llm_timeout_is_resolved_for_each_actual_invocation",
+          "callee": "object.__new__",
+          "lineNumber": 55
+        },
+        {
+          "caller": "test_llm_timeout_is_resolved_for_each_actual_invocation",
+          "callee": "configure_deadline_policy",
+          "lineNumber": 56
+        },
+        {
+          "caller": "test_llm_timeout_is_resolved_for_each_actual_invocation",
+          "callee": "next",
+          "lineNumber": 58
+        },
+        {
+          "caller": "test_llm_timeout_is_resolved_for_each_actual_invocation",
+          "callee": "checkpoints.append",
+          "lineNumber": 60
+        },
+        {
+          "caller": "test_llm_timeout_is_resolved_for_each_actual_invocation",
+          "callee": "llm.invoke",
+          "lineNumber": 62
+        },
+        {
+          "caller": "test_llm_timeout_is_resolved_for_each_actual_invocation",
+          "callee": "llm.invoke",
+          "lineNumber": 63
+        },
+        {
+          "caller": "fake_invoke",
+          "callee": "captured.append",
+          "lineNumber": 72
+        },
+        {
+          "caller": "fake_invoke",
+          "callee": "Response",
+          "lineNumber": 73
+        },
+        {
+          "caller": "test_llm_without_deadline_supplier_preserves_existing_timeout_behavior",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 75
+        },
+        {
+          "caller": "test_llm_without_deadline_supplier_preserves_existing_timeout_behavior",
+          "callee": "object.__new__",
+          "lineNumber": 78
+        },
+        {
+          "caller": "test_llm_without_deadline_supplier_preserves_existing_timeout_behavior",
+          "callee": "configure_deadline_policy",
+          "lineNumber": 79
+        },
+        {
+          "caller": "test_llm_without_deadline_supplier_preserves_existing_timeout_behavior",
+          "callee": "llm.invoke",
+          "lineNumber": 80
+        },
+        {
+          "caller": "test_bedrock_resolves_timeout_at_each_invoke",
+          "callee": "iter",
+          "lineNumber": 88
+        },
+        {
+          "caller": "invoke",
+          "callee": "captured.append",
+          "lineNumber": 92
+        },
+        {
+          "caller": "invoke",
+          "callee": "kwargs.get",
+          "lineNumber": 92
+        },
+        {
+          "caller": "invoke",
+          "callee": "Response",
+          "lineNumber": 93
+        },
+        {
+          "caller": "test_bedrock_resolves_timeout_at_each_invoke",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 95
+        },
+        {
+          "caller": "test_bedrock_resolves_timeout_at_each_invoke",
+          "callee": "monkeypatch.setitem",
+          "lineNumber": 96
+        },
+        {
+          "caller": "test_bedrock_resolves_timeout_at_each_invoke",
+          "callee": "__import__",
+          "lineNumber": 97
+        },
+        {
+          "caller": "test_bedrock_resolves_timeout_at_each_invoke",
+          "callee": "SimpleNamespace",
+          "lineNumber": 99
+        },
+        {
+          "caller": "test_bedrock_resolves_timeout_at_each_invoke",
+          "callee": "bedrock_client._bedrock_class",
+          "lineNumber": 101
+        },
+        {
+          "caller": "test_bedrock_resolves_timeout_at_each_invoke",
+          "callee": "normalized",
+          "lineNumber": 102
+        },
+        {
+          "caller": "test_bedrock_resolves_timeout_at_each_invoke",
+          "callee": "configure_deadline_policy",
+          "lineNumber": 103
+        },
+        {
+          "caller": "test_bedrock_resolves_timeout_at_each_invoke",
+          "callee": "next",
+          "lineNumber": 105
+        },
+        {
+          "caller": "test_bedrock_resolves_timeout_at_each_invoke",
+          "callee": "llm.invoke",
+          "lineNumber": 108
+        },
+        {
+          "caller": "test_bedrock_resolves_timeout_at_each_invoke",
+          "callee": "llm.invoke",
+          "lineNumber": 109
+        },
+        {
+          "caller": "test_alpha_vantage_caps_each_request_by_current_remaining_deadline",
+          "callee": "iter",
+          "lineNumber": 114
+        },
+        {
+          "caller": "test_alpha_vantage_caps_each_request_by_current_remaining_deadline",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 118
+        },
+        {
+          "caller": "test_alpha_vantage_caps_each_request_by_current_remaining_deadline",
+          "callee": "min",
+          "lineNumber": 121
+        },
+        {
+          "caller": "test_alpha_vantage_caps_each_request_by_current_remaining_deadline",
+          "callee": "next",
+          "lineNumber": 121
+        },
+        {
+          "caller": "test_alpha_vantage_caps_each_request_by_current_remaining_deadline",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 124
+        },
+        {
+          "caller": "test_alpha_vantage_caps_each_request_by_current_remaining_deadline",
+          "callee": "checkpoints.append",
+          "lineNumber": 127
+        },
+        {
+          "caller": "fake_get",
+          "callee": "captured.append",
+          "lineNumber": 138
+        },
+        {
+          "caller": "fake_get",
+          "callee": "FakeResponse",
+          "lineNumber": 139
+        },
+        {
+          "caller": "test_alpha_vantage_caps_each_request_by_current_remaining_deadline",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 141
+        },
+        {
+          "caller": "test_alpha_vantage_caps_each_request_by_current_remaining_deadline",
+          "callee": "alpha_vantage_common._make_api_request",
+          "lineNumber": 142
+        },
+        {
+          "caller": "test_alpha_vantage_caps_each_request_by_current_remaining_deadline",
+          "callee": "alpha_vantage_common._make_api_request",
+          "lineNumber": 143
+        },
+        {
+          "caller": "test_non_web_dataflow_config_clears_prior_run_scoped_deadline_callbacks",
+          "callee": "set_config",
+          "lineNumber": 149
+        },
+        {
+          "caller": "test_non_web_dataflow_config_clears_prior_run_scoped_deadline_callbacks",
+          "callee": "set_config",
+          "lineNumber": 155
+        },
+        {
+          "caller": "test_non_web_dataflow_config_clears_prior_run_scoped_deadline_callbacks",
+          "callee": "get_config",
+          "lineNumber": 156
+        }
+      ],
+      "metrics": {
+        "importCount": 7,
+        "exportCount": 7,
+        "functionCount": 6,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "tests/test_minimax.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 73,
+      "nonEmptyLines": 57,
+      "functions": [
+        {
+          "name": "_client",
+          "startLine": 17,
+          "endLine": 23,
+          "params": [
+            "model"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "TestMinimaxReasoningSplit",
+          "startLine": 27,
+          "endLine": 43,
+          "methods": [
+            "test_reasoning_split_sent_via_extra_body_not_top_level",
+            "test_non_reasoning_minimax_does_not_inject_reasoning_split"
+          ],
+          "properties": []
+        },
+        {
+          "name": "TestMinimaxStructuredOutputDispatch",
+          "startLine": 47,
+          "endLine": 73,
+          "methods": [
+            "_bound_kwargs",
+            "test_m2_7_suppresses_tool_choice",
+            "test_m2_7_highspeed_suppresses_tool_choice",
+            "test_schema_still_bound_as_tool"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "_client",
+          "line": 17,
+          "isDefault": false
+        },
+        {
+          "name": "TestMinimaxReasoningSplit",
+          "line": 26,
+          "isDefault": false
+        },
+        {
+          "name": "TestMinimaxStructuredOutputDispatch",
+          "line": 46,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_client",
+          "callee": "os.environ.setdefault",
+          "lineNumber": 18
+        },
+        {
+          "caller": "_client",
+          "callee": "MinimaxChatOpenAI",
+          "lineNumber": 19
+        },
+        {
+          "caller": "test_reasoning_split_sent_via_extra_body_not_top_level",
+          "callee": "_client()._get_request_payload",
+          "lineNumber": 31
+        },
+        {
+          "caller": "test_reasoning_split_sent_via_extra_body_not_top_level",
+          "callee": "_client",
+          "lineNumber": 31
+        },
+        {
+          "caller": "test_reasoning_split_sent_via_extra_body_not_top_level",
+          "callee": "HumanMessage",
+          "lineNumber": 31
+        },
+        {
+          "caller": "test_reasoning_split_sent_via_extra_body_not_top_level",
+          "callee": "payload.get(\"extra_body\", {}).get",
+          "lineNumber": 32
+        },
+        {
+          "caller": "test_reasoning_split_sent_via_extra_body_not_top_level",
+          "callee": "payload.get",
+          "lineNumber": 32
+        },
+        {
+          "caller": "test_non_reasoning_minimax_does_not_inject_reasoning_split",
+          "callee": "_client(model)._get_request_payload",
+          "lineNumber": 39
+        },
+        {
+          "caller": "test_non_reasoning_minimax_does_not_inject_reasoning_split",
+          "callee": "_client",
+          "lineNumber": 39
+        },
+        {
+          "caller": "test_non_reasoning_minimax_does_not_inject_reasoning_split",
+          "callee": "HumanMessage",
+          "lineNumber": 40
+        },
+        {
+          "caller": "test_non_reasoning_minimax_does_not_inject_reasoning_split",
+          "callee": "payload.get",
+          "lineNumber": 43
+        },
+        {
+          "caller": "_bound_kwargs",
+          "callee": "hasattr",
+          "lineNumber": 55
+        },
+        {
+          "caller": "_bound_kwargs",
+          "callee": "getattr",
+          "lineNumber": 56
+        },
+        {
+          "caller": "test_m2_7_suppresses_tool_choice",
+          "callee": "_client(\"MiniMax-M2.7\").with_structured_output",
+          "lineNumber": 59
+        },
+        {
+          "caller": "test_m2_7_suppresses_tool_choice",
+          "callee": "_client",
+          "lineNumber": 59
+        },
+        {
+          "caller": "test_m2_7_suppresses_tool_choice",
+          "callee": "self._bound_kwargs",
+          "lineNumber": 60
+        },
+        {
+          "caller": "test_m2_7_suppresses_tool_choice",
+          "callee": "kwargs.get",
+          "lineNumber": 61
+        },
+        {
+          "caller": "test_m2_7_highspeed_suppresses_tool_choice",
+          "callee": "_client(\"MiniMax-M2.7-highspeed\").with_structured_output",
+          "lineNumber": 64
+        },
+        {
+          "caller": "test_m2_7_highspeed_suppresses_tool_choice",
+          "callee": "_client",
+          "lineNumber": 64
+        },
+        {
+          "caller": "test_m2_7_highspeed_suppresses_tool_choice",
+          "callee": "self._bound_kwargs",
+          "lineNumber": 65
+        },
+        {
+          "caller": "test_m2_7_highspeed_suppresses_tool_choice",
+          "callee": "kwargs.get",
+          "lineNumber": 66
+        },
+        {
+          "caller": "test_schema_still_bound_as_tool",
+          "callee": "_client(\"MiniMax-M2.7\").with_structured_output",
+          "lineNumber": 69
+        },
+        {
+          "caller": "test_schema_still_bound_as_tool",
+          "callee": "_client",
+          "lineNumber": 69
+        },
+        {
+          "caller": "test_schema_still_bound_as_tool",
+          "callee": "self._bound_kwargs(bound).get",
+          "lineNumber": 70
+        },
+        {
+          "caller": "test_schema_still_bound_as_tool",
+          "callee": "self._bound_kwargs",
+          "lineNumber": 70
+        },
+        {
+          "caller": "test_schema_still_bound_as_tool",
+          "callee": "any",
+          "lineNumber": 71
+        },
+        {
+          "caller": "test_schema_still_bound_as_tool",
+          "callee": "t.get(\"function\", {}).get",
+          "lineNumber": 72
+        },
+        {
+          "caller": "test_schema_still_bound_as_tool",
+          "callee": "t.get",
+          "lineNumber": 72
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 3,
+        "functionCount": 1,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "tests/test_model_validation.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 55,
+      "nonEmptyLines": 40,
+      "classes": [
+        {
+          "name": "DummyLLMClient",
+          "startLine": 11,
+          "endLine": 21,
+          "methods": [
+            "__init__",
+            "get_llm",
+            "validate_model"
+          ],
+          "properties": []
+        },
+        {
+          "name": "ModelValidationTests",
+          "startLine": 25,
+          "endLine": 55,
+          "methods": [
+            "test_cli_catalog_models_are_all_validator_approved",
+            "test_unknown_model_emits_warning_for_strict_provider",
+            "test_openrouter_and_ollama_accept_custom_models_without_warning"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "DummyLLMClient",
+          "line": 11,
+          "isDefault": false
+        },
+        {
+          "name": "ModelValidationTests",
+          "line": 24,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "__init__",
+          "callee": "super().__init__",
+          "lineNumber": 14
+        },
+        {
+          "caller": "__init__",
+          "callee": "super",
+          "lineNumber": 14
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.warn_if_unknown_model",
+          "lineNumber": 17
+        },
+        {
+          "caller": "get_llm",
+          "callee": "object",
+          "lineNumber": 18
+        },
+        {
+          "caller": "validate_model",
+          "callee": "validate_model",
+          "lineNumber": 21
+        },
+        {
+          "caller": "test_cli_catalog_models_are_all_validator_approved",
+          "callee": "get_known_models().items",
+          "lineNumber": 27
+        },
+        {
+          "caller": "test_cli_catalog_models_are_all_validator_approved",
+          "callee": "get_known_models",
+          "lineNumber": 27
+        },
+        {
+          "caller": "test_cli_catalog_models_are_all_validator_approved",
+          "callee": "self.subTest",
+          "lineNumber": 32
+        },
+        {
+          "caller": "test_cli_catalog_models_are_all_validator_approved",
+          "callee": "self.assertTrue",
+          "lineNumber": 33
+        },
+        {
+          "caller": "test_cli_catalog_models_are_all_validator_approved",
+          "callee": "validate_model",
+          "lineNumber": 33
+        },
+        {
+          "caller": "test_unknown_model_emits_warning_for_strict_provider",
+          "callee": "DummyLLMClient",
+          "lineNumber": 36
+        },
+        {
+          "caller": "test_unknown_model_emits_warning_for_strict_provider",
+          "callee": "warnings.catch_warnings",
+          "lineNumber": 38
+        },
+        {
+          "caller": "test_unknown_model_emits_warning_for_strict_provider",
+          "callee": "warnings.simplefilter",
+          "lineNumber": 39
+        },
+        {
+          "caller": "test_unknown_model_emits_warning_for_strict_provider",
+          "callee": "client.get_llm",
+          "lineNumber": 40
+        },
+        {
+          "caller": "test_unknown_model_emits_warning_for_strict_provider",
+          "callee": "self.assertEqual",
+          "lineNumber": 42
+        },
+        {
+          "caller": "test_unknown_model_emits_warning_for_strict_provider",
+          "callee": "len",
+          "lineNumber": 42
+        },
+        {
+          "caller": "test_unknown_model_emits_warning_for_strict_provider",
+          "callee": "self.assertIn",
+          "lineNumber": 43
+        },
+        {
+          "caller": "test_unknown_model_emits_warning_for_strict_provider",
+          "callee": "str",
+          "lineNumber": 43
+        },
+        {
+          "caller": "test_unknown_model_emits_warning_for_strict_provider",
+          "callee": "self.assertIn",
+          "lineNumber": 44
+        },
+        {
+          "caller": "test_unknown_model_emits_warning_for_strict_provider",
+          "callee": "str",
+          "lineNumber": 44
+        },
+        {
+          "caller": "test_openrouter_and_ollama_accept_custom_models_without_warning",
+          "callee": "DummyLLMClient",
+          "lineNumber": 48
+        },
+        {
+          "caller": "test_openrouter_and_ollama_accept_custom_models_without_warning",
+          "callee": "self.subTest",
+          "lineNumber": 50
+        },
+        {
+          "caller": "test_openrouter_and_ollama_accept_custom_models_without_warning",
+          "callee": "warnings.catch_warnings",
+          "lineNumber": 51
+        },
+        {
+          "caller": "test_openrouter_and_ollama_accept_custom_models_without_warning",
+          "callee": "warnings.simplefilter",
+          "lineNumber": 52
+        },
+        {
+          "caller": "test_openrouter_and_ollama_accept_custom_models_without_warning",
+          "callee": "client.get_llm",
+          "lineNumber": 53
+        },
+        {
+          "caller": "test_openrouter_and_ollama_accept_custom_models_without_warning",
+          "callee": "self.assertEqual",
+          "lineNumber": 55
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 2,
+        "functionCount": 0,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "tests/test_openai_compatible_provider.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 100,
+      "nonEmptyLines": 80,
+      "functions": [
+        {
+          "name": "test_factory_routes_to_openai_client",
+          "startLine": 19,
+          "endLine": 23,
+          "params": []
+        },
+        {
+          "name": "test_base_url_required",
+          "startLine": 27,
+          "endLine": 30,
+          "params": [
+            "monkeypatch"
+          ]
+        },
+        {
+          "name": "test_keyless_local_uses_placeholder_and_chat_completions",
+          "startLine": 34,
+          "endLine": 45,
+          "params": [
+            "monkeypatch"
+          ]
+        },
+        {
+          "name": "test_optional_key_from_env",
+          "startLine": 49,
+          "endLine": 55,
+          "params": [
+            "monkeypatch"
+          ]
+        },
+        {
+          "name": "test_any_model_accepted_no_forced_key",
+          "startLine": 59,
+          "endLine": 65,
+          "params": []
+        },
+        {
+          "name": "test_env_backend_url_precedence",
+          "startLine": 69,
+          "endLine": 74,
+          "params": []
+        },
+        {
+          "name": "test_structured_output_suppresses_object_tool_choice",
+          "startLine": 78,
+          "endLine": 100,
+          "params": [
+            "monkeypatch"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "test_factory_routes_to_openai_client",
+          "line": 18,
+          "isDefault": false
+        },
+        {
+          "name": "test_base_url_required",
+          "line": 26,
+          "isDefault": false
+        },
+        {
+          "name": "test_keyless_local_uses_placeholder_and_chat_completions",
+          "line": 33,
+          "isDefault": false
+        },
+        {
+          "name": "test_optional_key_from_env",
+          "line": 48,
+          "isDefault": false
+        },
+        {
+          "name": "test_any_model_accepted_no_forced_key",
+          "line": 58,
+          "isDefault": false
+        },
+        {
+          "name": "test_env_backend_url_precedence",
+          "line": 68,
+          "isDefault": false
+        },
+        {
+          "name": "test_structured_output_suppresses_object_tool_choice",
+          "line": 77,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_factory_routes_to_openai_client",
+          "callee": "create_llm_client",
+          "lineNumber": 20
+        },
+        {
+          "caller": "test_factory_routes_to_openai_client",
+          "callee": "type",
+          "lineNumber": 23
+        },
+        {
+          "caller": "test_base_url_required",
+          "callee": "monkeypatch.delenv",
+          "lineNumber": 28
+        },
+        {
+          "caller": "test_base_url_required",
+          "callee": "pytest.raises",
+          "lineNumber": 29
+        },
+        {
+          "caller": "test_base_url_required",
+          "callee": "create_llm_client(provider=\"openai_compatible\", model=\"m\").get_llm",
+          "lineNumber": 30
+        },
+        {
+          "caller": "test_base_url_required",
+          "callee": "create_llm_client",
+          "lineNumber": 30
+        },
+        {
+          "caller": "test_keyless_local_uses_placeholder_and_chat_completions",
+          "callee": "monkeypatch.delenv",
+          "lineNumber": 35
+        },
+        {
+          "caller": "test_keyless_local_uses_placeholder_and_chat_completions",
+          "callee": "create_llm_client(\n        provider=\"openai_compatible\", model=\"qwen2.5\", base_url=\"http://localhost:8000/v1\"\n    ).get_llm",
+          "lineNumber": 36
+        },
+        {
+          "caller": "test_keyless_local_uses_placeholder_and_chat_completions",
+          "callee": "create_llm_client",
+          "lineNumber": 36
+        },
+        {
+          "caller": "test_keyless_local_uses_placeholder_and_chat_completions",
+          "callee": "type",
+          "lineNumber": 39
+        },
+        {
+          "caller": "test_keyless_local_uses_placeholder_and_chat_completions",
+          "callee": "str",
+          "lineNumber": 40
+        },
+        {
+          "caller": "test_keyless_local_uses_placeholder_and_chat_completions",
+          "callee": "llm.openai_api_key.get_secret_value",
+          "lineNumber": 42
+        },
+        {
+          "caller": "test_keyless_local_uses_placeholder_and_chat_completions",
+          "callee": "hasattr",
+          "lineNumber": 42
+        },
+        {
+          "caller": "test_keyless_local_uses_placeholder_and_chat_completions",
+          "callee": "getattr",
+          "lineNumber": 45
+        },
+        {
+          "caller": "test_optional_key_from_env",
+          "callee": "monkeypatch.setenv",
+          "lineNumber": 50
+        },
+        {
+          "caller": "test_optional_key_from_env",
+          "callee": "create_llm_client(\n        provider=\"openai_compatible\", model=\"m\", base_url=\"https://relay.example/v1\"\n    ).get_llm",
+          "lineNumber": 51
+        },
+        {
+          "caller": "test_optional_key_from_env",
+          "callee": "create_llm_client",
+          "lineNumber": 51
+        },
+        {
+          "caller": "test_optional_key_from_env",
+          "callee": "llm.openai_api_key.get_secret_value",
+          "lineNumber": 54
+        },
+        {
+          "caller": "test_optional_key_from_env",
+          "callee": "hasattr",
+          "lineNumber": 54
+        },
+        {
+          "caller": "test_any_model_accepted_no_forced_key",
+          "callee": "validate_model",
+          "lineNumber": 60
+        },
+        {
+          "caller": "test_any_model_accepted_no_forced_key",
+          "callee": "get_api_key_env",
+          "lineNumber": 63
+        },
+        {
+          "caller": "test_env_backend_url_precedence",
+          "callee": "resolve_backend_url",
+          "lineNumber": 72
+        },
+        {
+          "caller": "test_env_backend_url_precedence",
+          "callee": "resolve_backend_url",
+          "lineNumber": 73
+        },
+        {
+          "caller": "test_env_backend_url_precedence",
+          "callee": "resolve_backend_url",
+          "lineNumber": 74
+        },
+        {
+          "caller": "test_structured_output_suppresses_object_tool_choice",
+          "callee": "monkeypatch.setattr",
+          "lineNumber": 89
+        },
+        {
+          "caller": "test_structured_output_suppresses_object_tool_choice",
+          "callee": "captured.update",
+          "lineNumber": 92
+        },
+        {
+          "caller": "test_structured_output_suppresses_object_tool_choice",
+          "callee": "create_llm_client(\n        provider=\"openai_compatible\", model=\"local-llm-30b\", base_url=\"http://localhost:1234/v1\"\n    ).get_llm",
+          "lineNumber": 94
+        },
+        {
+          "caller": "test_structured_output_suppresses_object_tool_choice",
+          "callee": "create_llm_client",
+          "lineNumber": 94
+        },
+        {
+          "caller": "test_structured_output_suppresses_object_tool_choice",
+          "callee": "llm.with_structured_output",
+          "lineNumber": 97
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 7,
+        "functionCount": 7,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tests/test_openai_reasoning_effort.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 52,
+      "nonEmptyLines": 40,
+      "functions": [
+        {
+          "name": "test_supports_reasoning_effort",
+          "startLine": 27,
+          "endLine": 28,
+          "params": [
+            "model",
+            "expected"
+          ]
+        },
+        {
+          "name": "_effort_on",
+          "startLine": 31,
+          "endLine": 43,
+          "params": [
+            "model",
+            "monkeypatch"
+          ]
+        },
+        {
+          "name": "test_reasoning_model_receives_effort",
+          "startLine": 46,
+          "endLine": 47,
+          "params": [
+            "monkeypatch"
+          ]
+        },
+        {
+          "name": "test_non_reasoning_model_drops_effort",
+          "startLine": 50,
+          "endLine": 52,
+          "params": [
+            "monkeypatch"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "test_supports_reasoning_effort",
+          "line": 18,
+          "isDefault": false
+        },
+        {
+          "name": "_effort_on",
+          "line": 31,
+          "isDefault": false
+        },
+        {
+          "name": "test_reasoning_model_receives_effort",
+          "line": 46,
+          "isDefault": false
+        },
+        {
+          "name": "test_non_reasoning_model_drops_effort",
+          "line": 50,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_supports_reasoning_effort",
+          "callee": "_supports_reasoning_effort",
+          "lineNumber": 28
+        },
+        {
+          "caller": "_effort_on",
+          "callee": "monkeypatch.setenv",
+          "lineNumber": 33
+        },
+        {
+          "caller": "_effort_on",
+          "callee": "warnings.catch_warnings",
+          "lineNumber": 34
+        },
+        {
+          "caller": "_effort_on",
+          "callee": "warnings.filterwarnings",
+          "lineNumber": 35
+        },
+        {
+          "caller": "_effort_on",
+          "callee": "OpenAIClient(\n            model, provider=\"openai\", reasoning_effort=\"low\"\n        ).get_llm",
+          "lineNumber": 40
+        },
+        {
+          "caller": "_effort_on",
+          "callee": "OpenAIClient",
+          "lineNumber": 40
+        },
+        {
+          "caller": "_effort_on",
+          "callee": "getattr",
+          "lineNumber": 43
+        },
+        {
+          "caller": "test_reasoning_model_receives_effort",
+          "callee": "_effort_on",
+          "lineNumber": 47
+        },
+        {
+          "caller": "test_non_reasoning_model_drops_effort",
+          "callee": "_effort_on",
+          "lineNumber": 52
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 4,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tests/test_openai_responses_base_url.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 43,
+      "nonEmptyLines": 33,
+      "classes": [
+        {
+          "name": "NativeBaseUrlTests",
+          "startLine": 15,
+          "endLine": 27,
+          "methods": [
+            "test_unset_is_native",
+            "test_openai_hosts_are_native",
+            "test_custom_endpoints_are_not_native"
+          ],
+          "properties": []
+        },
+        {
+          "name": "ResponsesApiSelectionTests",
+          "startLine": 31,
+          "endLine": 43,
+          "methods": [
+            "test_native_openai_enables_responses_api",
+            "test_custom_base_url_disables_responses_api"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "NativeBaseUrlTests",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "ResponsesApiSelectionTests",
+          "line": 30,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_unset_is_native",
+          "callee": "_is_native_openai_base_url",
+          "lineNumber": 17
+        },
+        {
+          "caller": "test_unset_is_native",
+          "callee": "_is_native_openai_base_url",
+          "lineNumber": 18
+        },
+        {
+          "caller": "test_openai_hosts_are_native",
+          "callee": "_is_native_openai_base_url",
+          "lineNumber": 21
+        },
+        {
+          "caller": "test_openai_hosts_are_native",
+          "callee": "_is_native_openai_base_url",
+          "lineNumber": 22
+        },
+        {
+          "caller": "test_custom_endpoints_are_not_native",
+          "callee": "_is_native_openai_base_url",
+          "lineNumber": 25
+        },
+        {
+          "caller": "test_custom_endpoints_are_not_native",
+          "callee": "_is_native_openai_base_url",
+          "lineNumber": 26
+        },
+        {
+          "caller": "test_custom_endpoints_are_not_native",
+          "callee": "_is_native_openai_base_url",
+          "lineNumber": 27
+        },
+        {
+          "caller": "test_native_openai_enables_responses_api",
+          "callee": "monkeypatch.setenv",
+          "lineNumber": 33
+        },
+        {
+          "caller": "test_native_openai_enables_responses_api",
+          "callee": "OpenAIClient(\"gpt-5.5\", provider=\"openai\").get_llm",
+          "lineNumber": 34
+        },
+        {
+          "caller": "test_native_openai_enables_responses_api",
+          "callee": "OpenAIClient",
+          "lineNumber": 34
+        },
+        {
+          "caller": "test_native_openai_enables_responses_api",
+          "callee": "getattr",
+          "lineNumber": 35
+        },
+        {
+          "caller": "test_custom_base_url_disables_responses_api",
+          "callee": "monkeypatch.setenv",
+          "lineNumber": 38
+        },
+        {
+          "caller": "test_custom_base_url_disables_responses_api",
+          "callee": "OpenAIClient(\n            \"gpt-5.5\", base_url=\"http://localhost:1234/v1\", provider=\"openai\"\n        ).get_llm",
+          "lineNumber": 39
+        },
+        {
+          "caller": "test_custom_base_url_disables_responses_api",
+          "callee": "OpenAIClient",
+          "lineNumber": 39
+        },
+        {
+          "caller": "test_custom_base_url_disables_responses_api",
+          "callee": "getattr",
+          "lineNumber": 43
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 0,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "tests/test_provider_registry.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 59,
+      "nonEmptyLines": 52,
+      "functions": [
+        {
+          "name": "test_registry_membership",
+          "startLine": 17,
+          "endLine": 23,
+          "params": []
+        },
+        {
+          "name": "test_registry_spec",
+          "startLine": 44,
+          "endLine": 48,
+          "params": [
+            "provider",
+            "base_url",
+            "chat_class",
+            "responses"
+          ]
+        },
+        {
+          "name": "test_key_optionality",
+          "startLine": 52,
+          "endLine": 59,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "test_registry_membership",
+          "line": 16,
+          "isDefault": false
+        },
+        {
+          "name": "test_registry_spec",
+          "line": 26,
+          "isDefault": false
+        },
+        {
+          "name": "test_key_optionality",
+          "line": 51,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "test_registry_membership",
+          "callee": "is_openai_compatible",
+          "lineNumber": 18
+        },
+        {
+          "caller": "test_registry_membership",
+          "callee": "is_openai_compatible",
+          "lineNumber": 19
+        },
+        {
+          "caller": "test_registry_membership",
+          "callee": "is_openai_compatible",
+          "lineNumber": 21
+        },
+        {
+          "caller": "test_registry_membership",
+          "callee": "is_openai_compatible",
+          "lineNumber": 22
+        },
+        {
+          "caller": "test_registry_membership",
+          "callee": "is_openai_compatible",
+          "lineNumber": 23
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 3,
+        "functionCount": 3,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tests/test_temperature_config.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 101,
+      "nonEmptyLines": 82,
+      "functions": [
+        {
+          "name": "_get_llm",
+          "startLine": 15,
+          "endLine": 22,
+          "params": [
+            "client"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "TestTemperatureForwarding",
+          "startLine": 26,
+          "endLine": 58,
+          "methods": [
+            "test_temperature_reaches_client_when_set",
+            "test_temperature_omitted_leaves_provider_default"
+          ],
+          "properties": []
+        },
+        {
+          "name": "TestTemperatureEnvOverlay",
+          "startLine": 62,
+          "endLine": 77,
+          "methods": [
+            "test_env_sets_temperature",
+            "test_default_temperature_is_none"
+          ],
+          "properties": []
+        },
+        {
+          "name": "TestProviderKwargsTemperature",
+          "startLine": 81,
+          "endLine": 101,
+          "methods": [
+            "_kwargs_for",
+            "test_float_string_coerced",
+            "test_float_passthrough",
+            "test_none_omitted",
+            "test_empty_string_omitted"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "_get_llm",
+          "line": 15,
+          "isDefault": false
+        },
+        {
+          "name": "TestTemperatureForwarding",
+          "line": 25,
+          "isDefault": false
+        },
+        {
+          "name": "TestTemperatureEnvOverlay",
+          "line": 61,
+          "isDefault": false
+        },
+        {
+          "name": "TestProviderKwargsTemperature",
+          "line": 80,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_get_llm",
+          "callee": "warnings.catch_warnings",
+          "lineNumber": 16
+        },
+        {
+          "caller": "_get_llm",
+          "callee": "warnings.filterwarnings",
+          "lineNumber": 17
+        },
+        {
+          "caller": "_get_llm",
+          "callee": "client.get_llm",
+          "lineNumber": 22
+        },
+        {
+          "caller": "test_temperature_reaches_client_when_set",
+          "callee": "_get_llm",
+          "lineNumber": 40
+        },
+        {
+          "caller": "test_temperature_reaches_client_when_set",
+          "callee": "create_llm_client",
+          "lineNumber": 41
+        },
+        {
+          "caller": "test_temperature_omitted_leaves_provider_default",
+          "callee": "_get_llm",
+          "lineNumber": 52
+        },
+        {
+          "caller": "test_temperature_omitted_leaves_provider_default",
+          "callee": "create_llm_client",
+          "lineNumber": 53
+        },
+        {
+          "caller": "test_env_sets_temperature",
+          "callee": "monkeypatch.setenv",
+          "lineNumber": 65
+        },
+        {
+          "caller": "test_env_sets_temperature",
+          "callee": "importlib.reload",
+          "lineNumber": 66
+        },
+        {
+          "caller": "test_env_sets_temperature",
+          "callee": "float",
+          "lineNumber": 69
+        },
+        {
+          "caller": "test_env_sets_temperature",
+          "callee": "monkeypatch.delenv",
+          "lineNumber": 70
+        },
+        {
+          "caller": "test_env_sets_temperature",
+          "callee": "importlib.reload",
+          "lineNumber": 71
+        },
+        {
+          "caller": "test_default_temperature_is_none",
+          "callee": "monkeypatch.delenv",
+          "lineNumber": 75
+        },
+        {
+          "caller": "test_default_temperature_is_none",
+          "callee": "importlib.reload",
+          "lineNumber": 76
+        },
+        {
+          "caller": "_kwargs_for",
+          "callee": "TradingAgentsGraph.__new__",
+          "lineNumber": 87
+        },
+        {
+          "caller": "_kwargs_for",
+          "callee": "TradingAgentsGraph._get_provider_kwargs",
+          "lineNumber": 89
+        },
+        {
+          "caller": "test_float_string_coerced",
+          "callee": "self._kwargs_for",
+          "lineNumber": 92
+        },
+        {
+          "caller": "test_float_passthrough",
+          "callee": "self._kwargs_for",
+          "lineNumber": 95
+        },
+        {
+          "caller": "test_none_omitted",
+          "callee": "self._kwargs_for",
+          "lineNumber": 98
+        },
+        {
+          "caller": "test_empty_string_omitted",
+          "callee": "self._kwargs_for",
+          "lineNumber": 101
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 4,
+        "functionCount": 1,
+        "classCount": 3
+      }
+    },
+    {
+      "path": "tradingagents/llm_clients/__init__.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 4,
+      "nonEmptyLines": 3,
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/llm_clients/anthropic_client.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 91,
+      "nonEmptyLines": 73,
+      "functions": [
+        {
+          "name": "_supports_effort",
+          "startLine": 32,
+          "endLine": 43,
+          "params": [
+            "model"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "NormalizedChatAnthropic",
+          "startLine": 46,
+          "endLine": 57,
+          "methods": [
+            "invoke"
+          ],
+          "properties": []
+        },
+        {
+          "name": "AnthropicClient",
+          "startLine": 60,
+          "endLine": 91,
+          "methods": [
+            "__init__",
+            "get_llm",
+            "validate_model"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "_supports_effort",
+          "line": 32,
+          "isDefault": false
+        },
+        {
+          "name": "NormalizedChatAnthropic",
+          "line": 46,
+          "isDefault": false
+        },
+        {
+          "name": "AnthropicClient",
+          "line": 60,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_supports_effort",
+          "callee": "model.lower",
+          "lineNumber": 34
+        },
+        {
+          "caller": "_supports_effort",
+          "callee": "_EFFORT_MODEL.match",
+          "lineNumber": 37
+        },
+        {
+          "caller": "_supports_effort",
+          "callee": "match.group",
+          "lineNumber": 40
+        },
+        {
+          "caller": "_supports_effort",
+          "callee": "int",
+          "lineNumber": 41
+        },
+        {
+          "caller": "_supports_effort",
+          "callee": "match.group",
+          "lineNumber": 41
+        },
+        {
+          "caller": "_supports_effort",
+          "callee": "int",
+          "lineNumber": 42
+        },
+        {
+          "caller": "_supports_effort",
+          "callee": "match.group",
+          "lineNumber": 42
+        },
+        {
+          "caller": "_supports_effort",
+          "callee": "match.group",
+          "lineNumber": 42
+        },
+        {
+          "caller": "invoke",
+          "callee": "normalize_content",
+          "lineNumber": 55
+        },
+        {
+          "caller": "invoke",
+          "callee": "invoke_with_deadline",
+          "lineNumber": 56
+        },
+        {
+          "caller": "invoke",
+          "callee": "super",
+          "lineNumber": 56
+        },
+        {
+          "caller": "__init__",
+          "callee": "super().__init__",
+          "lineNumber": 64
+        },
+        {
+          "caller": "__init__",
+          "callee": "super",
+          "lineNumber": 64
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.warn_if_unknown_model",
+          "lineNumber": 68
+        },
+        {
+          "caller": "get_llm",
+          "callee": "_supports_effort",
+          "lineNumber": 77
+        },
+        {
+          "caller": "get_llm",
+          "callee": "NormalizedChatAnthropic",
+          "lineNumber": 81
+        },
+        {
+          "caller": "get_llm",
+          "callee": "configure_deadline_policy",
+          "lineNumber": 82
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.kwargs.get",
+          "lineNumber": 84
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.kwargs.get",
+          "lineNumber": 85
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.kwargs.get",
+          "lineNumber": 86
+        },
+        {
+          "caller": "validate_model",
+          "callee": "validate_model",
+          "lineNumber": 91
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 3,
+        "functionCount": 1,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "tradingagents/llm_clients/api_key_env.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 53,
+      "nonEmptyLines": 46,
+      "functions": [
+        {
+          "name": "get_api_key_env",
+          "startLine": 47,
+          "endLine": 53,
+          "params": [
+            "provider"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "get_api_key_env",
+          "line": 47,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "get_api_key_env",
+          "callee": "PROVIDER_API_KEY_ENV.get",
+          "lineNumber": 53
+        },
+        {
+          "caller": "get_api_key_env",
+          "callee": "provider.lower",
+          "lineNumber": 53
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/llm_clients/azure_client.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 64,
+      "nonEmptyLines": 49,
+      "classes": [
+        {
+          "name": "NormalizedAzureChatOpenAI",
+          "startLine": 19,
+          "endLine": 25,
+          "methods": [
+            "invoke"
+          ],
+          "properties": []
+        },
+        {
+          "name": "AzureOpenAIClient",
+          "startLine": 28,
+          "endLine": 64,
+          "methods": [
+            "__init__",
+            "get_llm",
+            "validate_model"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "NormalizedAzureChatOpenAI",
+          "line": 19,
+          "isDefault": false
+        },
+        {
+          "name": "AzureOpenAIClient",
+          "line": 28,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "invoke",
+          "callee": "normalize_content",
+          "lineNumber": 23
+        },
+        {
+          "caller": "invoke",
+          "callee": "invoke_with_deadline",
+          "lineNumber": 24
+        },
+        {
+          "caller": "invoke",
+          "callee": "super",
+          "lineNumber": 24
+        },
+        {
+          "caller": "__init__",
+          "callee": "super().__init__",
+          "lineNumber": 39
+        },
+        {
+          "caller": "__init__",
+          "callee": "super",
+          "lineNumber": 39
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.warn_if_unknown_model",
+          "lineNumber": 43
+        },
+        {
+          "caller": "get_llm",
+          "callee": "os.environ.get",
+          "lineNumber": 47
+        },
+        {
+          "caller": "get_llm",
+          "callee": "NormalizedAzureChatOpenAI",
+          "lineNumber": 54
+        },
+        {
+          "caller": "get_llm",
+          "callee": "configure_deadline_policy",
+          "lineNumber": 55
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.kwargs.get",
+          "lineNumber": 57
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.kwargs.get",
+          "lineNumber": 58
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.kwargs.get",
+          "lineNumber": 59
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 0,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "tradingagents/llm_clients/base_client.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 116,
+      "nonEmptyLines": 97,
+      "functions": [
+        {
+          "name": "normalize_content",
+          "startLine": 7,
+          "endLine": 23,
+          "params": [
+            "response"
+          ]
+        },
+        {
+          "name": "resolve_invocation_timeout",
+          "startLine": 26,
+          "endLine": 39,
+          "params": [
+            "instance",
+            "explicit"
+          ]
+        },
+        {
+          "name": "invoke_with_deadline",
+          "startLine": 42,
+          "endLine": 61,
+          "params": [
+            "instance",
+            "invoke",
+            "input",
+            "config"
+          ]
+        },
+        {
+          "name": "configure_deadline_policy",
+          "startLine": 64,
+          "endLine": 76,
+          "params": [
+            "llm",
+            "deadline_supplier",
+            "timeout_cap",
+            "checkpoint"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "BaseLLMClient",
+          "startLine": 79,
+          "endLine": 116,
+          "methods": [
+            "__init__",
+            "get_provider_name",
+            "warn_if_unknown_model",
+            "get_llm",
+            "validate_model"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "normalize_content",
+          "line": 7,
+          "isDefault": false
+        },
+        {
+          "name": "resolve_invocation_timeout",
+          "line": 26,
+          "isDefault": false
+        },
+        {
+          "name": "invoke_with_deadline",
+          "line": 42,
+          "isDefault": false
+        },
+        {
+          "name": "configure_deadline_policy",
+          "line": 64,
+          "isDefault": false
+        },
+        {
+          "name": "BaseLLMClient",
+          "line": 79,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "normalize_content",
+          "callee": "isinstance",
+          "lineNumber": 16
+        },
+        {
+          "caller": "normalize_content",
+          "callee": "item.get",
+          "lineNumber": 18
+        },
+        {
+          "caller": "normalize_content",
+          "callee": "isinstance",
+          "lineNumber": 18
+        },
+        {
+          "caller": "normalize_content",
+          "callee": "item.get",
+          "lineNumber": 18
+        },
+        {
+          "caller": "normalize_content",
+          "callee": "isinstance",
+          "lineNumber": 19
+        },
+        {
+          "caller": "normalize_content",
+          "callee": "\"\\n\".join",
+          "lineNumber": 22
+        },
+        {
+          "caller": "resolve_invocation_timeout",
+          "callee": "getattr",
+          "lineNumber": 29
+        },
+        {
+          "caller": "resolve_invocation_timeout",
+          "callee": "callable",
+          "lineNumber": 30
+        },
+        {
+          "caller": "resolve_invocation_timeout",
+          "callee": "max",
+          "lineNumber": 32
+        },
+        {
+          "caller": "resolve_invocation_timeout",
+          "callee": "float",
+          "lineNumber": 32
+        },
+        {
+          "caller": "resolve_invocation_timeout",
+          "callee": "supplier",
+          "lineNumber": 32
+        },
+        {
+          "caller": "resolve_invocation_timeout",
+          "callee": "getattr",
+          "lineNumber": 33
+        },
+        {
+          "caller": "resolve_invocation_timeout",
+          "callee": "values.append",
+          "lineNumber": 36
+        },
+        {
+          "caller": "resolve_invocation_timeout",
+          "callee": "max",
+          "lineNumber": 36
+        },
+        {
+          "caller": "resolve_invocation_timeout",
+          "callee": "float",
+          "lineNumber": 36
+        },
+        {
+          "caller": "resolve_invocation_timeout",
+          "callee": "values.append",
+          "lineNumber": 38
+        },
+        {
+          "caller": "resolve_invocation_timeout",
+          "callee": "max",
+          "lineNumber": 38
+        },
+        {
+          "caller": "resolve_invocation_timeout",
+          "callee": "float",
+          "lineNumber": 38
+        },
+        {
+          "caller": "resolve_invocation_timeout",
+          "callee": "min",
+          "lineNumber": 39
+        },
+        {
+          "caller": "invoke_with_deadline",
+          "callee": "getattr",
+          "lineNumber": 51
+        },
+        {
+          "caller": "invoke_with_deadline",
+          "callee": "callable",
+          "lineNumber": 52
+        },
+        {
+          "caller": "invoke_with_deadline",
+          "callee": "checkpoint",
+          "lineNumber": 53
+        },
+        {
+          "caller": "invoke_with_deadline",
+          "callee": "resolve_invocation_timeout",
+          "lineNumber": 54
+        },
+        {
+          "caller": "invoke_with_deadline",
+          "callee": "kwargs.get",
+          "lineNumber": 54
+        },
+        {
+          "caller": "invoke_with_deadline",
+          "callee": "callable",
+          "lineNumber": 55
+        },
+        {
+          "caller": "invoke_with_deadline",
+          "callee": "getattr",
+          "lineNumber": 55
+        },
+        {
+          "caller": "invoke_with_deadline",
+          "callee": "invoke",
+          "lineNumber": 58
+        },
+        {
+          "caller": "invoke_with_deadline",
+          "callee": "callable",
+          "lineNumber": 60
+        },
+        {
+          "caller": "invoke_with_deadline",
+          "callee": "checkpoint",
+          "lineNumber": 61
+        },
+        {
+          "caller": "configure_deadline_policy",
+          "callee": "object.__setattr__",
+          "lineNumber": 73
+        },
+        {
+          "caller": "configure_deadline_policy",
+          "callee": "object.__setattr__",
+          "lineNumber": 74
+        },
+        {
+          "caller": "configure_deadline_policy",
+          "callee": "object.__setattr__",
+          "lineNumber": 75
+        },
+        {
+          "caller": "get_provider_name",
+          "callee": "getattr",
+          "lineNumber": 89
+        },
+        {
+          "caller": "get_provider_name",
+          "callee": "str",
+          "lineNumber": 91
+        },
+        {
+          "caller": "get_provider_name",
+          "callee": "self.__class__.__name__.removesuffix(\"Client\").lower",
+          "lineNumber": 92
+        },
+        {
+          "caller": "get_provider_name",
+          "callee": "self.__class__.__name__.removesuffix",
+          "lineNumber": 92
+        },
+        {
+          "caller": "warn_if_unknown_model",
+          "callee": "self.validate_model",
+          "lineNumber": 96
+        },
+        {
+          "caller": "warn_if_unknown_model",
+          "callee": "warnings.warn",
+          "lineNumber": 99
+        },
+        {
+          "caller": "warn_if_unknown_model",
+          "callee": "self.get_provider_name",
+          "lineNumber": 102
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 5,
+        "functionCount": 4,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "tradingagents/llm_clients/bedrock_client.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 89,
+      "nonEmptyLines": 74,
+      "functions": [
+        {
+          "name": "_bedrock_class",
+          "startLine": 17,
+          "endLine": 45,
+          "params": []
+        }
+      ],
+      "classes": [
+        {
+          "name": "BedrockClient",
+          "startLine": 48,
+          "endLine": 89,
+          "methods": [
+            "get_llm",
+            "validate_model"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "_bedrock_class",
+          "line": 17,
+          "isDefault": false
+        },
+        {
+          "name": "BedrockClient",
+          "line": 48,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "_bedrock_class",
+          "callee": "ImportError",
+          "lineNumber": 31
+        },
+        {
+          "caller": "invoke",
+          "callee": "normalize_content",
+          "lineNumber": 40
+        },
+        {
+          "caller": "invoke",
+          "callee": "invoke_with_deadline",
+          "lineNumber": 41
+        },
+        {
+          "caller": "invoke",
+          "callee": "super",
+          "lineNumber": 41
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.warn_if_unknown_model",
+          "lineNumber": 61
+        },
+        {
+          "caller": "get_llm",
+          "callee": "_bedrock_class",
+          "lineNumber": 62
+        },
+        {
+          "caller": "get_llm",
+          "callee": "os.environ.get",
+          "lineNumber": 65
+        },
+        {
+          "caller": "get_llm",
+          "callee": "os.environ.get",
+          "lineNumber": 66
+        },
+        {
+          "caller": "get_llm",
+          "callee": "os.environ.get",
+          "lineNumber": 73
+        },
+        {
+          "caller": "get_llm",
+          "callee": "chat_cls",
+          "lineNumber": 79
+        },
+        {
+          "caller": "get_llm",
+          "callee": "configure_deadline_policy",
+          "lineNumber": 80
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.kwargs.get",
+          "lineNumber": 82
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.kwargs.get",
+          "lineNumber": 83
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.kwargs.get",
+          "lineNumber": 84
+        },
+        {
+          "caller": "validate_model",
+          "callee": "validate_model",
+          "lineNumber": 89
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "tradingagents/llm_clients/capabilities.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 126,
+      "nonEmptyLines": 108,
+      "functions": [
+        {
+          "name": "get_capabilities",
+          "startLine": 119,
+          "endLine": 126,
+          "params": [
+            "model_name"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "ModelCapabilities",
+          "startLine": 30,
+          "endLine": 45,
+          "methods": [],
+          "properties": [
+            "supports_tool_choice",
+            "supports_json_mode",
+            "supports_json_schema",
+            "preferred_structured_method",
+            "requires_reasoning_content_roundtrip",
+            "requires_reasoning_split"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "ModelCapabilities",
+          "line": 29,
+          "isDefault": false
+        },
+        {
+          "name": "get_capabilities",
+          "line": 119,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "get_capabilities",
+          "callee": "pattern.match",
+          "lineNumber": 124
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "tradingagents/llm_clients/factory.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 54,
+      "nonEmptyLines": 41,
+      "functions": [
+        {
+          "name": "create_llm_client",
+          "startLine": 5,
+          "endLine": 54,
+          "params": [
+            "provider",
+            "model",
+            "base_url",
+            "**kwargs"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "create_llm_client",
+          "line": 5,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "create_llm_client",
+          "callee": "provider.lower",
+          "lineNumber": 29
+        },
+        {
+          "caller": "create_llm_client",
+          "callee": "AnthropicClient",
+          "lineNumber": 36
+        },
+        {
+          "caller": "create_llm_client",
+          "callee": "GoogleClient",
+          "lineNumber": 40
+        },
+        {
+          "caller": "create_llm_client",
+          "callee": "AzureOpenAIClient",
+          "lineNumber": 44
+        },
+        {
+          "caller": "create_llm_client",
+          "callee": "BedrockClient",
+          "lineNumber": 48
+        },
+        {
+          "caller": "create_llm_client",
+          "callee": "is_openai_compatible",
+          "lineNumber": 51
+        },
+        {
+          "caller": "create_llm_client",
+          "callee": "OpenAIClient",
+          "lineNumber": 52
+        },
+        {
+          "caller": "create_llm_client",
+          "callee": "ValueError",
+          "lineNumber": 54
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/llm_clients/google_client.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 70,
+      "nonEmptyLines": 54,
+      "classes": [
+        {
+          "name": "NormalizedChatGoogleGenerativeAI",
+          "startLine": 14,
+          "endLine": 24,
+          "methods": [
+            "invoke"
+          ],
+          "properties": []
+        },
+        {
+          "name": "GoogleClient",
+          "startLine": 27,
+          "endLine": 70,
+          "methods": [
+            "__init__",
+            "get_llm",
+            "validate_model"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "NormalizedChatGoogleGenerativeAI",
+          "line": 14,
+          "isDefault": false
+        },
+        {
+          "name": "GoogleClient",
+          "line": 27,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "invoke",
+          "callee": "normalize_content",
+          "lineNumber": 22
+        },
+        {
+          "caller": "invoke",
+          "callee": "invoke_with_deadline",
+          "lineNumber": 23
+        },
+        {
+          "caller": "invoke",
+          "callee": "super",
+          "lineNumber": 23
+        },
+        {
+          "caller": "__init__",
+          "callee": "super().__init__",
+          "lineNumber": 31
+        },
+        {
+          "caller": "__init__",
+          "callee": "super",
+          "lineNumber": 31
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.warn_if_unknown_model",
+          "lineNumber": 35
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.kwargs.get",
+          "lineNumber": 46
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.kwargs.get",
+          "lineNumber": 46
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.kwargs.get",
+          "lineNumber": 54
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.model.lower",
+          "lineNumber": 56
+        },
+        {
+          "caller": "get_llm",
+          "callee": "NormalizedChatGoogleGenerativeAI",
+          "lineNumber": 60
+        },
+        {
+          "caller": "get_llm",
+          "callee": "configure_deadline_policy",
+          "lineNumber": 61
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.kwargs.get",
+          "lineNumber": 63
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.kwargs.get",
+          "lineNumber": 64
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.kwargs.get",
+          "lineNumber": 65
+        },
+        {
+          "caller": "validate_model",
+          "callee": "validate_model",
+          "lineNumber": 70
+        }
+      ],
+      "metrics": {
+        "importCount": 2,
+        "exportCount": 2,
+        "functionCount": 0,
+        "classCount": 2
+      }
+    },
+    {
+      "path": "tradingagents/llm_clients/model_catalog.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 210,
+      "nonEmptyLines": 195,
+      "functions": [
+        {
+          "name": "get_model_options",
+          "startLine": 194,
+          "endLine": 196,
+          "params": [
+            "provider",
+            "mode"
+          ]
+        },
+        {
+          "name": "get_known_models",
+          "startLine": 199,
+          "endLine": 210,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "get_model_options",
+          "line": 194,
+          "isDefault": false
+        },
+        {
+          "name": "get_known_models",
+          "line": 199,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "get_model_options",
+          "callee": "provider.lower",
+          "lineNumber": 196
+        },
+        {
+          "caller": "get_known_models",
+          "callee": "sorted",
+          "lineNumber": 202
+        },
+        {
+          "caller": "get_known_models",
+          "callee": "mode_options.values",
+          "lineNumber": 205
+        },
+        {
+          "caller": "get_known_models",
+          "callee": "MODEL_OPTIONS.items",
+          "lineNumber": 209
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 2,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "tradingagents/llm_clients/openai_client.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 350,
+      "nonEmptyLines": 293,
+      "functions": [
+        {
+          "name": "_input_to_messages",
+          "startLine": 78,
+          "endLine": 92,
+          "params": [
+            "input_"
+          ]
+        },
+        {
+          "name": "_supports_reasoning_effort",
+          "startLine": 185,
+          "endLine": 187,
+          "params": [
+            "model"
+          ]
+        },
+        {
+          "name": "is_openai_compatible",
+          "startLine": 243,
+          "endLine": 245,
+          "params": [
+            "provider"
+          ]
+        },
+        {
+          "name": "_is_native_openai_base_url",
+          "startLine": 248,
+          "endLine": 261,
+          "params": [
+            "base_url"
+          ]
+        }
+      ],
+      "classes": [
+        {
+          "name": "NormalizedChatOpenAI",
+          "startLine": 21,
+          "endLine": 58,
+          "methods": [
+            "invoke",
+            "with_structured_output"
+          ],
+          "properties": []
+        },
+        {
+          "name": "LocalCompatibleChatOpenAI",
+          "startLine": 61,
+          "endLine": 75,
+          "methods": [
+            "with_structured_output"
+          ],
+          "properties": []
+        },
+        {
+          "name": "DeepSeekChatOpenAI",
+          "startLine": 95,
+          "endLine": 136,
+          "methods": [
+            "_get_request_payload",
+            "_create_chat_result"
+          ],
+          "properties": []
+        },
+        {
+          "name": "MinimaxChatOpenAI",
+          "startLine": 139,
+          "endLine": 169,
+          "methods": [
+            "_get_request_payload"
+          ],
+          "properties": []
+        },
+        {
+          "name": "ProviderSpec",
+          "startLine": 191,
+          "endLine": 213,
+          "methods": [],
+          "properties": [
+            "chat_class",
+            "base_url",
+            "base_url_env",
+            "key_optional",
+            "placeholder_key",
+            "require_base_url",
+            "use_responses_api"
+          ]
+        },
+        {
+          "name": "OpenAIClient",
+          "startLine": 264,
+          "endLine": 350,
+          "methods": [
+            "__init__",
+            "get_llm",
+            "validate_model"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "NormalizedChatOpenAI",
+          "line": 21,
+          "isDefault": false
+        },
+        {
+          "name": "LocalCompatibleChatOpenAI",
+          "line": 61,
+          "isDefault": false
+        },
+        {
+          "name": "_input_to_messages",
+          "line": 78,
+          "isDefault": false
+        },
+        {
+          "name": "DeepSeekChatOpenAI",
+          "line": 95,
+          "isDefault": false
+        },
+        {
+          "name": "MinimaxChatOpenAI",
+          "line": 139,
+          "isDefault": false
+        },
+        {
+          "name": "_supports_reasoning_effort",
+          "line": 185,
+          "isDefault": false
+        },
+        {
+          "name": "ProviderSpec",
+          "line": 190,
+          "isDefault": false
+        },
+        {
+          "name": "is_openai_compatible",
+          "line": 243,
+          "isDefault": false
+        },
+        {
+          "name": "_is_native_openai_base_url",
+          "line": 248,
+          "isDefault": false
+        },
+        {
+          "name": "OpenAIClient",
+          "line": 264,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "invoke",
+          "callee": "normalize_content",
+          "lineNumber": 41
+        },
+        {
+          "caller": "invoke",
+          "callee": "invoke_with_deadline",
+          "lineNumber": 42
+        },
+        {
+          "caller": "invoke",
+          "callee": "super",
+          "lineNumber": 42
+        },
+        {
+          "caller": "with_structured_output",
+          "callee": "get_capabilities",
+          "lineNumber": 46
+        },
+        {
+          "caller": "with_structured_output",
+          "callee": "NotImplementedError",
+          "lineNumber": 48
+        },
+        {
+          "caller": "with_structured_output",
+          "callee": "kwargs.setdefault",
+          "lineNumber": 57
+        },
+        {
+          "caller": "with_structured_output",
+          "callee": "super().with_structured_output",
+          "lineNumber": 58
+        },
+        {
+          "caller": "with_structured_output",
+          "callee": "super",
+          "lineNumber": 58
+        },
+        {
+          "caller": "with_structured_output",
+          "callee": "get_capabilities",
+          "lineNumber": 72
+        },
+        {
+          "caller": "with_structured_output",
+          "callee": "kwargs.setdefault",
+          "lineNumber": 74
+        },
+        {
+          "caller": "with_structured_output",
+          "callee": "super().with_structured_output",
+          "lineNumber": 75
+        },
+        {
+          "caller": "with_structured_output",
+          "callee": "super",
+          "lineNumber": 75
+        },
+        {
+          "caller": "_input_to_messages",
+          "callee": "isinstance",
+          "lineNumber": 88
+        },
+        {
+          "caller": "_input_to_messages",
+          "callee": "hasattr",
+          "lineNumber": 90
+        },
+        {
+          "caller": "_input_to_messages",
+          "callee": "input_.to_messages",
+          "lineNumber": 91
+        },
+        {
+          "caller": "_get_request_payload",
+          "callee": "super()._get_request_payload",
+          "lineNumber": 111
+        },
+        {
+          "caller": "_get_request_payload",
+          "callee": "super",
+          "lineNumber": 111
+        },
+        {
+          "caller": "_get_request_payload",
+          "callee": "payload.get",
+          "lineNumber": 112
+        },
+        {
+          "caller": "_get_request_payload",
+          "callee": "zip",
+          "lineNumber": 113
+        },
+        {
+          "caller": "_get_request_payload",
+          "callee": "_input_to_messages",
+          "lineNumber": 113
+        },
+        {
+          "caller": "_get_request_payload",
+          "callee": "isinstance",
+          "lineNumber": 114
+        },
+        {
+          "caller": "_get_request_payload",
+          "callee": "message.additional_kwargs.get",
+          "lineNumber": 116
+        },
+        {
+          "caller": "_create_chat_result",
+          "callee": "super()._create_chat_result",
+          "lineNumber": 122
+        },
+        {
+          "caller": "_create_chat_result",
+          "callee": "super",
+          "lineNumber": 122
+        },
+        {
+          "caller": "_create_chat_result",
+          "callee": "isinstance",
+          "lineNumber": 125
+        },
+        {
+          "caller": "_create_chat_result",
+          "callee": "response.model_dump",
+          "lineNumber": 126
+        },
+        {
+          "caller": "_create_chat_result",
+          "callee": "zip",
+          "lineNumber": 130
+        },
+        {
+          "caller": "_create_chat_result",
+          "callee": "response_dict.get",
+          "lineNumber": 131
+        },
+        {
+          "caller": "_create_chat_result",
+          "callee": "choice.get(\"message\", {}).get",
+          "lineNumber": 133
+        },
+        {
+          "caller": "_create_chat_result",
+          "callee": "choice.get",
+          "lineNumber": 133
+        },
+        {
+          "caller": "_get_request_payload",
+          "callee": "super()._get_request_payload",
+          "lineNumber": 161
+        },
+        {
+          "caller": "_get_request_payload",
+          "callee": "super",
+          "lineNumber": 161
+        },
+        {
+          "caller": "_get_request_payload",
+          "callee": "get_capabilities",
+          "lineNumber": 162
+        },
+        {
+          "caller": "_get_request_payload",
+          "callee": "payload.setdefault",
+          "lineNumber": 167
+        },
+        {
+          "caller": "_get_request_payload",
+          "callee": "extra_body.setdefault",
+          "lineNumber": 168
+        },
+        {
+          "caller": "_supports_reasoning_effort",
+          "callee": "bool",
+          "lineNumber": 187
+        },
+        {
+          "caller": "_supports_reasoning_effort",
+          "callee": "_OPENAI_REASONING_MODEL.match",
+          "lineNumber": 187
+        },
+        {
+          "caller": "_supports_reasoning_effort",
+          "callee": "model.lower().strip",
+          "lineNumber": 187
+        },
+        {
+          "caller": "_supports_reasoning_effort",
+          "callee": "model.lower",
+          "lineNumber": 187
+        },
+        {
+          "caller": "is_openai_compatible",
+          "callee": "provider.lower",
+          "lineNumber": 245
+        },
+        {
+          "caller": "_is_native_openai_base_url",
+          "callee": "urlparse",
+          "lineNumber": 260
+        },
+        {
+          "caller": "_is_native_openai_base_url",
+          "callee": "host.endswith",
+          "lineNumber": 261
+        },
+        {
+          "caller": "__init__",
+          "callee": "super().__init__",
+          "lineNumber": 280
+        },
+        {
+          "caller": "__init__",
+          "callee": "super",
+          "lineNumber": 280
+        },
+        {
+          "caller": "__init__",
+          "callee": "provider.lower",
+          "lineNumber": 281
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.warn_if_unknown_model",
+          "lineNumber": 285
+        },
+        {
+          "caller": "get_llm",
+          "callee": "OPENAI_COMPATIBLE_PROVIDERS.get",
+          "lineNumber": 287
+        },
+        {
+          "caller": "get_llm",
+          "callee": "os.environ.get",
+          "lineNumber": 296
+        },
+        {
+          "caller": "get_llm",
+          "callee": "ValueError",
+          "lineNumber": 299
+        },
+        {
+          "caller": "get_llm",
+          "callee": "get_api_key_env",
+          "lineNumber": 310
+        },
+        {
+          "caller": "get_llm",
+          "callee": "os.environ.get",
+          "lineNumber": 311
+        },
+        {
+          "caller": "get_llm",
+          "callee": "ValueError",
+          "lineNumber": 317
+        },
+        {
+          "caller": "get_llm",
+          "callee": "_is_native_openai_base_url",
+          "lineNumber": 326
+        },
+        {
+          "caller": "get_llm",
+          "callee": "_supports_reasoning_effort",
+          "lineNumber": 335
+        },
+        {
+          "caller": "get_llm",
+          "callee": "chat_cls",
+          "lineNumber": 340
+        },
+        {
+          "caller": "get_llm",
+          "callee": "configure_deadline_policy",
+          "lineNumber": 341
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.kwargs.get",
+          "lineNumber": 343
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.kwargs.get",
+          "lineNumber": 344
+        },
+        {
+          "caller": "get_llm",
+          "callee": "self.kwargs.get",
+          "lineNumber": 345
+        },
+        {
+          "caller": "validate_model",
+          "callee": "validate_model",
+          "lineNumber": 350
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 10,
+        "functionCount": 4,
+        "classCount": 6
+      }
+    },
+    {
+      "path": "tradingagents/llm_clients/validators.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 33,
+      "nonEmptyLines": 24,
+      "functions": [
+        {
+          "name": "validate_model",
+          "startLine": 20,
+          "endLine": 33,
+          "params": [
+            "provider",
+            "model"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "validate_model",
+          "line": 20,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "validate_model",
+          "callee": "provider.lower",
+          "lineNumber": 25
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    }
+  ]
+}

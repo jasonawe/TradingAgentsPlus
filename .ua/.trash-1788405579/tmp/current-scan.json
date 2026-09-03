@@ -1,5 +1,6 @@
 {
-  "projectRoot": "/Users/shenkang/workroom/languages/agent/TradingAgents",
+  "scriptCompleted": true,
+  "contentDigest": "3c7e5319f6aaa1386d1483544248bf4e846e98437c947bc542e7ea97d26e5a8a",
   "files": [
     {
       "path": ".dockerignore",
@@ -22,8 +23,68 @@
     {
       "path": ".github/workflows/ci.yml",
       "language": "yaml",
-      "sizeLines": 61,
+      "sizeLines": 88,
       "fileCategory": "infra"
+    },
+    {
+      "path": ".superpowers/brainstorm/41801-1787718122/.server-stopped",
+      "language": "unknown",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".superpowers/brainstorm/41801-1787718122/console-layout.html",
+      "language": "html",
+      "sizeLines": 80,
+      "fileCategory": "markup"
+    },
+    {
+      "path": ".superpowers/brainstorm/41801-1787718122/visual-style.html",
+      "language": "html",
+      "sizeLines": 48,
+      "fileCategory": "markup"
+    },
+    {
+      "path": ".superpowers/brainstorm/41801-1787718122/waiting-architecture.html",
+      "language": "html",
+      "sizeLines": 3,
+      "fileCategory": "markup"
+    },
+    {
+      "path": ".superpowers/brainstorm/70330-1787815068/.server-stopped",
+      "language": "unknown",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".superpowers/brainstorm/70330-1787815068/portfolio-layout-options.html",
+      "language": "html",
+      "sizeLines": 62,
+      "fileCategory": "markup"
+    },
+    {
+      "path": ".superpowers/brainstorm/81139-1787817330/.server-stopped",
+      "language": "unknown",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".superpowers/brainstorm/81139-1787817330/portfolio-layout-options.html",
+      "language": "html",
+      "sizeLines": 8,
+      "fileCategory": "markup"
+    },
+    {
+      "path": ".superpowers/brainstorm/81139-1787817330/report-reading-options.html",
+      "language": "html",
+      "sizeLines": 19,
+      "fileCategory": "markup"
+    },
+    {
+      "path": ".superpowers/brainstorm/81139-1787817330/waiting-architecture.html",
+      "language": "html",
+      "sizeLines": 3,
+      "fileCategory": "markup"
     },
     {
       "path": "CHANGELOG.md",
@@ -40,7 +101,7 @@
     {
       "path": "README.md",
       "language": "markdown",
-      "sizeLines": 304,
+      "sizeLines": 384,
       "fileCategory": "docs"
     },
     {
@@ -64,7 +125,7 @@
     {
       "path": "cli/main.py",
       "language": "python",
-      "sizeLines": 1317,
+      "sizeLines": 1347,
       "fileCategory": "code"
     },
     {
@@ -98,6 +159,114 @@
       "fileCategory": "infra"
     },
     {
+      "path": "docs/superpowers/plans/2026-08-26-web-analysis-console-plan.md",
+      "language": "markdown",
+      "sizeLines": 459,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-27-personal-investor-platform-plan.md",
+      "language": "markdown",
+      "sizeLines": 314,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-27-web-report-library-models-language-plan.md",
+      "language": "markdown",
+      "sizeLines": 41,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-28-report-publish-integrity-plan.md",
+      "language": "markdown",
+      "sizeLines": 43,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-31-platform-reliability-operations-plan.md",
+      "language": "markdown",
+      "sizeLines": 632,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-31-rating-localization-plan.md",
+      "language": "markdown",
+      "sizeLines": 111,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-09-01-compact-section-headers.md",
+      "language": "markdown",
+      "sizeLines": 42,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-09-02-manager-concurrency.md",
+      "language": "markdown",
+      "sizeLines": 705,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-09-02-scheduled-analysis.md",
+      "language": "markdown",
+      "sizeLines": 77,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-26-web-analysis-console-design.md",
+      "language": "markdown",
+      "sizeLines": 329,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-27-personal-investor-platform-design.md",
+      "language": "markdown",
+      "sizeLines": 379,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-27-web-report-library-models-language-design.md",
+      "language": "markdown",
+      "sizeLines": 181,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-31-platform-reliability-operations-design.md",
+      "language": "markdown",
+      "sizeLines": 253,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-31-rating-localization-design.md",
+      "language": "markdown",
+      "sizeLines": 61,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-01-analysis-timeout-recovery-design.md",
+      "language": "markdown",
+      "sizeLines": 247,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-01-compact-section-headers-design.md",
+      "language": "markdown",
+      "sizeLines": 30,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-02-scheduled-analysis-design.md",
+      "language": "markdown",
+      "sizeLines": 392,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-02-ui-modern-redesign-design.md",
+      "language": "markdown",
+      "sizeLines": 219,
+      "fileCategory": "docs"
+    },
+    {
       "path": "main.py",
       "language": "python",
       "sizeLines": 19,
@@ -106,7 +275,7 @@
     {
       "path": "pyproject.toml",
       "language": "toml",
-      "sizeLines": 88,
+      "sizeLines": 101,
       "fileCategory": "config"
     },
     {
@@ -154,7 +323,7 @@
     {
       "path": "tests/test_anthropic_effort.py",
       "language": "python",
-      "sizeLines": 98,
+      "sizeLines": 114,
       "fileCategory": "code"
     },
     {
@@ -179,6 +348,12 @@
       "path": "tests/test_checkpoint_resume.py",
       "language": "python",
       "sizeLines": 218,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_chunk3_contract_fixes.py",
+      "language": "python",
+      "sizeLines": 92,
       "fileCategory": "code"
     },
     {
@@ -236,6 +411,12 @@
       "fileCategory": "code"
     },
     {
+      "path": "tests/test_error_classifier.py",
+      "language": "python",
+      "sizeLines": 133,
+      "fileCategory": "code"
+    },
+    {
       "path": "tests/test_fred.py",
       "language": "python",
       "sizeLines": 194,
@@ -251,6 +432,12 @@
       "path": "tests/test_google_thinking_level.py",
       "language": "python",
       "sizeLines": 46,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_graph_stream_callbacks.py",
+      "language": "python",
+      "sizeLines": 226,
       "fileCategory": "code"
     },
     {
@@ -272,9 +459,21 @@
       "fileCategory": "code"
     },
     {
+      "path": "tests/test_llm_timeout.py",
+      "language": "python",
+      "sizeLines": 158,
+      "fileCategory": "code"
+    },
+    {
       "path": "tests/test_market_data_validator.py",
       "language": "python",
       "sizeLines": 76,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_market_localization.py",
+      "language": "python",
+      "sizeLines": 163,
       "fileCategory": "code"
     },
     {
@@ -328,7 +527,7 @@
     {
       "path": "tests/test_ollama_base_url.py",
       "language": "python",
-      "sizeLines": 188,
+      "sizeLines": 196,
       "fileCategory": "code"
     },
     {
@@ -340,7 +539,7 @@
     {
       "path": "tests/test_openai_reasoning_effort.py",
       "language": "python",
-      "sizeLines": 42,
+      "sizeLines": 52,
       "fileCategory": "code"
     },
     {
@@ -353,6 +552,12 @@
       "path": "tests/test_openrouter_model_select.py",
       "language": "python",
       "sizeLines": 122,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_packaging_contract.py",
+      "language": "python",
+      "sizeLines": 9,
       "fileCategory": "code"
     },
     {
@@ -386,9 +591,39 @@
       "fileCategory": "code"
     },
     {
+      "path": "tests/test_run_manager_concurrency.py",
+      "language": "python",
+      "sizeLines": 140,
+      "fileCategory": "code"
+    },
+    {
       "path": "tests/test_safe_ticker_component.py",
       "language": "python",
       "sizeLines": 57,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_scheduled_api.py",
+      "language": "python",
+      "sizeLines": 325,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_scheduled_primitives.py",
+      "language": "python",
+      "sizeLines": 176,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_scheduled_repositories.py",
+      "language": "python",
+      "sizeLines": 293,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_scheduled_service.py",
+      "language": "python",
+      "sizeLines": 494,
       "fileCategory": "code"
     },
     {
@@ -436,7 +671,7 @@
     {
       "path": "tests/test_temperature_config.py",
       "language": "python",
-      "sizeLines": 83,
+      "sizeLines": 101,
       "fileCategory": "code"
     },
     {
@@ -455,6 +690,132 @@
       "path": "tests/test_vendor_routing.py",
       "language": "python",
       "sizeLines": 123,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_api.py",
+      "language": "python",
+      "sizeLines": 538,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_api_recovery.py",
+      "language": "python",
+      "sizeLines": 179,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_artifacts.py",
+      "language": "python",
+      "sizeLines": 257,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_browser.py",
+      "language": "python",
+      "sizeLines": 265,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_command.py",
+      "language": "python",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_history.py",
+      "language": "python",
+      "sizeLines": 214,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_lease.py",
+      "language": "python",
+      "sizeLines": 163,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_manager.py",
+      "language": "python",
+      "sizeLines": 672,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_markdown.py",
+      "language": "python",
+      "sizeLines": 42,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_market_data.py",
+      "language": "python",
+      "sizeLines": 496,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_market_providers.py",
+      "language": "python",
+      "sizeLines": 124,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_models.py",
+      "language": "python",
+      "sizeLines": 305,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_repositories.py",
+      "language": "python",
+      "sizeLines": 324,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_retry.py",
+      "language": "python",
+      "sizeLines": 287,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_runner.py",
+      "language": "python",
+      "sizeLines": 219,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_runner_recovery.py",
+      "language": "python",
+      "sizeLines": 135,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_settings.py",
+      "language": "python",
+      "sizeLines": 28,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_snapshots.py",
+      "language": "python",
+      "sizeLines": 93,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_static.py",
+      "language": "python",
+      "sizeLines": 460,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_storage.py",
+      "language": "python",
+      "sizeLines": 265,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_synthesis.py",
+      "language": "python",
+      "sizeLines": 40,
       "fileCategory": "code"
     },
     {
@@ -646,7 +1007,7 @@
     {
       "path": "tradingagents/dataflows/alpha_vantage_common.py",
       "language": "python",
-      "sizeLines": 151,
+      "sizeLines": 160,
       "fileCategory": "code"
     },
     {
@@ -676,7 +1037,7 @@
     {
       "path": "tradingagents/dataflows/config.py",
       "language": "python",
-      "sizeLines": 41,
+      "sizeLines": 60,
       "fileCategory": "code"
     },
     {
@@ -754,13 +1115,13 @@
     {
       "path": "tradingagents/default_config.py",
       "language": "python",
-      "sizeLines": 164,
+      "sizeLines": 174,
       "fileCategory": "code"
     },
     {
       "path": "tradingagents/graph/__init__.py",
       "language": "python",
-      "sizeLines": 17,
+      "sizeLines": 18,
       "fileCategory": "code"
     },
     {
@@ -784,7 +1145,7 @@
     {
       "path": "tradingagents/graph/propagation.py",
       "language": "python",
-      "sizeLines": 84,
+      "sizeLines": 88,
       "fileCategory": "code"
     },
     {
@@ -808,7 +1169,7 @@
     {
       "path": "tradingagents/graph/trading_graph.py",
       "language": "python",
-      "sizeLines": 528,
+      "sizeLines": 576,
       "fileCategory": "code"
     },
     {
@@ -820,7 +1181,7 @@
     {
       "path": "tradingagents/llm_clients/anthropic_client.py",
       "language": "python",
-      "sizeLines": 78,
+      "sizeLines": 91,
       "fileCategory": "code"
     },
     {
@@ -832,19 +1193,19 @@
     {
       "path": "tradingagents/llm_clients/azure_client.py",
       "language": "python",
-      "sizeLines": 51,
+      "sizeLines": 64,
       "fileCategory": "code"
     },
     {
       "path": "tradingagents/llm_clients/base_client.py",
       "language": "python",
-      "sizeLines": 62,
+      "sizeLines": 116,
       "fileCategory": "code"
     },
     {
       "path": "tradingagents/llm_clients/bedrock_client.py",
       "language": "python",
-      "sizeLines": 76,
+      "sizeLines": 89,
       "fileCategory": "code"
     },
     {
@@ -862,7 +1223,7 @@
     {
       "path": "tradingagents/llm_clients/google_client.py",
       "language": "python",
-      "sizeLines": 57,
+      "sizeLines": 70,
       "fileCategory": "code"
     },
     {
@@ -874,7 +1235,7 @@
     {
       "path": "tradingagents/llm_clients/openai_client.py",
       "language": "python",
-      "sizeLines": 337,
+      "sizeLines": 350,
       "fileCategory": "code"
     },
     {
@@ -888,6 +1249,292 @@
       "language": "python",
       "sizeLines": 101,
       "fileCategory": "code"
+    },
+    {
+      "path": "web/__init__.py",
+      "language": "python",
+      "sizeLines": 5,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/app.py",
+      "language": "python",
+      "sizeLines": 947,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/artifacts.py",
+      "language": "python",
+      "sizeLines": 191,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/checkpoint_resume.py",
+      "language": "python",
+      "sizeLines": 147,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/config.py",
+      "language": "python",
+      "sizeLines": 249,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/error_classifier.py",
+      "language": "python",
+      "sizeLines": 227,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/error_codes.py",
+      "language": "python",
+      "sizeLines": 120,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/history.py",
+      "language": "python",
+      "sizeLines": 571,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/lease.py",
+      "language": "python",
+      "sizeLines": 112,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/manager.py",
+      "language": "python",
+      "sizeLines": 1586,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/markdown.py",
+      "language": "python",
+      "sizeLines": 74,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/market_data.py",
+      "language": "python",
+      "sizeLines": 474,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/market_localization.py",
+      "language": "python",
+      "sizeLines": 244,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/market_models.py",
+      "language": "python",
+      "sizeLines": 251,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/migrations/001_personal_platform.sql",
+      "language": "sql",
+      "sizeLines": 106,
+      "fileCategory": "data"
+    },
+    {
+      "path": "web/migrations/002_reliability_operations.sql",
+      "language": "sql",
+      "sizeLines": 61,
+      "fileCategory": "data"
+    },
+    {
+      "path": "web/migrations/003_watchlist_newest_first.sql",
+      "language": "sql",
+      "sizeLines": 2,
+      "fileCategory": "data"
+    },
+    {
+      "path": "web/migrations/004_analysis_timeout_recovery.sql",
+      "language": "sql",
+      "sizeLines": 29,
+      "fileCategory": "data"
+    },
+    {
+      "path": "web/migrations/005_scheduled_analysis.sql",
+      "language": "sql",
+      "sizeLines": 31,
+      "fileCategory": "data"
+    },
+    {
+      "path": "web/models.py",
+      "language": "python",
+      "sizeLines": 371,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/providers/__init__.py",
+      "language": "python",
+      "sizeLines": 4,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/providers/alpha_vantage_provider.py",
+      "language": "python",
+      "sizeLines": 96,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/providers/yfinance_provider.py",
+      "language": "python",
+      "sizeLines": 129,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/repositories.py",
+      "language": "python",
+      "sizeLines": 1360,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/runner.py",
+      "language": "python",
+      "sizeLines": 478,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/scheduled.py",
+      "language": "python",
+      "sizeLines": 156,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/scheduler.py",
+      "language": "python",
+      "sizeLines": 394,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/snapshots.py",
+      "language": "python",
+      "sizeLines": 252,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/app.js",
+      "language": "javascript",
+      "sizeLines": 423,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/i18n.js",
+      "language": "javascript",
+      "sizeLines": 395,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/i18n.test.js",
+      "language": "javascript",
+      "sizeLines": 51,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/index.html",
+      "language": "html",
+      "sizeLines": 262,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "web/static/kline-chart.js",
+      "language": "javascript",
+      "sizeLines": 236,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/kline-chart.test.js",
+      "language": "javascript",
+      "sizeLines": 132,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/quote-refresh.js",
+      "language": "javascript",
+      "sizeLines": 72,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/quote-refresh.test.js",
+      "language": "javascript",
+      "sizeLines": 33,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/rating-labels.js",
+      "language": "javascript",
+      "sizeLines": 33,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/rating-labels.test.js",
+      "language": "javascript",
+      "sizeLines": 54,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/scheduled.js",
+      "language": "javascript",
+      "sizeLines": 154,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/styles.css",
+      "language": "css",
+      "sizeLines": 513,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "web/static/watchlist-chart.js",
+      "language": "javascript",
+      "sizeLines": 190,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/storage.py",
+      "language": "python",
+      "sizeLines": 240,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/synthesis.py",
+      "language": "python",
+      "sizeLines": 63,
+      "fileCategory": "code"
     }
-  ]
+  ],
+  "totalFiles": 251,
+  "filteredByIgnore": 0,
+  "estimatedComplexity": "large",
+  "stats": {
+    "filesScanned": 251,
+    "byCategory": {
+      "infra": 4,
+      "config": 3,
+      "code": 208,
+      "markup": 9,
+      "docs": 22,
+      "data": 5
+    },
+    "byLanguage": {
+      "unknown": 4,
+      "config": 2,
+      "yaml": 2,
+      "html": 8,
+      "markdown": 20,
+      "dockerfile": 1,
+      "python": 194,
+      "txt": 2,
+      "toml": 1,
+      "sql": 5,
+      "javascript": 11,
+      "css": 1
+    }
+  }
 }

@@ -178,7 +178,7 @@ def test_can_retry_requires_existing_checkpoint(tmp_path):
     store.close()
 
 
-def test_can_retry_rejects_when_another_run_active(tmp_path):
+def test_can_retry_allows_different_active_asset_when_capacity_remains(tmp_path):
     store = SQLiteStore(tmp_path / "db.sqlite3")
     manager = RunManager(store=store)
     parent = manager.start_run(_request(), run_id="parent")
@@ -196,9 +196,40 @@ def test_can_retry_rejects_when_another_run_active(tmp_path):
     second = manager.start_run(_request(ticker="MSFT"), run_id="other")
     manager.begin_run(second.run_id)
     allowed, reason = manager.can_retry(parent.run_id)
-    assert allowed is False
-    assert reason == "another_run_active"
+    assert allowed is True
+    assert reason == ""
     manager.cancel_run(second.run_id)
+    manager.shutdown()
+    store.close()
+
+
+def test_can_retry_rejects_same_asset_or_exhausted_capacity(tmp_path):
+    store = SQLiteStore(tmp_path / "db.sqlite3")
+    manager = RunManager(store=store)
+    parent = manager.start_run(_request(), run_id="parent")
+    manager.begin_run(parent.run_id)
+    manager.fail_run(
+        parent.run_id,
+        error_code=TerminalReason.MODEL_TIMEOUT.value,
+        error_message="timed out",
+        retryable=True,
+    )
+    manager._state(parent.run_id).record.resume_checkpoint_id = "sig-parent"
+    manager._persist_locked(manager._state(parent.run_id).record)
+
+    same_asset = manager.start_run(_request(), run_id="same-asset")
+    manager.begin_run(same_asset.run_id)
+    assert manager.can_retry(parent.run_id) == (False, "asset_busy")
+    manager.cancel_run(same_asset.run_id)
+
+    manager.configure_concurrency(
+        {"scheduler.max_concurrent_runs": {"value": 1, "source": "test"}}
+    )
+    other = manager.start_run(_request(ticker="MSFT"), run_id="other")
+    manager.begin_run(other.run_id)
+    assert manager.can_retry(parent.run_id) == (False, "capacity")
+
+    manager.cancel_run(other.run_id)
     manager.shutdown()
     store.close()
 

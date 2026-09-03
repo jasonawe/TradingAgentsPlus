@@ -1,0 +1,1445 @@
+{
+  "nodes": [
+    {
+      "id": "file:main.py",
+      "type": "file",
+      "name": "main.py",
+      "filePath": "main.py",
+      "summary": "实现 main.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。",
+      "tags": [
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:test.py",
+      "type": "file",
+      "name": "test.py",
+      "filePath": "test.py",
+      "summary": "实现 test.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_dataflows_config.py",
+      "type": "file",
+      "name": "test_dataflows_config.py",
+      "filePath": "tests/test_dataflows_config.py",
+      "summary": "覆盖 test_dataflows_config.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_dataflows_config.py:DataflowsConfigIsolationTests",
+      "type": "class",
+      "name": "DataflowsConfigIsolationTests",
+      "filePath": "tests/test_dataflows_config.py",
+      "lineRange": [
+        13,
+        61
+      ],
+      "summary": "位于 tests/test_dataflows_config.py 的类 DataflowsConfigIsolationTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_date_boundaries.py",
+      "type": "file",
+      "name": "test_date_boundaries.py",
+      "filePath": "tests/test_date_boundaries.py",
+      "summary": "覆盖 test_date_boundaries.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_date_boundaries.py:test_get_yfin_requests_inclusive_end",
+      "type": "function",
+      "name": "test_get_yfin_requests_inclusive_end",
+      "filePath": "tests/test_date_boundaries.py",
+      "lineRange": [
+        16,
+        39
+      ],
+      "summary": "位于 tests/test_date_boundaries.py 的函数 test_get_yfin_requests_inclusive_end，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_date_boundaries.py:test_load_ohlcv_requests_inclusive_end",
+      "type": "function",
+      "name": "test_load_ohlcv_requests_inclusive_end",
+      "filePath": "tests/test_date_boundaries.py",
+      "lineRange": [
+        43,
+        61
+      ],
+      "summary": "位于 tests/test_date_boundaries.py 的函数 test_load_ohlcv_requests_inclusive_end，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_env_overrides.py",
+      "type": "file",
+      "name": "test_env_overrides.py",
+      "filePath": "tests/test_env_overrides.py",
+      "summary": "覆盖 test_env_overrides.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_env_overrides.py:_reload_with_env",
+      "type": "function",
+      "name": "_reload_with_env",
+      "filePath": "tests/test_env_overrides.py",
+      "lineRange": [
+        12,
+        18
+      ],
+      "summary": "位于 tests/test_env_overrides.py 的函数 _reload_with_env，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_env_overrides.py:test_no_env_uses_built_in_defaults",
+      "type": "function",
+      "name": "test_no_env_uses_built_in_defaults",
+      "filePath": "tests/test_env_overrides.py",
+      "lineRange": [
+        21,
+        28
+      ],
+      "summary": "位于 tests/test_env_overrides.py 的函数 test_no_env_uses_built_in_defaults，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_env_overrides.py:test_string_overrides",
+      "type": "function",
+      "name": "test_string_overrides",
+      "filePath": "tests/test_env_overrides.py",
+      "lineRange": [
+        31,
+        44
+      ],
+      "summary": "位于 tests/test_env_overrides.py 的函数 test_string_overrides，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_env_overrides.py:test_int_coercion",
+      "type": "function",
+      "name": "test_int_coercion",
+      "filePath": "tests/test_env_overrides.py",
+      "lineRange": [
+        47,
+        56
+      ],
+      "summary": "位于 tests/test_env_overrides.py 的函数 test_int_coercion，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_env_overrides.py:test_bool_coercion",
+      "type": "function",
+      "name": "test_bool_coercion",
+      "filePath": "tests/test_env_overrides.py",
+      "lineRange": [
+        66,
+        68
+      ],
+      "summary": "位于 tests/test_env_overrides.py 的函数 test_bool_coercion，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_env_overrides.py:test_reasoning_thinking_overrides",
+      "type": "function",
+      "name": "test_reasoning_thinking_overrides",
+      "filePath": "tests/test_env_overrides.py",
+      "lineRange": [
+        71,
+        81
+      ],
+      "summary": "位于 tests/test_env_overrides.py 的函数 test_reasoning_thinking_overrides，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_env_overrides.py:test_reasoning_effort_defaults_to_none",
+      "type": "function",
+      "name": "test_reasoning_effort_defaults_to_none",
+      "filePath": "tests/test_env_overrides.py",
+      "lineRange": [
+        84,
+        89
+      ],
+      "summary": "位于 tests/test_env_overrides.py 的函数 test_reasoning_effort_defaults_to_none，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_env_overrides.py:test_empty_env_value_is_passthrough",
+      "type": "function",
+      "name": "test_empty_env_value_is_passthrough",
+      "filePath": "tests/test_env_overrides.py",
+      "lineRange": [
+        92,
+        100
+      ],
+      "summary": "位于 tests/test_env_overrides.py 的函数 test_empty_env_value_is_passthrough，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_env_overrides.py:test_invalid_int_raises",
+      "type": "function",
+      "name": "test_invalid_int_raises",
+      "filePath": "tests/test_env_overrides.py",
+      "lineRange": [
+        103,
+        110
+      ],
+      "summary": "位于 tests/test_env_overrides.py 的函数 test_invalid_int_raises，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_env_overrides.py:test_invalid_bool_raises",
+      "type": "function",
+      "name": "test_invalid_bool_raises",
+      "filePath": "tests/test_env_overrides.py",
+      "lineRange": [
+        114,
+        120
+      ],
+      "summary": "位于 tests/test_env_overrides.py 的函数 test_invalid_bool_raises，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_env_overrides.py:test_unknown_env_var_is_ignored",
+      "type": "function",
+      "name": "test_unknown_env_var_is_ignored",
+      "filePath": "tests/test_env_overrides.py",
+      "lineRange": [
+        123,
+        129
+      ],
+      "summary": "位于 tests/test_env_overrides.py 的函数 test_unknown_env_var_is_ignored，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_fred.py",
+      "type": "file",
+      "name": "test_fred.py",
+      "filePath": "tests/test_fred.py",
+      "summary": "覆盖 test_fred.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_fred.py:_request_stub",
+      "type": "function",
+      "name": "_request_stub",
+      "filePath": "tests/test_fred.py",
+      "lineRange": [
+        38,
+        46
+      ],
+      "summary": "位于 tests/test_fred.py 的函数 _request_stub，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_fred.py:FredResolutionTests",
+      "type": "class",
+      "name": "FredResolutionTests",
+      "filePath": "tests/test_fred.py",
+      "lineRange": [
+        50,
+        75
+      ],
+      "summary": "位于 tests/test_fred.py 的类 FredResolutionTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_fred.py:FredConfigTests",
+      "type": "class",
+      "name": "FredConfigTests",
+      "filePath": "tests/test_fred.py",
+      "lineRange": [
+        79,
+        87
+      ],
+      "summary": "位于 tests/test_fred.py 的类 FredConfigTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_fred.py:FredFormattingTests",
+      "type": "class",
+      "name": "FredFormattingTests",
+      "filePath": "tests/test_fred.py",
+      "lineRange": [
+        91,
+        151
+      ],
+      "summary": "位于 tests/test_fred.py 的类 FredFormattingTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_fred.py:FredRoutingTests",
+      "type": "class",
+      "name": "FredRoutingTests",
+      "filePath": "tests/test_fred.py",
+      "lineRange": [
+        155,
+        190
+      ],
+      "summary": "位于 tests/test_fred.py 的类 FredRoutingTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_llm_max_retries.py",
+      "type": "file",
+      "name": "test_llm_max_retries.py",
+      "filePath": "tests/test_llm_max_retries.py",
+      "summary": "覆盖 test_llm_max_retries.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_llm_max_retries.py:test_coerce_accepts_non_negative_ints_and_numeric_strings",
+      "type": "function",
+      "name": "test_coerce_accepts_non_negative_ints_and_numeric_strings",
+      "filePath": "tests/test_llm_max_retries.py",
+      "lineRange": [
+        20,
+        21
+      ],
+      "summary": "位于 tests/test_llm_max_retries.py 的函数 test_coerce_accepts_non_negative_ints_and_numeric_strings，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_llm_max_retries.py:test_coerce_rejects_negative",
+      "type": "function",
+      "name": "test_coerce_rejects_negative",
+      "filePath": "tests/test_llm_max_retries.py",
+      "lineRange": [
+        26,
+        28
+      ],
+      "summary": "位于 tests/test_llm_max_retries.py 的函数 test_coerce_rejects_negative，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_llm_max_retries.py:test_coerce_rejects_booleans",
+      "type": "function",
+      "name": "test_coerce_rejects_booleans",
+      "filePath": "tests/test_llm_max_retries.py",
+      "lineRange": [
+        33,
+        35
+      ],
+      "summary": "位于 tests/test_llm_max_retries.py 的函数 test_coerce_rejects_booleans，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_llm_max_retries.py:test_coerce_rejects_non_integers",
+      "type": "function",
+      "name": "test_coerce_rejects_non_integers",
+      "filePath": "tests/test_llm_max_retries.py",
+      "lineRange": [
+        40,
+        42
+      ],
+      "summary": "位于 tests/test_llm_max_retries.py 的函数 test_coerce_rejects_non_integers，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_llm_max_retries.py:_bare_graph",
+      "type": "function",
+      "name": "_bare_graph",
+      "filePath": "tests/test_llm_max_retries.py",
+      "lineRange": [
+        47,
+        50
+      ],
+      "summary": "位于 tests/test_llm_max_retries.py 的函数 _bare_graph，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_llm_max_retries.py:test_not_forwarded_when_unset",
+      "type": "function",
+      "name": "test_not_forwarded_when_unset",
+      "filePath": "tests/test_llm_max_retries.py",
+      "lineRange": [
+        54,
+        56
+      ],
+      "summary": "位于 tests/test_llm_max_retries.py 的函数 test_not_forwarded_when_unset，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_llm_max_retries.py:test_forwarded_across_providers",
+      "type": "function",
+      "name": "test_forwarded_across_providers",
+      "filePath": "tests/test_llm_max_retries.py",
+      "lineRange": [
+        61,
+        63
+      ],
+      "summary": "位于 tests/test_llm_max_retries.py 的函数 test_forwarded_across_providers，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_llm_max_retries.py:test_forwarded_env_string_is_coerced",
+      "type": "function",
+      "name": "test_forwarded_env_string_is_coerced",
+      "filePath": "tests/test_llm_max_retries.py",
+      "lineRange": [
+        67,
+        70
+      ],
+      "summary": "位于 tests/test_llm_max_retries.py 的函数 test_forwarded_env_string_is_coerced，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_llm_max_retries.py:test_invalid_config_value_fails_loudly",
+      "type": "function",
+      "name": "test_invalid_config_value_fails_loudly",
+      "filePath": "tests/test_llm_max_retries.py",
+      "lineRange": [
+        74,
+        76
+      ],
+      "summary": "位于 tests/test_llm_max_retries.py 的函数 test_invalid_config_value_fails_loudly，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_llm_max_retries.py:_reload_with_env",
+      "type": "function",
+      "name": "_reload_with_env",
+      "filePath": "tests/test_llm_max_retries.py",
+      "lineRange": [
+        81,
+        86
+      ],
+      "summary": "位于 tests/test_llm_max_retries.py 的函数 _reload_with_env，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_llm_max_retries.py:test_default_is_none",
+      "type": "function",
+      "name": "test_default_is_none",
+      "filePath": "tests/test_llm_max_retries.py",
+      "lineRange": [
+        90,
+        92
+      ],
+      "summary": "位于 tests/test_llm_max_retries.py 的函数 test_default_is_none，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_llm_max_retries.py:test_env_override_sets_config",
+      "type": "function",
+      "name": "test_env_override_sets_config",
+      "filePath": "tests/test_llm_max_retries.py",
+      "lineRange": [
+        96,
+        100
+      ],
+      "summary": "位于 tests/test_llm_max_retries.py 的函数 test_env_override_sets_config，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_news_lookahead.py",
+      "type": "file",
+      "name": "test_news_lookahead.py",
+      "filePath": "tests/test_news_lookahead.py",
+      "summary": "覆盖 test_news_lookahead.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_news_lookahead.py:_epoch",
+      "type": "function",
+      "name": "_epoch",
+      "filePath": "tests/test_news_lookahead.py",
+      "lineRange": [
+        16,
+        18
+      ],
+      "summary": "位于 tests/test_news_lookahead.py 的函数 _epoch，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_news_lookahead.py:test_flat_article_publish_time_is_parsed",
+      "type": "function",
+      "name": "test_flat_article_publish_time_is_parsed",
+      "filePath": "tests/test_news_lookahead.py",
+      "lineRange": [
+        22,
+        30
+      ],
+      "summary": "位于 tests/test_news_lookahead.py 的函数 test_flat_article_publish_time_is_parsed，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_news_lookahead.py:test_window_excludes_future_and_undated_in_backtest",
+      "type": "function",
+      "name": "test_window_excludes_future_and_undated_in_backtest",
+      "filePath": "tests/test_news_lookahead.py",
+      "lineRange": [
+        34,
+        41
+      ],
+      "summary": "位于 tests/test_news_lookahead.py 的函数 test_window_excludes_future_and_undated_in_backtest，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_news_lookahead.py:test_window_keeps_undated_in_live_window",
+      "type": "function",
+      "name": "test_window_keeps_undated_in_live_window",
+      "filePath": "tests/test_news_lookahead.py",
+      "lineRange": [
+        45,
+        48
+      ],
+      "summary": "位于 tests/test_news_lookahead.py 的函数 test_window_keeps_undated_in_live_window，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_news_lookahead.py:test_upper_bound_is_exclusive",
+      "type": "function",
+      "name": "test_upper_bound_is_exclusive",
+      "filePath": "tests/test_news_lookahead.py",
+      "lineRange": [
+        52,
+        60
+      ],
+      "summary": "位于 tests/test_news_lookahead.py 的函数 test_upper_bound_is_exclusive，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_news_lookahead.py:test_offset_aware_timestamp_is_converted_not_truncated",
+      "type": "function",
+      "name": "test_offset_aware_timestamp_is_converted_not_truncated",
+      "filePath": "tests/test_news_lookahead.py",
+      "lineRange": [
+        64,
+        70
+      ],
+      "summary": "位于 tests/test_news_lookahead.py 的函数 test_offset_aware_timestamp_is_converted_not_truncated，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_news_lookahead.py:test_global_news_future_flat_article_excluded",
+      "type": "function",
+      "name": "test_global_news_future_flat_article_excluded",
+      "filePath": "tests/test_news_lookahead.py",
+      "lineRange": [
+        74,
+        88
+      ],
+      "summary": "位于 tests/test_news_lookahead.py 的函数 test_global_news_future_flat_article_excluded，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_news_lookahead.py:test_global_news_empty_after_filter_is_informative",
+      "type": "function",
+      "name": "test_global_news_empty_after_filter_is_informative",
+      "filePath": "tests/test_news_lookahead.py",
+      "lineRange": [
+        92,
+        104
+      ],
+      "summary": "位于 tests/test_news_lookahead.py 的函数 test_global_news_empty_after_filter_is_informative，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:main.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:main.py",
+      "target": "file:tradingagents/graph/trading_graph.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:test.py",
+      "target": "file:tradingagents/dataflows/y_finance.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_dataflows_config.py",
+      "target": "class:tests/test_dataflows_config.py:DataflowsConfigIsolationTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_dataflows_config.py",
+      "target": "class:tests/test_dataflows_config.py:DataflowsConfigIsolationTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_dataflows_config.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_dataflows_config.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_date_boundaries.py",
+      "target": "function:tests/test_date_boundaries.py:test_get_yfin_requests_inclusive_end",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_date_boundaries.py",
+      "target": "function:tests/test_date_boundaries.py:test_load_ohlcv_requests_inclusive_end",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_date_boundaries.py",
+      "target": "function:tests/test_date_boundaries.py:test_get_yfin_requests_inclusive_end",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_date_boundaries.py",
+      "target": "function:tests/test_date_boundaries.py:test_load_ohlcv_requests_inclusive_end",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_date_boundaries.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_date_boundaries.py",
+      "target": "file:tradingagents/dataflows/stockstats_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_date_boundaries.py",
+      "target": "file:tradingagents/dataflows/y_finance.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:_reload_with_env",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:test_no_env_uses_built_in_defaults",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:test_string_overrides",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:test_int_coercion",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:test_bool_coercion",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:test_reasoning_thinking_overrides",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:test_reasoning_effort_defaults_to_none",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:test_empty_env_value_is_passthrough",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:test_invalid_int_raises",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:test_invalid_bool_raises",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:test_unknown_env_var_is_ignored",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:_reload_with_env",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:test_no_env_uses_built_in_defaults",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:test_string_overrides",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:test_int_coercion",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:test_bool_coercion",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:test_reasoning_thinking_overrides",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:test_reasoning_effort_defaults_to_none",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:test_empty_env_value_is_passthrough",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:test_invalid_int_raises",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:test_invalid_bool_raises",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "function:tests/test_env_overrides.py:test_unknown_env_var_is_ignored",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_env_overrides.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_fred.py",
+      "target": "function:tests/test_fred.py:_request_stub",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_fred.py",
+      "target": "class:tests/test_fred.py:FredResolutionTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_fred.py",
+      "target": "class:tests/test_fred.py:FredConfigTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_fred.py",
+      "target": "class:tests/test_fred.py:FredFormattingTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_fred.py",
+      "target": "class:tests/test_fred.py:FredRoutingTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_fred.py",
+      "target": "function:tests/test_fred.py:_request_stub",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_fred.py",
+      "target": "class:tests/test_fred.py:FredResolutionTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_fred.py",
+      "target": "class:tests/test_fred.py:FredConfigTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_fred.py",
+      "target": "class:tests/test_fred.py:FredFormattingTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_fred.py",
+      "target": "class:tests/test_fred.py:FredRoutingTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_fred.py",
+      "target": "file:tradingagents/dataflows/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_fred.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_fred.py",
+      "target": "file:tradingagents/dataflows/fred.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_fred.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_fred.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:test_coerce_accepts_non_negative_ints_and_numeric_strings",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:test_coerce_rejects_negative",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:test_coerce_rejects_booleans",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:test_coerce_rejects_non_integers",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:_bare_graph",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:test_not_forwarded_when_unset",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:test_forwarded_across_providers",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:test_forwarded_env_string_is_coerced",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:test_invalid_config_value_fails_loudly",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:_reload_with_env",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:test_default_is_none",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:test_env_override_sets_config",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:test_coerce_accepts_non_negative_ints_and_numeric_strings",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:test_coerce_rejects_negative",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:test_coerce_rejects_booleans",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:test_coerce_rejects_non_integers",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:_bare_graph",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:test_not_forwarded_when_unset",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:test_forwarded_across_providers",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:test_forwarded_env_string_is_coerced",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:test_invalid_config_value_fails_loudly",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:_reload_with_env",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:test_default_is_none",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "function:tests/test_llm_max_retries.py:test_env_override_sets_config",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_llm_max_retries.py",
+      "target": "file:tradingagents/graph/trading_graph.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_news_lookahead.py",
+      "target": "function:tests/test_news_lookahead.py:_epoch",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_news_lookahead.py",
+      "target": "function:tests/test_news_lookahead.py:test_flat_article_publish_time_is_parsed",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_news_lookahead.py",
+      "target": "function:tests/test_news_lookahead.py:test_window_excludes_future_and_undated_in_backtest",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_news_lookahead.py",
+      "target": "function:tests/test_news_lookahead.py:test_window_keeps_undated_in_live_window",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_news_lookahead.py",
+      "target": "function:tests/test_news_lookahead.py:test_upper_bound_is_exclusive",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_news_lookahead.py",
+      "target": "function:tests/test_news_lookahead.py:test_offset_aware_timestamp_is_converted_not_truncated",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_news_lookahead.py",
+      "target": "function:tests/test_news_lookahead.py:test_global_news_future_flat_article_excluded",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_news_lookahead.py",
+      "target": "function:tests/test_news_lookahead.py:test_global_news_empty_after_filter_is_informative",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_news_lookahead.py",
+      "target": "function:tests/test_news_lookahead.py:_epoch",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_news_lookahead.py",
+      "target": "function:tests/test_news_lookahead.py:test_flat_article_publish_time_is_parsed",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_news_lookahead.py",
+      "target": "function:tests/test_news_lookahead.py:test_window_excludes_future_and_undated_in_backtest",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_news_lookahead.py",
+      "target": "function:tests/test_news_lookahead.py:test_window_keeps_undated_in_live_window",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_news_lookahead.py",
+      "target": "function:tests/test_news_lookahead.py:test_upper_bound_is_exclusive",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_news_lookahead.py",
+      "target": "function:tests/test_news_lookahead.py:test_offset_aware_timestamp_is_converted_not_truncated",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_news_lookahead.py",
+      "target": "function:tests/test_news_lookahead.py:test_global_news_future_flat_article_excluded",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_news_lookahead.py",
+      "target": "function:tests/test_news_lookahead.py:test_global_news_empty_after_filter_is_informative",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_news_lookahead.py",
+      "target": "file:tradingagents/dataflows/yfinance_news.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

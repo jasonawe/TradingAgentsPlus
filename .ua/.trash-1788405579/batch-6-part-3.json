@@ -1,0 +1,1432 @@
+{
+  "nodes": [
+    {
+      "id": "file:web/models.py",
+      "type": "file",
+      "name": "models.py",
+      "filePath": "web/models.py",
+      "summary": "实现 web/models.py 在交易分析系统中的核心逻辑，对外提供 RunStatus、EventName、AnalysisRequest 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "模型提供商",
+        "模式定义",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:web/models.py:RunStatus",
+      "type": "class",
+      "name": "RunStatus",
+      "filePath": "web/models.py",
+      "lineRange": [
+        28,
+        36
+      ],
+      "summary": "位于 web/models.py 的类 RunStatus，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "模式定义"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/models.py:EventName",
+      "type": "class",
+      "name": "EventName",
+      "filePath": "web/models.py",
+      "lineRange": [
+        39,
+        51
+      ],
+      "summary": "位于 web/models.py 的类 EventName，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "模式定义"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/models.py:AnalysisRequest",
+      "type": "class",
+      "name": "AnalysisRequest",
+      "filePath": "web/models.py",
+      "lineRange": [
+        57,
+        116
+      ],
+      "summary": "位于 web/models.py 的类 AnalysisRequest，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "模式定义"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/models.py:RunRecord",
+      "type": "class",
+      "name": "RunRecord",
+      "filePath": "web/models.py",
+      "lineRange": [
+        119,
+        188
+      ],
+      "summary": "位于 web/models.py 的类 RunRecord，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "模式定义"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/models.py:HistoryRecord",
+      "type": "class",
+      "name": "HistoryRecord",
+      "filePath": "web/models.py",
+      "lineRange": [
+        191,
+        209
+      ],
+      "summary": "位于 web/models.py 的类 HistoryRecord，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "模式定义"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/models.py:EventPayload",
+      "type": "class",
+      "name": "EventPayload",
+      "filePath": "web/models.py",
+      "lineRange": [
+        212,
+        232
+      ],
+      "summary": "位于 web/models.py 的类 EventPayload，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "模式定义"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/models.py:RunSnapshotPayload",
+      "type": "class",
+      "name": "RunSnapshotPayload",
+      "filePath": "web/models.py",
+      "lineRange": [
+        235,
+        238
+      ],
+      "summary": "位于 web/models.py 的类 RunSnapshotPayload，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "模式定义"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/models.py:RunStartedPayload",
+      "type": "class",
+      "name": "RunStartedPayload",
+      "filePath": "web/models.py",
+      "lineRange": [
+        241,
+        247
+      ],
+      "summary": "位于 web/models.py 的类 RunStartedPayload，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "模式定义"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/models.py:PhaseChangedPayload",
+      "type": "class",
+      "name": "PhaseChangedPayload",
+      "filePath": "web/models.py",
+      "lineRange": [
+        250,
+        254
+      ],
+      "summary": "位于 web/models.py 的类 PhaseChangedPayload，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "模式定义"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/models.py:AgentStatusPayload",
+      "type": "class",
+      "name": "AgentStatusPayload",
+      "filePath": "web/models.py",
+      "lineRange": [
+        257,
+        259
+      ],
+      "summary": "位于 web/models.py 的类 AgentStatusPayload，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "模式定义"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/models.py:ProgressPayload",
+      "type": "class",
+      "name": "ProgressPayload",
+      "filePath": "web/models.py",
+      "lineRange": [
+        262,
+        265
+      ],
+      "summary": "位于 web/models.py 的类 ProgressPayload，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "模式定义"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/models.py:MessagePayload",
+      "type": "class",
+      "name": "MessagePayload",
+      "filePath": "web/models.py",
+      "lineRange": [
+        268,
+        270
+      ],
+      "summary": "位于 web/models.py 的类 MessagePayload，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "模式定义"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/models.py:ActivityPayload",
+      "type": "class",
+      "name": "ActivityPayload",
+      "filePath": "web/models.py",
+      "lineRange": [
+        273,
+        276
+      ],
+      "summary": "位于 web/models.py 的类 ActivityPayload，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "模式定义"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/models.py:RunCompletedPayload",
+      "type": "class",
+      "name": "RunCompletedPayload",
+      "filePath": "web/models.py",
+      "lineRange": [
+        279,
+        282
+      ],
+      "summary": "位于 web/models.py 的类 RunCompletedPayload，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "模式定义"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/models.py:RunFailedPayload",
+      "type": "class",
+      "name": "RunFailedPayload",
+      "filePath": "web/models.py",
+      "lineRange": [
+        285,
+        294
+      ],
+      "summary": "位于 web/models.py 的类 RunFailedPayload，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "模式定义"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/models.py:RunCancelledPayload",
+      "type": "class",
+      "name": "RunCancelledPayload",
+      "filePath": "web/models.py",
+      "lineRange": [
+        297,
+        300
+      ],
+      "summary": "位于 web/models.py 的类 RunCancelledPayload，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "模式定义"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/models.py:RunInterruptedPayload",
+      "type": "class",
+      "name": "RunInterruptedPayload",
+      "filePath": "web/models.py",
+      "lineRange": [
+        303,
+        308
+      ],
+      "summary": "位于 web/models.py 的类 RunInterruptedPayload，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "模式定义"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/models.py:RunTimedOutPayload",
+      "type": "class",
+      "name": "RunTimedOutPayload",
+      "filePath": "web/models.py",
+      "lineRange": [
+        311,
+        322
+      ],
+      "summary": "位于 web/models.py 的类 RunTimedOutPayload，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "模式定义"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/models.py:EventEnvelope",
+      "type": "class",
+      "name": "EventEnvelope",
+      "filePath": "web/models.py",
+      "lineRange": [
+        341,
+        371
+      ],
+      "summary": "位于 web/models.py 的类 EventEnvelope，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "模型提供商",
+        "模式定义"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/repositories.py",
+      "type": "file",
+      "name": "repositories.py",
+      "filePath": "web/repositories.py",
+      "summary": "实现 web/repositories.py 在交易分析系统中的核心逻辑，对外提供 _now、_row、WatchlistRepository 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/repositories.py:_now",
+      "type": "function",
+      "name": "_now",
+      "filePath": "web/repositories.py",
+      "lineRange": [
+        20,
+        21
+      ],
+      "summary": "位于 web/repositories.py 的函数 _now，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/repositories.py:_row",
+      "type": "function",
+      "name": "_row",
+      "filePath": "web/repositories.py",
+      "lineRange": [
+        24,
+        25
+      ],
+      "summary": "位于 web/repositories.py 的函数 _row，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:web/repositories.py:WatchlistRepository",
+      "type": "class",
+      "name": "WatchlistRepository",
+      "filePath": "web/repositories.py",
+      "lineRange": [
+        28,
+        142
+      ],
+      "summary": "位于 web/repositories.py 的类 WatchlistRepository，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:web/repositories.py:QuoteRepository",
+      "type": "class",
+      "name": "QuoteRepository",
+      "filePath": "web/repositories.py",
+      "lineRange": [
+        145,
+        208
+      ],
+      "summary": "位于 web/repositories.py 的类 QuoteRepository，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/repositories.py:SnapshotRepository",
+      "type": "class",
+      "name": "SnapshotRepository",
+      "filePath": "web/repositories.py",
+      "lineRange": [
+        211,
+        242
+      ],
+      "summary": "位于 web/repositories.py 的类 SnapshotRepository，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/repositories.py:SettingsRepository",
+      "type": "class",
+      "name": "SettingsRepository",
+      "filePath": "web/repositories.py",
+      "lineRange": [
+        245,
+        274
+      ],
+      "summary": "位于 web/repositories.py 的类 SettingsRepository，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/repositories.py:AnalysisRunRepository",
+      "type": "class",
+      "name": "AnalysisRunRepository",
+      "filePath": "web/repositories.py",
+      "lineRange": [
+        277,
+        318
+      ],
+      "summary": "位于 web/repositories.py 的类 AnalysisRunRepository，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/repositories.py:ReportIndexRepository",
+      "type": "class",
+      "name": "ReportIndexRepository",
+      "filePath": "web/repositories.py",
+      "lineRange": [
+        321,
+        710
+      ],
+      "summary": "位于 web/repositories.py 的类 ReportIndexRepository，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:web/repositories.py:ProviderHealthRepository",
+      "type": "class",
+      "name": "ProviderHealthRepository",
+      "filePath": "web/repositories.py",
+      "lineRange": [
+        713,
+        923
+      ],
+      "summary": "位于 web/repositories.py 的类 ProviderHealthRepository，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:web/repositories.py:ReportRepository",
+      "type": "class",
+      "name": "ReportRepository",
+      "filePath": "web/repositories.py",
+      "lineRange": [
+        926,
+        939
+      ],
+      "summary": "位于 web/repositories.py 的类 ReportRepository，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/runner.py",
+      "type": "file",
+      "name": "runner.py",
+      "filePath": "web/runner.py",
+      "summary": "实现 web/runner.py 在交易分析系统中的核心逻辑，对外提供 _is_partial、WebRunRunner、run_web_analysis 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/runner.py:_is_partial",
+      "type": "function",
+      "name": "_is_partial",
+      "filePath": "web/runner.py",
+      "lineRange": [
+        64,
+        71
+      ],
+      "summary": "位于 web/runner.py 的函数 _is_partial，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/runner.py:run_web_analysis",
+      "type": "function",
+      "name": "run_web_analysis",
+      "filePath": "web/runner.py",
+      "lineRange": [
+        476,
+        478
+      ],
+      "summary": "位于 web/runner.py 的函数 run_web_analysis，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:web/runner.py:WebRunRunner",
+      "type": "class",
+      "name": "WebRunRunner",
+      "filePath": "web/runner.py",
+      "lineRange": [
+        74,
+        473
+      ],
+      "summary": "位于 web/runner.py 的类 WebRunRunner，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/snapshots.py",
+      "type": "file",
+      "name": "snapshots.py",
+      "filePath": "web/snapshots.py",
+      "summary": "实现 web/snapshots.py 在交易分析系统中的核心逻辑，对外提供 SnapshotCorruptError、_normalize、canonical_bytes 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/snapshots.py:_normalize",
+      "type": "function",
+      "name": "_normalize",
+      "filePath": "web/snapshots.py",
+      "lineRange": [
+        33,
+        64
+      ],
+      "summary": "位于 web/snapshots.py 的函数 _normalize，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/snapshots.py:canonical_bytes",
+      "type": "function",
+      "name": "canonical_bytes",
+      "filePath": "web/snapshots.py",
+      "lineRange": [
+        67,
+        75
+      ],
+      "summary": "位于 web/snapshots.py 的函数 canonical_bytes，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/snapshots.py:_sha256",
+      "type": "function",
+      "name": "_sha256",
+      "filePath": "web/snapshots.py",
+      "lineRange": [
+        78,
+        79
+      ],
+      "summary": "位于 web/snapshots.py 的函数 _sha256，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:web/snapshots.py:SnapshotCorruptError",
+      "type": "class",
+      "name": "SnapshotCorruptError",
+      "filePath": "web/snapshots.py",
+      "lineRange": [
+        29,
+        30
+      ],
+      "summary": "位于 web/snapshots.py 的类 SnapshotCorruptError，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/snapshots.py:SnapshotStore",
+      "type": "class",
+      "name": "SnapshotStore",
+      "filePath": "web/snapshots.py",
+      "lineRange": [
+        82,
+        157
+      ],
+      "summary": "位于 web/snapshots.py 的类 SnapshotStore，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/snapshots.py:DataSnapshotRecorder",
+      "type": "class",
+      "name": "DataSnapshotRecorder",
+      "filePath": "web/snapshots.py",
+      "lineRange": [
+        160,
+        226
+      ],
+      "summary": "位于 web/snapshots.py 的类 DataSnapshotRecorder，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/snapshots.py:SnapshotAwareDataProvider",
+      "type": "class",
+      "name": "SnapshotAwareDataProvider",
+      "filePath": "web/snapshots.py",
+      "lineRange": [
+        229,
+        249
+      ],
+      "summary": "位于 web/snapshots.py 的类 SnapshotAwareDataProvider，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:web/storage.py",
+      "type": "file",
+      "name": "storage.py",
+      "filePath": "web/storage.py",
+      "summary": "实现 web/storage.py 在交易分析系统中的核心逻辑，对外提供 SQLiteStore 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:web/storage.py:SQLiteStore",
+      "type": "class",
+      "name": "SQLiteStore",
+      "filePath": "web/storage.py",
+      "lineRange": [
+        14,
+        240
+      ],
+      "summary": "位于 web/storage.py 的类 SQLiteStore，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:RunStatus",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:EventName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:AnalysisRequest",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:RunRecord",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:HistoryRecord",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:EventPayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:RunSnapshotPayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:RunStartedPayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:PhaseChangedPayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:AgentStatusPayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:ProgressPayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:MessagePayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:ActivityPayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:RunCompletedPayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:RunFailedPayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:RunCancelledPayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:RunInterruptedPayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:RunTimedOutPayload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:EventEnvelope",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:RunStatus",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:EventName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:AnalysisRequest",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:RunRecord",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:HistoryRecord",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:EventPayload",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:RunSnapshotPayload",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:RunStartedPayload",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:PhaseChangedPayload",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:AgentStatusPayload",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:ProgressPayload",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:MessagePayload",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:ActivityPayload",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:RunCompletedPayload",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:RunFailedPayload",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:RunCancelledPayload",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:RunInterruptedPayload",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:RunTimedOutPayload",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "class:web/models.py:EventEnvelope",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "file:cli/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/models.py",
+      "target": "file:cli/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "function:web/repositories.py:_now",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "function:web/repositories.py:_row",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "class:web/repositories.py:WatchlistRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "class:web/repositories.py:QuoteRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "class:web/repositories.py:SnapshotRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "class:web/repositories.py:SettingsRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "class:web/repositories.py:AnalysisRunRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "class:web/repositories.py:ReportIndexRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "class:web/repositories.py:ProviderHealthRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "class:web/repositories.py:ReportRepository",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "function:web/repositories.py:_now",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "function:web/repositories.py:_row",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "class:web/repositories.py:WatchlistRepository",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "class:web/repositories.py:QuoteRepository",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "class:web/repositories.py:SnapshotRepository",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "class:web/repositories.py:SettingsRepository",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "class:web/repositories.py:AnalysisRunRepository",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "class:web/repositories.py:ReportIndexRepository",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "class:web/repositories.py:ProviderHealthRepository",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "class:web/repositories.py:ReportRepository",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "file:cli/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/repositories.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "function:web/runner.py:_is_partial",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "function:web/runner.py:run_web_analysis",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "class:web/runner.py:WebRunRunner",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "function:web/runner.py:_is_partial",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "class:web/runner.py:WebRunRunner",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "function:web/runner.py:run_web_analysis",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:tradingagents/dataflows/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:tradingagents/graph/propagation.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:tradingagents/graph/trading_graph.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:web/artifacts.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:web/checkpoint_resume.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:web/error_classifier.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:web/error_codes.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/runner.py",
+      "target": "file:web/snapshots.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/snapshots.py",
+      "target": "function:web/snapshots.py:_normalize",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/snapshots.py",
+      "target": "function:web/snapshots.py:canonical_bytes",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/snapshots.py",
+      "target": "function:web/snapshots.py:_sha256",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/snapshots.py",
+      "target": "class:web/snapshots.py:SnapshotCorruptError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/snapshots.py",
+      "target": "class:web/snapshots.py:SnapshotStore",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/snapshots.py",
+      "target": "class:web/snapshots.py:DataSnapshotRecorder",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/snapshots.py",
+      "target": "class:web/snapshots.py:SnapshotAwareDataProvider",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/snapshots.py",
+      "target": "class:web/snapshots.py:SnapshotCorruptError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/snapshots.py",
+      "target": "function:web/snapshots.py:_normalize",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/snapshots.py",
+      "target": "function:web/snapshots.py:canonical_bytes",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/snapshots.py",
+      "target": "function:web/snapshots.py:_sha256",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/snapshots.py",
+      "target": "class:web/snapshots.py:SnapshotStore",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/snapshots.py",
+      "target": "class:web/snapshots.py:DataSnapshotRecorder",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/snapshots.py",
+      "target": "class:web/snapshots.py:SnapshotAwareDataProvider",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/storage.py",
+      "target": "class:web/storage.py:SQLiteStore",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/storage.py",
+      "target": "class:web/storage.py:SQLiteStore",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

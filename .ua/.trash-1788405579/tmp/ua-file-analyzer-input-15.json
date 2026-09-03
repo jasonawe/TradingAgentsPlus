@@ -1,0 +1,42 @@
+{
+  "projectRoot": "/Users/shenkang/workroom/languages/agent/TradingAgents",
+  "batchFiles": [
+    {
+      "path": ".ua/tmp/import-input.json",
+      "language": "json",
+      "sizeLines": 892,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".ua/tmp/import-output.json",
+      "language": "json",
+      "sizeLines": 529,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".ua/tmp/ua-import-map-input.json",
+      "language": "json",
+      "sizeLines": 892,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".ua/tmp/ua-import-map-output.json",
+      "language": "json",
+      "sizeLines": 529,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".ua/tmp/ua-scan-files.json",
+      "language": "json",
+      "sizeLines": 915,
+      "fileCategory": "config"
+    }
+  ],
+  "batchImportData": {
+    ".ua/tmp/import-input.json": [],
+    ".ua/tmp/import-output.json": [],
+    ".ua/tmp/ua-import-map-input.json": [],
+    ".ua/tmp/ua-import-map-output.json": [],
+    ".ua/tmp/ua-scan-files.json": []
+  }
+}

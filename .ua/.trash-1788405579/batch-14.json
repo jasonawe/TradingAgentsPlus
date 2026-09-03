@@ -1,0 +1,44 @@
+{
+  "nodes": [
+    {
+      "id": "file:.superpowers/brainstorm/81139-1787817330/portfolio-layout-options.html",
+      "type": "file",
+      "name": "portfolio-layout-options.html",
+      "filePath": ".superpowers/brainstorm/81139-1787817330/portfolio-layout-options.html",
+      "summary": "前端 HTML 资源，用于展示 portfolio-layout-options 相关的交互原型或应用界面结构。",
+      "tags": [
+        "frontend",
+        "project-artifact",
+        "tradingagents"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:.superpowers/brainstorm/81139-1787817330/report-reading-options.html",
+      "type": "file",
+      "name": "report-reading-options.html",
+      "filePath": ".superpowers/brainstorm/81139-1787817330/report-reading-options.html",
+      "summary": "前端 HTML 资源，用于展示 report-reading-options 相关的交互原型或应用界面结构。",
+      "tags": [
+        "frontend",
+        "project-artifact",
+        "tradingagents"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:.superpowers/brainstorm/81139-1787817330/waiting-architecture.html",
+      "type": "file",
+      "name": "waiting-architecture.html",
+      "filePath": ".superpowers/brainstorm/81139-1787817330/waiting-architecture.html",
+      "summary": "前端 HTML 资源，用于展示 waiting-architecture 相关的交互原型或应用界面结构。",
+      "tags": [
+        "frontend",
+        "project-artifact",
+        "tradingagents"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": []
+}

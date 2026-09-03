@@ -1,0 +1,70 @@
+{
+  "nodes": [
+    {
+      "id": "config:.ua/tmp/import-input.json",
+      "type": "config",
+      "name": "import-input.json",
+      "filePath": ".ua/tmp/import-input.json",
+      "summary": "项目配置文件 import-input.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。",
+      "tags": [
+        "configuration",
+        "metadata",
+        "project-artifact"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "config:.ua/tmp/import-output.json",
+      "type": "config",
+      "name": "import-output.json",
+      "filePath": ".ua/tmp/import-output.json",
+      "summary": "项目配置文件 import-output.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。",
+      "tags": [
+        "configuration",
+        "metadata",
+        "project-artifact"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "config:.ua/tmp/ua-import-map-input.json",
+      "type": "config",
+      "name": "ua-import-map-input.json",
+      "filePath": ".ua/tmp/ua-import-map-input.json",
+      "summary": "项目配置文件 ua-import-map-input.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。",
+      "tags": [
+        "configuration",
+        "metadata",
+        "project-artifact"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "config:.ua/tmp/ua-import-map-output.json",
+      "type": "config",
+      "name": "ua-import-map-output.json",
+      "filePath": ".ua/tmp/ua-import-map-output.json",
+      "summary": "项目配置文件 ua-import-map-output.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。",
+      "tags": [
+        "configuration",
+        "metadata",
+        "project-artifact"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "config:.ua/tmp/ua-scan-files.json",
+      "type": "config",
+      "name": "ua-scan-files.json",
+      "filePath": ".ua/tmp/ua-scan-files.json",
+      "summary": "项目配置文件 ua-scan-files.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。",
+      "tags": [
+        "configuration",
+        "metadata",
+        "project-artifact"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": []
+}

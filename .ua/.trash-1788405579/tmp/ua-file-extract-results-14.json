@@ -1,0 +1,21 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 0,
+  "filesSkipped": [
+    ".superpowers/brainstorm/81139-1787817330/portfolio-layout-options.html",
+    ".superpowers/brainstorm/81139-1787817330/report-reading-options.html",
+    ".superpowers/brainstorm/81139-1787817330/waiting-architecture.html"
+  ],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 0,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": []
+}

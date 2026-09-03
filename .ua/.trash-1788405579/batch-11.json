@@ -1,0 +1,86 @@
+{
+  "nodes": [
+    {
+      "id": "table:web/migrations/001_personal_platform.sql",
+      "type": "table",
+      "name": "001_personal_platform.sql",
+      "filePath": "web/migrations/001_personal_platform.sql",
+      "summary": "数据库迁移文件 001_personal_platform.sql，定义或调整 Web 平台的持久化表结构、索引与可靠性相关字段。",
+      "tags": [
+        "database",
+        "migration",
+        "schema-definition"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:web/migrations/002_reliability_operations.sql",
+      "type": "table",
+      "name": "002_reliability_operations.sql",
+      "filePath": "web/migrations/002_reliability_operations.sql",
+      "summary": "数据库迁移文件 002_reliability_operations.sql，定义或调整 Web 平台的持久化表结构、索引与可靠性相关字段。",
+      "tags": [
+        "database",
+        "migration",
+        "schema-definition"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "table:web/migrations/003_watchlist_newest_first.sql",
+      "type": "table",
+      "name": "003_watchlist_newest_first.sql",
+      "filePath": "web/migrations/003_watchlist_newest_first.sql",
+      "summary": "数据库迁移文件 003_watchlist_newest_first.sql，定义或调整 Web 平台的持久化表结构、索引与可靠性相关字段。",
+      "tags": [
+        "database",
+        "migration",
+        "schema-definition"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:web/migrations/004_analysis_timeout_recovery.sql",
+      "type": "table",
+      "name": "004_analysis_timeout_recovery.sql",
+      "filePath": "web/migrations/004_analysis_timeout_recovery.sql",
+      "summary": "数据库迁移文件 004_analysis_timeout_recovery.sql，定义或调整 Web 平台的持久化表结构、索引与可靠性相关字段。",
+      "tags": [
+        "database",
+        "migration",
+        "schema-definition"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "table:web/migrations/001_personal_platform.sql",
+      "target": "table:web/migrations/002_reliability_operations.sql",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "table:web/migrations/002_reliability_operations.sql",
+      "target": "table:web/migrations/001_personal_platform.sql",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "table:web/migrations/003_watchlist_newest_first.sql",
+      "target": "table:web/migrations/001_personal_platform.sql",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "table:web/migrations/004_analysis_timeout_recovery.sql",
+      "target": "table:web/migrations/001_personal_platform.sql",
+      "type": "migrates",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

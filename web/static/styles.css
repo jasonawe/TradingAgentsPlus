@@ -203,6 +203,9 @@ table.data .num { font-family: var(--mono); font-weight: 600; text-align: right;
 .section-heading .refresh-hint { margin-right: auto; margin-left: 12px; font-size: 12px; color: var(--muted); }
 .section-heading #refresh-quotes { margin-left: auto; }
 .section-heading h2 { margin: 0; font-size: 16px; font-weight: 600; color: var(--ink); }
+.watchlist-sort-field { margin: 0; gap: 2px; min-width: 0; }
+.watchlist-sort-field > span { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+.watchlist-sort-field > select { padding: 6px 28px 6px 10px; font-size: 13px; min-height: 32px; line-height: 1.2; }
 .watchlist-panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 24px; box-shadow: var(--shadow-1); margin-bottom: 24px; }
 .watchlist-form { display: grid; grid-template-columns: 1fr 180px auto; gap: 12px; align-items: end; margin-bottom: 16px; }
 .field-hint { display: block; font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.55; }
@@ -213,30 +216,40 @@ table.data .num { font-family: var(--mono); font-weight: 600; text-align: right;
 .watchlist-form button { align-self: end; }
 .watchlist-list { display: flex; flex-direction: column; }
 .watchlist-list .muted.watchlist-empty { padding: 32px; text-align: center; border: 1px dashed var(--line); border-radius: var(--r-md); }
-.watchlist-row { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1.3fr auto; gap: 16px; align-items: stretch; padding: 14px 12px; border-bottom: 1px solid var(--line); cursor: pointer; transition: background .12s; border-radius: var(--r-sm); }
-.watchlist-row:hover { background: var(--panel-2); }
+.watchlist-row { display: grid; grid-template-columns: minmax(170px,1.2fr) minmax(220px,1.4fr) minmax(160px,1fr) minmax(186px, auto); grid-template-areas: "asset quote analysis actions"; gap: 20px; align-items: stretch; padding: 18px 16px; border: 1px solid transparent; border-bottom-color: var(--line); cursor: pointer; transition: background .12s, border-color .12s, box-shadow .12s; border-radius: var(--r-md); }
+.watchlist-row:hover { background: var(--panel-2); border-color: var(--line); box-shadow: var(--shadow-1); }
 .watchlist-row:last-child { border-bottom: 0; }
-.watchlist-asset, .watchlist-quote, .watchlist-analysis, .watchlist-actions { display: flex; flex-direction: column; gap: 4px; min-width: 0; justify-content: center; }
+.watchlist-asset, .watchlist-quote, .watchlist-analysis, .watchlist-actions { display: flex; flex-direction: column; gap: 5px; min-width: 0; justify-content: center; }
+.watchlist-asset { grid-area: asset; }
 .watchlist-asset .symbol { font-family: var(--mono); font-weight: 600; font-size: 13px; color: var(--ink); }
 .watchlist-asset .asset-meta { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .watchlist-asset .asset-type { color: var(--subtle); font-size: 11px; }
-.watchlist-quote { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; min-width: 0; }
-.watchlist-quote .quote-value { font-family: var(--mono); font-weight: 600; font-size: 14px; color: var(--ink); }
-.watchlist-quote .quote-meta { font-size: 11px; color: var(--muted); }
-.watchlist-quote .asset-change { font-family: var(--mono); font-size: 12px; font-weight: 600; }
-.watchlist-quote .asset-change.up { color: var(--green); }
-.watchlist-quote .asset-change.down { color: var(--red); }
-.watchlist-analysis { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); min-width: 0; }
-.watchlist-analysis .analysis-date { color: var(--muted); font-size: 11px; font-family: var(--mono); }
-.watchlist-analysis .signal-chip { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; }
-.watchlist-analysis .signal-chip.is-buy { background: var(--green-soft); color: var(--green); }
-.watchlist-analysis .signal-chip.is-sell { background: var(--red-soft); color: var(--red); }
-.watchlist-analysis .signal-chip.is-hold, .watchlist-analysis .signal-chip.is-underweight, .watchlist-analysis .signal-chip.is-overweight { background: rgba(115,115,115,.12); color: var(--muted); }
+.watchlist-quote { grid-area: quote; display: flex; flex-direction: column; gap: 5px; align-items: flex-start; min-width: 0; }
+.watchlist-quote .quote-value { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px; color: var(--ink); }
+.watchlist-quote .quote-number { display: inline-flex; align-items: baseline; gap: 7px; min-width: 0; font-variant-numeric: tabular-nums; }
+.watchlist-quote .quote-price { font-family: var(--mono); font-weight: 800; font-size: 28px; line-height: 1.1; letter-spacing: -.02em; color: var(--ink); }
+.watchlist-quote .quote-price.is-missing { font-size: 14px; font-weight: 600; letter-spacing: 0; color: var(--muted); }
+.watchlist-quote .quote-currency { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.watchlist-quote .quote-change { display: inline-flex; align-items: center; gap: 4px; padding: 5px 9px; border-radius: var(--r-sm); font-family: var(--mono); font-size: 13px; font-weight: 800; line-height: 1.2; white-space: nowrap; }
+.watchlist-quote .quote-change.is-up { color: var(--red); background: var(--red-soft); }
+.watchlist-quote .quote-change.is-down { color: var(--green); background: var(--green-soft); }
+.watchlist-quote .quote-change.is-flat { color: var(--muted); background: var(--panel-2); }
+.watchlist-quote .quote-change-arrow { font-size: 14px; line-height: 1; }
+.watchlist-quote .quote-meta { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.watchlist-analysis { grid-area: analysis; font-size: 12px; color: var(--muted); }
+.watchlist-analysis .analysis-date { display: flex; flex-direction: column; gap: 2px; }
+.watchlist-analysis .analysis-label { color: var(--muted); font-size: 11px; }
+.watchlist-analysis .analysis-date-value { color: var(--ink-2); font-size: 13px; font-family: var(--mono); font-weight: 700; }
+.watchlist-analysis .analysis-date.is-missing { font-size: 12px; color: var(--subtle); }
+.watchlist-analysis .signal-chip { display: inline-flex; align-items: center; width: fit-content; max-width: 100%; padding: 5px 10px; border-radius: var(--r-sm); font-size: 11px; font-weight: 800; line-height: 1.25; letter-spacing: .02em; margin-top: 4px; }
+.watchlist-analysis .signal-chip.is-buy { background: var(--red-soft); color: var(--red); }
+.watchlist-analysis .signal-chip.is-sell { background: var(--green-soft); color: var(--green); }
+.watchlist-analysis .signal-chip.is-hold, .watchlist-analysis .signal-chip.is-neutral { background: rgba(115,115,115,.12); color: var(--muted); }
 .watchlist-analysis .signal-chip.is-empty { background: var(--panel-2); color: var(--subtle); }
 .watchlist-analysis .history-signal.is-buy { background: var(--green-soft); color: var(--green); }
 .watchlist-analysis .history-signal.is-sell { background: var(--red-soft); color: var(--red); }
 .watchlist-analysis .history-signal.is-hold { background: rgba(115,115,115,.12); color: var(--muted); }
-.watchlist-actions { display: flex; flex-direction: row; gap: 6px; align-items: center; flex-wrap: wrap; }
+.watchlist-actions { grid-area: actions; display: flex; flex-direction: row; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
 .watchlist-actions .text-button, .watchlist-actions .icon-button { background: transparent; border: 1px solid var(--line); color: var(--muted); border-radius: var(--r-sm); padding: 6px 10px; font-size: 12px; cursor: pointer; font-family: inherit; transition: all .12s; }
 .watchlist-actions .text-button:hover, .watchlist-actions .icon-button:hover { color: var(--ink); border-color: var(--ink-2); }
 .watchlist-actions .icon-button.icon-button.danger:hover { color: var(--red); border-color: var(--red); }
@@ -344,11 +357,11 @@ table.data .num { font-family: var(--mono); font-weight: 600; text-align: right;
 .library-list > article:last-child { border-bottom: 0; }
 .library-list > article:hover { background: var(--panel-2); }
 .library-list > .muted { padding: 32px; }
-.library-row { display: grid; grid-template-columns: 1fr 1fr 1.4fr auto auto; align-items: center; gap: 16px; width: 100%; padding: 14px 20px; background: transparent; border: 0; cursor: pointer; font-family: inherit; text-align: left; }
+.library-row { display: grid; grid-template-columns: minmax(110px,1fr) minmax(110px,1fr) minmax(140px,1.4fr) 152px 18px; align-items: center; column-gap: 16px; width: 100%; padding: 14px 20px; background: transparent; border: 0; cursor: pointer; font-family: inherit; text-align: left; }
 .library-row-ticker { font-family: var(--mono); font-weight: 600; font-size: 13px; color: var(--ink); }
 .library-row-date { font-family: var(--mono); font-size: 12px; color: var(--muted); }
 .library-row-meta { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.library-row .signal-chip { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.library-row .signal-chip { display: inline-flex; align-items: center; justify-content: center; width: 136px; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .library-row .signal-chip.is-buy { background: var(--green-soft); color: var(--green); }
 .library-row .signal-chip.is-sell { background: var(--red-soft); color: var(--red); }
 .library-row .signal-chip.is-hold, .library-row .signal-chip.is-underweight, .library-row .signal-chip.is-overweight { background: rgba(115,115,115,.12); color: var(--muted); }
@@ -380,6 +393,9 @@ table.data .num { font-family: var(--mono); font-weight: 600; text-align: right;
 .asset-detail-header { display: grid; grid-template-columns: 1.5fr 1fr auto; gap: 24px; align-items: center; padding: 28px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1); margin-bottom: 20px; }
 .asset-detail-heading h2 { margin: 0 0 4px; font-family: var(--mono); font-size: 22px; font-weight: 700; color: var(--ink); }
 .asset-detail-heading .muted { display: block; font-size: 13px; margin-bottom: 6px; }
+.asset-detail-name-block { display: flex; flex-direction: column; gap: 2px; margin-bottom: 6px; }
+.asset-detail-name-zh { font-size: 14px; color: var(--ink); font-weight: 500; }
+.asset-detail-name-en { font-size: 12px; color: var(--muted); }
 .asset-type-badge { display: inline-block; padding: 3px 10px; background: var(--accent-soft); color: var(--accent); border-radius: var(--r-sm); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
 .asset-detail-quote { text-align: right; }
 .asset-price { font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--ink); letter-spacing: -.02em; line-height: 1; }
@@ -411,6 +427,72 @@ table.data .num { font-family: var(--mono); font-weight: 600; text-align: right;
 .text-button { background: transparent; border: 0; color: var(--muted); cursor: pointer; font-size: 12px; padding: 4px 8px; border-radius: var(--r-sm); font-family: inherit; }
 .text-button:hover { color: var(--ink); background: var(--panel-2); }
 
+/* ---------- Scheduled analysis workspace ---------- */
+.scheduled-view { max-width: 1280px; }
+.scheduled-header { display: flex; align-items: center; justify-content: flex-end; gap: 20px; margin-bottom: 20px; }
+.scheduled-header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.switch-control { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 5px 10px 5px 6px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--panel); color: var(--muted); cursor: pointer; font: 600 12px var(--sans); }
+.switch-control > span { width: 28px; height: 16px; border-radius: 999px; background: var(--line-strong); position: relative; transition: background .15s; }
+.switch-control > span::after { content: ""; width: 12px; height: 12px; border-radius: 50%; background: var(--panel); position: absolute; top: 2px; left: 2px; transition: transform .15s; box-shadow: var(--shadow-1); }
+.switch-control.is-on { color: var(--accent); border-color: var(--accent); }
+.switch-control.is-on > span { background: var(--accent); }
+.switch-control.is-on > span::after { transform: translateX(12px); }
+.scheduled-list { min-height: 160px; }
+.scheduled-table-wrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1); }
+.scheduled-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+.scheduled-table th { padding: 13px 16px; background: var(--panel-2); border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; text-align: left; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
+.scheduled-table td { padding: 15px 16px; border-bottom: 1px solid var(--line); vertical-align: middle; color: var(--ink); }
+.scheduled-table tr:last-child td { border-bottom: 0; }
+.scheduled-table td:first-child { min-width: 130px; }
+.scheduled-table td strong, .scheduled-table td small { display: block; }
+.scheduled-table td small { color: var(--muted); font-size: 11px; margin-top: 3px; }
+.scheduled-table code { font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
+.scheduled-actions { display: flex; flex-wrap: wrap; gap: 4px; min-width: 230px; }
+.scheduled-actions .text-button { white-space: nowrap; }
+.scheduled-actions .is-danger { color: var(--red); }
+.scheduled-status { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: var(--r-sm); font-size: 11px; font-weight: 600; white-space: nowrap; }
+.scheduled-status.status-succeeded { color: var(--green); background: var(--green-soft); }
+.scheduled-status.status-running, .scheduled-status.status-queued { color: var(--accent); background: var(--accent-soft); }
+.scheduled-status.status-failed { color: var(--red); background: var(--red-soft); }
+.scheduled-status.status-skipped { color: var(--amber); background: var(--amber-soft); }
+.scheduled-log-row td { padding-top: 0; background: var(--panel-2); }
+.scheduled-logs { padding: 12px 4px 4px; }
+.scheduled-logs ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.scheduled-logs li { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 8px 10px; border-left: 2px solid var(--line-strong); font-size: 12px; }
+.scheduled-logs time { font-family: var(--mono); color: var(--muted); }
+.scheduled-loading { display: grid; gap: 10px; padding: 20px 0; }
+.scheduled-loading .skeleton { height: 48px; }
+.scheduled-empty { margin-top: 8px; }
+.scheduled-drawer { position: fixed; inset: 0; z-index: 900; }
+.scheduled-drawer-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.35); }
+.scheduled-drawer-panel { position: absolute; top: 0; right: 0; bottom: 0; width: min(390px, 100%); padding: 24px; background: var(--panel); border-left: 1px solid var(--line); box-shadow: var(--shadow-3); overflow-y: auto; }
+.scheduled-drawer-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 26px; }
+.scheduled-drawer-heading h2 { margin: 0; font-size: 18px; }
+.setting-switch { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 26px; color: var(--ink); font-weight: 600; }
+.scheduled-drawer .field { position: relative; }
+.scheduled-drawer output { position: absolute; right: 0; top: 0; color: var(--accent); font-weight: 700; }
+.scheduled-form-dialog { max-width: 520px; max-height: min(720px, calc(100vh - 48px)); overflow-y: auto; }
+.scheduled-form-dialog h2 { margin: 0 0 20px; font-size: 18px; }
+.scheduled-form-dialog textarea { width: 100%; resize: vertical; padding: 10px 14px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--panel); color: var(--ink); font: 14px/1.5 var(--sans); }
+.scheduled-form-dialog textarea:focus { border-color: var(--accent); outline: 0; box-shadow: 0 0 0 3px var(--accent-soft); }
+.scheduled-preview { list-style: none; padding: 8px 0 0; margin: 0; display: grid; gap: 4px; color: var(--muted); font: 12px var(--mono); }
+.scheduled-preview li { padding: 4px 8px; background: var(--panel-2); border-radius: var(--r-sm); }
+@media (max-width: 768px) {
+  .scheduled-header { flex-direction: column; }
+  .scheduled-header-actions { width: 100%; }
+  .scheduled-header-actions .button-primary { flex: 1; }
+  .scheduled-table-wrap { border: 0; box-shadow: none; overflow: visible; }
+  .scheduled-table, .scheduled-table thead, .scheduled-table tbody, .scheduled-table tr, .scheduled-table td { display: block; min-width: 0; }
+  .scheduled-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .scheduled-job-group { margin-bottom: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-1); }
+  .scheduled-table td { display: grid; grid-template-columns: 7.5rem 1fr; gap: 8px; padding: 10px 14px; }
+  .scheduled-table td::before { content: attr(data-label); color: var(--muted); font-size: 11px; font-weight: 600; text-transform: uppercase; }
+  .scheduled-table td:first-child { padding-top: 14px; }
+  .scheduled-actions { display: flex; padding-bottom: 14px; }
+  .scheduled-log-row td { display: block; padding: 0 14px 14px; }
+  .scheduled-log-row td::before { display: none; }
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 1080px) {
   .library-layout { grid-template-columns: 1fr; }
@@ -422,8 +504,7 @@ table.data .num { font-family: var(--mono); font-weight: 600; text-align: right;
   .asset-detail-header { grid-template-columns: 1fr; text-align: left; }
   .asset-detail-quote { text-align: left; }
   .library-toolbar { grid-template-columns: 1fr 1fr; }
-  .watchlist-row { grid-template-columns: 1fr 1fr; }
-  .watchlist-row .watchlist-analysis { grid-column: span 2; }
+  .watchlist-row { grid-template-columns: minmax(0,1fr) minmax(0,1fr); grid-template-areas: "asset quote" "analysis analysis" "actions actions"; gap: 14px 18px; }
 }
 @media (max-width: 768px) {
   .app-shell { grid-template-columns: 1fr; }
@@ -441,8 +522,18 @@ table.data .num { font-family: var(--mono); font-weight: 600; text-align: right;
   .analysis-form > .form-row, .analysis-form > .form-row.primary-row, .analysis-form > .form-row.model-row { grid-template-columns: 1fr; }
   .analyst-options { grid-template-columns: 1fr; }
   .watchlist-form { grid-template-columns: 1fr; }
+  .watchlist-row { grid-template-columns: minmax(0,1fr) auto; grid-template-areas: "asset signal" "quote quote" "analysis-date analysis-date" "quote-meta quote-meta" "actions actions"; gap: 8px 12px; padding: 16px 14px; }
+  .watchlist-quote { display: contents; }
+  .watchlist-analysis { display: contents; }
+  .watchlist-quote .quote-value { grid-area: quote; }
+  .watchlist-quote .quote-meta { grid-area: quote-meta; white-space: normal; }
+  .watchlist-analysis .analysis-date { grid-area: analysis-date; align-items: flex-start; }
+  .watchlist-analysis .signal-chip { grid-area: signal; align-self: start; justify-self: end; }
+  .watchlist-quote .quote-value { gap: 8px; }
+  .watchlist-quote .quote-price { font-size: 25px; }
+  .watchlist-quote .quote-meta { white-space: normal; }
+  .watchlist-actions { justify-content: flex-start; }
   .library-toolbar { grid-template-columns: 1fr; }
   .asset-detail-header { padding: 20px; }
   .report-panel, .settings-card { padding: 20px; }
 }
-

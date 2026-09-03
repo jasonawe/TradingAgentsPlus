@@ -1,0 +1,350 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 4,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 4,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 4
+    }
+  },
+  "results": [
+    {
+      "path": "web/migrations/001_personal_platform.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 106,
+      "nonEmptyLines": 99,
+      "definitions": [
+        {
+          "name": "web_runs",
+          "kind": "table",
+          "fields": [
+            "run_id",
+            "request_json",
+            "status",
+            "phase",
+            "current_agent",
+            "progress",
+            "queued_at",
+            "started_at",
+            "finished_at",
+            "signal",
+            "report_id",
+            "error_code",
+            "error_message",
+            "terminal_expires_at",
+            "effective_quote_strategy_id",
+            "effective_quote_provider_chain",
+            "data_snapshot_id",
+            "data_status",
+            "reproducibility"
+          ],
+          "startLine": 1,
+          "endLine": 21
+        },
+        {
+          "name": "watchlists",
+          "kind": "table",
+          "fields": [
+            "id",
+            "name",
+            "version",
+            "created_at",
+            "updated_at"
+          ],
+          "startLine": 23,
+          "endLine": 29
+        },
+        {
+          "name": "watchlist_items",
+          "kind": "table",
+          "fields": [
+            "id",
+            "watchlist_id",
+            "symbol",
+            "asset_type",
+            "note",
+            "position",
+            "created_at",
+            "updated_at"
+          ],
+          "startLine": 31,
+          "endLine": 41
+        },
+        {
+          "name": "market_quotes",
+          "kind": "table",
+          "fields": [
+            "symbol",
+            "asset_type",
+            "price",
+            "previous_close",
+            "change",
+            "change_percent",
+            "currency",
+            "as_of",
+            "fetched_at",
+            "freshness",
+            "source",
+            "payload_json",
+            "open",
+            "high",
+            "low",
+            "volume",
+            "market_status",
+            "exchange",
+            "raw_summary",
+            "cache_status"
+          ],
+          "startLine": 45,
+          "endLine": 67
+        },
+        {
+          "name": "market_candles",
+          "kind": "table",
+          "fields": [
+            "symbol",
+            "interval",
+            "timestamp",
+            "open",
+            "high",
+            "low",
+            "close",
+            "volume",
+            "source"
+          ],
+          "startLine": 69,
+          "endLine": 80
+        },
+        {
+          "name": "analysis_data_snapshots",
+          "kind": "table",
+          "fields": [
+            "run_id",
+            "manifest_json",
+            "manifest_hash",
+            "status",
+            "created_at",
+            "completed_at"
+          ],
+          "startLine": 82,
+          "endLine": 89
+        },
+        {
+          "name": "settings",
+          "kind": "table",
+          "fields": [
+            "value",
+            "source",
+            "updated_at"
+          ],
+          "startLine": 91,
+          "endLine": 96
+        },
+        {
+          "name": "web_run_events",
+          "kind": "table",
+          "fields": [
+            "run_id",
+            "seq",
+            "event",
+            "timestamp",
+            "payload_json"
+          ],
+          "startLine": 98,
+          "endLine": 106
+        },
+        {
+          "name": "idx_watchlist_items_order",
+          "kind": "index",
+          "fields": [],
+          "startLine": 42,
+          "endLine": 42
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 9
+      }
+    },
+    {
+      "path": "web/migrations/002_reliability_operations.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 61,
+      "nonEmptyLines": 58,
+      "definitions": [
+        {
+          "name": "reports",
+          "kind": "table",
+          "fields": [
+            "report_id",
+            "run_id",
+            "ticker",
+            "asset_type",
+            "analysis_date",
+            "generated_at",
+            "status",
+            "rating",
+            "signal",
+            "output_language",
+            "summary_status",
+            "decision_preview",
+            "data_snapshot_id",
+            "provider",
+            "quick_model",
+            "deep_model",
+            "analysts_json",
+            "research_depth",
+            "data_status",
+            "reproducibility",
+            "quote_strategy_id",
+            "effective_quote_provider_chain",
+            "root_name",
+            "relative_path",
+            "source",
+            "path_state",
+            "updated_at"
+          ],
+          "startLine": 1,
+          "endLine": 31
+        },
+        {
+          "name": "report_index_outbox",
+          "kind": "table",
+          "fields": [
+            "report_id",
+            "root_name",
+            "relative_path",
+            "payload_json",
+            "attempts",
+            "last_error",
+            "updated_at"
+          ],
+          "startLine": 38,
+          "endLine": 46
+        },
+        {
+          "name": "provider_health",
+          "kind": "table",
+          "fields": [
+            "provider",
+            "status",
+            "window_started_at",
+            "request_count",
+            "failure_count",
+            "consecutive_failures",
+            "last_success_at",
+            "last_failure_at",
+            "last_latency_ms",
+            "last_error_code",
+            "last_error_message",
+            "updated_at"
+          ],
+          "startLine": 48,
+          "endLine": 61
+        },
+        {
+          "name": "idx_reports_generated",
+          "kind": "index",
+          "fields": [],
+          "startLine": 33,
+          "endLine": 33
+        },
+        {
+          "name": "idx_reports_ticker",
+          "kind": "index",
+          "fields": [],
+          "startLine": 34,
+          "endLine": 34
+        },
+        {
+          "name": "idx_reports_status",
+          "kind": "index",
+          "fields": [],
+          "startLine": 35,
+          "endLine": 35
+        },
+        {
+          "name": "idx_reports_analysis_date",
+          "kind": "index",
+          "fields": [],
+          "startLine": 36,
+          "endLine": 36
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 7
+      }
+    },
+    {
+      "path": "web/migrations/003_watchlist_newest_first.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 2,
+      "nonEmptyLines": 2,
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 0
+      }
+    },
+    {
+      "path": "web/migrations/004_analysis_timeout_recovery.sql",
+      "language": "sql",
+      "fileCategory": "data",
+      "totalLines": 29,
+      "nonEmptyLines": 27,
+      "definitions": [
+        {
+          "name": "analysis_run_artifacts",
+          "kind": "table",
+          "fields": [
+            "run_id",
+            "artifact_key",
+            "artifact_type",
+            "phase",
+            "agent",
+            "title",
+            "content_markdown",
+            "status",
+            "sequence",
+            "created_at",
+            "updated_at"
+          ],
+          "startLine": 11,
+          "endLine": 25
+        },
+        {
+          "name": "idx_run_artifacts_sequence",
+          "kind": "index",
+          "fields": [],
+          "startLine": 26,
+          "endLine": 26
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "definitionCount": 2
+      }
+    }
+  ]
+}

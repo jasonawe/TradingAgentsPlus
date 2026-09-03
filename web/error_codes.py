@@ -105,6 +105,8 @@ USER_MESSAGES: Final[dict[str, str]] = {
     TerminalReason.PUBLISH_INCOMPLETE.value: "报告发布未完成",
     TerminalReason.WORKER_ERROR.value: "分析执行发生未分类错误",
     TerminalReason.COMPLETED.value: "分析完成",
+    "asset_busy": "该资产已有分析正在运行",
+    "capacity": "并发分析数量已达上限，请稍后重试",
 }
 
 

@@ -1,0 +1,1691 @@
+{
+  "nodes": [
+    {
+      "id": "file:tests/test_openrouter_model_select.py",
+      "type": "file",
+      "name": "test_openrouter_model_select.py",
+      "filePath": "tests/test_openrouter_model_select.py",
+      "summary": "覆盖 test_openrouter_model_select.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_openrouter_model_select.py:_asks",
+      "type": "function",
+      "name": "_asks",
+      "filePath": "tests/test_openrouter_model_select.py",
+      "lineRange": [
+        12,
+        13
+      ],
+      "summary": "位于 tests/test_openrouter_model_select.py 的函数 _asks，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_openrouter_model_select.py:TestOpenRouterPromptLabel",
+      "type": "class",
+      "name": "TestOpenRouterPromptLabel",
+      "filePath": "tests/test_openrouter_model_select.py",
+      "lineRange": [
+        17,
+        32
+      ],
+      "summary": "位于 tests/test_openrouter_model_select.py 的类 TestOpenRouterPromptLabel，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_openrouter_model_select.py:TestOpenRouterLatestFirst",
+      "type": "class",
+      "name": "TestOpenRouterLatestFirst",
+      "filePath": "tests/test_openrouter_model_select.py",
+      "lineRange": [
+        36,
+        48
+      ],
+      "summary": "位于 tests/test_openrouter_model_select.py 的类 TestOpenRouterLatestFirst，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_openrouter_model_select.py:TestMainstreamFilter",
+      "type": "class",
+      "name": "TestMainstreamFilter",
+      "filePath": "tests/test_openrouter_model_select.py",
+      "lineRange": [
+        52,
+        89
+      ],
+      "summary": "位于 tests/test_openrouter_model_select.py 的类 TestMainstreamFilter，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_openrouter_model_select.py:TestCancelExitsCleanly",
+      "type": "class",
+      "name": "TestCancelExitsCleanly",
+      "filePath": "tests/test_openrouter_model_select.py",
+      "lineRange": [
+        93,
+        110
+      ],
+      "summary": "位于 tests/test_openrouter_model_select.py 的类 TestCancelExitsCleanly，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_openrouter_model_select.py:TestLanguageDefaultsToEnglish",
+      "type": "class",
+      "name": "TestLanguageDefaultsToEnglish",
+      "filePath": "tests/test_openrouter_model_select.py",
+      "lineRange": [
+        114,
+        122
+      ],
+      "summary": "位于 tests/test_openrouter_model_select.py 的类 TestLanguageDefaultsToEnglish，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_ticker_symbol_handling.py",
+      "type": "file",
+      "name": "test_ticker_symbol_handling.py",
+      "filePath": "tests/test_ticker_symbol_handling.py",
+      "summary": "覆盖 test_ticker_symbol_handling.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_ticker_symbol_handling.py:TickerSymbolHandlingTests",
+      "type": "class",
+      "name": "TickerSymbolHandlingTests",
+      "filePath": "tests/test_ticker_symbol_handling.py",
+      "lineRange": [
+        10,
+        25
+      ],
+      "summary": "位于 tests/test_ticker_symbol_handling.py 的类 TickerSymbolHandlingTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_web_market_data.py",
+      "type": "file",
+      "name": "test_web_market_data.py",
+      "filePath": "tests/test_web_market_data.py",
+      "summary": "覆盖 test_web_market_data.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "Web",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_web_market_data.py:quote",
+      "type": "function",
+      "name": "quote",
+      "filePath": "tests/test_web_market_data.py",
+      "lineRange": [
+        15,
+        31
+      ],
+      "summary": "位于 tests/test_web_market_data.py 的函数 quote，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_data.py:test_quote_models_normalize_utc_and_unavailable_numeric_fields",
+      "type": "function",
+      "name": "test_quote_models_normalize_utc_and_unavailable_numeric_fields",
+      "filePath": "tests/test_web_market_data.py",
+      "lineRange": [
+        34,
+        48
+      ],
+      "summary": "位于 tests/test_web_market_data.py 的函数 test_quote_models_normalize_utc_and_unavailable_numeric_fields，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_data.py:test_quote_item_flattens_asset_name_and_exchange",
+      "type": "function",
+      "name": "test_quote_item_flattens_asset_name_and_exchange",
+      "filePath": "tests/test_web_market_data.py",
+      "lineRange": [
+        51,
+        56
+      ],
+      "summary": "位于 tests/test_web_market_data.py 的函数 test_quote_item_flattens_asset_name_and_exchange，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_data.py:test_quote_item_exposes_chinese_asset_and_exchange_names",
+      "type": "function",
+      "name": "test_quote_item_exposes_chinese_asset_and_exchange_names",
+      "filePath": "tests/test_web_market_data.py",
+      "lineRange": [
+        59,
+        72
+      ],
+      "summary": "位于 tests/test_web_market_data.py 的函数 test_quote_item_exposes_chinese_asset_and_exchange_names，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_data.py:test_unknown_localization_keeps_source_values",
+      "type": "function",
+      "name": "test_unknown_localization_keeps_source_values",
+      "filePath": "tests/test_web_market_data.py",
+      "lineRange": [
+        75,
+        88
+      ],
+      "summary": "位于 tests/test_web_market_data.py 的函数 test_unknown_localization_keeps_source_values，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_data.py:test_common_chinese_listed_assets_use_chinese_display_names",
+      "type": "function",
+      "name": "test_common_chinese_listed_assets_use_chinese_display_names",
+      "filePath": "tests/test_web_market_data.py",
+      "lineRange": [
+        98,
+        110
+      ],
+      "summary": "位于 tests/test_web_market_data.py 的函数 test_common_chinese_listed_assets_use_chinese_display_names，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_data.py:test_provider_router_only_falls_back_for_transient_typed_errors",
+      "type": "function",
+      "name": "test_provider_router_only_falls_back_for_transient_typed_errors",
+      "filePath": "tests/test_web_market_data.py",
+      "lineRange": [
+        113,
+        142
+      ],
+      "summary": "位于 tests/test_web_market_data.py 的函数 test_provider_router_only_falls_back_for_transient_typed_errors，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_data.py:test_quote_service_uses_cache_until_ttl_then_marks_stale",
+      "type": "function",
+      "name": "test_quote_service_uses_cache_until_ttl_then_marks_stale",
+      "filePath": "tests/test_web_market_data.py",
+      "lineRange": [
+        145,
+        179
+      ],
+      "summary": "位于 tests/test_web_market_data.py 的函数 test_quote_service_uses_cache_until_ttl_then_marks_stale，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_data.py:test_bulk_limits_and_partial_errors",
+      "type": "function",
+      "name": "test_bulk_limits_and_partial_errors",
+      "filePath": "tests/test_web_market_data.py",
+      "lineRange": [
+        182,
+        209
+      ],
+      "summary": "位于 tests/test_web_market_data.py 的函数 test_bulk_limits_and_partial_errors，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_data.py:test_quote_service_precedence_defaults_then_sqlite_then_environment",
+      "type": "function",
+      "name": "test_quote_service_precedence_defaults_then_sqlite_then_environment",
+      "filePath": "tests/test_web_market_data.py",
+      "lineRange": [
+        212,
+        229
+      ],
+      "summary": "位于 tests/test_web_market_data.py 的函数 test_quote_service_precedence_defaults_then_sqlite_then_environment，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_data.py:test_router_checks_capability_before_calling_provider",
+      "type": "function",
+      "name": "test_router_checks_capability_before_calling_provider",
+      "filePath": "tests/test_web_market_data.py",
+      "lineRange": [
+        232,
+        249
+      ],
+      "summary": "位于 tests/test_web_market_data.py 的函数 test_router_checks_capability_before_calling_provider，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_data.py:test_router_retries_transient_provider_error_with_bound",
+      "type": "function",
+      "name": "test_router_retries_transient_provider_error_with_bound",
+      "filePath": "tests/test_web_market_data.py",
+      "lineRange": [
+        252,
+        276
+      ],
+      "summary": "位于 tests/test_web_market_data.py 的函数 test_router_retries_transient_provider_error_with_bound，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_data.py:test_router_does_not_retry_or_fallback_for_terminal_provider_errors",
+      "type": "function",
+      "name": "test_router_does_not_retry_or_fallback_for_terminal_provider_errors",
+      "filePath": "tests/test_web_market_data.py",
+      "lineRange": [
+        279,
+        295
+      ],
+      "summary": "位于 tests/test_web_market_data.py 的函数 test_router_does_not_retry_or_fallback_for_terminal_provider_errors，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_data.py:test_router_timeout_does_not_wait_for_hung_worker",
+      "type": "function",
+      "name": "test_router_timeout_does_not_wait_for_hung_worker",
+      "filePath": "tests/test_web_market_data.py",
+      "lineRange": [
+        298,
+        319
+      ],
+      "summary": "位于 tests/test_web_market_data.py 的函数 test_router_timeout_does_not_wait_for_hung_worker，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_data.py:test_unavailable_bulk_item_contains_null_quote_snapshot",
+      "type": "function",
+      "name": "test_unavailable_bulk_item_contains_null_quote_snapshot",
+      "filePath": "tests/test_web_market_data.py",
+      "lineRange": [
+        322,
+        344
+      ],
+      "summary": "位于 tests/test_web_market_data.py 的函数 test_unavailable_bulk_item_contains_null_quote_snapshot，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_data.py:test_malformed_symbol_bulk_item_also_has_unavailable_quote",
+      "type": "function",
+      "name": "test_malformed_symbol_bulk_item_also_has_unavailable_quote",
+      "filePath": "tests/test_web_market_data.py",
+      "lineRange": [
+        347,
+        368
+      ],
+      "summary": "位于 tests/test_web_market_data.py 的函数 test_malformed_symbol_bulk_item_also_has_unavailable_quote，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_data.py:test_provider_workers_are_daemon_and_bounded",
+      "type": "function",
+      "name": "test_provider_workers_are_daemon_and_bounded",
+      "filePath": "tests/test_web_market_data.py",
+      "lineRange": [
+        371,
+        374
+      ],
+      "summary": "位于 tests/test_web_market_data.py 的函数 test_provider_workers_are_daemon_and_bounded，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_data.py:test_router_records_health_for_each_actual_fallback_attempt",
+      "type": "function",
+      "name": "test_router_records_health_for_each_actual_fallback_attempt",
+      "filePath": "tests/test_web_market_data.py",
+      "lineRange": [
+        377,
+        406
+      ],
+      "summary": "位于 tests/test_web_market_data.py 的函数 test_router_records_health_for_each_actual_fallback_attempt，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_data.py:test_quote_freshness_matrix_preserves_cache_timestamps_and_reports_age",
+      "type": "function",
+      "name": "test_quote_freshness_matrix_preserves_cache_timestamps_and_reports_age",
+      "filePath": "tests/test_web_market_data.py",
+      "lineRange": [
+        409,
+        462
+      ],
+      "summary": "位于 tests/test_web_market_data.py 的函数 test_quote_freshness_matrix_preserves_cache_timestamps_and_reports_age，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "市场数据"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_web_market_data.py:test_quote_and_identity_models_add_stable_localization_keys",
+      "type": "function",
+      "name": "test_quote_and_identity_models_add_stable_localization_keys",
+      "filePath": "tests/test_web_market_data.py",
+      "lineRange": [
+        465,
+        496
+      ],
+      "summary": "位于 tests/test_web_market_data.py 的函数 test_quote_and_identity_models_add_stable_localization_keys，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "市场数据"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_web_market_providers.py",
+      "type": "file",
+      "name": "test_web_market_providers.py",
+      "filePath": "tests/test_web_market_providers.py",
+      "summary": "覆盖 test_web_market_providers.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "Web",
+        "模型提供商",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_web_market_providers.py:test_yfinance_provider_maps_empty_history_to_no_data",
+      "type": "function",
+      "name": "test_yfinance_provider_maps_empty_history_to_no_data",
+      "filePath": "tests/test_web_market_providers.py",
+      "lineRange": [
+        6,
+        20
+      ],
+      "summary": "位于 tests/test_web_market_providers.py 的函数 test_yfinance_provider_maps_empty_history_to_no_data，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "模型提供商"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_providers.py:test_alpha_vantage_missing_key_is_not_configured",
+      "type": "function",
+      "name": "test_alpha_vantage_missing_key_is_not_configured",
+      "filePath": "tests/test_web_market_providers.py",
+      "lineRange": [
+        23,
+        33
+      ],
+      "summary": "位于 tests/test_web_market_providers.py 的函数 test_alpha_vantage_missing_key_is_not_configured，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "模型提供商"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_providers.py:test_provider_errors_redact_secrets",
+      "type": "function",
+      "name": "test_provider_errors_redact_secrets",
+      "filePath": "tests/test_web_market_providers.py",
+      "lineRange": [
+        36,
+        43
+      ],
+      "summary": "位于 tests/test_web_market_providers.py 的函数 test_provider_errors_redact_secrets，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "模型提供商"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_providers.py:test_quote_snapshot_exposes_market_fields_and_identity_validates_asset_type",
+      "type": "function",
+      "name": "test_quote_snapshot_exposes_market_fields_and_identity_validates_asset_type",
+      "filePath": "tests/test_web_market_providers.py",
+      "lineRange": [
+        46,
+        68
+      ],
+      "summary": "位于 tests/test_web_market_providers.py 的函数 test_quote_snapshot_exposes_market_fields_and_identity_validates_asset_type，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "模型提供商"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_providers.py:test_alpha_injected_key_does_not_mutate_environment",
+      "type": "function",
+      "name": "test_alpha_injected_key_does_not_mutate_environment",
+      "filePath": "tests/test_web_market_providers.py",
+      "lineRange": [
+        71,
+        84
+      ],
+      "summary": "位于 tests/test_web_market_providers.py 的函数 test_alpha_injected_key_does_not_mutate_environment，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "模型提供商"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_providers.py:test_yfinance_quote_maps_ohlcv_and_metadata",
+      "type": "function",
+      "name": "test_yfinance_quote_maps_ohlcv_and_metadata",
+      "filePath": "tests/test_web_market_providers.py",
+      "lineRange": [
+        87,
+        103
+      ],
+      "summary": "位于 tests/test_web_market_providers.py 的函数 test_yfinance_quote_maps_ohlcv_and_metadata，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "模型提供商"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_market_providers.py:test_alpha_instances_pass_isolated_keys_to_helper",
+      "type": "function",
+      "name": "test_alpha_instances_pass_isolated_keys_to_helper",
+      "filePath": "tests/test_web_market_providers.py",
+      "lineRange": [
+        106,
+        124
+      ],
+      "summary": "位于 tests/test_web_market_providers.py 的函数 test_alpha_instances_pass_isolated_keys_to_helper，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "模型提供商"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:web/market_data.py",
+      "type": "file",
+      "name": "market_data.py",
+      "filePath": "web/market_data.py",
+      "summary": "实现 web/market_data.py 在交易分析系统中的核心逻辑，对外提供 _DaemonExecutor、ProviderRouter、QuoteService 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/market_data.py:_payload",
+      "type": "function",
+      "name": "_payload",
+      "filePath": "web/market_data.py",
+      "lineRange": [
+        454,
+        463
+      ],
+      "summary": "位于 web/market_data.py 的函数 _payload，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/market_data.py:_diagnostic",
+      "type": "function",
+      "name": "_diagnostic",
+      "filePath": "web/market_data.py",
+      "lineRange": [
+        466,
+        474
+      ],
+      "summary": "位于 web/market_data.py 的函数 _diagnostic，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:web/market_data.py:_DaemonExecutor",
+      "type": "class",
+      "name": "_DaemonExecutor",
+      "filePath": "web/market_data.py",
+      "lineRange": [
+        33,
+        59
+      ],
+      "summary": "位于 web/market_data.py 的类 _DaemonExecutor，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:web/market_data.py:ProviderRouter",
+      "type": "class",
+      "name": "ProviderRouter",
+      "filePath": "web/market_data.py",
+      "lineRange": [
+        65,
+        272
+      ],
+      "summary": "位于 web/market_data.py 的类 ProviderRouter，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:web/market_data.py:QuoteService",
+      "type": "class",
+      "name": "QuoteService",
+      "filePath": "web/market_data.py",
+      "lineRange": [
+        275,
+        451
+      ],
+      "summary": "位于 web/market_data.py 的类 QuoteService，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "Web",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:web/market_localization.py",
+      "type": "file",
+      "name": "market_localization.py",
+      "filePath": "web/market_localization.py",
+      "summary": "实现 web/market_localization.py 在交易分析系统中的核心逻辑，对外提供 clean_english_name、_with_cache、_tencent_symbol_key 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "Web",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:web/market_localization.py:clean_english_name",
+      "type": "function",
+      "name": "clean_english_name",
+      "filePath": "web/market_localization.py",
+      "lineRange": [
+        78,
+        83
+      ],
+      "summary": "位于 web/market_localization.py 的函数 clean_english_name，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/market_localization.py:_with_cache",
+      "type": "function",
+      "name": "_with_cache",
+      "filePath": "web/market_localization.py",
+      "lineRange": [
+        103,
+        115
+      ],
+      "summary": "位于 web/market_localization.py 的函数 _with_cache，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/market_localization.py:_tencent_symbol_key",
+      "type": "function",
+      "name": "_tencent_symbol_key",
+      "filePath": "web/market_localization.py",
+      "lineRange": [
+        118,
+        145
+      ],
+      "summary": "位于 web/market_localization.py 的函数 _tencent_symbol_key，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/market_localization.py:_decode_gb18030",
+      "type": "function",
+      "name": "_decode_gb18030",
+      "filePath": "web/market_localization.py",
+      "lineRange": [
+        151,
+        157
+      ],
+      "summary": "位于 web/market_localization.py 的函数 _decode_gb18030，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/market_localization.py:_tencent_lookup",
+      "type": "function",
+      "name": "_tencent_lookup",
+      "filePath": "web/market_localization.py",
+      "lineRange": [
+        160,
+        183
+      ],
+      "summary": "位于 web/market_localization.py 的函数 _tencent_lookup，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/market_localization.py:tencent_asset_name",
+      "type": "function",
+      "name": "tencent_asset_name",
+      "filePath": "web/market_localization.py",
+      "lineRange": [
+        186,
+        193
+      ],
+      "summary": "位于 web/market_localization.py 的函数 tencent_asset_name，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/market_localization.py:localized_exchange_name",
+      "type": "function",
+      "name": "localized_exchange_name",
+      "filePath": "web/market_localization.py",
+      "lineRange": [
+        198,
+        204
+      ],
+      "summary": "位于 web/market_localization.py 的函数 localized_exchange_name，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/market_localization.py:exchange_label_key",
+      "type": "function",
+      "name": "exchange_label_key",
+      "filePath": "web/market_localization.py",
+      "lineRange": [
+        207,
+        223
+      ],
+      "summary": "位于 web/market_localization.py 的函数 exchange_label_key，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:web/market_localization.py:localized_asset_name",
+      "type": "function",
+      "name": "localized_asset_name",
+      "filePath": "web/market_localization.py",
+      "lineRange": [
+        226,
+        244
+      ],
+      "summary": "位于 web/market_localization.py 的函数 localized_asset_name，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "Web",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:tests/test_openrouter_model_select.py",
+      "target": "function:tests/test_openrouter_model_select.py:_asks",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_openrouter_model_select.py",
+      "target": "class:tests/test_openrouter_model_select.py:TestOpenRouterPromptLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_openrouter_model_select.py",
+      "target": "class:tests/test_openrouter_model_select.py:TestOpenRouterLatestFirst",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_openrouter_model_select.py",
+      "target": "class:tests/test_openrouter_model_select.py:TestMainstreamFilter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_openrouter_model_select.py",
+      "target": "class:tests/test_openrouter_model_select.py:TestCancelExitsCleanly",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_openrouter_model_select.py",
+      "target": "class:tests/test_openrouter_model_select.py:TestLanguageDefaultsToEnglish",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_openrouter_model_select.py",
+      "target": "function:tests/test_openrouter_model_select.py:_asks",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_openrouter_model_select.py",
+      "target": "class:tests/test_openrouter_model_select.py:TestOpenRouterPromptLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_openrouter_model_select.py",
+      "target": "class:tests/test_openrouter_model_select.py:TestOpenRouterLatestFirst",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_openrouter_model_select.py",
+      "target": "class:tests/test_openrouter_model_select.py:TestMainstreamFilter",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_openrouter_model_select.py",
+      "target": "class:tests/test_openrouter_model_select.py:TestCancelExitsCleanly",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_openrouter_model_select.py",
+      "target": "class:tests/test_openrouter_model_select.py:TestLanguageDefaultsToEnglish",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_openrouter_model_select.py",
+      "target": "file:cli/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_openrouter_model_select.py",
+      "target": "file:cli/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_ticker_symbol_handling.py",
+      "target": "class:tests/test_ticker_symbol_handling.py:TickerSymbolHandlingTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ticker_symbol_handling.py",
+      "target": "class:tests/test_ticker_symbol_handling.py:TickerSymbolHandlingTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ticker_symbol_handling.py",
+      "target": "file:cli/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_ticker_symbol_handling.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:quote",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_quote_models_normalize_utc_and_unavailable_numeric_fields",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_quote_item_flattens_asset_name_and_exchange",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_quote_item_exposes_chinese_asset_and_exchange_names",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_unknown_localization_keeps_source_values",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_common_chinese_listed_assets_use_chinese_display_names",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_provider_router_only_falls_back_for_transient_typed_errors",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_quote_service_uses_cache_until_ttl_then_marks_stale",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_bulk_limits_and_partial_errors",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_quote_service_precedence_defaults_then_sqlite_then_environment",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_router_checks_capability_before_calling_provider",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_router_retries_transient_provider_error_with_bound",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_router_does_not_retry_or_fallback_for_terminal_provider_errors",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_router_timeout_does_not_wait_for_hung_worker",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_unavailable_bulk_item_contains_null_quote_snapshot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_malformed_symbol_bulk_item_also_has_unavailable_quote",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_provider_workers_are_daemon_and_bounded",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_router_records_health_for_each_actual_fallback_attempt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_quote_freshness_matrix_preserves_cache_timestamps_and_reports_age",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_quote_and_identity_models_add_stable_localization_keys",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:quote",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_quote_models_normalize_utc_and_unavailable_numeric_fields",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_quote_item_flattens_asset_name_and_exchange",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_quote_item_exposes_chinese_asset_and_exchange_names",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_unknown_localization_keeps_source_values",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_common_chinese_listed_assets_use_chinese_display_names",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_provider_router_only_falls_back_for_transient_typed_errors",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_quote_service_uses_cache_until_ttl_then_marks_stale",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_bulk_limits_and_partial_errors",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_quote_service_precedence_defaults_then_sqlite_then_environment",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_router_checks_capability_before_calling_provider",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_router_retries_transient_provider_error_with_bound",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_router_does_not_retry_or_fallback_for_terminal_provider_errors",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_router_timeout_does_not_wait_for_hung_worker",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_unavailable_bulk_item_contains_null_quote_snapshot",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_malformed_symbol_bulk_item_also_has_unavailable_quote",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_provider_workers_are_daemon_and_bounded",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_router_records_health_for_each_actual_fallback_attempt",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_quote_freshness_matrix_preserves_cache_timestamps_and_reports_age",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "function:tests/test_web_market_data.py:test_quote_and_identity_models_add_stable_localization_keys",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "file:web/market_data.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_market_data.py",
+      "target": "file:web/market_models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_market_providers.py",
+      "target": "function:tests/test_web_market_providers.py:test_yfinance_provider_maps_empty_history_to_no_data",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_providers.py",
+      "target": "function:tests/test_web_market_providers.py:test_alpha_vantage_missing_key_is_not_configured",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_providers.py",
+      "target": "function:tests/test_web_market_providers.py:test_provider_errors_redact_secrets",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_providers.py",
+      "target": "function:tests/test_web_market_providers.py:test_quote_snapshot_exposes_market_fields_and_identity_validates_asset_type",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_providers.py",
+      "target": "function:tests/test_web_market_providers.py:test_alpha_injected_key_does_not_mutate_environment",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_providers.py",
+      "target": "function:tests/test_web_market_providers.py:test_yfinance_quote_maps_ohlcv_and_metadata",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_providers.py",
+      "target": "function:tests/test_web_market_providers.py:test_alpha_instances_pass_isolated_keys_to_helper",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_market_providers.py",
+      "target": "function:tests/test_web_market_providers.py:test_yfinance_provider_maps_empty_history_to_no_data",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_providers.py",
+      "target": "function:tests/test_web_market_providers.py:test_alpha_vantage_missing_key_is_not_configured",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_providers.py",
+      "target": "function:tests/test_web_market_providers.py:test_provider_errors_redact_secrets",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_providers.py",
+      "target": "function:tests/test_web_market_providers.py:test_quote_snapshot_exposes_market_fields_and_identity_validates_asset_type",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_providers.py",
+      "target": "function:tests/test_web_market_providers.py:test_alpha_injected_key_does_not_mutate_environment",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_providers.py",
+      "target": "function:tests/test_web_market_providers.py:test_yfinance_quote_maps_ohlcv_and_metadata",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_providers.py",
+      "target": "function:tests/test_web_market_providers.py:test_alpha_instances_pass_isolated_keys_to_helper",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_market_providers.py",
+      "target": "file:web/market_models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_market_providers.py",
+      "target": "file:web/providers/alpha_vantage_provider.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_market_providers.py",
+      "target": "file:web/providers/yfinance_provider.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/market_data.py",
+      "target": "function:web/market_data.py:_payload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_data.py",
+      "target": "function:web/market_data.py:_diagnostic",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_data.py",
+      "target": "class:web/market_data.py:_DaemonExecutor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_data.py",
+      "target": "class:web/market_data.py:ProviderRouter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_data.py",
+      "target": "class:web/market_data.py:QuoteService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_data.py",
+      "target": "class:web/market_data.py:_DaemonExecutor",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_data.py",
+      "target": "class:web/market_data.py:ProviderRouter",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_data.py",
+      "target": "class:web/market_data.py:QuoteService",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_data.py",
+      "target": "function:web/market_data.py:_payload",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_data.py",
+      "target": "function:web/market_data.py:_diagnostic",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_data.py",
+      "target": "file:web/market_models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:web/market_localization.py",
+      "target": "function:web/market_localization.py:clean_english_name",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_localization.py",
+      "target": "function:web/market_localization.py:_with_cache",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_localization.py",
+      "target": "function:web/market_localization.py:_tencent_symbol_key",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_localization.py",
+      "target": "function:web/market_localization.py:_decode_gb18030",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_localization.py",
+      "target": "function:web/market_localization.py:_tencent_lookup",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_localization.py",
+      "target": "function:web/market_localization.py:tencent_asset_name",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_localization.py",
+      "target": "function:web/market_localization.py:localized_exchange_name",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_localization.py",
+      "target": "function:web/market_localization.py:exchange_label_key",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_localization.py",
+      "target": "function:web/market_localization.py:localized_asset_name",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:web/market_localization.py",
+      "target": "function:web/market_localization.py:clean_english_name",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_localization.py",
+      "target": "function:web/market_localization.py:_with_cache",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_localization.py",
+      "target": "function:web/market_localization.py:_tencent_symbol_key",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_localization.py",
+      "target": "function:web/market_localization.py:_decode_gb18030",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_localization.py",
+      "target": "function:web/market_localization.py:_tencent_lookup",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_localization.py",
+      "target": "function:web/market_localization.py:tencent_asset_name",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_localization.py",
+      "target": "function:web/market_localization.py:localized_exchange_name",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_localization.py",
+      "target": "function:web/market_localization.py:exchange_label_key",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:web/market_localization.py",
+      "target": "function:web/market_localization.py:localized_asset_name",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

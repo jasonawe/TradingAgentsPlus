@@ -1,0 +1,400 @@
+{
+  "projectRoot": "/Users/shenkang/workroom/languages/agent/TradingAgents",
+  "batchFiles": [
+    {
+      "path": "tests/test_anthropic_effort.py",
+      "language": "python",
+      "sizeLines": 114,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_api_key_env.py",
+      "language": "python",
+      "sizeLines": 148,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_bedrock_provider.py",
+      "language": "python",
+      "sizeLines": 80,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_capabilities.py",
+      "language": "python",
+      "sizeLines": 124,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_deepseek_reasoning.py",
+      "language": "python",
+      "sizeLines": 239,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_google_api_key.py",
+      "language": "python",
+      "sizeLines": 31,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_google_thinking_level.py",
+      "language": "python",
+      "sizeLines": 46,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_llm_timeout.py",
+      "language": "python",
+      "sizeLines": 158,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_minimax.py",
+      "language": "python",
+      "sizeLines": 73,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_model_validation.py",
+      "language": "python",
+      "sizeLines": 55,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_openai_compatible_provider.py",
+      "language": "python",
+      "sizeLines": 100,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_openai_reasoning_effort.py",
+      "language": "python",
+      "sizeLines": 52,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_openai_responses_base_url.py",
+      "language": "python",
+      "sizeLines": 43,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_provider_registry.py",
+      "language": "python",
+      "sizeLines": 59,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_temperature_config.py",
+      "language": "python",
+      "sizeLines": 101,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/llm_clients/__init__.py",
+      "language": "python",
+      "sizeLines": 4,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/llm_clients/anthropic_client.py",
+      "language": "python",
+      "sizeLines": 91,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/llm_clients/api_key_env.py",
+      "language": "python",
+      "sizeLines": 53,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/llm_clients/azure_client.py",
+      "language": "python",
+      "sizeLines": 64,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/llm_clients/base_client.py",
+      "language": "python",
+      "sizeLines": 116,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/llm_clients/bedrock_client.py",
+      "language": "python",
+      "sizeLines": 89,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/llm_clients/capabilities.py",
+      "language": "python",
+      "sizeLines": 126,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/llm_clients/factory.py",
+      "language": "python",
+      "sizeLines": 54,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/llm_clients/google_client.py",
+      "language": "python",
+      "sizeLines": 70,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/llm_clients/model_catalog.py",
+      "language": "python",
+      "sizeLines": 210,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/llm_clients/openai_client.py",
+      "language": "python",
+      "sizeLines": 350,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/llm_clients/validators.py",
+      "language": "python",
+      "sizeLines": 33,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "tests/test_anthropic_effort.py": [
+      "tradingagents/llm_clients/__init__.py"
+    ],
+    "tests/test_api_key_env.py": [
+      "tradingagents/llm_clients/api_key_env.py"
+    ],
+    "tests/test_bedrock_provider.py": [
+      "tradingagents/llm_clients/api_key_env.py",
+      "tradingagents/llm_clients/factory.py",
+      "tradingagents/llm_clients/validators.py"
+    ],
+    "tests/test_capabilities.py": [
+      "tradingagents/llm_clients/capabilities.py"
+    ],
+    "tests/test_deepseek_reasoning.py": [
+      "tradingagents/llm_clients/openai_client.py"
+    ],
+    "tests/test_google_api_key.py": [
+      "tradingagents/llm_clients/google_client.py"
+    ],
+    "tests/test_google_thinking_level.py": [
+      "tradingagents/llm_clients/google_client.py"
+    ],
+    "tests/test_llm_timeout.py": [
+      "tradingagents/dataflows/__init__.py",
+      "tradingagents/dataflows/alpha_vantage_common.py",
+      "tradingagents/dataflows/config.py",
+      "tradingagents/llm_clients/anthropic_client.py",
+      "tradingagents/llm_clients/azure_client.py",
+      "tradingagents/llm_clients/google_client.py",
+      "tradingagents/llm_clients/openai_client.py"
+    ],
+    "tests/test_minimax.py": [
+      "tradingagents/llm_clients/openai_client.py"
+    ],
+    "tests/test_model_validation.py": [
+      "tradingagents/llm_clients/base_client.py",
+      "tradingagents/llm_clients/model_catalog.py",
+      "tradingagents/llm_clients/validators.py"
+    ],
+    "tests/test_openai_compatible_provider.py": [
+      "tradingagents/llm_clients/api_key_env.py",
+      "tradingagents/llm_clients/factory.py",
+      "tradingagents/llm_clients/validators.py"
+    ],
+    "tests/test_openai_reasoning_effort.py": [
+      "tradingagents/llm_clients/openai_client.py"
+    ],
+    "tests/test_openai_responses_base_url.py": [
+      "tradingagents/llm_clients/openai_client.py"
+    ],
+    "tests/test_provider_registry.py": [
+      "tradingagents/llm_clients/openai_client.py"
+    ],
+    "tests/test_temperature_config.py": [
+      "tradingagents/llm_clients/factory.py"
+    ],
+    "tradingagents/llm_clients/__init__.py": [
+      "tradingagents/llm_clients/base_client.py",
+      "tradingagents/llm_clients/factory.py"
+    ],
+    "tradingagents/llm_clients/anthropic_client.py": [
+      "tradingagents/llm_clients/base_client.py",
+      "tradingagents/llm_clients/validators.py"
+    ],
+    "tradingagents/llm_clients/api_key_env.py": [],
+    "tradingagents/llm_clients/azure_client.py": [
+      "tradingagents/llm_clients/base_client.py"
+    ],
+    "tradingagents/llm_clients/base_client.py": [],
+    "tradingagents/llm_clients/bedrock_client.py": [
+      "tradingagents/llm_clients/base_client.py",
+      "tradingagents/llm_clients/validators.py"
+    ],
+    "tradingagents/llm_clients/capabilities.py": [],
+    "tradingagents/llm_clients/factory.py": [
+      "tradingagents/llm_clients/base_client.py"
+    ],
+    "tradingagents/llm_clients/google_client.py": [
+      "tradingagents/llm_clients/base_client.py",
+      "tradingagents/llm_clients/validators.py"
+    ],
+    "tradingagents/llm_clients/model_catalog.py": [],
+    "tradingagents/llm_clients/openai_client.py": [
+      "tradingagents/llm_clients/api_key_env.py",
+      "tradingagents/llm_clients/base_client.py",
+      "tradingagents/llm_clients/capabilities.py",
+      "tradingagents/llm_clients/validators.py"
+    ],
+    "tradingagents/llm_clients/validators.py": [
+      "tradingagents/llm_clients/model_catalog.py"
+    ]
+  },
+  "neighborMap": {
+    "tests/test_llm_timeout.py": [
+      {
+        "path": "tradingagents/dataflows/__init__.py",
+        "batchIndex": 2,
+        "symbols": []
+      },
+      {
+        "path": "tradingagents/dataflows/alpha_vantage_common.py",
+        "batchIndex": 8,
+        "symbols": [
+          "AlphaVantageNotConfiguredError",
+          "get_api_key",
+          "format_datetime_for_api",
+          "AlphaVantageRateLimitError",
+          "_make_api_request",
+          "_filter_csv_by_date_range"
+        ]
+      },
+      {
+        "path": "tradingagents/dataflows/config.py",
+        "batchIndex": 2,
+        "symbols": [
+          "initialize_config",
+          "set_config",
+          "get_config",
+          "get_request_timeout",
+          "external_request_checkpoint"
+        ]
+      }
+    ],
+    "tradingagents/llm_clients/__init__.py": [
+      {
+        "path": "scripts/smoke_structured_output.py",
+        "batchIndex": 1,
+        "symbols": [
+          "_make_rm_state",
+          "_make_trader_state",
+          "_make_pm_state",
+          "_print_section",
+          "main"
+        ]
+      },
+      {
+        "path": "tradingagents/graph/trading_graph.py",
+        "batchIndex": 3,
+        "symbols": [
+          "_coerce_max_retries",
+          "TradingAgentsGraph"
+        ]
+      }
+    ],
+    "tradingagents/llm_clients/api_key_env.py": [
+      {
+        "path": "cli/utils.py",
+        "batchIndex": 7,
+        "symbols": [
+          "is_valid_ticker_input",
+          "get_ticker",
+          "normalize_ticker_symbol",
+          "detect_asset_type",
+          "filter_analysts_for_asset_type",
+          "get_analysis_date",
+          "select_analysts",
+          "select_research_depth",
+          "_fetch_openrouter_models",
+          "_require_text",
+          "select_openrouter_model",
+          "_prompt_custom_model_id",
+          "_select_model",
+          "select_shallow_thinking_agent",
+          "select_deep_thinking_agent",
+          "_llm_provider_table",
+          "provider_default_url",
+          "resolve_backend_url",
+          "prompt_openai_compatible_url",
+          "select_llm_provider",
+          "ask_openai_reasoning_effort",
+          "ask_anthropic_effort",
+          "ask_gemini_thinking_config",
+          "ask_glm_region",
+          "ask_qwen_region",
+          "ask_minimax_region",
+          "confirm_ollama_endpoint",
+          "ensure_api_key",
+          "ask_output_language"
+        ]
+      }
+    ],
+    "tradingagents/llm_clients/model_catalog.py": [
+      {
+        "path": "cli/utils.py",
+        "batchIndex": 7,
+        "symbols": [
+          "is_valid_ticker_input",
+          "get_ticker",
+          "normalize_ticker_symbol",
+          "detect_asset_type",
+          "filter_analysts_for_asset_type",
+          "get_analysis_date",
+          "select_analysts",
+          "select_research_depth",
+          "_fetch_openrouter_models",
+          "_require_text",
+          "select_openrouter_model",
+          "_prompt_custom_model_id",
+          "_select_model",
+          "select_shallow_thinking_agent",
+          "select_deep_thinking_agent",
+          "_llm_provider_table",
+          "provider_default_url",
+          "resolve_backend_url",
+          "prompt_openai_compatible_url",
+          "select_llm_provider",
+          "ask_openai_reasoning_effort",
+          "ask_anthropic_effort",
+          "ask_gemini_thinking_config",
+          "ask_glm_region",
+          "ask_qwen_region",
+          "ask_minimax_region",
+          "confirm_ollama_endpoint",
+          "ensure_api_key",
+          "ask_output_language"
+        ]
+      },
+      {
+        "path": "web/config.py",
+        "batchIndex": 6,
+        "symbols": [
+          "_parse_integer_setting",
+          "resolve_run_lifecycle_config",
+          "market_data_catalog",
+          "_options",
+          "model_catalog",
+          "resolve_model_config"
+        ]
+      }
+    ]
+  }
+}

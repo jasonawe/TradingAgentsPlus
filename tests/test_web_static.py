@@ -201,6 +201,26 @@ def test_markdown_report_wrapping_and_watchlist_assets_contract_holds():
     assert "cleanSummary" in js
 
 
+def test_watchlist_key_information_markup_and_semantic_color_contract():
+    css = (STATIC / "styles.css").read_text(encoding="utf-8")
+    js = (STATIC / "app.js").read_text(encoding="utf-8")
+    resources = (STATIC / "i18n.js").read_text(encoding="utf-8")
+
+    for token in ("quote-price", "quote-currency", "quote-change", "stateKey", "watchlistChangeMarkup"):
+        assert token in js
+    assert 'aria-hidden="true"' in js
+    assert 'watchlist.latestAnalysis' in js
+    assert "generated_at" in js
+    assert "Number.isFinite" in js
+    for token in ("strongbuy", "strongsell", "overweight", "underweight"):
+        assert token in js
+    assert ".watchlist-quote .quote-change.is-up" in css
+    assert ".watchlist-quote .quote-change.is-down" in css
+    assert ".watchlist-quote .quote-change.is-flat" in css
+    assert ".asset-detail-change" not in css or ".watchlist-quote .quote-change" in css
+    assert "watchlist.latestAnalysis" in resources
+
+
 def test_watchlist_is_separate_from_analysis_and_refreshes_quotes_periodically():
     html = (STATIC / "index.html").read_text(encoding="utf-8")
     js = (STATIC / "app.js").read_text(encoding="utf-8")
@@ -386,3 +406,75 @@ def test_show_active_handles_runs_list_contract():
     assert ").run;" not in js  # legacy single-run accessor gone
 
 
+def test_scheduled_workspace_has_navigation_controls_and_controller():
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    js = (STATIC / "app.js").read_text(encoding="utf-8")
+    scheduled = (STATIC / "scheduled.js").read_text(encoding="utf-8")
+    resources = (STATIC / "i18n.js").read_text(encoding="utf-8")
+
+    assert html.index('data-view="active"') < html.index('data-view="scheduled"')
+    assert html.index('data-view="scheduled"') < html.index('data-view="library"')
+    for value in (
+        'id="scheduled-view"',
+        'id="scheduled-master-enabled"',
+        'id="scheduled-add"',
+        'id="scheduled-settings"',
+        'id="scheduled-list"',
+        'id="scheduled-settings-drawer"',
+    ):
+        assert value in html
+    assert 'symbol id="i-clock"' in html
+    assert 'scheduled: "/scheduled"' in js
+    assert "window.TradingAgentsScheduled" in js
+    assert '/static/scheduled.js?v=' in html
+    assert '"nav.scheduled": "定时任务"' in resources
+
+    for endpoint in (
+        '"/api/scheduled/jobs"',
+        '"/api/scheduled/settings"',
+        '"/api/scheduled/cron/preview',
+        '"/api/watchlist"',
+    ):
+        assert endpoint in scheduled
+    for action in ("/toggle", "/run", "/logs"):
+        assert action in scheduled
+    assert "setInterval" in scheduled
+    assert "document.hidden" in scheduled
+
+
+def test_scheduled_workspace_covers_empty_error_forms_and_history_states():
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    scheduled = (STATIC / "scheduled.js").read_text(encoding="utf-8")
+    resources = (STATIC / "i18n.js").read_text(encoding="utf-8")
+
+    for value in (
+        'aria-live="polite"',
+        'role="switch"',
+        'type="range"',
+        'aria-label="定时任务设置"',
+    ):
+        assert value in html
+    for key in (
+        "scheduler.emptyTitle",
+        "scheduler.emptyBody",
+        "scheduler.loadError",
+        "scheduler.invalidCron",
+        "scheduler.deleteConsequence",
+        "scheduler.historyEmpty",
+    ):
+        assert f'"{key}"' in resources
+    assert "scheduler.historyEmpty" in scheduled
+    assert "scheduler.deleteConsequence" in scheduled
+    assert "scheduler.invalidCron" in scheduled
+    assert "aria-expanded" in scheduled
+    assert "refreshExpandedLogs" in scheduled
+    assert "formCronValid" in scheduled
+    assert 't("scheduler.confirmDelete")' in scheduled
+    assert "drawerFocus" in scheduled
+
+
+def test_scheduled_form_submits_the_selected_watchlist_asset_type():
+    scheduled = (STATIC / "scheduled.js").read_text(encoding="utf-8")
+
+    assert 'selectedOptions[0]?.dataset.assetType' in scheduled
+    assert 'id="scheduled-asset-type"' not in scheduled

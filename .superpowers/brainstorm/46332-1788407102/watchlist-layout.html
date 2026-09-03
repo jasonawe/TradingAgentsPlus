@@ -1,0 +1,39 @@
+<h2>关注列表：重点信息怎么更突出？</h2>
+<p class="subtitle">请选择更接近日常扫盘习惯的布局方向</p>
+
+<div class="split">
+  <div class="mockup option" data-choice="dense" onclick="toggleSelect(this)">
+    <div class="mockup-header">A · 高密度表格</div>
+    <div class="mockup-body" style="padding:0;background:#fbfaf8;color:#252321;font-family:ui-sans-serif,system-ui,sans-serif">
+      <div style="padding:16px 18px 10px;border-bottom:1px solid #e7e3de;font-size:12px;color:#6f6a63">资产行情 · 7 个关注标的</div>
+      <div style="display:grid;grid-template-columns:1.15fr .9fr .8fr auto;gap:14px;align-items:center;padding:14px 18px;border-bottom:1px solid #e7e3de">
+        <div><div style="font:700 15px ui-monospace,monospace">600036.SS</div><div style="font-size:11px;color:#817b73;margin-top:5px">招商银行 · 股票</div></div>
+        <div><div style="font:700 18px ui-monospace,monospace">41.09 <span style="font-size:11px;font-weight:500">CNY</span></div><div style="font:700 12px ui-monospace,monospace;color:#18794e;margin-top:5px">+0.54%</div></div>
+        <div><div style="font:11px ui-monospace,monospace;color:#6f6a63">分析 2026-09-02</div><div style="display:inline-flex;background:#e7f4ec;color:#18794e;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:700;margin-top:6px">超配</div></div>
+        <button class="mock-button" style="font-size:11px;padding:7px 9px">查看报告</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1.15fr .9fr .8fr auto;gap:14px;align-items:center;padding:14px 18px">
+        <div><div style="font:700 15px ui-monospace,monospace">688836.SS</div><div style="font-size:11px;color:#817b73;margin-top:5px">昱舒科技 · 股票</div></div>
+        <div><div style="font:700 18px ui-monospace,monospace">555.17 <span style="font-size:11px;font-weight:500">CNY</span></div><div style="font:700 12px ui-monospace,monospace;color:#18794e;margin-top:5px">+1.68%</div></div>
+        <div><div style="font:11px ui-monospace,monospace;color:#6f6a63">分析 2026-09-01</div><div style="display:inline-flex;background:#fde9e8;color:#b42318;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:700;margin-top:6px">卖出</div></div>
+        <button class="mock-button" style="font-size:11px;padding:7px 9px">查看报告</button>
+      </div>
+    </div>
+    <div class="card-body"><h3>适合快速比较</h3><p>价格、涨跌率、分析日期、建议固定成四列，行高小，能一眼横向扫多个标的。</p></div>
+  </div>
+
+  <div class="mockup option" data-choice="signal" onclick="toggleSelect(this)">
+    <div class="mockup-header">B · 信号优先卡片</div>
+    <div class="mockup-body" style="padding:14px;background:#fbfaf8;color:#252321;font-family:ui-sans-serif,system-ui,sans-serif">
+      <div style="border:1px solid #e7e3de;border-radius:8px;background:white;padding:16px 18px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:start"><div><div style="font:700 15px ui-monospace,monospace">600036.SS</div><div style="font-size:11px;color:#817b73;margin-top:4px">招商银行 · 上海证券交易所</div></div><div style="background:#e7f4ec;color:#18794e;border-radius:999px;padding:5px 9px;font-size:10px;font-weight:700">超配</div></div>
+        <div style="display:flex;align-items:baseline;gap:10px;margin-top:16px"><span style="font:800 27px ui-monospace,monospace;letter-spacing:-.03em">41.09</span><span style="font-size:12px;color:#6f6a63">CNY</span><span style="font:800 14px ui-monospace,monospace;color:#18794e">+0.54%</span></div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font:11px ui-monospace,monospace;color:#6f6a63"><span>分析时间 2026-09-02</span><span>行情 00:00 · 延迟</span></div>
+      </div>
+      <div style="border:1px solid #e7e3de;border-radius:8px;background:white;padding:16px 18px"><div style="display:flex;justify-content:space-between;gap:10px;align-items:start"><div><div style="font:700 15px ui-monospace,monospace">688836.SS</div><div style="font-size:11px;color:#817b73;margin-top:4px">昱舒科技 · 上海证券交易所</div></div><div style="background:#fde9e8;color:#b42318;border-radius:999px;padding:5px 9px;font-size:10px;font-weight:700">卖出</div></div><div style="display:flex;align-items:baseline;gap:10px;margin-top:16px"><span style="font:800 27px ui-monospace,monospace;letter-spacing:-.03em">555.17</span><span style="font-size:12px;color:#6f6a63">CNY</span><span style="font:800 14px ui-monospace,monospace;color:#18794e">+1.68%</span></div><div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font:11px ui-monospace,monospace;color:#6f6a63"><span>分析时间 2026-09-01</span><span>行情 00:00 · 延迟</span></div></div>
+    </div>
+    <div class="card-body"><h3>适合突出决策</h3><p>建议先成为视觉锚点，价格放大，分析时间与行情时间作为清晰的次级信息。</p></div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:20px"><h3>我的建议</h3><p>优先采用 B，再保留 A 的紧凑横向结构作为桌面端细节：桌面突出价格与建议，移动端按“标的 → 价格/涨跌 → 分析时间/建议 → 操作”顺序堆叠。</p></div>

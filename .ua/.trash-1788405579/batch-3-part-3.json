@@ -1,0 +1,784 @@
+{
+  "nodes": [
+    {
+      "id": "file:tradingagents/graph/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "tradingagents/graph/__init__.py",
+      "summary": "实现 tradingagents/graph/__init__.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "图编排",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/graph/analyst_execution.py",
+      "type": "file",
+      "name": "analyst_execution.py",
+      "filePath": "tradingagents/graph/analyst_execution.py",
+      "summary": "实现 tradingagents/graph/analyst_execution.py 在交易分析系统中的核心逻辑，对外提供 AnalystNodeSpec、AnalystExecutionPlan、build_analyst_execution_plan 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/graph/analyst_execution.py:build_analyst_execution_plan",
+      "type": "function",
+      "name": "build_analyst_execution_plan",
+      "filePath": "tradingagents/graph/analyst_execution.py",
+      "lineRange": [
+        56,
+        69
+      ],
+      "summary": "位于 tradingagents/graph/analyst_execution.py 的函数 build_analyst_execution_plan，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/graph/analyst_execution.py:get_initial_analyst_node",
+      "type": "function",
+      "name": "get_initial_analyst_node",
+      "filePath": "tradingagents/graph/analyst_execution.py",
+      "lineRange": [
+        72,
+        73
+      ],
+      "summary": "位于 tradingagents/graph/analyst_execution.py 的函数 get_initial_analyst_node，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/graph/analyst_execution.py:sync_analyst_tracker_from_chunk",
+      "type": "function",
+      "name": "sync_analyst_tracker_from_chunk",
+      "filePath": "tradingagents/graph/analyst_execution.py",
+      "lineRange": [
+        117,
+        135
+      ],
+      "summary": "位于 tradingagents/graph/analyst_execution.py 的函数 sync_analyst_tracker_from_chunk，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tradingagents/graph/analyst_execution.py:AnalystNodeSpec",
+      "type": "class",
+      "name": "AnalystNodeSpec",
+      "filePath": "tradingagents/graph/analyst_execution.py",
+      "lineRange": [
+        7,
+        12
+      ],
+      "summary": "位于 tradingagents/graph/analyst_execution.py 的类 AnalystNodeSpec，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/graph/analyst_execution.py:AnalystExecutionPlan",
+      "type": "class",
+      "name": "AnalystExecutionPlan",
+      "filePath": "tradingagents/graph/analyst_execution.py",
+      "lineRange": [
+        16,
+        17
+      ],
+      "summary": "位于 tradingagents/graph/analyst_execution.py 的类 AnalystExecutionPlan，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/graph/analyst_execution.py:AnalystWallTimeTracker",
+      "type": "class",
+      "name": "AnalystWallTimeTracker",
+      "filePath": "tradingagents/graph/analyst_execution.py",
+      "lineRange": [
+        76,
+        114
+      ],
+      "summary": "位于 tradingagents/graph/analyst_execution.py 的类 AnalystWallTimeTracker，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tradingagents/graph/conditional_logic.py",
+      "type": "file",
+      "name": "conditional_logic.py",
+      "filePath": "tradingagents/graph/conditional_logic.py",
+      "summary": "实现 tradingagents/graph/conditional_logic.py 在交易分析系统中的核心逻辑，对外提供 ConditionalLogic 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/graph/conditional_logic.py:ConditionalLogic",
+      "type": "class",
+      "name": "ConditionalLogic",
+      "filePath": "tradingagents/graph/conditional_logic.py",
+      "lineRange": [
+        6,
+        73
+      ],
+      "summary": "位于 tradingagents/graph/conditional_logic.py 的类 ConditionalLogic，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tradingagents/graph/propagation.py",
+      "type": "file",
+      "name": "propagation.py",
+      "filePath": "tradingagents/graph/propagation.py",
+      "summary": "实现 tradingagents/graph/propagation.py 在交易分析系统中的核心逻辑，对外提供 PropagationCancelled、Propagator 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/graph/propagation.py:PropagationCancelled",
+      "type": "class",
+      "name": "PropagationCancelled",
+      "filePath": "tradingagents/graph/propagation.py",
+      "lineRange": [
+        11,
+        12
+      ],
+      "summary": "位于 tradingagents/graph/propagation.py 的类 PropagationCancelled，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/graph/propagation.py:Propagator",
+      "type": "class",
+      "name": "Propagator",
+      "filePath": "tradingagents/graph/propagation.py",
+      "lineRange": [
+        15,
+        88
+      ],
+      "summary": "位于 tradingagents/graph/propagation.py 的类 Propagator，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tradingagents/graph/reflection.py",
+      "type": "file",
+      "name": "reflection.py",
+      "filePath": "tradingagents/graph/reflection.py",
+      "summary": "实现 tradingagents/graph/reflection.py 在交易分析系统中的核心逻辑，对外提供 Reflector 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tradingagents/graph/reflection.py:Reflector",
+      "type": "class",
+      "name": "Reflector",
+      "filePath": "tradingagents/graph/reflection.py",
+      "lineRange": [
+        6,
+        57
+      ],
+      "summary": "位于 tradingagents/graph/reflection.py 的类 Reflector，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tradingagents/graph/setup.py",
+      "type": "file",
+      "name": "setup.py",
+      "filePath": "tradingagents/graph/setup.py",
+      "summary": "实现 tradingagents/graph/setup.py 在交易分析系统中的核心逻辑，对外提供 GraphSetup 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/graph/setup.py:GraphSetup",
+      "type": "class",
+      "name": "GraphSetup",
+      "filePath": "tradingagents/graph/setup.py",
+      "lineRange": [
+        45,
+        156
+      ],
+      "summary": "位于 tradingagents/graph/setup.py 的类 GraphSetup，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tradingagents/graph/signal_processing.py",
+      "type": "file",
+      "name": "signal_processing.py",
+      "filePath": "tradingagents/graph/signal_processing.py",
+      "summary": "实现 tradingagents/graph/signal_processing.py 在交易分析系统中的核心逻辑，对外提供 SignalProcessor 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tradingagents/graph/signal_processing.py:SignalProcessor",
+      "type": "class",
+      "name": "SignalProcessor",
+      "filePath": "tradingagents/graph/signal_processing.py",
+      "lineRange": [
+        20,
+        31
+      ],
+      "summary": "位于 tradingagents/graph/signal_processing.py 的类 SignalProcessor，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tradingagents/graph/trading_graph.py",
+      "type": "file",
+      "name": "trading_graph.py",
+      "filePath": "tradingagents/graph/trading_graph.py",
+      "summary": "实现 tradingagents/graph/trading_graph.py 在交易分析系统中的核心逻辑，对外提供 _coerce_max_retries、TradingAgentsGraph 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tradingagents/graph/trading_graph.py:_coerce_max_retries",
+      "type": "function",
+      "name": "_coerce_max_retries",
+      "filePath": "tradingagents/graph/trading_graph.py",
+      "lineRange": [
+        48,
+        63
+      ],
+      "summary": "位于 tradingagents/graph/trading_graph.py 的函数 _coerce_max_retries，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tradingagents/graph/trading_graph.py:TradingAgentsGraph",
+      "type": "class",
+      "name": "TradingAgentsGraph",
+      "filePath": "tradingagents/graph/trading_graph.py",
+      "lineRange": [
+        66,
+        576
+      ],
+      "summary": "位于 tradingagents/graph/trading_graph.py 的类 TradingAgentsGraph，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tradingagents/reporting.py",
+      "type": "file",
+      "name": "reporting.py",
+      "filePath": "tradingagents/reporting.py",
+      "summary": "实现 tradingagents/reporting.py 在交易分析系统中的核心逻辑，对外提供 write_report_tree 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/reporting.py:write_report_tree",
+      "type": "function",
+      "name": "write_report_tree",
+      "filePath": "tradingagents/reporting.py",
+      "lineRange": [
+        13,
+        101
+      ],
+      "summary": "位于 tradingagents/reporting.py 的函数 write_report_tree，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:tradingagents/graph/__init__.py",
+      "target": "file:tradingagents/graph/conditional_logic.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/__init__.py",
+      "target": "file:tradingagents/graph/propagation.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/__init__.py",
+      "target": "file:tradingagents/graph/reflection.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/__init__.py",
+      "target": "file:tradingagents/graph/setup.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/__init__.py",
+      "target": "file:tradingagents/graph/signal_processing.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/__init__.py",
+      "target": "file:tradingagents/graph/trading_graph.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/analyst_execution.py",
+      "target": "function:tradingagents/graph/analyst_execution.py:build_analyst_execution_plan",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/graph/analyst_execution.py",
+      "target": "function:tradingagents/graph/analyst_execution.py:get_initial_analyst_node",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/graph/analyst_execution.py",
+      "target": "function:tradingagents/graph/analyst_execution.py:sync_analyst_tracker_from_chunk",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/graph/analyst_execution.py",
+      "target": "class:tradingagents/graph/analyst_execution.py:AnalystNodeSpec",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/graph/analyst_execution.py",
+      "target": "class:tradingagents/graph/analyst_execution.py:AnalystExecutionPlan",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/graph/analyst_execution.py",
+      "target": "class:tradingagents/graph/analyst_execution.py:AnalystWallTimeTracker",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/graph/analyst_execution.py",
+      "target": "class:tradingagents/graph/analyst_execution.py:AnalystNodeSpec",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/analyst_execution.py",
+      "target": "class:tradingagents/graph/analyst_execution.py:AnalystExecutionPlan",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/analyst_execution.py",
+      "target": "function:tradingagents/graph/analyst_execution.py:build_analyst_execution_plan",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/analyst_execution.py",
+      "target": "function:tradingagents/graph/analyst_execution.py:get_initial_analyst_node",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/analyst_execution.py",
+      "target": "class:tradingagents/graph/analyst_execution.py:AnalystWallTimeTracker",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/analyst_execution.py",
+      "target": "function:tradingagents/graph/analyst_execution.py:sync_analyst_tracker_from_chunk",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/conditional_logic.py",
+      "target": "class:tradingagents/graph/conditional_logic.py:ConditionalLogic",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/graph/conditional_logic.py",
+      "target": "class:tradingagents/graph/conditional_logic.py:ConditionalLogic",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/conditional_logic.py",
+      "target": "file:tradingagents/agents/utils/agent_states.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/propagation.py",
+      "target": "class:tradingagents/graph/propagation.py:PropagationCancelled",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/graph/propagation.py",
+      "target": "class:tradingagents/graph/propagation.py:Propagator",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/graph/propagation.py",
+      "target": "class:tradingagents/graph/propagation.py:PropagationCancelled",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/propagation.py",
+      "target": "class:tradingagents/graph/propagation.py:Propagator",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/propagation.py",
+      "target": "file:tradingagents/agents/utils/agent_states.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/reflection.py",
+      "target": "class:tradingagents/graph/reflection.py:Reflector",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/graph/reflection.py",
+      "target": "class:tradingagents/graph/reflection.py:Reflector",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/setup.py",
+      "target": "class:tradingagents/graph/setup.py:GraphSetup",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/graph/setup.py",
+      "target": "class:tradingagents/graph/setup.py:GraphSetup",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/setup.py",
+      "target": "file:tradingagents/agents/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/setup.py",
+      "target": "file:tradingagents/agents/utils/agent_states.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/setup.py",
+      "target": "file:tradingagents/graph/analyst_execution.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/setup.py",
+      "target": "file:tradingagents/graph/conditional_logic.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/signal_processing.py",
+      "target": "class:tradingagents/graph/signal_processing.py:SignalProcessor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/graph/signal_processing.py",
+      "target": "class:tradingagents/graph/signal_processing.py:SignalProcessor",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/signal_processing.py",
+      "target": "file:tradingagents/agents/utils/rating.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "function:tradingagents/graph/trading_graph.py:_coerce_max_retries",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "class:tradingagents/graph/trading_graph.py:TradingAgentsGraph",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "function:tradingagents/graph/trading_graph.py:_coerce_max_retries",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "class:tradingagents/graph/trading_graph.py:TradingAgentsGraph",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/agents/utils/memory.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/dataflows/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/graph/checkpointer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/graph/conditional_logic.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/graph/propagation.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/graph/reflection.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/graph/setup.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/graph/signal_processing.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/llm_clients/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/graph/trading_graph.py",
+      "target": "file:tradingagents/reporting.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/reporting.py",
+      "target": "function:tradingagents/reporting.py:write_report_tree",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/reporting.py",
+      "target": "function:tradingagents/reporting.py:write_report_tree",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

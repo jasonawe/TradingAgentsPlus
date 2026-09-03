@@ -1,0 +1,1065 @@
+{
+  "nodes": [
+    {
+      "id": "file:tradingagents/llm_clients/azure_client.py",
+      "type": "file",
+      "name": "azure_client.py",
+      "filePath": "tradingagents/llm_clients/azure_client.py",
+      "summary": "实现 tradingagents/llm_clients/azure_client.py 在交易分析系统中的核心逻辑，对外提供 NormalizedAzureChatOpenAI、AzureOpenAIClient 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tradingagents/llm_clients/azure_client.py:NormalizedAzureChatOpenAI",
+      "type": "class",
+      "name": "NormalizedAzureChatOpenAI",
+      "filePath": "tradingagents/llm_clients/azure_client.py",
+      "lineRange": [
+        19,
+        25
+      ],
+      "summary": "位于 tradingagents/llm_clients/azure_client.py 的类 NormalizedAzureChatOpenAI，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/llm_clients/azure_client.py:AzureOpenAIClient",
+      "type": "class",
+      "name": "AzureOpenAIClient",
+      "filePath": "tradingagents/llm_clients/azure_client.py",
+      "lineRange": [
+        28,
+        64
+      ],
+      "summary": "位于 tradingagents/llm_clients/azure_client.py 的类 AzureOpenAIClient，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/base_client.py",
+      "type": "file",
+      "name": "base_client.py",
+      "filePath": "tradingagents/llm_clients/base_client.py",
+      "summary": "实现 tradingagents/llm_clients/base_client.py 在交易分析系统中的核心逻辑，对外提供 normalize_content、resolve_invocation_timeout、invoke_with_deadline 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/llm_clients/base_client.py:normalize_content",
+      "type": "function",
+      "name": "normalize_content",
+      "filePath": "tradingagents/llm_clients/base_client.py",
+      "lineRange": [
+        7,
+        23
+      ],
+      "summary": "位于 tradingagents/llm_clients/base_client.py 的函数 normalize_content，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/llm_clients/base_client.py:resolve_invocation_timeout",
+      "type": "function",
+      "name": "resolve_invocation_timeout",
+      "filePath": "tradingagents/llm_clients/base_client.py",
+      "lineRange": [
+        26,
+        39
+      ],
+      "summary": "位于 tradingagents/llm_clients/base_client.py 的函数 resolve_invocation_timeout，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/llm_clients/base_client.py:invoke_with_deadline",
+      "type": "function",
+      "name": "invoke_with_deadline",
+      "filePath": "tradingagents/llm_clients/base_client.py",
+      "lineRange": [
+        42,
+        61
+      ],
+      "summary": "位于 tradingagents/llm_clients/base_client.py 的函数 invoke_with_deadline，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/llm_clients/base_client.py:configure_deadline_policy",
+      "type": "function",
+      "name": "configure_deadline_policy",
+      "filePath": "tradingagents/llm_clients/base_client.py",
+      "lineRange": [
+        64,
+        76
+      ],
+      "summary": "位于 tradingagents/llm_clients/base_client.py 的函数 configure_deadline_policy，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tradingagents/llm_clients/base_client.py:BaseLLMClient",
+      "type": "class",
+      "name": "BaseLLMClient",
+      "filePath": "tradingagents/llm_clients/base_client.py",
+      "lineRange": [
+        79,
+        116
+      ],
+      "summary": "位于 tradingagents/llm_clients/base_client.py 的类 BaseLLMClient，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/bedrock_client.py",
+      "type": "file",
+      "name": "bedrock_client.py",
+      "filePath": "tradingagents/llm_clients/bedrock_client.py",
+      "summary": "实现 tradingagents/llm_clients/bedrock_client.py 在交易分析系统中的核心逻辑，对外提供 _bedrock_class、BedrockClient 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/llm_clients/bedrock_client.py:_bedrock_class",
+      "type": "function",
+      "name": "_bedrock_class",
+      "filePath": "tradingagents/llm_clients/bedrock_client.py",
+      "lineRange": [
+        17,
+        45
+      ],
+      "summary": "位于 tradingagents/llm_clients/bedrock_client.py 的函数 _bedrock_class，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tradingagents/llm_clients/bedrock_client.py:BedrockClient",
+      "type": "class",
+      "name": "BedrockClient",
+      "filePath": "tradingagents/llm_clients/bedrock_client.py",
+      "lineRange": [
+        48,
+        89
+      ],
+      "summary": "位于 tradingagents/llm_clients/bedrock_client.py 的类 BedrockClient，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/capabilities.py",
+      "type": "file",
+      "name": "capabilities.py",
+      "filePath": "tradingagents/llm_clients/capabilities.py",
+      "summary": "实现 tradingagents/llm_clients/capabilities.py 在交易分析系统中的核心逻辑，对外提供 ModelCapabilities、get_capabilities 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/llm_clients/capabilities.py:get_capabilities",
+      "type": "function",
+      "name": "get_capabilities",
+      "filePath": "tradingagents/llm_clients/capabilities.py",
+      "lineRange": [
+        119,
+        126
+      ],
+      "summary": "位于 tradingagents/llm_clients/capabilities.py 的函数 get_capabilities，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tradingagents/llm_clients/capabilities.py:ModelCapabilities",
+      "type": "class",
+      "name": "ModelCapabilities",
+      "filePath": "tradingagents/llm_clients/capabilities.py",
+      "lineRange": [
+        30,
+        45
+      ],
+      "summary": "位于 tradingagents/llm_clients/capabilities.py 的类 ModelCapabilities，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/factory.py",
+      "type": "file",
+      "name": "factory.py",
+      "filePath": "tradingagents/llm_clients/factory.py",
+      "summary": "实现 tradingagents/llm_clients/factory.py 在交易分析系统中的核心逻辑，对外提供 create_llm_client 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/llm_clients/factory.py:create_llm_client",
+      "type": "function",
+      "name": "create_llm_client",
+      "filePath": "tradingagents/llm_clients/factory.py",
+      "lineRange": [
+        5,
+        54
+      ],
+      "summary": "位于 tradingagents/llm_clients/factory.py 的函数 create_llm_client，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/google_client.py",
+      "type": "file",
+      "name": "google_client.py",
+      "filePath": "tradingagents/llm_clients/google_client.py",
+      "summary": "实现 tradingagents/llm_clients/google_client.py 在交易分析系统中的核心逻辑，对外提供 NormalizedChatGoogleGenerativeAI、GoogleClient 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/llm_clients/google_client.py:NormalizedChatGoogleGenerativeAI",
+      "type": "class",
+      "name": "NormalizedChatGoogleGenerativeAI",
+      "filePath": "tradingagents/llm_clients/google_client.py",
+      "lineRange": [
+        14,
+        24
+      ],
+      "summary": "位于 tradingagents/llm_clients/google_client.py 的类 NormalizedChatGoogleGenerativeAI，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/llm_clients/google_client.py:GoogleClient",
+      "type": "class",
+      "name": "GoogleClient",
+      "filePath": "tradingagents/llm_clients/google_client.py",
+      "lineRange": [
+        27,
+        70
+      ],
+      "summary": "位于 tradingagents/llm_clients/google_client.py 的类 GoogleClient，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/model_catalog.py",
+      "type": "file",
+      "name": "model_catalog.py",
+      "filePath": "tradingagents/llm_clients/model_catalog.py",
+      "summary": "实现 tradingagents/llm_clients/model_catalog.py 在交易分析系统中的核心逻辑，对外提供 get_model_options、get_known_models 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/llm_clients/model_catalog.py:get_model_options",
+      "type": "function",
+      "name": "get_model_options",
+      "filePath": "tradingagents/llm_clients/model_catalog.py",
+      "lineRange": [
+        194,
+        196
+      ],
+      "summary": "位于 tradingagents/llm_clients/model_catalog.py 的函数 get_model_options，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/llm_clients/model_catalog.py:get_known_models",
+      "type": "function",
+      "name": "get_known_models",
+      "filePath": "tradingagents/llm_clients/model_catalog.py",
+      "lineRange": [
+        199,
+        210
+      ],
+      "summary": "位于 tradingagents/llm_clients/model_catalog.py 的函数 get_known_models，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/openai_client.py",
+      "type": "file",
+      "name": "openai_client.py",
+      "filePath": "tradingagents/llm_clients/openai_client.py",
+      "summary": "实现 tradingagents/llm_clients/openai_client.py 在交易分析系统中的核心逻辑，对外提供 NormalizedChatOpenAI、LocalCompatibleChatOpenAI、_input_to_messages 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tradingagents/llm_clients/openai_client.py:_input_to_messages",
+      "type": "function",
+      "name": "_input_to_messages",
+      "filePath": "tradingagents/llm_clients/openai_client.py",
+      "lineRange": [
+        78,
+        92
+      ],
+      "summary": "位于 tradingagents/llm_clients/openai_client.py 的函数 _input_to_messages，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/llm_clients/openai_client.py:_supports_reasoning_effort",
+      "type": "function",
+      "name": "_supports_reasoning_effort",
+      "filePath": "tradingagents/llm_clients/openai_client.py",
+      "lineRange": [
+        185,
+        187
+      ],
+      "summary": "位于 tradingagents/llm_clients/openai_client.py 的函数 _supports_reasoning_effort，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/llm_clients/openai_client.py:is_openai_compatible",
+      "type": "function",
+      "name": "is_openai_compatible",
+      "filePath": "tradingagents/llm_clients/openai_client.py",
+      "lineRange": [
+        243,
+        245
+      ],
+      "summary": "位于 tradingagents/llm_clients/openai_client.py 的函数 is_openai_compatible，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/llm_clients/openai_client.py:_is_native_openai_base_url",
+      "type": "function",
+      "name": "_is_native_openai_base_url",
+      "filePath": "tradingagents/llm_clients/openai_client.py",
+      "lineRange": [
+        248,
+        261
+      ],
+      "summary": "位于 tradingagents/llm_clients/openai_client.py 的函数 _is_native_openai_base_url，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tradingagents/llm_clients/openai_client.py:NormalizedChatOpenAI",
+      "type": "class",
+      "name": "NormalizedChatOpenAI",
+      "filePath": "tradingagents/llm_clients/openai_client.py",
+      "lineRange": [
+        21,
+        58
+      ],
+      "summary": "位于 tradingagents/llm_clients/openai_client.py 的类 NormalizedChatOpenAI，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/llm_clients/openai_client.py:LocalCompatibleChatOpenAI",
+      "type": "class",
+      "name": "LocalCompatibleChatOpenAI",
+      "filePath": "tradingagents/llm_clients/openai_client.py",
+      "lineRange": [
+        61,
+        75
+      ],
+      "summary": "位于 tradingagents/llm_clients/openai_client.py 的类 LocalCompatibleChatOpenAI，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/llm_clients/openai_client.py:DeepSeekChatOpenAI",
+      "type": "class",
+      "name": "DeepSeekChatOpenAI",
+      "filePath": "tradingagents/llm_clients/openai_client.py",
+      "lineRange": [
+        95,
+        136
+      ],
+      "summary": "位于 tradingagents/llm_clients/openai_client.py 的类 DeepSeekChatOpenAI，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/llm_clients/openai_client.py:MinimaxChatOpenAI",
+      "type": "class",
+      "name": "MinimaxChatOpenAI",
+      "filePath": "tradingagents/llm_clients/openai_client.py",
+      "lineRange": [
+        139,
+        169
+      ],
+      "summary": "位于 tradingagents/llm_clients/openai_client.py 的类 MinimaxChatOpenAI，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/llm_clients/openai_client.py:ProviderSpec",
+      "type": "class",
+      "name": "ProviderSpec",
+      "filePath": "tradingagents/llm_clients/openai_client.py",
+      "lineRange": [
+        191,
+        213
+      ],
+      "summary": "位于 tradingagents/llm_clients/openai_client.py 的类 ProviderSpec，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/llm_clients/openai_client.py:OpenAIClient",
+      "type": "class",
+      "name": "OpenAIClient",
+      "filePath": "tradingagents/llm_clients/openai_client.py",
+      "lineRange": [
+        264,
+        350
+      ],
+      "summary": "位于 tradingagents/llm_clients/openai_client.py 的类 OpenAIClient，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/validators.py",
+      "type": "file",
+      "name": "validators.py",
+      "filePath": "tradingagents/llm_clients/validators.py",
+      "summary": "实现 tradingagents/llm_clients/validators.py 在交易分析系统中的核心逻辑，对外提供 validate_model 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "模型提供商",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/llm_clients/validators.py:validate_model",
+      "type": "function",
+      "name": "validate_model",
+      "filePath": "tradingagents/llm_clients/validators.py",
+      "lineRange": [
+        20,
+        33
+      ],
+      "summary": "位于 tradingagents/llm_clients/validators.py 的函数 validate_model，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "模型提供商",
+        "校验"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:tradingagents/llm_clients/azure_client.py",
+      "target": "class:tradingagents/llm_clients/azure_client.py:NormalizedAzureChatOpenAI",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/azure_client.py",
+      "target": "class:tradingagents/llm_clients/azure_client.py:AzureOpenAIClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/azure_client.py",
+      "target": "class:tradingagents/llm_clients/azure_client.py:NormalizedAzureChatOpenAI",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/azure_client.py",
+      "target": "class:tradingagents/llm_clients/azure_client.py:AzureOpenAIClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/azure_client.py",
+      "target": "file:tradingagents/llm_clients/base_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/base_client.py",
+      "target": "function:tradingagents/llm_clients/base_client.py:normalize_content",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/base_client.py",
+      "target": "function:tradingagents/llm_clients/base_client.py:resolve_invocation_timeout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/base_client.py",
+      "target": "function:tradingagents/llm_clients/base_client.py:invoke_with_deadline",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/base_client.py",
+      "target": "function:tradingagents/llm_clients/base_client.py:configure_deadline_policy",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/base_client.py",
+      "target": "class:tradingagents/llm_clients/base_client.py:BaseLLMClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/base_client.py",
+      "target": "function:tradingagents/llm_clients/base_client.py:normalize_content",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/base_client.py",
+      "target": "function:tradingagents/llm_clients/base_client.py:resolve_invocation_timeout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/base_client.py",
+      "target": "function:tradingagents/llm_clients/base_client.py:invoke_with_deadline",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/base_client.py",
+      "target": "function:tradingagents/llm_clients/base_client.py:configure_deadline_policy",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/base_client.py",
+      "target": "class:tradingagents/llm_clients/base_client.py:BaseLLMClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/bedrock_client.py",
+      "target": "function:tradingagents/llm_clients/bedrock_client.py:_bedrock_class",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/bedrock_client.py",
+      "target": "class:tradingagents/llm_clients/bedrock_client.py:BedrockClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/bedrock_client.py",
+      "target": "function:tradingagents/llm_clients/bedrock_client.py:_bedrock_class",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/bedrock_client.py",
+      "target": "class:tradingagents/llm_clients/bedrock_client.py:BedrockClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/bedrock_client.py",
+      "target": "file:tradingagents/llm_clients/base_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/bedrock_client.py",
+      "target": "file:tradingagents/llm_clients/validators.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/capabilities.py",
+      "target": "function:tradingagents/llm_clients/capabilities.py:get_capabilities",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/capabilities.py",
+      "target": "class:tradingagents/llm_clients/capabilities.py:ModelCapabilities",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/capabilities.py",
+      "target": "class:tradingagents/llm_clients/capabilities.py:ModelCapabilities",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/capabilities.py",
+      "target": "function:tradingagents/llm_clients/capabilities.py:get_capabilities",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/factory.py",
+      "target": "function:tradingagents/llm_clients/factory.py:create_llm_client",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/factory.py",
+      "target": "function:tradingagents/llm_clients/factory.py:create_llm_client",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/factory.py",
+      "target": "file:tradingagents/llm_clients/base_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/google_client.py",
+      "target": "class:tradingagents/llm_clients/google_client.py:NormalizedChatGoogleGenerativeAI",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/google_client.py",
+      "target": "class:tradingagents/llm_clients/google_client.py:GoogleClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/google_client.py",
+      "target": "class:tradingagents/llm_clients/google_client.py:NormalizedChatGoogleGenerativeAI",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/google_client.py",
+      "target": "class:tradingagents/llm_clients/google_client.py:GoogleClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/google_client.py",
+      "target": "file:tradingagents/llm_clients/base_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/google_client.py",
+      "target": "file:tradingagents/llm_clients/validators.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/model_catalog.py",
+      "target": "function:tradingagents/llm_clients/model_catalog.py:get_model_options",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/model_catalog.py",
+      "target": "function:tradingagents/llm_clients/model_catalog.py:get_known_models",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/model_catalog.py",
+      "target": "function:tradingagents/llm_clients/model_catalog.py:get_model_options",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/model_catalog.py",
+      "target": "function:tradingagents/llm_clients/model_catalog.py:get_known_models",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "function:tradingagents/llm_clients/openai_client.py:_input_to_messages",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "function:tradingagents/llm_clients/openai_client.py:_supports_reasoning_effort",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "function:tradingagents/llm_clients/openai_client.py:is_openai_compatible",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "function:tradingagents/llm_clients/openai_client.py:_is_native_openai_base_url",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "class:tradingagents/llm_clients/openai_client.py:NormalizedChatOpenAI",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "class:tradingagents/llm_clients/openai_client.py:LocalCompatibleChatOpenAI",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "class:tradingagents/llm_clients/openai_client.py:DeepSeekChatOpenAI",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "class:tradingagents/llm_clients/openai_client.py:MinimaxChatOpenAI",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "class:tradingagents/llm_clients/openai_client.py:ProviderSpec",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "class:tradingagents/llm_clients/openai_client.py:OpenAIClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "class:tradingagents/llm_clients/openai_client.py:NormalizedChatOpenAI",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "class:tradingagents/llm_clients/openai_client.py:LocalCompatibleChatOpenAI",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "function:tradingagents/llm_clients/openai_client.py:_input_to_messages",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "class:tradingagents/llm_clients/openai_client.py:DeepSeekChatOpenAI",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "class:tradingagents/llm_clients/openai_client.py:MinimaxChatOpenAI",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "function:tradingagents/llm_clients/openai_client.py:_supports_reasoning_effort",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "class:tradingagents/llm_clients/openai_client.py:ProviderSpec",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "function:tradingagents/llm_clients/openai_client.py:is_openai_compatible",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "function:tradingagents/llm_clients/openai_client.py:_is_native_openai_base_url",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "class:tradingagents/llm_clients/openai_client.py:OpenAIClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "file:tradingagents/llm_clients/api_key_env.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "file:tradingagents/llm_clients/base_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "file:tradingagents/llm_clients/capabilities.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/openai_client.py",
+      "target": "file:tradingagents/llm_clients/validators.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/validators.py",
+      "target": "function:tradingagents/llm_clients/validators.py:validate_model",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/validators.py",
+      "target": "function:tradingagents/llm_clients/validators.py:validate_model",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/validators.py",
+      "target": "file:tradingagents/llm_clients/model_catalog.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

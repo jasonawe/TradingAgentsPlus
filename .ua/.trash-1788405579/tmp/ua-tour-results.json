@@ -1,0 +1,2037 @@
+{
+  "scriptCompleted": true,
+  "entryPointCandidates": [
+    {
+      "id": "document:README.md",
+      "score": 7,
+      "name": "README.md",
+      "summary": "项目入口文档，介绍 TradingAgents 的定位、安装配置、运行方式与主要能力。"
+    },
+    {
+      "id": "file:cli/main.py",
+      "score": 5,
+      "name": "main.py",
+      "summary": "实现 cli/main.py 在交易分析系统中的核心逻辑，对外提供 default_command、web_command、MessageBuffer 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:main.py",
+      "score": 5,
+      "name": "main.py",
+      "summary": "实现 main.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "file:web/app.py",
+      "score": 5,
+      "name": "app.py",
+      "summary": "实现 web/app.py 在交易分析系统中的核心逻辑，对外提供 _record_json、_error、_safe_filename 等接口，并负责相关数据或流程的协调。"
+    },
+    {
+      "id": "document:CHANGELOG.md",
+      "score": 4,
+      "name": "CHANGELOG.md",
+      "summary": "版本变更日志，按时间记录功能迭代、缺陷修复和兼容性调整。"
+    }
+  ],
+  "fanInRanking": [
+    {
+      "id": "file:tradingagents/agents/utils/agent_utils.py",
+      "fanIn": 18,
+      "name": "agent_utils.py"
+    },
+    {
+      "id": "file:tradingagents/default_config.py",
+      "fanIn": 15,
+      "name": "default_config.py"
+    },
+    {
+      "id": "file:web/models.py",
+      "fanIn": 15,
+      "name": "models.py"
+    },
+    {
+      "id": "file:tradingagents/dataflows/config.py",
+      "fanIn": 14,
+      "name": "config.py"
+    },
+    {
+      "id": "file:tradingagents/dataflows/interface.py",
+      "fanIn": 12,
+      "name": "interface.py"
+    },
+    {
+      "id": "file:web/manager.py",
+      "fanIn": 12,
+      "name": "manager.py"
+    },
+    {
+      "id": "file:web/storage.py",
+      "fanIn": 12,
+      "name": "storage.py"
+    },
+    {
+      "id": "file:tradingagents/dataflows/__init__.py",
+      "fanIn": 10,
+      "name": "__init__.py"
+    },
+    {
+      "id": "file:tradingagents/dataflows/symbol_utils.py",
+      "fanIn": 10,
+      "name": "symbol_utils.py"
+    },
+    {
+      "id": "file:tradingagents/graph/trading_graph.py",
+      "fanIn": 10,
+      "name": "trading_graph.py"
+    },
+    {
+      "id": "file:cli/utils.py",
+      "fanIn": 9,
+      "name": "utils.py"
+    },
+    {
+      "id": "file:web/error_codes.py",
+      "fanIn": 9,
+      "name": "error_codes.py"
+    },
+    {
+      "id": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "fanIn": 8,
+      "name": "alpha_vantage_common.py"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/base_client.py",
+      "fanIn": 8,
+      "name": "base_client.py"
+    },
+    {
+      "id": "file:web/repositories.py",
+      "fanIn": 8,
+      "name": "repositories.py"
+    },
+    {
+      "id": "file:tradingagents/dataflows/stockstats_utils.py",
+      "fanIn": 7,
+      "name": "stockstats_utils.py"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/validators.py",
+      "fanIn": 7,
+      "name": "validators.py"
+    },
+    {
+      "id": "file:tradingagents/agents/schemas.py",
+      "fanIn": 6,
+      "name": "schemas.py"
+    },
+    {
+      "id": "file:tradingagents/graph/propagation.py",
+      "fanIn": 6,
+      "name": "propagation.py"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/openai_client.py",
+      "fanIn": 6,
+      "name": "openai_client.py"
+    }
+  ],
+  "fanOutRanking": [
+    {
+      "id": "file:tradingagents/agents/__init__.py",
+      "fanOut": 14,
+      "name": "__init__.py"
+    },
+    {
+      "id": "file:web/app.py",
+      "fanOut": 14,
+      "name": "app.py"
+    },
+    {
+      "id": "file:tradingagents/graph/trading_graph.py",
+      "fanOut": 13,
+      "name": "trading_graph.py"
+    },
+    {
+      "id": "file:web/runner.py",
+      "fanOut": 11,
+      "name": "runner.py"
+    },
+    {
+      "id": "file:cli/main.py",
+      "fanOut": 7,
+      "name": "main.py"
+    },
+    {
+      "id": "file:tests/test_llm_timeout.py",
+      "fanOut": 7,
+      "name": "test_llm_timeout.py"
+    },
+    {
+      "id": "file:tests/test_vendor_errors.py",
+      "fanOut": 7,
+      "name": "test_vendor_errors.py"
+    },
+    {
+      "id": "file:tests/test_yfinance_stale_ohlcv_guard.py",
+      "fanOut": 7,
+      "name": "test_yfinance_stale_ohlcv_guard.py"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/agent_utils.py",
+      "fanOut": 7,
+      "name": "agent_utils.py"
+    },
+    {
+      "id": "file:tradingagents/dataflows/interface.py",
+      "fanOut": 7,
+      "name": "interface.py"
+    },
+    {
+      "id": "file:tests/test_chunk3_contract_fixes.py",
+      "fanOut": 6,
+      "name": "test_chunk3_contract_fixes.py"
+    },
+    {
+      "id": "file:tests/test_memory_log.py",
+      "fanOut": 6,
+      "name": "test_memory_log.py"
+    },
+    {
+      "id": "file:tests/test_web_api.py",
+      "fanOut": 6,
+      "name": "test_web_api.py"
+    },
+    {
+      "id": "file:tests/test_web_retry.py",
+      "fanOut": 6,
+      "name": "test_web_retry.py"
+    },
+    {
+      "id": "file:tests/test_web_runner_recovery.py",
+      "fanOut": 6,
+      "name": "test_web_runner_recovery.py"
+    },
+    {
+      "id": "file:tradingagents/graph/__init__.py",
+      "fanOut": 6,
+      "name": "__init__.py"
+    },
+    {
+      "id": "file:scripts/smoke_structured_output.py",
+      "fanOut": 5,
+      "name": "smoke_structured_output.py"
+    },
+    {
+      "id": "file:tests/test_fred.py",
+      "fanOut": 5,
+      "name": "test_fred.py"
+    },
+    {
+      "id": "file:tests/test_no_data_handling.py",
+      "fanOut": 5,
+      "name": "test_no_data_handling.py"
+    },
+    {
+      "id": "file:tests/test_polymarket.py",
+      "fanOut": 5,
+      "name": "test_polymarket.py"
+    }
+  ],
+  "bfsTraversal": {
+    "startNode": "file:cli/main.py",
+    "order": [
+      "file:cli/main.py",
+      "file:cli/announcements.py",
+      "file:cli/stats_handler.py",
+      "file:cli/utils.py",
+      "file:tradingagents/default_config.py",
+      "file:tradingagents/graph/analyst_execution.py",
+      "file:tradingagents/graph/trading_graph.py",
+      "file:tradingagents/reporting.py",
+      "file:cli/config.py",
+      "file:cli/models.py",
+      "file:tradingagents/llm_clients/api_key_env.py",
+      "file:tradingagents/llm_clients/model_catalog.py",
+      "file:tradingagents/agents/utils/agent_utils.py",
+      "file:tradingagents/agents/utils/memory.py",
+      "file:tradingagents/dataflows/config.py",
+      "file:tradingagents/dataflows/utils.py",
+      "file:tradingagents/graph/checkpointer.py",
+      "file:tradingagents/graph/conditional_logic.py",
+      "file:tradingagents/graph/propagation.py",
+      "file:tradingagents/graph/reflection.py",
+      "file:tradingagents/graph/setup.py",
+      "file:tradingagents/graph/signal_processing.py",
+      "file:tradingagents/llm_clients/__init__.py",
+      "file:tradingagents/agents/utils/core_stock_tools.py",
+      "file:tradingagents/agents/utils/fundamental_data_tools.py",
+      "file:tradingagents/agents/utils/macro_data_tools.py",
+      "file:tradingagents/agents/utils/market_data_validation_tools.py",
+      "file:tradingagents/agents/utils/news_data_tools.py",
+      "file:tradingagents/agents/utils/prediction_markets_tools.py",
+      "file:tradingagents/agents/utils/technical_indicators_tools.py",
+      "file:tradingagents/agents/utils/rating.py",
+      "file:tradingagents/agents/utils/agent_states.py",
+      "file:tradingagents/agents/__init__.py",
+      "file:tradingagents/llm_clients/base_client.py",
+      "file:tradingagents/llm_clients/factory.py",
+      "file:tradingagents/dataflows/interface.py",
+      "file:tradingagents/dataflows/market_data_validator.py",
+      "file:tradingagents/agents/analysts/fundamentals_analyst.py",
+      "file:tradingagents/agents/analysts/market_analyst.py",
+      "file:tradingagents/agents/analysts/news_analyst.py",
+      "file:tradingagents/agents/analysts/sentiment_analyst.py",
+      "file:tradingagents/agents/managers/portfolio_manager.py",
+      "file:tradingagents/agents/managers/research_manager.py",
+      "file:tradingagents/agents/researchers/bear_researcher.py",
+      "file:tradingagents/agents/researchers/bull_researcher.py",
+      "file:tradingagents/agents/risk_mgmt/aggressive_debator.py",
+      "file:tradingagents/agents/risk_mgmt/conservative_debator.py",
+      "file:tradingagents/agents/risk_mgmt/neutral_debator.py",
+      "file:tradingagents/agents/trader/trader.py",
+      "file:tradingagents/dataflows/alpha_vantage.py",
+      "file:tradingagents/dataflows/errors.py",
+      "file:tradingagents/dataflows/fred.py",
+      "file:tradingagents/dataflows/polymarket.py",
+      "file:tradingagents/dataflows/y_finance.py",
+      "file:tradingagents/dataflows/yfinance_news.py",
+      "file:tradingagents/dataflows/stockstats_utils.py",
+      "file:tradingagents/agents/schemas.py",
+      "file:tradingagents/agents/utils/structured.py",
+      "file:tradingagents/dataflows/reddit.py",
+      "file:tradingagents/dataflows/stocktwits.py",
+      "file:tradingagents/dataflows/alpha_vantage_fundamentals.py",
+      "file:tradingagents/dataflows/alpha_vantage_indicator.py",
+      "file:tradingagents/dataflows/alpha_vantage_news.py",
+      "file:tradingagents/dataflows/alpha_vantage_stock.py",
+      "file:tradingagents/dataflows/symbol_utils.py",
+      "file:tradingagents/dataflows/alpha_vantage_common.py"
+    ],
+    "depthMap": {
+      "file:cli/main.py": 0,
+      "file:cli/announcements.py": 1,
+      "file:cli/stats_handler.py": 1,
+      "file:cli/utils.py": 1,
+      "file:tradingagents/default_config.py": 1,
+      "file:tradingagents/graph/analyst_execution.py": 1,
+      "file:tradingagents/graph/trading_graph.py": 1,
+      "file:tradingagents/reporting.py": 1,
+      "file:cli/config.py": 2,
+      "file:cli/models.py": 2,
+      "file:tradingagents/llm_clients/api_key_env.py": 2,
+      "file:tradingagents/llm_clients/model_catalog.py": 2,
+      "file:tradingagents/agents/utils/agent_utils.py": 2,
+      "file:tradingagents/agents/utils/memory.py": 2,
+      "file:tradingagents/dataflows/config.py": 2,
+      "file:tradingagents/dataflows/utils.py": 2,
+      "file:tradingagents/graph/checkpointer.py": 2,
+      "file:tradingagents/graph/conditional_logic.py": 2,
+      "file:tradingagents/graph/propagation.py": 2,
+      "file:tradingagents/graph/reflection.py": 2,
+      "file:tradingagents/graph/setup.py": 2,
+      "file:tradingagents/graph/signal_processing.py": 2,
+      "file:tradingagents/llm_clients/__init__.py": 2,
+      "file:tradingagents/agents/utils/core_stock_tools.py": 3,
+      "file:tradingagents/agents/utils/fundamental_data_tools.py": 3,
+      "file:tradingagents/agents/utils/macro_data_tools.py": 3,
+      "file:tradingagents/agents/utils/market_data_validation_tools.py": 3,
+      "file:tradingagents/agents/utils/news_data_tools.py": 3,
+      "file:tradingagents/agents/utils/prediction_markets_tools.py": 3,
+      "file:tradingagents/agents/utils/technical_indicators_tools.py": 3,
+      "file:tradingagents/agents/utils/rating.py": 3,
+      "file:tradingagents/agents/utils/agent_states.py": 3,
+      "file:tradingagents/agents/__init__.py": 3,
+      "file:tradingagents/llm_clients/base_client.py": 3,
+      "file:tradingagents/llm_clients/factory.py": 3,
+      "file:tradingagents/dataflows/interface.py": 4,
+      "file:tradingagents/dataflows/market_data_validator.py": 4,
+      "file:tradingagents/agents/analysts/fundamentals_analyst.py": 4,
+      "file:tradingagents/agents/analysts/market_analyst.py": 4,
+      "file:tradingagents/agents/analysts/news_analyst.py": 4,
+      "file:tradingagents/agents/analysts/sentiment_analyst.py": 4,
+      "file:tradingagents/agents/managers/portfolio_manager.py": 4,
+      "file:tradingagents/agents/managers/research_manager.py": 4,
+      "file:tradingagents/agents/researchers/bear_researcher.py": 4,
+      "file:tradingagents/agents/researchers/bull_researcher.py": 4,
+      "file:tradingagents/agents/risk_mgmt/aggressive_debator.py": 4,
+      "file:tradingagents/agents/risk_mgmt/conservative_debator.py": 4,
+      "file:tradingagents/agents/risk_mgmt/neutral_debator.py": 4,
+      "file:tradingagents/agents/trader/trader.py": 4,
+      "file:tradingagents/dataflows/alpha_vantage.py": 5,
+      "file:tradingagents/dataflows/errors.py": 5,
+      "file:tradingagents/dataflows/fred.py": 5,
+      "file:tradingagents/dataflows/polymarket.py": 5,
+      "file:tradingagents/dataflows/y_finance.py": 5,
+      "file:tradingagents/dataflows/yfinance_news.py": 5,
+      "file:tradingagents/dataflows/stockstats_utils.py": 5,
+      "file:tradingagents/agents/schemas.py": 5,
+      "file:tradingagents/agents/utils/structured.py": 5,
+      "file:tradingagents/dataflows/reddit.py": 5,
+      "file:tradingagents/dataflows/stocktwits.py": 5,
+      "file:tradingagents/dataflows/alpha_vantage_fundamentals.py": 6,
+      "file:tradingagents/dataflows/alpha_vantage_indicator.py": 6,
+      "file:tradingagents/dataflows/alpha_vantage_news.py": 6,
+      "file:tradingagents/dataflows/alpha_vantage_stock.py": 6,
+      "file:tradingagents/dataflows/symbol_utils.py": 6,
+      "file:tradingagents/dataflows/alpha_vantage_common.py": 7
+    },
+    "byDepth": {
+      "0": [
+        "file:cli/main.py"
+      ],
+      "1": [
+        "file:cli/announcements.py",
+        "file:cli/stats_handler.py",
+        "file:cli/utils.py",
+        "file:tradingagents/default_config.py",
+        "file:tradingagents/graph/analyst_execution.py",
+        "file:tradingagents/graph/trading_graph.py",
+        "file:tradingagents/reporting.py"
+      ],
+      "2": [
+        "file:cli/config.py",
+        "file:cli/models.py",
+        "file:tradingagents/llm_clients/api_key_env.py",
+        "file:tradingagents/llm_clients/model_catalog.py",
+        "file:tradingagents/agents/utils/agent_utils.py",
+        "file:tradingagents/agents/utils/memory.py",
+        "file:tradingagents/dataflows/config.py",
+        "file:tradingagents/dataflows/utils.py",
+        "file:tradingagents/graph/checkpointer.py",
+        "file:tradingagents/graph/conditional_logic.py",
+        "file:tradingagents/graph/propagation.py",
+        "file:tradingagents/graph/reflection.py",
+        "file:tradingagents/graph/setup.py",
+        "file:tradingagents/graph/signal_processing.py",
+        "file:tradingagents/llm_clients/__init__.py"
+      ],
+      "3": [
+        "file:tradingagents/agents/utils/core_stock_tools.py",
+        "file:tradingagents/agents/utils/fundamental_data_tools.py",
+        "file:tradingagents/agents/utils/macro_data_tools.py",
+        "file:tradingagents/agents/utils/market_data_validation_tools.py",
+        "file:tradingagents/agents/utils/news_data_tools.py",
+        "file:tradingagents/agents/utils/prediction_markets_tools.py",
+        "file:tradingagents/agents/utils/technical_indicators_tools.py",
+        "file:tradingagents/agents/utils/rating.py",
+        "file:tradingagents/agents/utils/agent_states.py",
+        "file:tradingagents/agents/__init__.py",
+        "file:tradingagents/llm_clients/base_client.py",
+        "file:tradingagents/llm_clients/factory.py"
+      ],
+      "4": [
+        "file:tradingagents/dataflows/interface.py",
+        "file:tradingagents/dataflows/market_data_validator.py",
+        "file:tradingagents/agents/analysts/fundamentals_analyst.py",
+        "file:tradingagents/agents/analysts/market_analyst.py",
+        "file:tradingagents/agents/analysts/news_analyst.py",
+        "file:tradingagents/agents/analysts/sentiment_analyst.py",
+        "file:tradingagents/agents/managers/portfolio_manager.py",
+        "file:tradingagents/agents/managers/research_manager.py",
+        "file:tradingagents/agents/researchers/bear_researcher.py",
+        "file:tradingagents/agents/researchers/bull_researcher.py",
+        "file:tradingagents/agents/risk_mgmt/aggressive_debator.py",
+        "file:tradingagents/agents/risk_mgmt/conservative_debator.py",
+        "file:tradingagents/agents/risk_mgmt/neutral_debator.py",
+        "file:tradingagents/agents/trader/trader.py"
+      ],
+      "5": [
+        "file:tradingagents/dataflows/alpha_vantage.py",
+        "file:tradingagents/dataflows/errors.py",
+        "file:tradingagents/dataflows/fred.py",
+        "file:tradingagents/dataflows/polymarket.py",
+        "file:tradingagents/dataflows/y_finance.py",
+        "file:tradingagents/dataflows/yfinance_news.py",
+        "file:tradingagents/dataflows/stockstats_utils.py",
+        "file:tradingagents/agents/schemas.py",
+        "file:tradingagents/agents/utils/structured.py",
+        "file:tradingagents/dataflows/reddit.py",
+        "file:tradingagents/dataflows/stocktwits.py"
+      ],
+      "6": [
+        "file:tradingagents/dataflows/alpha_vantage_fundamentals.py",
+        "file:tradingagents/dataflows/alpha_vantage_indicator.py",
+        "file:tradingagents/dataflows/alpha_vantage_news.py",
+        "file:tradingagents/dataflows/alpha_vantage_stock.py",
+        "file:tradingagents/dataflows/symbol_utils.py"
+      ],
+      "7": [
+        "file:tradingagents/dataflows/alpha_vantage_common.py"
+      ]
+    }
+  },
+  "nonCodeFiles": {
+    "documentation": [
+      {
+        "id": "document:CHANGELOG.md",
+        "name": "CHANGELOG.md",
+        "type": "document",
+        "summary": "版本变更日志，按时间记录功能迭代、缺陷修复和兼容性调整。"
+      },
+      {
+        "id": "document:README.md",
+        "name": "README.md",
+        "type": "document",
+        "summary": "项目入口文档，介绍 TradingAgents 的定位、安装配置、运行方式与主要能力。"
+      },
+      {
+        "id": "document:requirements.txt",
+        "name": "requirements.txt",
+        "type": "document",
+        "summary": "设计或实施计划文档，围绕 requirements 描述目标、方案、任务拆分与验证要求。"
+      },
+      {
+        "id": "document:docs/superpowers/plans/2026-08-26-web-analysis-console-plan.md",
+        "name": "2026-08-26-web-analysis-console-plan.md",
+        "type": "document",
+        "summary": "设计或实施计划文档，围绕 2026-08-26-web-analysis-console-plan 描述目标、方案、任务拆分与验证要求。"
+      },
+      {
+        "id": "document:docs/superpowers/plans/2026-08-27-personal-investor-platform-plan.md",
+        "name": "2026-08-27-personal-investor-platform-plan.md",
+        "type": "document",
+        "summary": "设计或实施计划文档，围绕 2026-08-27-personal-investor-platform-plan 描述目标、方案、任务拆分与验证要求。"
+      },
+      {
+        "id": "document:docs/superpowers/plans/2026-08-27-web-report-library-models-language-plan.md",
+        "name": "2026-08-27-web-report-library-models-language-plan.md",
+        "type": "document",
+        "summary": "设计或实施计划文档，围绕 2026-08-27-web-report-library-models-language-plan 描述目标、方案、任务拆分与验证要求。"
+      },
+      {
+        "id": "document:docs/superpowers/plans/2026-08-28-report-publish-integrity-plan.md",
+        "name": "2026-08-28-report-publish-integrity-plan.md",
+        "type": "document",
+        "summary": "设计或实施计划文档，围绕 2026-08-28-report-publish-integrity-plan 描述目标、方案、任务拆分与验证要求。"
+      },
+      {
+        "id": "document:docs/superpowers/plans/2026-08-31-platform-reliability-operations-plan.md",
+        "name": "2026-08-31-platform-reliability-operations-plan.md",
+        "type": "document",
+        "summary": "设计或实施计划文档，围绕 2026-08-31-platform-reliability-operations-plan 描述目标、方案、任务拆分与验证要求。"
+      },
+      {
+        "id": "document:docs/superpowers/plans/2026-08-31-rating-localization-plan.md",
+        "name": "2026-08-31-rating-localization-plan.md",
+        "type": "document",
+        "summary": "设计或实施计划文档，围绕 2026-08-31-rating-localization-plan 描述目标、方案、任务拆分与验证要求。"
+      },
+      {
+        "id": "document:docs/superpowers/plans/2026-09-01-compact-section-headers.md",
+        "name": "2026-09-01-compact-section-headers.md",
+        "type": "document",
+        "summary": "设计或实施计划文档，围绕 2026-09-01-compact-section-headers 描述目标、方案、任务拆分与验证要求。"
+      },
+      {
+        "id": "document:docs/superpowers/plans/2026-09-02-manager-concurrency.md",
+        "name": "2026-09-02-manager-concurrency.md",
+        "type": "document",
+        "summary": "设计或实施计划文档，围绕 2026-09-02-manager-concurrency 描述目标、方案、任务拆分与验证要求。"
+      },
+      {
+        "id": "document:docs/superpowers/specs/2026-08-26-web-analysis-console-design.md",
+        "name": "2026-08-26-web-analysis-console-design.md",
+        "type": "document",
+        "summary": "设计或实施计划文档，围绕 2026-08-26-web-analysis-console-design 描述目标、方案、任务拆分与验证要求。"
+      },
+      {
+        "id": "document:docs/superpowers/specs/2026-08-27-personal-investor-platform-design.md",
+        "name": "2026-08-27-personal-investor-platform-design.md",
+        "type": "document",
+        "summary": "设计或实施计划文档，围绕 2026-08-27-personal-investor-platform-design 描述目标、方案、任务拆分与验证要求。"
+      },
+      {
+        "id": "document:docs/superpowers/specs/2026-08-27-web-report-library-models-language-design.md",
+        "name": "2026-08-27-web-report-library-models-language-design.md",
+        "type": "document",
+        "summary": "设计或实施计划文档，围绕 2026-08-27-web-report-library-models-language-design 描述目标、方案、任务拆分与验证要求。"
+      },
+      {
+        "id": "document:docs/superpowers/specs/2026-08-31-platform-reliability-operations-design.md",
+        "name": "2026-08-31-platform-reliability-operations-design.md",
+        "type": "document",
+        "summary": "设计或实施计划文档，围绕 2026-08-31-platform-reliability-operations-design 描述目标、方案、任务拆分与验证要求。"
+      },
+      {
+        "id": "document:docs/superpowers/specs/2026-08-31-rating-localization-design.md",
+        "name": "2026-08-31-rating-localization-design.md",
+        "type": "document",
+        "summary": "设计或实施计划文档，围绕 2026-08-31-rating-localization-design 描述目标、方案、任务拆分与验证要求。"
+      },
+      {
+        "id": "document:docs/superpowers/specs/2026-09-01-analysis-timeout-recovery-design.md",
+        "name": "2026-09-01-analysis-timeout-recovery-design.md",
+        "type": "document",
+        "summary": "设计或实施计划文档，围绕 2026-09-01-analysis-timeout-recovery-design 描述目标、方案、任务拆分与验证要求。"
+      },
+      {
+        "id": "document:docs/superpowers/specs/2026-09-01-compact-section-headers-design.md",
+        "name": "2026-09-01-compact-section-headers-design.md",
+        "type": "document",
+        "summary": "设计或实施计划文档，围绕 2026-09-01-compact-section-headers-design 描述目标、方案、任务拆分与验证要求。"
+      },
+      {
+        "id": "document:docs/superpowers/specs/2026-09-02-scheduled-analysis-design.md",
+        "name": "2026-09-02-scheduled-analysis-design.md",
+        "type": "document",
+        "summary": "设计或实施计划文档，围绕 2026-09-02-scheduled-analysis-design 描述目标、方案、任务拆分与验证要求。"
+      },
+      {
+        "id": "document:docs/superpowers/specs/2026-09-02-ui-modern-redesign-design.md",
+        "name": "2026-09-02-ui-modern-redesign-design.md",
+        "type": "document",
+        "summary": "设计或实施计划文档，围绕 2026-09-02-ui-modern-redesign-design 描述目标、方案、任务拆分与验证要求。"
+      },
+      {
+        "id": "document:cli/static/welcome.txt",
+        "name": "welcome.txt",
+        "type": "document",
+        "summary": "设计或实施计划文档，围绕 welcome 描述目标、方案、任务拆分与验证要求。"
+      }
+    ],
+    "infrastructure": [
+      {
+        "id": "service:.dockerignore",
+        "name": ".dockerignore",
+        "type": "service",
+        "summary": "定义 .dockerignore 的部署与运行环境，负责项目服务的构建、启动或编排。"
+      },
+      {
+        "id": "service:Dockerfile",
+        "name": "Dockerfile",
+        "type": "service",
+        "summary": "定义 Dockerfile 的部署与运行环境，负责项目服务的构建、启动或编排。"
+      },
+      {
+        "id": "service:docker-compose.yml",
+        "name": "docker-compose.yml",
+        "type": "service",
+        "summary": "定义 docker-compose.yml 的部署与运行环境，负责项目服务的构建、启动或编排。"
+      },
+      {
+        "id": "pipeline:.github/workflows/ci.yml",
+        "name": "ci.yml",
+        "type": "pipeline",
+        "summary": "GitHub Actions 持续集成工作流，负责安装依赖、执行测试与静态检查，并在代码变更时验证项目质量。"
+      }
+    ],
+    "data": [
+      {
+        "id": "table:web/migrations/001_personal_platform.sql",
+        "name": "001_personal_platform.sql",
+        "type": "table",
+        "summary": "数据库迁移文件 001_personal_platform.sql，定义或调整 Web 平台的持久化表结构、索引与可靠性相关字段。"
+      },
+      {
+        "id": "table:web/migrations/002_reliability_operations.sql",
+        "name": "002_reliability_operations.sql",
+        "type": "table",
+        "summary": "数据库迁移文件 002_reliability_operations.sql，定义或调整 Web 平台的持久化表结构、索引与可靠性相关字段。"
+      },
+      {
+        "id": "table:web/migrations/003_watchlist_newest_first.sql",
+        "name": "003_watchlist_newest_first.sql",
+        "type": "table",
+        "summary": "数据库迁移文件 003_watchlist_newest_first.sql，定义或调整 Web 平台的持久化表结构、索引与可靠性相关字段。"
+      },
+      {
+        "id": "table:web/migrations/004_analysis_timeout_recovery.sql",
+        "name": "004_analysis_timeout_recovery.sql",
+        "type": "table",
+        "summary": "数据库迁移文件 004_analysis_timeout_recovery.sql，定义或调整 Web 平台的持久化表结构、索引与可靠性相关字段。"
+      }
+    ],
+    "config": [
+      {
+        "id": "config:.env.enterprise.example",
+        "name": ".env.enterprise.example",
+        "type": "config",
+        "summary": "项目配置文件 .env.enterprise.example，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+      },
+      {
+        "id": "config:.env.example",
+        "name": ".env.example",
+        "type": "config",
+        "summary": "项目配置文件 .env.example，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+      },
+      {
+        "id": "config:pyproject.toml",
+        "name": "pyproject.toml",
+        "type": "config",
+        "summary": "项目配置文件 pyproject.toml，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+      },
+      {
+        "id": "config:.ua/tmp/import-input.json",
+        "name": "import-input.json",
+        "type": "config",
+        "summary": "项目配置文件 import-input.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+      },
+      {
+        "id": "config:.ua/tmp/import-output.json",
+        "name": "import-output.json",
+        "type": "config",
+        "summary": "项目配置文件 import-output.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+      },
+      {
+        "id": "config:.ua/tmp/ua-import-map-input.json",
+        "name": "ua-import-map-input.json",
+        "type": "config",
+        "summary": "项目配置文件 ua-import-map-input.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+      },
+      {
+        "id": "config:.ua/tmp/ua-import-map-output.json",
+        "name": "ua-import-map-output.json",
+        "type": "config",
+        "summary": "项目配置文件 ua-import-map-output.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+      },
+      {
+        "id": "config:.ua/tmp/ua-scan-files.json",
+        "name": "ua-scan-files.json",
+        "type": "config",
+        "summary": "项目配置文件 ua-scan-files.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+      },
+      {
+        "id": "config:.ua/config.json",
+        "name": "config.json",
+        "type": "config",
+        "summary": "项目配置文件 config.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+      },
+      {
+        "id": "config:.ua/intermediate/raw-scan.json",
+        "name": "raw-scan.json",
+        "type": "config",
+        "summary": "项目配置文件 raw-scan.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+      },
+      {
+        "id": "config:.ua/intermediate/scan-result.json",
+        "name": "scan-result.json",
+        "type": "config",
+        "summary": "项目配置文件 scan-result.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+      }
+    ]
+  },
+  "clusters": [],
+  "layers": {
+    "count": 10,
+    "list": [
+      {
+        "id": "layer:agent-domain",
+        "name": "核心智能体层",
+        "description": "实现分析师、研究辩论、风险辩论、交易员与投资组合经理等多智能体金融研究角色及其共享状态和工具。"
+      },
+      {
+        "id": "layer:graph-orchestration",
+        "name": "图编排层",
+        "description": "负责 TradingAgents 工作流图的构建、条件路由、状态传播、反思循环、信号处理与执行计划。"
+      },
+      {
+        "id": "layer:market-data",
+        "name": "市场数据集成层",
+        "description": "统一接入行情、新闻、宏观、社交和预测市场数据源，并处理供应商路由、标的规范化、校验与本地化。"
+      },
+      {
+        "id": "layer:llm-integration",
+        "name": "LLM 适配层",
+        "description": "封装 OpenAI、Anthropic、Google、Azure、Bedrock 等模型提供商，并集中管理模型能力、密钥、超时和参数校验。"
+      },
+      {
+        "id": "layer:web-service",
+        "name": "Web 服务与 API 层",
+        "description": "提供 FastAPI 应用工厂、分析运行管理、恢复租约、错误分类、报告合成与 Web 请求响应模型。"
+      },
+      {
+        "id": "layer:presentation",
+        "name": "交互界面层",
+        "description": "承载命令行入口与本地 Web 单页工作台，包括行情图表、报告浏览、本地化、样式和用户交互。"
+      },
+      {
+        "id": "layer:persistence",
+        "name": "持久化与历史层",
+        "description": "管理 SQLite 模式迁移、仓储、分析产物、报告历史、快照、检查点恢复和智能体记忆。"
+      },
+      {
+        "id": "layer:test",
+        "name": "测试与验证层",
+        "description": "覆盖核心智能体、数据源、模型适配、CLI、Web API、前端模块及可靠性场景，并提供结构化输出冒烟验证。"
+      },
+      {
+        "id": "layer:infrastructure",
+        "name": "基础设施与配置",
+        "description": "定义 Python 打包依赖、环境变量模板、Docker 部署、GitHub Actions CI/CD 以及知识图谱分析配置与中间数据。"
+      },
+      {
+        "id": "layer:documentation",
+        "name": "文档与设计原型",
+        "description": "汇集项目说明、变更记录、设计规格、实施计划和界面探索原型，为平台演进提供决策依据。"
+      }
+    ]
+  },
+  "nodeSummaryIndex": {
+    "file:scripts/smoke_structured_output.py": {
+      "name": "smoke_structured_output.py",
+      "type": "file",
+      "summary": "实现 scripts/smoke_structured_output.py 在交易分析系统中的核心逻辑，对外提供 _make_rm_state、_make_trader_state、_make_pm_state 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tests/test_i18n_coverage.py": {
+      "name": "test_i18n_coverage.py",
+      "type": "file",
+      "summary": "覆盖 test_i18n_coverage.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_instrument_identity.py": {
+      "name": "test_instrument_identity.py",
+      "type": "file",
+      "summary": "覆盖 test_instrument_identity.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_market_data_validator.py": {
+      "name": "test_market_data_validator.py",
+      "type": "file",
+      "summary": "覆盖 test_market_data_validator.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_news_analyst_prompt.py": {
+      "name": "test_news_analyst_prompt.py",
+      "type": "file",
+      "summary": "覆盖 test_news_analyst_prompt.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_structured_agent_prompts.py": {
+      "name": "test_structured_agent_prompts.py",
+      "type": "file",
+      "summary": "覆盖 test_structured_agent_prompts.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_structured_agents.py": {
+      "name": "test_structured_agents.py",
+      "type": "file",
+      "summary": "覆盖 test_structured_agents.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tradingagents/agents/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/__init__.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/analysts/fundamentals_analyst.py": {
+      "name": "fundamentals_analyst.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/analysts/fundamentals_analyst.py 在交易分析系统中的核心逻辑，对外提供 create_fundamentals_analyst 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/analysts/market_analyst.py": {
+      "name": "market_analyst.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/analysts/market_analyst.py 在交易分析系统中的核心逻辑，对外提供 create_market_analyst 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/analysts/news_analyst.py": {
+      "name": "news_analyst.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/analysts/news_analyst.py 在交易分析系统中的核心逻辑，对外提供 create_news_analyst 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/analysts/sentiment_analyst.py": {
+      "name": "sentiment_analyst.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/analysts/sentiment_analyst.py 在交易分析系统中的核心逻辑，对外提供 _seven_days_back、create_sentiment_analyst、_build_system_message 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/analysts/social_media_analyst.py": {
+      "name": "social_media_analyst.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/analysts/social_media_analyst.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/managers/portfolio_manager.py": {
+      "name": "portfolio_manager.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/managers/portfolio_manager.py 在交易分析系统中的核心逻辑，对外提供 create_portfolio_manager 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/managers/research_manager.py": {
+      "name": "research_manager.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/managers/research_manager.py 在交易分析系统中的核心逻辑，对外提供 create_research_manager 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/researchers/bear_researcher.py": {
+      "name": "bear_researcher.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/researchers/bear_researcher.py 在交易分析系统中的核心逻辑，对外提供 create_bear_researcher 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/researchers/bull_researcher.py": {
+      "name": "bull_researcher.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/researchers/bull_researcher.py 在交易分析系统中的核心逻辑，对外提供 create_bull_researcher 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/risk_mgmt/aggressive_debator.py": {
+      "name": "aggressive_debator.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/risk_mgmt/aggressive_debator.py 在交易分析系统中的核心逻辑，对外提供 create_aggressive_debator 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/risk_mgmt/conservative_debator.py": {
+      "name": "conservative_debator.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/risk_mgmt/conservative_debator.py 在交易分析系统中的核心逻辑，对外提供 create_conservative_debator 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/risk_mgmt/neutral_debator.py": {
+      "name": "neutral_debator.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/risk_mgmt/neutral_debator.py 在交易分析系统中的核心逻辑，对外提供 create_neutral_debator 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/schemas.py": {
+      "name": "schemas.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/schemas.py 在交易分析系统中的核心逻辑，对外提供 _coerce_optional_float、PortfolioRating、TraderAction 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/trader/trader.py": {
+      "name": "trader.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/trader/trader.py 在交易分析系统中的核心逻辑，对外提供 create_trader 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/utils/agent_utils.py": {
+      "name": "agent_utils.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/utils/agent_utils.py 在交易分析系统中的核心逻辑，对外提供 get_language_instruction、_clean_identity_value、resolve_instrument_identity 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/utils/core_stock_tools.py": {
+      "name": "core_stock_tools.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/utils/core_stock_tools.py 在交易分析系统中的核心逻辑，对外提供 get_stock_data 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/utils/fundamental_data_tools.py": {
+      "name": "fundamental_data_tools.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/utils/fundamental_data_tools.py 在交易分析系统中的核心逻辑，对外提供 get_fundamentals、get_balance_sheet、get_cashflow 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/utils/macro_data_tools.py": {
+      "name": "macro_data_tools.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/utils/macro_data_tools.py 在交易分析系统中的核心逻辑，对外提供 get_macro_indicators 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/utils/market_data_validation_tools.py": {
+      "name": "market_data_validation_tools.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/utils/market_data_validation_tools.py 在交易分析系统中的核心逻辑，对外提供 get_verified_market_snapshot 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/utils/news_data_tools.py": {
+      "name": "news_data_tools.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/utils/news_data_tools.py 在交易分析系统中的核心逻辑，对外提供 get_news、get_global_news、get_insider_transactions 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/utils/prediction_markets_tools.py": {
+      "name": "prediction_markets_tools.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/utils/prediction_markets_tools.py 在交易分析系统中的核心逻辑，对外提供 get_prediction_markets 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/utils/structured.py": {
+      "name": "structured.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/utils/structured.py 在交易分析系统中的核心逻辑，对外提供 bind_structured、invoke_structured_or_freetext 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/utils/technical_indicators_tools.py": {
+      "name": "technical_indicators_tools.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/utils/technical_indicators_tools.py 在交易分析系统中的核心逻辑，对外提供 get_indicators 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/dataflows/market_data_validator.py": {
+      "name": "market_data_validator.py",
+      "type": "file",
+      "summary": "实现 tradingagents/dataflows/market_data_validator.py 在交易分析系统中的核心逻辑，对外提供 _verified_rows、_fmt、build_verified_market_snapshot 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:main.py": {
+      "name": "main.py",
+      "type": "file",
+      "summary": "实现 main.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    "file:test.py": {
+      "name": "test.py",
+      "type": "file",
+      "summary": "实现 test.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    "file:tests/test_dataflows_config.py": {
+      "name": "test_dataflows_config.py",
+      "type": "file",
+      "summary": "覆盖 test_dataflows_config.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_date_boundaries.py": {
+      "name": "test_date_boundaries.py",
+      "type": "file",
+      "summary": "覆盖 test_date_boundaries.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_env_overrides.py": {
+      "name": "test_env_overrides.py",
+      "type": "file",
+      "summary": "覆盖 test_env_overrides.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_fred.py": {
+      "name": "test_fred.py",
+      "type": "file",
+      "summary": "覆盖 test_fred.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_llm_max_retries.py": {
+      "name": "test_llm_max_retries.py",
+      "type": "file",
+      "summary": "覆盖 test_llm_max_retries.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_news_lookahead.py": {
+      "name": "test_news_lookahead.py",
+      "type": "file",
+      "summary": "覆盖 test_news_lookahead.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_no_data_handling.py": {
+      "name": "test_no_data_handling.py",
+      "type": "file",
+      "summary": "覆盖 test_no_data_handling.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_ohlcv_cache_freshness.py": {
+      "name": "test_ohlcv_cache_freshness.py",
+      "type": "file",
+      "summary": "覆盖 test_ohlcv_cache_freshness.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_polymarket.py": {
+      "name": "test_polymarket.py",
+      "type": "file",
+      "summary": "覆盖 test_polymarket.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_reddit_fallback.py": {
+      "name": "test_reddit_fallback.py",
+      "type": "file",
+      "summary": "覆盖 test_reddit_fallback.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_stockstats_date_column.py": {
+      "name": "test_stockstats_date_column.py",
+      "type": "file",
+      "summary": "覆盖 test_stockstats_date_column.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_stocktwits_resilience.py": {
+      "name": "test_stocktwits_resilience.py",
+      "type": "file",
+      "summary": "覆盖 test_stocktwits_resilience.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_symbol_utils.py": {
+      "name": "test_symbol_utils.py",
+      "type": "file",
+      "summary": "覆盖 test_symbol_utils.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_vendor_errors.py": {
+      "name": "test_vendor_errors.py",
+      "type": "file",
+      "summary": "覆盖 test_vendor_errors.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_vendor_routing.py": {
+      "name": "test_vendor_routing.py",
+      "type": "file",
+      "summary": "覆盖 test_vendor_routing.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_yfinance_stale_ohlcv_guard.py": {
+      "name": "test_yfinance_stale_ohlcv_guard.py",
+      "type": "file",
+      "summary": "覆盖 test_yfinance_stale_ohlcv_guard.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tradingagents/dataflows/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "实现 tradingagents/dataflows/__init__.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/dataflows/config.py": {
+      "name": "config.py",
+      "type": "file",
+      "summary": "实现 tradingagents/dataflows/config.py 在交易分析系统中的核心逻辑，对外提供 initialize_config、set_config、get_config 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/dataflows/errors.py": {
+      "name": "errors.py",
+      "type": "file",
+      "summary": "实现 tradingagents/dataflows/errors.py 在交易分析系统中的核心逻辑，对外提供 VendorError、NoMarketDataError、VendorRateLimitError 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/dataflows/fred.py": {
+      "name": "fred.py",
+      "type": "file",
+      "summary": "实现 tradingagents/dataflows/fred.py 在交易分析系统中的核心逻辑，对外提供 FredNotConfiguredError、get_api_key、_resolve_series_id 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/dataflows/interface.py": {
+      "name": "interface.py",
+      "type": "file",
+      "summary": "实现 tradingagents/dataflows/interface.py 在交易分析系统中的核心逻辑，对外提供 get_category_for_method、get_vendor、route_to_vendor 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/dataflows/polymarket.py": {
+      "name": "polymarket.py",
+      "type": "file",
+      "summary": "实现 tradingagents/dataflows/polymarket.py 在交易分析系统中的核心逻辑，对外提供 _request、_parse_json_list、_is_forward_looking 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/dataflows/reddit.py": {
+      "name": "reddit.py",
+      "type": "file",
+      "summary": "实现 tradingagents/dataflows/reddit.py 在交易分析系统中的核心逻辑，对外提供 _search_qs、_iso_to_timestamp、_strip_html 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/dataflows/stockstats_utils.py": {
+      "name": "stockstats_utils.py",
+      "type": "file",
+      "summary": "实现 tradingagents/dataflows/stockstats_utils.py 在交易分析系统中的核心逻辑，对外提供 yf_retry、_ensure_date_column、_clean_dataframe 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/dataflows/stocktwits.py": {
+      "name": "stocktwits.py",
+      "type": "file",
+      "summary": "实现 tradingagents/dataflows/stocktwits.py 在交易分析系统中的核心逻辑，对外提供 _stocktwits_symbol、fetch_stocktwits_messages 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/dataflows/symbol_utils.py": {
+      "name": "symbol_utils.py",
+      "type": "file",
+      "summary": "实现 tradingagents/dataflows/symbol_utils.py 在交易分析系统中的核心逻辑，对外提供 crypto_base、_normalize_crypto、normalize_symbol 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/dataflows/y_finance.py": {
+      "name": "y_finance.py",
+      "type": "file",
+      "summary": "实现 tradingagents/dataflows/y_finance.py 在交易分析系统中的核心逻辑，对外提供 get_YFin_data_online、get_stock_stats_indicators_window、_get_stock_stats_bulk 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/dataflows/yfinance_news.py": {
+      "name": "yfinance_news.py",
+      "type": "file",
+      "summary": "实现 tradingagents/dataflows/yfinance_news.py 在交易分析系统中的核心逻辑，对外提供 _as_utc、_extract_article_data、_in_news_window 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/default_config.py": {
+      "name": "default_config.py",
+      "type": "file",
+      "summary": "实现 tradingagents/default_config.py 在交易分析系统中的核心逻辑，对外提供 _coerce、_apply_env_overrides 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:cli/announcements.py": {
+      "name": "announcements.py",
+      "type": "file",
+      "summary": "实现 cli/announcements.py 在交易分析系统中的核心逻辑，对外提供 fetch_announcements、display_announcements 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:cli/config.py": {
+      "name": "config.py",
+      "type": "file",
+      "summary": "实现 cli/config.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    "file:cli/main.py": {
+      "name": "main.py",
+      "type": "file",
+      "summary": "实现 cli/main.py 在交易分析系统中的核心逻辑，对外提供 default_command、web_command、MessageBuffer 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:cli/stats_handler.py": {
+      "name": "stats_handler.py",
+      "type": "file",
+      "summary": "实现 cli/stats_handler.py 在交易分析系统中的核心逻辑，对外提供 StatsCallbackHandler 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tests/test_analyst_execution.py": {
+      "name": "test_analyst_execution.py",
+      "type": "file",
+      "summary": "覆盖 test_analyst_execution.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_cli_config_precedence.py": {
+      "name": "test_cli_config_precedence.py",
+      "type": "file",
+      "summary": "覆盖 test_cli_config_precedence.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_cli_no_console.py": {
+      "name": "test_cli_no_console.py",
+      "type": "file",
+      "summary": "覆盖 test_cli_no_console.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_graph_stream_callbacks.py": {
+      "name": "test_graph_stream_callbacks.py",
+      "type": "file",
+      "summary": "覆盖 test_graph_stream_callbacks.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_market_toolnode.py": {
+      "name": "test_market_toolnode.py",
+      "type": "file",
+      "summary": "覆盖 test_market_toolnode.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_memory_log.py": {
+      "name": "test_memory_log.py",
+      "type": "file",
+      "summary": "覆盖 test_memory_log.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_reporting.py": {
+      "name": "test_reporting.py",
+      "type": "file",
+      "summary": "覆盖 test_reporting.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_risk_router_path_map.py": {
+      "name": "test_risk_router_path_map.py",
+      "type": "file",
+      "summary": "覆盖 test_risk_router_path_map.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_signal_processing.py": {
+      "name": "test_signal_processing.py",
+      "type": "file",
+      "summary": "覆盖 test_signal_processing.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_symbol_normalization_paths.py": {
+      "name": "test_symbol_normalization_paths.py",
+      "type": "file",
+      "summary": "覆盖 test_symbol_normalization_paths.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_web_command.py": {
+      "name": "test_web_command.py",
+      "type": "file",
+      "summary": "覆盖 test_web_command.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tradingagents/agents/utils/agent_states.py": {
+      "name": "agent_states.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/utils/agent_states.py 在交易分析系统中的核心逻辑，对外提供 InvestDebateState、RiskDebateState、AgentState 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/utils/memory.py": {
+      "name": "memory.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/utils/memory.py 在交易分析系统中的核心逻辑，对外提供 TradingMemoryLog 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/agents/utils/rating.py": {
+      "name": "rating.py",
+      "type": "file",
+      "summary": "实现 tradingagents/agents/utils/rating.py 在交易分析系统中的核心逻辑，对外提供 parse_rating 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/graph/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "实现 tradingagents/graph/__init__.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/graph/analyst_execution.py": {
+      "name": "analyst_execution.py",
+      "type": "file",
+      "summary": "实现 tradingagents/graph/analyst_execution.py 在交易分析系统中的核心逻辑，对外提供 AnalystNodeSpec、AnalystExecutionPlan、build_analyst_execution_plan 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/graph/conditional_logic.py": {
+      "name": "conditional_logic.py",
+      "type": "file",
+      "summary": "实现 tradingagents/graph/conditional_logic.py 在交易分析系统中的核心逻辑，对外提供 ConditionalLogic 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/graph/propagation.py": {
+      "name": "propagation.py",
+      "type": "file",
+      "summary": "实现 tradingagents/graph/propagation.py 在交易分析系统中的核心逻辑，对外提供 PropagationCancelled、Propagator 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/graph/reflection.py": {
+      "name": "reflection.py",
+      "type": "file",
+      "summary": "实现 tradingagents/graph/reflection.py 在交易分析系统中的核心逻辑，对外提供 Reflector 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/graph/setup.py": {
+      "name": "setup.py",
+      "type": "file",
+      "summary": "实现 tradingagents/graph/setup.py 在交易分析系统中的核心逻辑，对外提供 GraphSetup 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/graph/signal_processing.py": {
+      "name": "signal_processing.py",
+      "type": "file",
+      "summary": "实现 tradingagents/graph/signal_processing.py 在交易分析系统中的核心逻辑，对外提供 SignalProcessor 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/graph/trading_graph.py": {
+      "name": "trading_graph.py",
+      "type": "file",
+      "summary": "实现 tradingagents/graph/trading_graph.py 在交易分析系统中的核心逻辑，对外提供 _coerce_max_retries、TradingAgentsGraph 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/reporting.py": {
+      "name": "reporting.py",
+      "type": "file",
+      "summary": "实现 tradingagents/reporting.py 在交易分析系统中的核心逻辑，对外提供 write_report_tree 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tests/test_anthropic_effort.py": {
+      "name": "test_anthropic_effort.py",
+      "type": "file",
+      "summary": "覆盖 test_anthropic_effort.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_api_key_env.py": {
+      "name": "test_api_key_env.py",
+      "type": "file",
+      "summary": "覆盖 test_api_key_env.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_bedrock_provider.py": {
+      "name": "test_bedrock_provider.py",
+      "type": "file",
+      "summary": "覆盖 test_bedrock_provider.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_capabilities.py": {
+      "name": "test_capabilities.py",
+      "type": "file",
+      "summary": "覆盖 test_capabilities.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_deepseek_reasoning.py": {
+      "name": "test_deepseek_reasoning.py",
+      "type": "file",
+      "summary": "覆盖 test_deepseek_reasoning.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_google_api_key.py": {
+      "name": "test_google_api_key.py",
+      "type": "file",
+      "summary": "覆盖 test_google_api_key.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_google_thinking_level.py": {
+      "name": "test_google_thinking_level.py",
+      "type": "file",
+      "summary": "覆盖 test_google_thinking_level.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_llm_timeout.py": {
+      "name": "test_llm_timeout.py",
+      "type": "file",
+      "summary": "覆盖 test_llm_timeout.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_minimax.py": {
+      "name": "test_minimax.py",
+      "type": "file",
+      "summary": "覆盖 test_minimax.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_model_validation.py": {
+      "name": "test_model_validation.py",
+      "type": "file",
+      "summary": "覆盖 test_model_validation.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_openai_compatible_provider.py": {
+      "name": "test_openai_compatible_provider.py",
+      "type": "file",
+      "summary": "覆盖 test_openai_compatible_provider.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_openai_reasoning_effort.py": {
+      "name": "test_openai_reasoning_effort.py",
+      "type": "file",
+      "summary": "覆盖 test_openai_reasoning_effort.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_openai_responses_base_url.py": {
+      "name": "test_openai_responses_base_url.py",
+      "type": "file",
+      "summary": "覆盖 test_openai_responses_base_url.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_provider_registry.py": {
+      "name": "test_provider_registry.py",
+      "type": "file",
+      "summary": "覆盖 test_provider_registry.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_temperature_config.py": {
+      "name": "test_temperature_config.py",
+      "type": "file",
+      "summary": "覆盖 test_temperature_config.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tradingagents/llm_clients/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "实现 tradingagents/llm_clients/__init__.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/llm_clients/anthropic_client.py": {
+      "name": "anthropic_client.py",
+      "type": "file",
+      "summary": "实现 tradingagents/llm_clients/anthropic_client.py 在交易分析系统中的核心逻辑，对外提供 _supports_effort、NormalizedChatAnthropic、AnthropicClient 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/llm_clients/api_key_env.py": {
+      "name": "api_key_env.py",
+      "type": "file",
+      "summary": "实现 tradingagents/llm_clients/api_key_env.py 在交易分析系统中的核心逻辑，对外提供 get_api_key_env 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/llm_clients/azure_client.py": {
+      "name": "azure_client.py",
+      "type": "file",
+      "summary": "实现 tradingagents/llm_clients/azure_client.py 在交易分析系统中的核心逻辑，对外提供 NormalizedAzureChatOpenAI、AzureOpenAIClient 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/llm_clients/base_client.py": {
+      "name": "base_client.py",
+      "type": "file",
+      "summary": "实现 tradingagents/llm_clients/base_client.py 在交易分析系统中的核心逻辑，对外提供 normalize_content、resolve_invocation_timeout、invoke_with_deadline 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/llm_clients/bedrock_client.py": {
+      "name": "bedrock_client.py",
+      "type": "file",
+      "summary": "实现 tradingagents/llm_clients/bedrock_client.py 在交易分析系统中的核心逻辑，对外提供 _bedrock_class、BedrockClient 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/llm_clients/capabilities.py": {
+      "name": "capabilities.py",
+      "type": "file",
+      "summary": "实现 tradingagents/llm_clients/capabilities.py 在交易分析系统中的核心逻辑，对外提供 ModelCapabilities、get_capabilities 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/llm_clients/factory.py": {
+      "name": "factory.py",
+      "type": "file",
+      "summary": "实现 tradingagents/llm_clients/factory.py 在交易分析系统中的核心逻辑，对外提供 create_llm_client 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/llm_clients/google_client.py": {
+      "name": "google_client.py",
+      "type": "file",
+      "summary": "实现 tradingagents/llm_clients/google_client.py 在交易分析系统中的核心逻辑，对外提供 NormalizedChatGoogleGenerativeAI、GoogleClient 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/llm_clients/model_catalog.py": {
+      "name": "model_catalog.py",
+      "type": "file",
+      "summary": "实现 tradingagents/llm_clients/model_catalog.py 在交易分析系统中的核心逻辑，对外提供 get_model_options、get_known_models 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/llm_clients/openai_client.py": {
+      "name": "openai_client.py",
+      "type": "file",
+      "summary": "实现 tradingagents/llm_clients/openai_client.py 在交易分析系统中的核心逻辑，对外提供 NormalizedChatOpenAI、LocalCompatibleChatOpenAI、_input_to_messages 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/llm_clients/validators.py": {
+      "name": "validators.py",
+      "type": "file",
+      "summary": "实现 tradingagents/llm_clients/validators.py 在交易分析系统中的核心逻辑，对外提供 validate_model 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tests/test_checkpoint_resume.py": {
+      "name": "test_checkpoint_resume.py",
+      "type": "file",
+      "summary": "覆盖 test_checkpoint_resume.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_chunk3_contract_fixes.py": {
+      "name": "test_chunk3_contract_fixes.py",
+      "type": "file",
+      "summary": "覆盖 test_chunk3_contract_fixes.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_error_classifier.py": {
+      "name": "test_error_classifier.py",
+      "type": "file",
+      "summary": "覆盖 test_error_classifier.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_run_manager_concurrency.py": {
+      "name": "test_run_manager_concurrency.py",
+      "type": "file",
+      "summary": "覆盖 test_run_manager_concurrency.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_safe_ticker_component.py": {
+      "name": "test_safe_ticker_component.py",
+      "type": "file",
+      "summary": "覆盖 test_safe_ticker_component.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_web_api.py": {
+      "name": "test_web_api.py",
+      "type": "file",
+      "summary": "覆盖 test_web_api.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_web_api_recovery.py": {
+      "name": "test_web_api_recovery.py",
+      "type": "file",
+      "summary": "覆盖 test_web_api_recovery.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_web_artifacts.py": {
+      "name": "test_web_artifacts.py",
+      "type": "file",
+      "summary": "覆盖 test_web_artifacts.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_web_history.py": {
+      "name": "test_web_history.py",
+      "type": "file",
+      "summary": "覆盖 test_web_history.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_web_lease.py": {
+      "name": "test_web_lease.py",
+      "type": "file",
+      "summary": "覆盖 test_web_lease.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_web_manager.py": {
+      "name": "test_web_manager.py",
+      "type": "file",
+      "summary": "覆盖 test_web_manager.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_web_markdown.py": {
+      "name": "test_web_markdown.py",
+      "type": "file",
+      "summary": "覆盖 test_web_markdown.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_web_models.py": {
+      "name": "test_web_models.py",
+      "type": "file",
+      "summary": "覆盖 test_web_models.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_web_repositories.py": {
+      "name": "test_web_repositories.py",
+      "type": "file",
+      "summary": "覆盖 test_web_repositories.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_web_retry.py": {
+      "name": "test_web_retry.py",
+      "type": "file",
+      "summary": "覆盖 test_web_retry.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_web_runner.py": {
+      "name": "test_web_runner.py",
+      "type": "file",
+      "summary": "覆盖 test_web_runner.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_web_runner_recovery.py": {
+      "name": "test_web_runner_recovery.py",
+      "type": "file",
+      "summary": "覆盖 test_web_runner_recovery.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_web_settings.py": {
+      "name": "test_web_settings.py",
+      "type": "file",
+      "summary": "覆盖 test_web_settings.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_web_snapshots.py": {
+      "name": "test_web_snapshots.py",
+      "type": "file",
+      "summary": "覆盖 test_web_snapshots.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_web_storage.py": {
+      "name": "test_web_storage.py",
+      "type": "file",
+      "summary": "覆盖 test_web_storage.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tradingagents/dataflows/utils.py": {
+      "name": "utils.py",
+      "type": "file",
+      "summary": "实现 tradingagents/dataflows/utils.py 在交易分析系统中的核心逻辑，对外提供 safe_ticker_component、save_output、get_current_date 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/graph/checkpointer.py": {
+      "name": "checkpointer.py",
+      "type": "file",
+      "summary": "实现 tradingagents/graph/checkpointer.py 在交易分析系统中的核心逻辑，对外提供 _db_path、thread_id、get_checkpointer 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:web/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "实现 web/__init__.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    "file:web/app.py": {
+      "name": "app.py",
+      "type": "file",
+      "summary": "实现 web/app.py 在交易分析系统中的核心逻辑，对外提供 _record_json、_error、_safe_filename 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:web/artifacts.py": {
+      "name": "artifacts.py",
+      "type": "file",
+      "summary": "实现 web/artifacts.py 在交易分析系统中的核心逻辑，对外提供 _now_iso、ArtifactRecord、_decode_row 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:web/checkpoint_resume.py": {
+      "name": "checkpoint_resume.py",
+      "type": "file",
+      "summary": "实现 web/checkpoint_resume.py 在交易分析系统中的核心逻辑，对外提供 build_checkpoint_signature、thread_id_for_run、checkpoint_id 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:web/config.py": {
+      "name": "config.py",
+      "type": "file",
+      "summary": "实现 web/config.py 在交易分析系统中的核心逻辑，对外提供 _parse_integer_setting、resolve_run_lifecycle_config、market_data_catalog 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:web/error_classifier.py": {
+      "name": "error_classifier.py",
+      "type": "file",
+      "summary": "实现 web/error_classifier.py 在交易分析系统中的核心逻辑，对外提供 ProviderErrorInfo、_sanitize_detail、_looks_like_timeout 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:web/error_codes.py": {
+      "name": "error_codes.py",
+      "type": "file",
+      "summary": "实现 web/error_codes.py 在交易分析系统中的核心逻辑，对外提供 TerminalReason 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:web/history.py": {
+      "name": "history.py",
+      "type": "file",
+      "summary": "实现 web/history.py 在交易分析系统中的核心逻辑，对外提供 ReportNotFound、_legacy_digest、_ReportEntry 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:web/lease.py": {
+      "name": "lease.py",
+      "type": "file",
+      "summary": "实现 web/lease.py 在交易分析系统中的核心逻辑，对外提供 _RunManagerLike、generate_owner_token、WorkerLease 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:web/manager.py": {
+      "name": "manager.py",
+      "type": "file",
+      "summary": "实现 web/manager.py 在交易分析系统中的核心逻辑，对外提供 MaxConcurrentRunsError、AssetBusyError、EventBatch 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:web/markdown.py": {
+      "name": "markdown.py",
+      "type": "file",
+      "summary": "实现 web/markdown.py 在交易分析系统中的核心逻辑，对外提供 render_markdown 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:web/models.py": {
+      "name": "models.py",
+      "type": "file",
+      "summary": "实现 web/models.py 在交易分析系统中的核心逻辑，对外提供 RunStatus、EventName、AnalysisRequest 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:web/repositories.py": {
+      "name": "repositories.py",
+      "type": "file",
+      "summary": "实现 web/repositories.py 在交易分析系统中的核心逻辑，对外提供 _now、_row、WatchlistRepository 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:web/runner.py": {
+      "name": "runner.py",
+      "type": "file",
+      "summary": "实现 web/runner.py 在交易分析系统中的核心逻辑，对外提供 _is_partial、WebRunRunner、run_web_analysis 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:web/snapshots.py": {
+      "name": "snapshots.py",
+      "type": "file",
+      "summary": "实现 web/snapshots.py 在交易分析系统中的核心逻辑，对外提供 SnapshotCorruptError、_normalize、canonical_bytes 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:web/storage.py": {
+      "name": "storage.py",
+      "type": "file",
+      "summary": "实现 web/storage.py 在交易分析系统中的核心逻辑，对外提供 SQLiteStore 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:cli/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "实现 cli/__init__.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    "file:cli/models.py": {
+      "name": "models.py",
+      "type": "file",
+      "summary": "实现 cli/models.py 在交易分析系统中的核心逻辑，对外提供 AnalystType、AssetType 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:cli/utils.py": {
+      "name": "utils.py",
+      "type": "file",
+      "summary": "实现 cli/utils.py 在交易分析系统中的核心逻辑，对外提供 is_valid_ticker_input、get_ticker、normalize_ticker_symbol 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tests/test_cli_symbol_handling.py": {
+      "name": "test_cli_symbol_handling.py",
+      "type": "file",
+      "summary": "覆盖 test_cli_symbol_handling.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_crypto_asset_mode.py": {
+      "name": "test_crypto_asset_mode.py",
+      "type": "file",
+      "summary": "覆盖 test_crypto_asset_mode.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_market_localization.py": {
+      "name": "test_market_localization.py",
+      "type": "file",
+      "summary": "覆盖 test_market_localization.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_openrouter_model_select.py": {
+      "name": "test_openrouter_model_select.py",
+      "type": "file",
+      "summary": "覆盖 test_openrouter_model_select.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_ticker_symbol_handling.py": {
+      "name": "test_ticker_symbol_handling.py",
+      "type": "file",
+      "summary": "覆盖 test_ticker_symbol_handling.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_web_market_data.py": {
+      "name": "test_web_market_data.py",
+      "type": "file",
+      "summary": "覆盖 test_web_market_data.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tests/test_web_market_providers.py": {
+      "name": "test_web_market_providers.py",
+      "type": "file",
+      "summary": "覆盖 test_web_market_providers.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:web/market_data.py": {
+      "name": "market_data.py",
+      "type": "file",
+      "summary": "实现 web/market_data.py 在交易分析系统中的核心逻辑，对外提供 _DaemonExecutor、ProviderRouter、QuoteService 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:web/market_localization.py": {
+      "name": "market_localization.py",
+      "type": "file",
+      "summary": "实现 web/market_localization.py 在交易分析系统中的核心逻辑，对外提供 clean_english_name、_with_cache、_tencent_symbol_key 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:web/market_models.py": {
+      "name": "market_models.py",
+      "type": "file",
+      "summary": "实现 web/market_models.py 在交易分析系统中的核心逻辑，对外提供 _utc、Freshness、ProviderErrorCode 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:web/providers/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "实现 web/providers/__init__.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    "file:web/providers/alpha_vantage_provider.py": {
+      "name": "alpha_vantage_provider.py",
+      "type": "file",
+      "summary": "实现 web/providers/alpha_vantage_provider.py 在交易分析系统中的核心逻辑，对外提供 AlphaVantageProvider 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:web/providers/yfinance_provider.py": {
+      "name": "yfinance_provider.py",
+      "type": "file",
+      "summary": "实现 web/providers/yfinance_provider.py 在交易分析系统中的核心逻辑，对外提供 YFinanceProvider、_info、info_currency 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tests/test_alpha_vantage_hardening.py": {
+      "name": "test_alpha_vantage_hardening.py",
+      "type": "file",
+      "summary": "覆盖 test_alpha_vantage_hardening.py 相关行为的自动化测试，验证边界条件与回归场景。"
+    },
+    "file:tradingagents/dataflows/alpha_vantage.py": {
+      "name": "alpha_vantage.py",
+      "type": "file",
+      "summary": "实现 tradingagents/dataflows/alpha_vantage.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/dataflows/alpha_vantage_common.py": {
+      "name": "alpha_vantage_common.py",
+      "type": "file",
+      "summary": "实现 tradingagents/dataflows/alpha_vantage_common.py 在交易分析系统中的核心逻辑，对外提供 AlphaVantageNotConfiguredError、get_api_key、format_datetime_for_api 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/dataflows/alpha_vantage_fundamentals.py": {
+      "name": "alpha_vantage_fundamentals.py",
+      "type": "file",
+      "summary": "实现 tradingagents/dataflows/alpha_vantage_fundamentals.py 在交易分析系统中的核心逻辑，对外提供 _filter_reports_by_date、get_fundamentals、get_balance_sheet 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/dataflows/alpha_vantage_indicator.py": {
+      "name": "alpha_vantage_indicator.py",
+      "type": "file",
+      "summary": "实现 tradingagents/dataflows/alpha_vantage_indicator.py 在交易分析系统中的核心逻辑，对外提供 get_indicator 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/dataflows/alpha_vantage_news.py": {
+      "name": "alpha_vantage_news.py",
+      "type": "file",
+      "summary": "实现 tradingagents/dataflows/alpha_vantage_news.py 在交易分析系统中的核心逻辑，对外提供 get_news、get_global_news、get_insider_transactions 等接口，并负责相关数据或流程的协调。"
+    },
+    "file:tradingagents/dataflows/alpha_vantage_stock.py": {
+      "name": "alpha_vantage_stock.py",
+      "type": "file",
+      "summary": "实现 tradingagents/dataflows/alpha_vantage_stock.py 在交易分析系统中的核心逻辑，对外提供 get_stock 等接口，并负责相关数据或流程的协调。"
+    },
+    "service:.dockerignore": {
+      "name": ".dockerignore",
+      "type": "service",
+      "summary": "定义 .dockerignore 的部署与运行环境，负责项目服务的构建、启动或编排。"
+    },
+    "service:Dockerfile": {
+      "name": "Dockerfile",
+      "type": "service",
+      "summary": "定义 Dockerfile 的部署与运行环境，负责项目服务的构建、启动或编排。"
+    },
+    "service:docker-compose.yml": {
+      "name": "docker-compose.yml",
+      "type": "service",
+      "summary": "定义 docker-compose.yml 的部署与运行环境，负责项目服务的构建、启动或编排。"
+    },
+    "pipeline:.github/workflows/ci.yml": {
+      "name": "ci.yml",
+      "type": "pipeline",
+      "summary": "GitHub Actions 持续集成工作流，负责安装依赖、执行测试与静态检查，并在代码变更时验证项目质量。"
+    },
+    "table:web/migrations/001_personal_platform.sql": {
+      "name": "001_personal_platform.sql",
+      "type": "table",
+      "summary": "数据库迁移文件 001_personal_platform.sql，定义或调整 Web 平台的持久化表结构、索引与可靠性相关字段。"
+    },
+    "table:web/migrations/002_reliability_operations.sql": {
+      "name": "002_reliability_operations.sql",
+      "type": "table",
+      "summary": "数据库迁移文件 002_reliability_operations.sql，定义或调整 Web 平台的持久化表结构、索引与可靠性相关字段。"
+    },
+    "table:web/migrations/003_watchlist_newest_first.sql": {
+      "name": "003_watchlist_newest_first.sql",
+      "type": "table",
+      "summary": "数据库迁移文件 003_watchlist_newest_first.sql，定义或调整 Web 平台的持久化表结构、索引与可靠性相关字段。"
+    },
+    "table:web/migrations/004_analysis_timeout_recovery.sql": {
+      "name": "004_analysis_timeout_recovery.sql",
+      "type": "table",
+      "summary": "数据库迁移文件 004_analysis_timeout_recovery.sql，定义或调整 Web 平台的持久化表结构、索引与可靠性相关字段。"
+    },
+    "config:.env.enterprise.example": {
+      "name": ".env.enterprise.example",
+      "type": "config",
+      "summary": "项目配置文件 .env.enterprise.example，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    "config:.env.example": {
+      "name": ".env.example",
+      "type": "config",
+      "summary": "项目配置文件 .env.example，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    "document:CHANGELOG.md": {
+      "name": "CHANGELOG.md",
+      "type": "document",
+      "summary": "版本变更日志，按时间记录功能迭代、缺陷修复和兼容性调整。"
+    },
+    "document:README.md": {
+      "name": "README.md",
+      "type": "document",
+      "summary": "项目入口文档，介绍 TradingAgents 的定位、安装配置、运行方式与主要能力。"
+    },
+    "config:pyproject.toml": {
+      "name": "pyproject.toml",
+      "type": "config",
+      "summary": "项目配置文件 pyproject.toml，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    "document:requirements.txt": {
+      "name": "requirements.txt",
+      "type": "document",
+      "summary": "设计或实施计划文档，围绕 requirements 描述目标、方案、任务拆分与验证要求。"
+    },
+    "file:.superpowers/brainstorm/41801-1787718122/console-layout.html": {
+      "name": "console-layout.html",
+      "type": "file",
+      "summary": "前端 HTML 资源，用于展示 console-layout 相关的交互原型或应用界面结构。"
+    },
+    "file:.superpowers/brainstorm/41801-1787718122/visual-style.html": {
+      "name": "visual-style.html",
+      "type": "file",
+      "summary": "前端 HTML 资源，用于展示 visual-style 相关的交互原型或应用界面结构。"
+    },
+    "file:.superpowers/brainstorm/41801-1787718122/waiting-architecture.html": {
+      "name": "waiting-architecture.html",
+      "type": "file",
+      "summary": "前端 HTML 资源，用于展示 waiting-architecture 相关的交互原型或应用界面结构。"
+    },
+    "file:.superpowers/brainstorm/81139-1787817330/portfolio-layout-options.html": {
+      "name": "portfolio-layout-options.html",
+      "type": "file",
+      "summary": "前端 HTML 资源，用于展示 portfolio-layout-options 相关的交互原型或应用界面结构。"
+    },
+    "file:.superpowers/brainstorm/81139-1787817330/report-reading-options.html": {
+      "name": "report-reading-options.html",
+      "type": "file",
+      "summary": "前端 HTML 资源，用于展示 report-reading-options 相关的交互原型或应用界面结构。"
+    },
+    "file:.superpowers/brainstorm/81139-1787817330/waiting-architecture.html": {
+      "name": "waiting-architecture.html",
+      "type": "file",
+      "summary": "前端 HTML 资源，用于展示 waiting-architecture 相关的交互原型或应用界面结构。"
+    },
+    "config:.ua/tmp/import-input.json": {
+      "name": "import-input.json",
+      "type": "config",
+      "summary": "项目配置文件 import-input.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    "config:.ua/tmp/import-output.json": {
+      "name": "import-output.json",
+      "type": "config",
+      "summary": "项目配置文件 import-output.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    "config:.ua/tmp/ua-import-map-input.json": {
+      "name": "ua-import-map-input.json",
+      "type": "config",
+      "summary": "项目配置文件 ua-import-map-input.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    "config:.ua/tmp/ua-import-map-output.json": {
+      "name": "ua-import-map-output.json",
+      "type": "config",
+      "summary": "项目配置文件 ua-import-map-output.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    "config:.ua/tmp/ua-scan-files.json": {
+      "name": "ua-scan-files.json",
+      "type": "config",
+      "summary": "项目配置文件 ua-scan-files.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    "document:docs/superpowers/plans/2026-08-26-web-analysis-console-plan.md": {
+      "name": "2026-08-26-web-analysis-console-plan.md",
+      "type": "document",
+      "summary": "设计或实施计划文档，围绕 2026-08-26-web-analysis-console-plan 描述目标、方案、任务拆分与验证要求。"
+    },
+    "document:docs/superpowers/plans/2026-08-27-personal-investor-platform-plan.md": {
+      "name": "2026-08-27-personal-investor-platform-plan.md",
+      "type": "document",
+      "summary": "设计或实施计划文档，围绕 2026-08-27-personal-investor-platform-plan 描述目标、方案、任务拆分与验证要求。"
+    },
+    "document:docs/superpowers/plans/2026-08-27-web-report-library-models-language-plan.md": {
+      "name": "2026-08-27-web-report-library-models-language-plan.md",
+      "type": "document",
+      "summary": "设计或实施计划文档，围绕 2026-08-27-web-report-library-models-language-plan 描述目标、方案、任务拆分与验证要求。"
+    },
+    "document:docs/superpowers/plans/2026-08-28-report-publish-integrity-plan.md": {
+      "name": "2026-08-28-report-publish-integrity-plan.md",
+      "type": "document",
+      "summary": "设计或实施计划文档，围绕 2026-08-28-report-publish-integrity-plan 描述目标、方案、任务拆分与验证要求。"
+    },
+    "document:docs/superpowers/plans/2026-08-31-platform-reliability-operations-plan.md": {
+      "name": "2026-08-31-platform-reliability-operations-plan.md",
+      "type": "document",
+      "summary": "设计或实施计划文档，围绕 2026-08-31-platform-reliability-operations-plan 描述目标、方案、任务拆分与验证要求。"
+    },
+    "document:docs/superpowers/plans/2026-08-31-rating-localization-plan.md": {
+      "name": "2026-08-31-rating-localization-plan.md",
+      "type": "document",
+      "summary": "设计或实施计划文档，围绕 2026-08-31-rating-localization-plan 描述目标、方案、任务拆分与验证要求。"
+    },
+    "document:docs/superpowers/plans/2026-09-01-compact-section-headers.md": {
+      "name": "2026-09-01-compact-section-headers.md",
+      "type": "document",
+      "summary": "设计或实施计划文档，围绕 2026-09-01-compact-section-headers 描述目标、方案、任务拆分与验证要求。"
+    },
+    "document:docs/superpowers/plans/2026-09-02-manager-concurrency.md": {
+      "name": "2026-09-02-manager-concurrency.md",
+      "type": "document",
+      "summary": "设计或实施计划文档，围绕 2026-09-02-manager-concurrency 描述目标、方案、任务拆分与验证要求。"
+    },
+    "document:docs/superpowers/specs/2026-08-26-web-analysis-console-design.md": {
+      "name": "2026-08-26-web-analysis-console-design.md",
+      "type": "document",
+      "summary": "设计或实施计划文档，围绕 2026-08-26-web-analysis-console-design 描述目标、方案、任务拆分与验证要求。"
+    },
+    "document:docs/superpowers/specs/2026-08-27-personal-investor-platform-design.md": {
+      "name": "2026-08-27-personal-investor-platform-design.md",
+      "type": "document",
+      "summary": "设计或实施计划文档，围绕 2026-08-27-personal-investor-platform-design 描述目标、方案、任务拆分与验证要求。"
+    },
+    "document:docs/superpowers/specs/2026-08-27-web-report-library-models-language-design.md": {
+      "name": "2026-08-27-web-report-library-models-language-design.md",
+      "type": "document",
+      "summary": "设计或实施计划文档，围绕 2026-08-27-web-report-library-models-language-design 描述目标、方案、任务拆分与验证要求。"
+    },
+    "document:docs/superpowers/specs/2026-08-31-platform-reliability-operations-design.md": {
+      "name": "2026-08-31-platform-reliability-operations-design.md",
+      "type": "document",
+      "summary": "设计或实施计划文档，围绕 2026-08-31-platform-reliability-operations-design 描述目标、方案、任务拆分与验证要求。"
+    },
+    "document:docs/superpowers/specs/2026-08-31-rating-localization-design.md": {
+      "name": "2026-08-31-rating-localization-design.md",
+      "type": "document",
+      "summary": "设计或实施计划文档，围绕 2026-08-31-rating-localization-design 描述目标、方案、任务拆分与验证要求。"
+    },
+    "document:docs/superpowers/specs/2026-09-01-analysis-timeout-recovery-design.md": {
+      "name": "2026-09-01-analysis-timeout-recovery-design.md",
+      "type": "document",
+      "summary": "设计或实施计划文档，围绕 2026-09-01-analysis-timeout-recovery-design 描述目标、方案、任务拆分与验证要求。"
+    },
+    "document:docs/superpowers/specs/2026-09-01-compact-section-headers-design.md": {
+      "name": "2026-09-01-compact-section-headers-design.md",
+      "type": "document",
+      "summary": "设计或实施计划文档，围绕 2026-09-01-compact-section-headers-design 描述目标、方案、任务拆分与验证要求。"
+    },
+    "document:docs/superpowers/specs/2026-09-02-scheduled-analysis-design.md": {
+      "name": "2026-09-02-scheduled-analysis-design.md",
+      "type": "document",
+      "summary": "设计或实施计划文档，围绕 2026-09-02-scheduled-analysis-design 描述目标、方案、任务拆分与验证要求。"
+    },
+    "document:docs/superpowers/specs/2026-09-02-ui-modern-redesign-design.md": {
+      "name": "2026-09-02-ui-modern-redesign-design.md",
+      "type": "document",
+      "summary": "设计或实施计划文档，围绕 2026-09-02-ui-modern-redesign-design 描述目标、方案、任务拆分与验证要求。"
+    },
+    "file:.superpowers/brainstorm/41801-1787718122/.server-stopped": {
+      "name": ".server-stopped",
+      "type": "file",
+      "summary": "项目文件 .superpowers/brainstorm/41801-1787718122/.server-stopped，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    "file:.superpowers/brainstorm/70330-1787815068/.server-stopped": {
+      "name": ".server-stopped",
+      "type": "file",
+      "summary": "项目文件 .superpowers/brainstorm/70330-1787815068/.server-stopped，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    "file:.superpowers/brainstorm/70330-1787815068/portfolio-layout-options.html": {
+      "name": "portfolio-layout-options.html",
+      "type": "file",
+      "summary": "前端 HTML 资源，用于展示 portfolio-layout-options 相关的交互原型或应用界面结构。"
+    },
+    "file:.superpowers/brainstorm/81139-1787817330/.server-stopped": {
+      "name": ".server-stopped",
+      "type": "file",
+      "summary": "项目文件 .superpowers/brainstorm/81139-1787817330/.server-stopped，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    "file:.ua/.understandignore": {
+      "name": ".understandignore",
+      "type": "file",
+      "summary": "项目文件 .ua/.understandignore，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    "config:.ua/config.json": {
+      "name": "config.json",
+      "type": "config",
+      "summary": "项目配置文件 config.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    "config:.ua/intermediate/raw-scan.json": {
+      "name": "raw-scan.json",
+      "type": "config",
+      "summary": "项目配置文件 raw-scan.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    "config:.ua/intermediate/scan-result.json": {
+      "name": "scan-result.json",
+      "type": "config",
+      "summary": "项目配置文件 scan-result.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。"
+    },
+    "file:.ua/tmp/synthesize-scan.mjs": {
+      "name": "synthesize-scan.mjs",
+      "type": "file",
+      "summary": "项目文件 .ua/tmp/synthesize-scan.mjs，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    "file:.ua/tmp/ua-scan-files.stderr": {
+      "name": "ua-scan-files.stderr",
+      "type": "file",
+      "summary": "项目文件 .ua/tmp/ua-scan-files.stderr，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    "document:cli/static/welcome.txt": {
+      "name": "welcome.txt",
+      "type": "document",
+      "summary": "设计或实施计划文档，围绕 welcome 描述目标、方案、任务拆分与验证要求。"
+    },
+    "file:tests/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "项目文件 tests/__init__.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    "file:tests/conftest.py": {
+      "name": "conftest.py",
+      "type": "file",
+      "summary": "项目文件 tests/conftest.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    "file:tests/test_cli_env_skip.py": {
+      "name": "test_cli_env_skip.py",
+      "type": "file",
+      "summary": "项目文件 tests/test_cli_env_skip.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    "file:tests/test_ollama_base_url.py": {
+      "name": "test_ollama_base_url.py",
+      "type": "file",
+      "summary": "项目文件 tests/test_ollama_base_url.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    "file:tests/test_packaging_contract.py": {
+      "name": "test_packaging_contract.py",
+      "type": "file",
+      "summary": "项目文件 tests/test_packaging_contract.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    "file:tests/test_web_browser.py": {
+      "name": "test_web_browser.py",
+      "type": "file",
+      "summary": "项目文件 tests/test_web_browser.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    "file:tests/test_web_static.py": {
+      "name": "test_web_static.py",
+      "type": "file",
+      "summary": "项目文件 tests/test_web_static.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    "file:tests/test_web_synthesis.py": {
+      "name": "test_web_synthesis.py",
+      "type": "file",
+      "summary": "项目文件 tests/test_web_synthesis.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    "file:tradingagents/__init__.py": {
+      "name": "__init__.py",
+      "type": "file",
+      "summary": "项目文件 tradingagents/__init__.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    },
+    "file:web/static/app.js": {
+      "name": "app.js",
+      "type": "file",
+      "summary": "前端或脚本模块 app.js，实现页面交互、数据刷新、图表展示或本地化逻辑。"
+    },
+    "file:web/static/i18n.js": {
+      "name": "i18n.js",
+      "type": "file",
+      "summary": "前端或脚本模块 i18n.js，实现页面交互、数据刷新、图表展示或本地化逻辑。"
+    },
+    "file:web/static/i18n.test.js": {
+      "name": "i18n.test.js",
+      "type": "file",
+      "summary": "前端或脚本模块 i18n.test.js，实现页面交互、数据刷新、图表展示或本地化逻辑。"
+    },
+    "file:web/static/index.html": {
+      "name": "index.html",
+      "type": "file",
+      "summary": "前端 HTML 资源，用于展示 index 相关的交互原型或应用界面结构。"
+    },
+    "file:web/static/kline-chart.js": {
+      "name": "kline-chart.js",
+      "type": "file",
+      "summary": "前端或脚本模块 kline-chart.js，实现页面交互、数据刷新、图表展示或本地化逻辑。"
+    },
+    "file:web/static/kline-chart.test.js": {
+      "name": "kline-chart.test.js",
+      "type": "file",
+      "summary": "前端或脚本模块 kline-chart.test.js，实现页面交互、数据刷新、图表展示或本地化逻辑。"
+    },
+    "file:web/static/quote-refresh.js": {
+      "name": "quote-refresh.js",
+      "type": "file",
+      "summary": "前端或脚本模块 quote-refresh.js，实现页面交互、数据刷新、图表展示或本地化逻辑。"
+    },
+    "file:web/static/quote-refresh.test.js": {
+      "name": "quote-refresh.test.js",
+      "type": "file",
+      "summary": "前端或脚本模块 quote-refresh.test.js，实现页面交互、数据刷新、图表展示或本地化逻辑。"
+    },
+    "file:web/static/rating-labels.js": {
+      "name": "rating-labels.js",
+      "type": "file",
+      "summary": "前端或脚本模块 rating-labels.js，实现页面交互、数据刷新、图表展示或本地化逻辑。"
+    },
+    "file:web/static/rating-labels.test.js": {
+      "name": "rating-labels.test.js",
+      "type": "file",
+      "summary": "前端或脚本模块 rating-labels.test.js，实现页面交互、数据刷新、图表展示或本地化逻辑。"
+    },
+    "file:web/static/styles.css": {
+      "name": "styles.css",
+      "type": "file",
+      "summary": "前端样式表，定义 Web 控制台的布局、颜色、排版与交互状态。"
+    },
+    "file:web/static/watchlist-chart.js": {
+      "name": "watchlist-chart.js",
+      "type": "file",
+      "summary": "前端或脚本模块 watchlist-chart.js，实现页面交互、数据刷新、图表展示或本地化逻辑。"
+    },
+    "file:web/synthesis.py": {
+      "name": "synthesis.py",
+      "type": "file",
+      "summary": "项目文件 web/synthesis.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。"
+    }
+  },
+  "totalNodes": 253,
+  "totalEdges": 398
+}

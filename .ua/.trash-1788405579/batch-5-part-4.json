@@ -1,0 +1,1102 @@
+{
+  "nodes": [
+    {
+      "id": "file:tests/test_web_runner.py",
+      "type": "file",
+      "name": "test_web_runner.py",
+      "filePath": "tests/test_web_runner.py",
+      "summary": "覆盖 test_web_runner.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_web_runner.py:request",
+      "type": "function",
+      "name": "request",
+      "filePath": "tests/test_web_runner.py",
+      "lineRange": [
+        10,
+        16
+      ],
+      "summary": "位于 tests/test_web_runner.py 的函数 request，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_runner.py:test_runner_streams_events_and_writes_sidecar",
+      "type": "function",
+      "name": "test_runner_streams_events_and_writes_sidecar",
+      "filePath": "tests/test_web_runner.py",
+      "lineRange": [
+        47,
+        65
+      ],
+      "summary": "位于 tests/test_web_runner.py 的函数 test_runner_streams_events_and_writes_sidecar，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_runner.py:test_runner_applies_request_output_language_to_graph_config",
+      "type": "function",
+      "name": "test_runner_applies_request_output_language_to_graph_config",
+      "filePath": "tests/test_web_runner.py",
+      "lineRange": [
+        68,
+        76
+      ],
+      "summary": "位于 tests/test_web_runner.py 的函数 test_runner_applies_request_output_language_to_graph_config，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_runner.py:test_runner_persists_executive_summary_when_deep_model_is_available",
+      "type": "function",
+      "name": "test_runner_persists_executive_summary_when_deep_model_is_available",
+      "filePath": "tests/test_web_runner.py",
+      "lineRange": [
+        92,
+        100
+      ],
+      "summary": "位于 tests/test_web_runner.py 的函数 test_runner_persists_executive_summary_when_deep_model_is_available，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_runner.py:test_runner_constrains_unsafe_run_id_path",
+      "type": "function",
+      "name": "test_runner_constrains_unsafe_run_id_path",
+      "filePath": "tests/test_web_runner.py",
+      "lineRange": [
+        103,
+        111
+      ],
+      "summary": "位于 tests/test_web_runner.py 的函数 test_runner_constrains_unsafe_run_id_path，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_runner.py:test_runner_emits_phase_and_analyst_progress_events",
+      "type": "function",
+      "name": "test_runner_emits_phase_and_analyst_progress_events",
+      "filePath": "tests/test_web_runner.py",
+      "lineRange": [
+        114,
+        127
+      ],
+      "summary": "位于 tests/test_web_runner.py 的函数 test_runner_emits_phase_and_analyst_progress_events，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_runner.py:test_runner_redacts_unknown_activity",
+      "type": "function",
+      "name": "test_runner_redacts_unknown_activity",
+      "filePath": "tests/test_web_runner.py",
+      "lineRange": [
+        130,
+        138
+      ],
+      "summary": "位于 tests/test_web_runner.py 的函数 test_runner_redacts_unknown_activity，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_runner.py:test_runner_supplies_dynamic_deadline_and_worker_checkpoint_to_graph",
+      "type": "function",
+      "name": "test_runner_supplies_dynamic_deadline_and_worker_checkpoint_to_graph",
+      "filePath": "tests/test_web_runner.py",
+      "lineRange": [
+        141,
+        156
+      ],
+      "summary": "位于 tests/test_web_runner.py 的函数 test_runner_supplies_dynamic_deadline_and_worker_checkpoint_to_graph，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_runner.py:test_runner_checkpoints_start_chunks_phases_and_external_boundaries",
+      "type": "function",
+      "name": "test_runner_checkpoints_start_chunks_phases_and_external_boundaries",
+      "filePath": "tests/test_web_runner.py",
+      "lineRange": [
+        159,
+        176
+      ],
+      "summary": "位于 tests/test_web_runner.py 的函数 test_runner_checkpoints_start_chunks_phases_and_external_boundaries，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_runner.py:test_runner_rejects_publication_after_deadline_expiry",
+      "type": "function",
+      "name": "test_runner_rejects_publication_after_deadline_expiry",
+      "filePath": "tests/test_web_runner.py",
+      "lineRange": [
+        185,
+        197
+      ],
+      "summary": "位于 tests/test_web_runner.py 的函数 test_runner_rejects_publication_after_deadline_expiry，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_runner.py:test_runner_indexes_committed_report_before_terminal_completion",
+      "type": "function",
+      "name": "test_runner_indexes_committed_report_before_terminal_completion",
+      "filePath": "tests/test_web_runner.py",
+      "lineRange": [
+        200,
+        219
+      ],
+      "summary": "位于 tests/test_web_runner.py 的函数 test_runner_indexes_committed_report_before_terminal_completion，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_web_runner.py:FakeGraph",
+      "type": "class",
+      "name": "FakeGraph",
+      "filePath": "tests/test_web_runner.py",
+      "lineRange": [
+        19,
+        36
+      ],
+      "summary": "位于 tests/test_web_runner.py 的类 FakeGraph，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_web_runner.py:TrackingHistory",
+      "type": "class",
+      "name": "TrackingHistory",
+      "filePath": "tests/test_web_runner.py",
+      "lineRange": [
+        39,
+        44
+      ],
+      "summary": "位于 tests/test_web_runner.py 的类 TrackingHistory，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_web_runner.py:SummaryGraph",
+      "type": "class",
+      "name": "SummaryGraph",
+      "filePath": "tests/test_web_runner.py",
+      "lineRange": [
+        79,
+        82
+      ],
+      "summary": "位于 tests/test_web_runner.py 的类 SummaryGraph，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_web_runner.py:SummaryLLM",
+      "type": "class",
+      "name": "SummaryLLM",
+      "filePath": "tests/test_web_runner.py",
+      "lineRange": [
+        85,
+        89
+      ],
+      "summary": "位于 tests/test_web_runner.py 的类 SummaryLLM，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_web_runner.py:LateGraph",
+      "type": "class",
+      "name": "LateGraph",
+      "filePath": "tests/test_web_runner.py",
+      "lineRange": [
+        179,
+        182
+      ],
+      "summary": "位于 tests/test_web_runner.py 的类 LateGraph，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_web_runner_recovery.py",
+      "type": "file",
+      "name": "test_web_runner_recovery.py",
+      "filePath": "tests/test_web_runner_recovery.py",
+      "summary": "覆盖 test_web_runner_recovery.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_web_runner_recovery.py:_request",
+      "type": "function",
+      "name": "_request",
+      "filePath": "tests/test_web_runner_recovery.py",
+      "lineRange": [
+        15,
+        24
+      ],
+      "summary": "位于 tests/test_web_runner_recovery.py 的函数 _request，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_runner_recovery.py:test_runner_persists_completed_artifact_for_each_chunk",
+      "type": "function",
+      "name": "test_runner_persists_completed_artifact_for_each_chunk",
+      "filePath": "tests/test_web_runner_recovery.py",
+      "lineRange": [
+        60,
+        85
+      ],
+      "summary": "位于 tests/test_web_runner_recovery.py 的函数 test_runner_persists_completed_artifact_for_each_chunk，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_runner_recovery.py:test_runner_classifies_provider_timeout_and_persists_failure",
+      "type": "function",
+      "name": "test_runner_classifies_provider_timeout_and_persists_failure",
+      "filePath": "tests/test_web_runner_recovery.py",
+      "lineRange": [
+        88,
+        111
+      ],
+      "summary": "位于 tests/test_web_runner_recovery.py 的函数 test_runner_classifies_provider_timeout_and_persists_failure，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_runner_recovery.py:test_runner_attaches_checkpoint_signature_to_record",
+      "type": "function",
+      "name": "test_runner_attaches_checkpoint_signature_to_record",
+      "filePath": "tests/test_web_runner_recovery.py",
+      "lineRange": [
+        114,
+        135
+      ],
+      "summary": "位于 tests/test_web_runner_recovery.py 的函数 test_runner_attaches_checkpoint_signature_to_record，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_web_runner_recovery.py:_ChunkGraph",
+      "type": "class",
+      "name": "_ChunkGraph",
+      "filePath": "tests/test_web_runner_recovery.py",
+      "lineRange": [
+        27,
+        42
+      ],
+      "summary": "位于 tests/test_web_runner_recovery.py 的类 _ChunkGraph，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_web_runner_recovery.py:_CrashGraph",
+      "type": "class",
+      "name": "_CrashGraph",
+      "filePath": "tests/test_web_runner_recovery.py",
+      "lineRange": [
+        45,
+        57
+      ],
+      "summary": "位于 tests/test_web_runner_recovery.py 的类 _CrashGraph，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_web_settings.py",
+      "type": "file",
+      "name": "test_web_settings.py",
+      "filePath": "tests/test_web_settings.py",
+      "summary": "覆盖 test_web_settings.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_settings.py:test_settings_whitelist_and_sources",
+      "type": "function",
+      "name": "test_settings_whitelist_and_sources",
+      "filePath": "tests/test_web_settings.py",
+      "lineRange": [
+        5,
+        12
+      ],
+      "summary": "位于 tests/test_web_settings.py 的函数 test_settings_whitelist_and_sources，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_settings.py:test_settings_all_uses_one_connection",
+      "type": "function",
+      "name": "test_settings_all_uses_one_connection",
+      "filePath": "tests/test_web_settings.py",
+      "lineRange": [
+        15,
+        28
+      ],
+      "summary": "位于 tests/test_web_settings.py 的函数 test_settings_all_uses_one_connection，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_web_snapshots.py",
+      "type": "file",
+      "name": "test_web_snapshots.py",
+      "filePath": "tests/test_web_snapshots.py",
+      "summary": "覆盖 test_web_snapshots.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_web_snapshots.py:test_canonical_bytes_are_stable_for_json_csv_and_text",
+      "type": "function",
+      "name": "test_canonical_bytes_are_stable_for_json_csv_and_text",
+      "filePath": "tests/test_web_snapshots.py",
+      "lineRange": [
+        15,
+        18
+      ],
+      "summary": "位于 tests/test_web_snapshots.py 的函数 test_canonical_bytes_are_stable_for_json_csv_and_text，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_snapshots.py:test_canonical_bytes_normalizes_langchain_messages_in_final_state",
+      "type": "function",
+      "name": "test_canonical_bytes_normalizes_langchain_messages_in_final_state",
+      "filePath": "tests/test_web_snapshots.py",
+      "lineRange": [
+        21,
+        27
+      ],
+      "summary": "位于 tests/test_web_snapshots.py 的函数 test_canonical_bytes_normalizes_langchain_messages_in_final_state，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_snapshots.py:test_recorder_writes_manifest_and_verifies_payload",
+      "type": "function",
+      "name": "test_recorder_writes_manifest_and_verifies_payload",
+      "filePath": "tests/test_web_snapshots.py",
+      "lineRange": [
+        30,
+        44
+      ],
+      "summary": "位于 tests/test_web_snapshots.py 的函数 test_recorder_writes_manifest_and_verifies_payload，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_snapshots.py:test_store_rejects_traversal_symlink_and_corrupt_hash",
+      "type": "function",
+      "name": "test_store_rejects_traversal_symlink_and_corrupt_hash",
+      "filePath": "tests/test_web_snapshots.py",
+      "lineRange": [
+        47,
+        65
+      ],
+      "summary": "位于 tests/test_web_snapshots.py 的函数 test_store_rejects_traversal_symlink_and_corrupt_hash，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_snapshots.py:test_snapshot_provider_reads_before_upstream_and_records_miss",
+      "type": "function",
+      "name": "test_snapshot_provider_reads_before_upstream_and_records_miss",
+      "filePath": "tests/test_web_snapshots.py",
+      "lineRange": [
+        68,
+        80
+      ],
+      "summary": "位于 tests/test_web_snapshots.py 的函数 test_snapshot_provider_reads_before_upstream_and_records_miss，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_snapshots.py:test_manifest_json_is_immutable_after_finalize",
+      "type": "function",
+      "name": "test_manifest_json_is_immutable_after_finalize",
+      "filePath": "tests/test_web_snapshots.py",
+      "lineRange": [
+        83,
+        93
+      ],
+      "summary": "位于 tests/test_web_snapshots.py 的函数 test_manifest_json_is_immutable_after_finalize，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:request",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:test_runner_streams_events_and_writes_sidecar",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:test_runner_applies_request_output_language_to_graph_config",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:test_runner_persists_executive_summary_when_deep_model_is_available",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:test_runner_constrains_unsafe_run_id_path",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:test_runner_emits_phase_and_analyst_progress_events",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:test_runner_redacts_unknown_activity",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:test_runner_supplies_dynamic_deadline_and_worker_checkpoint_to_graph",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:test_runner_checkpoints_start_chunks_phases_and_external_boundaries",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:test_runner_rejects_publication_after_deadline_expiry",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:test_runner_indexes_committed_report_before_terminal_completion",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "class:tests/test_web_runner.py:FakeGraph",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "class:tests/test_web_runner.py:TrackingHistory",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "class:tests/test_web_runner.py:SummaryGraph",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "class:tests/test_web_runner.py:SummaryLLM",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "class:tests/test_web_runner.py:LateGraph",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:request",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "class:tests/test_web_runner.py:FakeGraph",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "class:tests/test_web_runner.py:TrackingHistory",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:test_runner_streams_events_and_writes_sidecar",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:test_runner_applies_request_output_language_to_graph_config",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "class:tests/test_web_runner.py:SummaryGraph",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "class:tests/test_web_runner.py:SummaryLLM",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:test_runner_persists_executive_summary_when_deep_model_is_available",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:test_runner_constrains_unsafe_run_id_path",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:test_runner_emits_phase_and_analyst_progress_events",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:test_runner_redacts_unknown_activity",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:test_runner_supplies_dynamic_deadline_and_worker_checkpoint_to_graph",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:test_runner_checkpoints_start_chunks_phases_and_external_boundaries",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "class:tests/test_web_runner.py:LateGraph",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:test_runner_rejects_publication_after_deadline_expiry",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "function:tests/test_web_runner.py:test_runner_indexes_committed_report_before_terminal_completion",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_runner.py",
+      "target": "file:web/runner.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "function:tests/test_web_runner_recovery.py:_request",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "function:tests/test_web_runner_recovery.py:test_runner_persists_completed_artifact_for_each_chunk",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "function:tests/test_web_runner_recovery.py:test_runner_classifies_provider_timeout_and_persists_failure",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "function:tests/test_web_runner_recovery.py:test_runner_attaches_checkpoint_signature_to_record",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "class:tests/test_web_runner_recovery.py:_ChunkGraph",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "class:tests/test_web_runner_recovery.py:_CrashGraph",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "function:tests/test_web_runner_recovery.py:_request",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "class:tests/test_web_runner_recovery.py:_ChunkGraph",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "class:tests/test_web_runner_recovery.py:_CrashGraph",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "function:tests/test_web_runner_recovery.py:test_runner_persists_completed_artifact_for_each_chunk",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "function:tests/test_web_runner_recovery.py:test_runner_classifies_provider_timeout_and_persists_failure",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "function:tests/test_web_runner_recovery.py:test_runner_attaches_checkpoint_signature_to_record",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "file:web/artifacts.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "file:web/error_codes.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "file:web/manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "file:web/models.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "file:web/runner.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_runner_recovery.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_settings.py",
+      "target": "function:tests/test_web_settings.py:test_settings_whitelist_and_sources",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_settings.py",
+      "target": "function:tests/test_web_settings.py:test_settings_all_uses_one_connection",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_settings.py",
+      "target": "function:tests/test_web_settings.py:test_settings_whitelist_and_sources",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_settings.py",
+      "target": "function:tests/test_web_settings.py:test_settings_all_uses_one_connection",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_settings.py",
+      "target": "file:web/repositories.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_settings.py",
+      "target": "file:web/storage.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_snapshots.py",
+      "target": "function:tests/test_web_snapshots.py:test_canonical_bytes_are_stable_for_json_csv_and_text",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_snapshots.py",
+      "target": "function:tests/test_web_snapshots.py:test_canonical_bytes_normalizes_langchain_messages_in_final_state",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_snapshots.py",
+      "target": "function:tests/test_web_snapshots.py:test_recorder_writes_manifest_and_verifies_payload",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_snapshots.py",
+      "target": "function:tests/test_web_snapshots.py:test_store_rejects_traversal_symlink_and_corrupt_hash",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_snapshots.py",
+      "target": "function:tests/test_web_snapshots.py:test_snapshot_provider_reads_before_upstream_and_records_miss",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_snapshots.py",
+      "target": "function:tests/test_web_snapshots.py:test_manifest_json_is_immutable_after_finalize",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_snapshots.py",
+      "target": "function:tests/test_web_snapshots.py:test_canonical_bytes_are_stable_for_json_csv_and_text",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_snapshots.py",
+      "target": "function:tests/test_web_snapshots.py:test_canonical_bytes_normalizes_langchain_messages_in_final_state",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_snapshots.py",
+      "target": "function:tests/test_web_snapshots.py:test_recorder_writes_manifest_and_verifies_payload",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_snapshots.py",
+      "target": "function:tests/test_web_snapshots.py:test_store_rejects_traversal_symlink_and_corrupt_hash",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_snapshots.py",
+      "target": "function:tests/test_web_snapshots.py:test_snapshot_provider_reads_before_upstream_and_records_miss",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_snapshots.py",
+      "target": "function:tests/test_web_snapshots.py:test_manifest_json_is_immutable_after_finalize",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_snapshots.py",
+      "target": "file:web/snapshots.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

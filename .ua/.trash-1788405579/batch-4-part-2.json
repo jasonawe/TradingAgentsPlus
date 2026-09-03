@@ -1,0 +1,1042 @@
+{
+  "nodes": [
+    {
+      "id": "file:tests/test_model_validation.py",
+      "type": "file",
+      "name": "test_model_validation.py",
+      "filePath": "tests/test_model_validation.py",
+      "summary": "覆盖 test_model_validation.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "模型提供商",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_model_validation.py:DummyLLMClient",
+      "type": "class",
+      "name": "DummyLLMClient",
+      "filePath": "tests/test_model_validation.py",
+      "lineRange": [
+        11,
+        21
+      ],
+      "summary": "位于 tests/test_model_validation.py 的类 DummyLLMClient，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "模型提供商",
+        "校验"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_model_validation.py:ModelValidationTests",
+      "type": "class",
+      "name": "ModelValidationTests",
+      "filePath": "tests/test_model_validation.py",
+      "lineRange": [
+        25,
+        55
+      ],
+      "summary": "位于 tests/test_model_validation.py 的类 ModelValidationTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "模型提供商",
+        "校验"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_openai_compatible_provider.py",
+      "type": "file",
+      "name": "test_openai_compatible_provider.py",
+      "filePath": "tests/test_openai_compatible_provider.py",
+      "summary": "覆盖 test_openai_compatible_provider.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_openai_compatible_provider.py:test_factory_routes_to_openai_client",
+      "type": "function",
+      "name": "test_factory_routes_to_openai_client",
+      "filePath": "tests/test_openai_compatible_provider.py",
+      "lineRange": [
+        19,
+        23
+      ],
+      "summary": "位于 tests/test_openai_compatible_provider.py 的函数 test_factory_routes_to_openai_client，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_openai_compatible_provider.py:test_base_url_required",
+      "type": "function",
+      "name": "test_base_url_required",
+      "filePath": "tests/test_openai_compatible_provider.py",
+      "lineRange": [
+        27,
+        30
+      ],
+      "summary": "位于 tests/test_openai_compatible_provider.py 的函数 test_base_url_required，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_openai_compatible_provider.py:test_keyless_local_uses_placeholder_and_chat_completions",
+      "type": "function",
+      "name": "test_keyless_local_uses_placeholder_and_chat_completions",
+      "filePath": "tests/test_openai_compatible_provider.py",
+      "lineRange": [
+        34,
+        45
+      ],
+      "summary": "位于 tests/test_openai_compatible_provider.py 的函数 test_keyless_local_uses_placeholder_and_chat_completions，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_openai_compatible_provider.py:test_optional_key_from_env",
+      "type": "function",
+      "name": "test_optional_key_from_env",
+      "filePath": "tests/test_openai_compatible_provider.py",
+      "lineRange": [
+        49,
+        55
+      ],
+      "summary": "位于 tests/test_openai_compatible_provider.py 的函数 test_optional_key_from_env，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_openai_compatible_provider.py:test_any_model_accepted_no_forced_key",
+      "type": "function",
+      "name": "test_any_model_accepted_no_forced_key",
+      "filePath": "tests/test_openai_compatible_provider.py",
+      "lineRange": [
+        59,
+        65
+      ],
+      "summary": "位于 tests/test_openai_compatible_provider.py 的函数 test_any_model_accepted_no_forced_key，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_openai_compatible_provider.py:test_env_backend_url_precedence",
+      "type": "function",
+      "name": "test_env_backend_url_precedence",
+      "filePath": "tests/test_openai_compatible_provider.py",
+      "lineRange": [
+        69,
+        74
+      ],
+      "summary": "位于 tests/test_openai_compatible_provider.py 的函数 test_env_backend_url_precedence，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_openai_compatible_provider.py:test_structured_output_suppresses_object_tool_choice",
+      "type": "function",
+      "name": "test_structured_output_suppresses_object_tool_choice",
+      "filePath": "tests/test_openai_compatible_provider.py",
+      "lineRange": [
+        78,
+        100
+      ],
+      "summary": "位于 tests/test_openai_compatible_provider.py 的函数 test_structured_output_suppresses_object_tool_choice，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_openai_reasoning_effort.py",
+      "type": "file",
+      "name": "test_openai_reasoning_effort.py",
+      "filePath": "tests/test_openai_reasoning_effort.py",
+      "summary": "覆盖 test_openai_reasoning_effort.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_openai_reasoning_effort.py:test_supports_reasoning_effort",
+      "type": "function",
+      "name": "test_supports_reasoning_effort",
+      "filePath": "tests/test_openai_reasoning_effort.py",
+      "lineRange": [
+        27,
+        28
+      ],
+      "summary": "位于 tests/test_openai_reasoning_effort.py 的函数 test_supports_reasoning_effort，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_openai_reasoning_effort.py:_effort_on",
+      "type": "function",
+      "name": "_effort_on",
+      "filePath": "tests/test_openai_reasoning_effort.py",
+      "lineRange": [
+        31,
+        43
+      ],
+      "summary": "位于 tests/test_openai_reasoning_effort.py 的函数 _effort_on，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_openai_reasoning_effort.py:test_reasoning_model_receives_effort",
+      "type": "function",
+      "name": "test_reasoning_model_receives_effort",
+      "filePath": "tests/test_openai_reasoning_effort.py",
+      "lineRange": [
+        46,
+        47
+      ],
+      "summary": "位于 tests/test_openai_reasoning_effort.py 的函数 test_reasoning_model_receives_effort，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_openai_reasoning_effort.py:test_non_reasoning_model_drops_effort",
+      "type": "function",
+      "name": "test_non_reasoning_model_drops_effort",
+      "filePath": "tests/test_openai_reasoning_effort.py",
+      "lineRange": [
+        50,
+        52
+      ],
+      "summary": "位于 tests/test_openai_reasoning_effort.py 的函数 test_non_reasoning_model_drops_effort，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_openai_responses_base_url.py",
+      "type": "file",
+      "name": "test_openai_responses_base_url.py",
+      "filePath": "tests/test_openai_responses_base_url.py",
+      "summary": "覆盖 test_openai_responses_base_url.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_openai_responses_base_url.py:NativeBaseUrlTests",
+      "type": "class",
+      "name": "NativeBaseUrlTests",
+      "filePath": "tests/test_openai_responses_base_url.py",
+      "lineRange": [
+        15,
+        27
+      ],
+      "summary": "位于 tests/test_openai_responses_base_url.py 的类 NativeBaseUrlTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_openai_responses_base_url.py:ResponsesApiSelectionTests",
+      "type": "class",
+      "name": "ResponsesApiSelectionTests",
+      "filePath": "tests/test_openai_responses_base_url.py",
+      "lineRange": [
+        31,
+        43
+      ],
+      "summary": "位于 tests/test_openai_responses_base_url.py 的类 ResponsesApiSelectionTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_provider_registry.py",
+      "type": "file",
+      "name": "test_provider_registry.py",
+      "filePath": "tests/test_provider_registry.py",
+      "summary": "覆盖 test_provider_registry.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_provider_registry.py:test_registry_membership",
+      "type": "function",
+      "name": "test_registry_membership",
+      "filePath": "tests/test_provider_registry.py",
+      "lineRange": [
+        17,
+        23
+      ],
+      "summary": "位于 tests/test_provider_registry.py 的函数 test_registry_membership，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_provider_registry.py:test_registry_spec",
+      "type": "function",
+      "name": "test_registry_spec",
+      "filePath": "tests/test_provider_registry.py",
+      "lineRange": [
+        44,
+        48
+      ],
+      "summary": "位于 tests/test_provider_registry.py 的函数 test_registry_spec，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_provider_registry.py:test_key_optionality",
+      "type": "function",
+      "name": "test_key_optionality",
+      "filePath": "tests/test_provider_registry.py",
+      "lineRange": [
+        52,
+        59
+      ],
+      "summary": "位于 tests/test_provider_registry.py 的函数 test_key_optionality，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_temperature_config.py",
+      "type": "file",
+      "name": "test_temperature_config.py",
+      "filePath": "tests/test_temperature_config.py",
+      "summary": "覆盖 test_temperature_config.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_temperature_config.py:_get_llm",
+      "type": "function",
+      "name": "_get_llm",
+      "filePath": "tests/test_temperature_config.py",
+      "lineRange": [
+        15,
+        22
+      ],
+      "summary": "位于 tests/test_temperature_config.py 的函数 _get_llm，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_temperature_config.py:TestTemperatureForwarding",
+      "type": "class",
+      "name": "TestTemperatureForwarding",
+      "filePath": "tests/test_temperature_config.py",
+      "lineRange": [
+        26,
+        58
+      ],
+      "summary": "位于 tests/test_temperature_config.py 的类 TestTemperatureForwarding，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_temperature_config.py:TestTemperatureEnvOverlay",
+      "type": "class",
+      "name": "TestTemperatureEnvOverlay",
+      "filePath": "tests/test_temperature_config.py",
+      "lineRange": [
+        62,
+        77
+      ],
+      "summary": "位于 tests/test_temperature_config.py 的类 TestTemperatureEnvOverlay，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_temperature_config.py:TestProviderKwargsTemperature",
+      "type": "class",
+      "name": "TestProviderKwargsTemperature",
+      "filePath": "tests/test_temperature_config.py",
+      "lineRange": [
+        81,
+        101
+      ],
+      "summary": "位于 tests/test_temperature_config.py 的类 TestProviderKwargsTemperature，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "tradingagents/llm_clients/__init__.py",
+      "summary": "实现 tradingagents/llm_clients/__init__.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "模型提供商",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/anthropic_client.py",
+      "type": "file",
+      "name": "anthropic_client.py",
+      "filePath": "tradingagents/llm_clients/anthropic_client.py",
+      "summary": "实现 tradingagents/llm_clients/anthropic_client.py 在交易分析系统中的核心逻辑，对外提供 _supports_effort、NormalizedChatAnthropic、AnthropicClient 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tradingagents/llm_clients/anthropic_client.py:_supports_effort",
+      "type": "function",
+      "name": "_supports_effort",
+      "filePath": "tradingagents/llm_clients/anthropic_client.py",
+      "lineRange": [
+        32,
+        43
+      ],
+      "summary": "位于 tradingagents/llm_clients/anthropic_client.py 的函数 _supports_effort，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tradingagents/llm_clients/anthropic_client.py:NormalizedChatAnthropic",
+      "type": "class",
+      "name": "NormalizedChatAnthropic",
+      "filePath": "tradingagents/llm_clients/anthropic_client.py",
+      "lineRange": [
+        46,
+        57
+      ],
+      "summary": "位于 tradingagents/llm_clients/anthropic_client.py 的类 NormalizedChatAnthropic，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/llm_clients/anthropic_client.py:AnthropicClient",
+      "type": "class",
+      "name": "AnthropicClient",
+      "filePath": "tradingagents/llm_clients/anthropic_client.py",
+      "lineRange": [
+        60,
+        91
+      ],
+      "summary": "位于 tradingagents/llm_clients/anthropic_client.py 的类 AnthropicClient，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tradingagents/llm_clients/api_key_env.py",
+      "type": "file",
+      "name": "api_key_env.py",
+      "filePath": "tradingagents/llm_clients/api_key_env.py",
+      "summary": "实现 tradingagents/llm_clients/api_key_env.py 在交易分析系统中的核心逻辑，对外提供 get_api_key_env 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/llm_clients/api_key_env.py:get_api_key_env",
+      "type": "function",
+      "name": "get_api_key_env",
+      "filePath": "tradingagents/llm_clients/api_key_env.py",
+      "lineRange": [
+        47,
+        53
+      ],
+      "summary": "位于 tradingagents/llm_clients/api_key_env.py 的函数 get_api_key_env，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "模型提供商",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:tests/test_model_validation.py",
+      "target": "class:tests/test_model_validation.py:DummyLLMClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_model_validation.py",
+      "target": "class:tests/test_model_validation.py:ModelValidationTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_model_validation.py",
+      "target": "class:tests/test_model_validation.py:DummyLLMClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_model_validation.py",
+      "target": "class:tests/test_model_validation.py:ModelValidationTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_model_validation.py",
+      "target": "file:tradingagents/llm_clients/base_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_model_validation.py",
+      "target": "file:tradingagents/llm_clients/model_catalog.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_model_validation.py",
+      "target": "file:tradingagents/llm_clients/validators.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_openai_compatible_provider.py",
+      "target": "function:tests/test_openai_compatible_provider.py:test_factory_routes_to_openai_client",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_openai_compatible_provider.py",
+      "target": "function:tests/test_openai_compatible_provider.py:test_base_url_required",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_openai_compatible_provider.py",
+      "target": "function:tests/test_openai_compatible_provider.py:test_keyless_local_uses_placeholder_and_chat_completions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_openai_compatible_provider.py",
+      "target": "function:tests/test_openai_compatible_provider.py:test_optional_key_from_env",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_openai_compatible_provider.py",
+      "target": "function:tests/test_openai_compatible_provider.py:test_any_model_accepted_no_forced_key",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_openai_compatible_provider.py",
+      "target": "function:tests/test_openai_compatible_provider.py:test_env_backend_url_precedence",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_openai_compatible_provider.py",
+      "target": "function:tests/test_openai_compatible_provider.py:test_structured_output_suppresses_object_tool_choice",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_openai_compatible_provider.py",
+      "target": "function:tests/test_openai_compatible_provider.py:test_factory_routes_to_openai_client",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_openai_compatible_provider.py",
+      "target": "function:tests/test_openai_compatible_provider.py:test_base_url_required",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_openai_compatible_provider.py",
+      "target": "function:tests/test_openai_compatible_provider.py:test_keyless_local_uses_placeholder_and_chat_completions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_openai_compatible_provider.py",
+      "target": "function:tests/test_openai_compatible_provider.py:test_optional_key_from_env",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_openai_compatible_provider.py",
+      "target": "function:tests/test_openai_compatible_provider.py:test_any_model_accepted_no_forced_key",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_openai_compatible_provider.py",
+      "target": "function:tests/test_openai_compatible_provider.py:test_env_backend_url_precedence",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_openai_compatible_provider.py",
+      "target": "function:tests/test_openai_compatible_provider.py:test_structured_output_suppresses_object_tool_choice",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_openai_compatible_provider.py",
+      "target": "file:tradingagents/llm_clients/api_key_env.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_openai_compatible_provider.py",
+      "target": "file:tradingagents/llm_clients/factory.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_openai_compatible_provider.py",
+      "target": "file:tradingagents/llm_clients/validators.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_openai_reasoning_effort.py",
+      "target": "function:tests/test_openai_reasoning_effort.py:test_supports_reasoning_effort",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_openai_reasoning_effort.py",
+      "target": "function:tests/test_openai_reasoning_effort.py:_effort_on",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_openai_reasoning_effort.py",
+      "target": "function:tests/test_openai_reasoning_effort.py:test_reasoning_model_receives_effort",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_openai_reasoning_effort.py",
+      "target": "function:tests/test_openai_reasoning_effort.py:test_non_reasoning_model_drops_effort",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_openai_reasoning_effort.py",
+      "target": "function:tests/test_openai_reasoning_effort.py:test_supports_reasoning_effort",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_openai_reasoning_effort.py",
+      "target": "function:tests/test_openai_reasoning_effort.py:_effort_on",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_openai_reasoning_effort.py",
+      "target": "function:tests/test_openai_reasoning_effort.py:test_reasoning_model_receives_effort",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_openai_reasoning_effort.py",
+      "target": "function:tests/test_openai_reasoning_effort.py:test_non_reasoning_model_drops_effort",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_openai_reasoning_effort.py",
+      "target": "file:tradingagents/llm_clients/openai_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_openai_responses_base_url.py",
+      "target": "class:tests/test_openai_responses_base_url.py:NativeBaseUrlTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_openai_responses_base_url.py",
+      "target": "class:tests/test_openai_responses_base_url.py:ResponsesApiSelectionTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_openai_responses_base_url.py",
+      "target": "class:tests/test_openai_responses_base_url.py:NativeBaseUrlTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_openai_responses_base_url.py",
+      "target": "class:tests/test_openai_responses_base_url.py:ResponsesApiSelectionTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_openai_responses_base_url.py",
+      "target": "file:tradingagents/llm_clients/openai_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_provider_registry.py",
+      "target": "function:tests/test_provider_registry.py:test_registry_membership",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_provider_registry.py",
+      "target": "function:tests/test_provider_registry.py:test_registry_spec",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_provider_registry.py",
+      "target": "function:tests/test_provider_registry.py:test_key_optionality",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_provider_registry.py",
+      "target": "function:tests/test_provider_registry.py:test_registry_membership",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_provider_registry.py",
+      "target": "function:tests/test_provider_registry.py:test_registry_spec",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_provider_registry.py",
+      "target": "function:tests/test_provider_registry.py:test_key_optionality",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_provider_registry.py",
+      "target": "file:tradingagents/llm_clients/openai_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_temperature_config.py",
+      "target": "function:tests/test_temperature_config.py:_get_llm",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_temperature_config.py",
+      "target": "class:tests/test_temperature_config.py:TestTemperatureForwarding",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_temperature_config.py",
+      "target": "class:tests/test_temperature_config.py:TestTemperatureEnvOverlay",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_temperature_config.py",
+      "target": "class:tests/test_temperature_config.py:TestProviderKwargsTemperature",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_temperature_config.py",
+      "target": "function:tests/test_temperature_config.py:_get_llm",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_temperature_config.py",
+      "target": "class:tests/test_temperature_config.py:TestTemperatureForwarding",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_temperature_config.py",
+      "target": "class:tests/test_temperature_config.py:TestTemperatureEnvOverlay",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_temperature_config.py",
+      "target": "class:tests/test_temperature_config.py:TestProviderKwargsTemperature",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_temperature_config.py",
+      "target": "file:tradingagents/llm_clients/factory.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/__init__.py",
+      "target": "file:tradingagents/llm_clients/base_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/__init__.py",
+      "target": "file:tradingagents/llm_clients/factory.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/anthropic_client.py",
+      "target": "function:tradingagents/llm_clients/anthropic_client.py:_supports_effort",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/anthropic_client.py",
+      "target": "class:tradingagents/llm_clients/anthropic_client.py:NormalizedChatAnthropic",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/anthropic_client.py",
+      "target": "class:tradingagents/llm_clients/anthropic_client.py:AnthropicClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/anthropic_client.py",
+      "target": "function:tradingagents/llm_clients/anthropic_client.py:_supports_effort",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/anthropic_client.py",
+      "target": "class:tradingagents/llm_clients/anthropic_client.py:NormalizedChatAnthropic",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/anthropic_client.py",
+      "target": "class:tradingagents/llm_clients/anthropic_client.py:AnthropicClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/llm_clients/anthropic_client.py",
+      "target": "file:tradingagents/llm_clients/base_client.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/anthropic_client.py",
+      "target": "file:tradingagents/llm_clients/validators.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/llm_clients/api_key_env.py",
+      "target": "function:tradingagents/llm_clients/api_key_env.py:get_api_key_env",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/llm_clients/api_key_env.py",
+      "target": "function:tradingagents/llm_clients/api_key_env.py:get_api_key_env",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

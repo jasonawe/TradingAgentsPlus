@@ -1,0 +1,1591 @@
+{
+  "nodes": [
+    {
+      "id": "file:cli/announcements.py",
+      "type": "file",
+      "name": "announcements.py",
+      "filePath": "cli/announcements.py",
+      "summary": "实现 cli/announcements.py 在交易分析系统中的核心逻辑，对外提供 fetch_announcements、display_announcements 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/announcements.py:fetch_announcements",
+      "type": "function",
+      "name": "fetch_announcements",
+      "filePath": "cli/announcements.py",
+      "lineRange": [
+        10,
+        28
+      ],
+      "summary": "位于 cli/announcements.py 的函数 fetch_announcements，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/announcements.py:display_announcements",
+      "type": "function",
+      "name": "display_announcements",
+      "filePath": "cli/announcements.py",
+      "lineRange": [
+        31,
+        52
+      ],
+      "summary": "位于 cli/announcements.py 的函数 display_announcements，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:cli/config.py",
+      "type": "file",
+      "name": "config.py",
+      "filePath": "cli/config.py",
+      "summary": "实现 cli/config.py 在交易分析系统中的核心逻辑，并负责相关数据或流程的协调。",
+      "tags": [
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:cli/main.py",
+      "type": "file",
+      "name": "main.py",
+      "filePath": "cli/main.py",
+      "summary": "实现 cli/main.py 在交易分析系统中的核心逻辑，对外提供 default_command、web_command、MessageBuffer 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:cli/main.py:default_command",
+      "type": "function",
+      "name": "default_command",
+      "filePath": "cli/main.py",
+      "lineRange": [
+        76,
+        89
+      ],
+      "summary": "位于 cli/main.py 的函数 default_command，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/main.py:web_command",
+      "type": "function",
+      "name": "web_command",
+      "filePath": "cli/main.py",
+      "lineRange": [
+        93,
+        102
+      ],
+      "summary": "位于 cli/main.py 的函数 web_command，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/main.py:create_layout",
+      "type": "function",
+      "name": "create_layout",
+      "filePath": "cli/main.py",
+      "lineRange": [
+        295,
+        308
+      ],
+      "summary": "位于 cli/main.py 的函数 create_layout，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/main.py:format_tokens",
+      "type": "function",
+      "name": "format_tokens",
+      "filePath": "cli/main.py",
+      "lineRange": [
+        311,
+        315
+      ],
+      "summary": "位于 cli/main.py 的函数 format_tokens，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/main.py:update_display",
+      "type": "function",
+      "name": "update_display",
+      "filePath": "cli/main.py",
+      "lineRange": [
+        318,
+        522
+      ],
+      "summary": "位于 cli/main.py 的函数 update_display，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:cli/main.py:get_user_selections",
+      "type": "function",
+      "name": "get_user_selections",
+      "filePath": "cli/main.py",
+      "lineRange": [
+        525,
+        771
+      ],
+      "summary": "位于 cli/main.py 的函数 get_user_selections，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:cli/main.py:get_analysis_date",
+      "type": "function",
+      "name": "get_analysis_date",
+      "filePath": "cli/main.py",
+      "lineRange": [
+        774,
+        790
+      ],
+      "summary": "位于 cli/main.py 的函数 get_analysis_date，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/main.py:save_report_to_disk",
+      "type": "function",
+      "name": "save_report_to_disk",
+      "filePath": "cli/main.py",
+      "lineRange": [
+        793,
+        795
+      ],
+      "summary": "位于 cli/main.py 的函数 save_report_to_disk，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/main.py:display_complete_report",
+      "type": "function",
+      "name": "display_complete_report",
+      "filePath": "cli/main.py",
+      "lineRange": [
+        798,
+        856
+      ],
+      "summary": "位于 cli/main.py 的函数 display_complete_report，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:cli/main.py:update_research_team_status",
+      "type": "function",
+      "name": "update_research_team_status",
+      "filePath": "cli/main.py",
+      "lineRange": [
+        859,
+        863
+      ],
+      "summary": "位于 cli/main.py 的函数 update_research_team_status，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/main.py:update_analyst_statuses",
+      "type": "function",
+      "name": "update_analyst_statuses",
+      "filePath": "cli/main.py",
+      "lineRange": [
+        882,
+        927
+      ],
+      "summary": "位于 cli/main.py 的函数 update_analyst_statuses，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:cli/main.py:extract_content_string",
+      "type": "function",
+      "name": "extract_content_string",
+      "filePath": "cli/main.py",
+      "lineRange": [
+        929,
+        968
+      ],
+      "summary": "位于 cli/main.py 的函数 extract_content_string，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/main.py:classify_message_type",
+      "type": "function",
+      "name": "classify_message_type",
+      "filePath": "cli/main.py",
+      "lineRange": [
+        971,
+        994
+      ],
+      "summary": "位于 cli/main.py 的函数 classify_message_type，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/main.py:format_tool_args",
+      "type": "function",
+      "name": "format_tool_args",
+      "filePath": "cli/main.py",
+      "lineRange": [
+        997,
+        1002
+      ],
+      "summary": "位于 cli/main.py 的函数 format_tool_args，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/main.py:_build_run_config",
+      "type": "function",
+      "name": "_build_run_config",
+      "filePath": "cli/main.py",
+      "lineRange": [
+        1004,
+        1031
+      ],
+      "summary": "位于 cli/main.py 的函数 _build_run_config，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:cli/main.py:run_analysis",
+      "type": "function",
+      "name": "run_analysis",
+      "filePath": "cli/main.py",
+      "lineRange": [
+        1034,
+        1310
+      ],
+      "summary": "位于 cli/main.py 的函数 run_analysis，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:cli/main.py:analyze",
+      "type": "function",
+      "name": "analyze",
+      "filePath": "cli/main.py",
+      "lineRange": [
+        1314,
+        1343
+      ],
+      "summary": "位于 cli/main.py 的函数 analyze，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:cli/main.py:MessageBuffer",
+      "type": "class",
+      "name": "MessageBuffer",
+      "filePath": "cli/main.py",
+      "lineRange": [
+        106,
+        289
+      ],
+      "summary": "位于 cli/main.py 的类 MessageBuffer，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "入口点",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:cli/stats_handler.py",
+      "type": "file",
+      "name": "stats_handler.py",
+      "filePath": "cli/stats_handler.py",
+      "summary": "实现 cli/stats_handler.py 在交易分析系统中的核心逻辑，对外提供 StatsCallbackHandler 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:cli/stats_handler.py:StatsCallbackHandler",
+      "type": "class",
+      "name": "StatsCallbackHandler",
+      "filePath": "cli/stats_handler.py",
+      "lineRange": [
+        9,
+        76
+      ],
+      "summary": "位于 cli/stats_handler.py 的类 StatsCallbackHandler，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "工具函数",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_analyst_execution.py",
+      "type": "file",
+      "name": "test_analyst_execution.py",
+      "filePath": "tests/test_analyst_execution.py",
+      "summary": "覆盖 test_analyst_execution.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_analyst_execution.py:AnalystExecutionPlanTests",
+      "type": "class",
+      "name": "AnalystExecutionPlanTests",
+      "filePath": "tests/test_analyst_execution.py",
+      "lineRange": [
+        11,
+        41
+      ],
+      "summary": "位于 tests/test_analyst_execution.py 的类 AnalystExecutionPlanTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_analyst_execution.py:AnalystWallTimeTrackerTests",
+      "type": "class",
+      "name": "AnalystWallTimeTrackerTests",
+      "filePath": "tests/test_analyst_execution.py",
+      "lineRange": [
+        44,
+        90
+      ],
+      "summary": "位于 tests/test_analyst_execution.py 的类 AnalystWallTimeTrackerTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_cli_config_precedence.py",
+      "type": "file",
+      "name": "test_cli_config_precedence.py",
+      "filePath": "tests/test_cli_config_precedence.py",
+      "summary": "覆盖 test_cli_config_precedence.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_cli_config_precedence.py:test_research_depth_sets_both_rounds_without_env",
+      "type": "function",
+      "name": "test_research_depth_sets_both_rounds_without_env",
+      "filePath": "tests/test_cli_config_precedence.py",
+      "lineRange": [
+        28,
+        33
+      ],
+      "summary": "位于 tests/test_cli_config_precedence.py 的函数 test_research_depth_sets_both_rounds_without_env，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_cli_config_precedence.py:test_env_round_counts_win_over_selection",
+      "type": "function",
+      "name": "test_env_round_counts_win_over_selection",
+      "filePath": "tests/test_cli_config_precedence.py",
+      "lineRange": [
+        36,
+        44
+      ],
+      "summary": "位于 tests/test_cli_config_precedence.py 的函数 test_env_round_counts_win_over_selection，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_cli_config_precedence.py:test_partial_env_only_overrides_that_count",
+      "type": "function",
+      "name": "test_partial_env_only_overrides_that_count",
+      "filePath": "tests/test_cli_config_precedence.py",
+      "lineRange": [
+        47,
+        54
+      ],
+      "summary": "位于 tests/test_cli_config_precedence.py 的函数 test_partial_env_only_overrides_that_count，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_cli_config_precedence.py:test_checkpoint_none_preserves_env_default",
+      "type": "function",
+      "name": "test_checkpoint_none_preserves_env_default",
+      "filePath": "tests/test_cli_config_precedence.py",
+      "lineRange": [
+        57,
+        61
+      ],
+      "summary": "位于 tests/test_cli_config_precedence.py 的函数 test_checkpoint_none_preserves_env_default，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_cli_config_precedence.py:test_checkpoint_flag_overrides_env",
+      "type": "function",
+      "name": "test_checkpoint_flag_overrides_env",
+      "filePath": "tests/test_cli_config_precedence.py",
+      "lineRange": [
+        65,
+        69
+      ],
+      "summary": "位于 tests/test_cli_config_precedence.py 的函数 test_checkpoint_flag_overrides_env，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_cli_no_console.py",
+      "type": "file",
+      "name": "test_cli_no_console.py",
+      "filePath": "tests/test_cli_no_console.py",
+      "summary": "覆盖 test_cli_no_console.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_cli_no_console.py:test_no_console_error_tuple_matches_platform",
+      "type": "function",
+      "name": "test_no_console_error_tuple_matches_platform",
+      "filePath": "tests/test_cli_no_console.py",
+      "lineRange": [
+        16,
+        26
+      ],
+      "summary": "位于 tests/test_cli_no_console.py 的函数 test_no_console_error_tuple_matches_platform，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_cli_no_console.py:test_missing_console_prints_actionable_message",
+      "type": "function",
+      "name": "test_missing_console_prints_actionable_message",
+      "filePath": "tests/test_cli_no_console.py",
+      "lineRange": [
+        29,
+        45
+      ],
+      "summary": "位于 tests/test_cli_no_console.py 的函数 test_missing_console_prints_actionable_message，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_cli_no_console.py:test_unrelated_errors_still_propagate",
+      "type": "function",
+      "name": "test_unrelated_errors_still_propagate",
+      "filePath": "tests/test_cli_no_console.py",
+      "lineRange": [
+        48,
+        57
+      ],
+      "summary": "位于 tests/test_cli_no_console.py 的函数 test_unrelated_errors_still_propagate，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_graph_stream_callbacks.py",
+      "type": "file",
+      "name": "test_graph_stream_callbacks.py",
+      "filePath": "tests/test_graph_stream_callbacks.py",
+      "summary": "覆盖 test_graph_stream_callbacks.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_graph_stream_callbacks.py:_state",
+      "type": "function",
+      "name": "_state",
+      "filePath": "tests/test_graph_stream_callbacks.py",
+      "lineRange": [
+        21,
+        37
+      ],
+      "summary": "位于 tests/test_graph_stream_callbacks.py 的函数 _state，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_graph_stream_callbacks.py:_graph",
+      "type": "function",
+      "name": "_graph",
+      "filePath": "tests/test_graph_stream_callbacks.py",
+      "lineRange": [
+        56,
+        85
+      ],
+      "summary": "位于 tests/test_graph_stream_callbacks.py 的函数 _graph，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_graph_stream_callbacks.py:test_on_chunk_receives_chunks_and_returns_final_state_and_signal",
+      "type": "function",
+      "name": "test_on_chunk_receives_chunks_and_returns_final_state_and_signal",
+      "filePath": "tests/test_graph_stream_callbacks.py",
+      "lineRange": [
+        88,
+        104
+      ],
+      "summary": "位于 tests/test_graph_stream_callbacks.py 的函数 test_on_chunk_receives_chunks_and_returns_final_state_and_signal，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_graph_stream_callbacks.py:test_callback_free_non_debug_uses_invoke",
+      "type": "function",
+      "name": "test_callback_free_non_debug_uses_invoke",
+      "filePath": "tests/test_graph_stream_callbacks.py",
+      "lineRange": [
+        107,
+        115
+      ],
+      "summary": "位于 tests/test_graph_stream_callbacks.py 的函数 test_callback_free_non_debug_uses_invoke，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_graph_stream_callbacks.py:test_callback_free_debug_streams_and_merges_chunks",
+      "type": "function",
+      "name": "test_callback_free_debug_streams_and_merges_chunks",
+      "filePath": "tests/test_graph_stream_callbacks.py",
+      "lineRange": [
+        118,
+        128
+      ],
+      "summary": "位于 tests/test_graph_stream_callbacks.py 的函数 test_callback_free_debug_streams_and_merges_chunks，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_graph_stream_callbacks.py:test_should_cancel_only_forces_streaming",
+      "type": "function",
+      "name": "test_should_cancel_only_forces_streaming",
+      "filePath": "tests/test_graph_stream_callbacks.py",
+      "lineRange": [
+        131,
+        145
+      ],
+      "summary": "位于 tests/test_graph_stream_callbacks.py 的函数 test_should_cancel_only_forces_streaming，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_graph_stream_callbacks.py:test_preflight_cancellation_skips_pending_resolution",
+      "type": "function",
+      "name": "test_preflight_cancellation_skips_pending_resolution",
+      "filePath": "tests/test_graph_stream_callbacks.py",
+      "lineRange": [
+        148,
+        158
+      ],
+      "summary": "位于 tests/test_graph_stream_callbacks.py 的函数 test_preflight_cancellation_skips_pending_resolution，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_graph_stream_callbacks.py:test_cancellation_skips_all_completion_side_effects",
+      "type": "function",
+      "name": "test_cancellation_skips_all_completion_side_effects",
+      "filePath": "tests/test_graph_stream_callbacks.py",
+      "lineRange": [
+        162,
+        195
+      ],
+      "summary": "位于 tests/test_graph_stream_callbacks.py 的函数 test_cancellation_skips_all_completion_side_effects，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_graph_stream_callbacks.py:test_callback_exception_propagates",
+      "type": "function",
+      "name": "test_callback_exception_propagates",
+      "filePath": "tests/test_graph_stream_callbacks.py",
+      "lineRange": [
+        198,
+        208
+      ],
+      "summary": "位于 tests/test_graph_stream_callbacks.py 的函数 test_callback_exception_propagates，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_graph_stream_callbacks.py:test_should_cancel_exception_propagates",
+      "type": "function",
+      "name": "test_should_cancel_exception_propagates",
+      "filePath": "tests/test_graph_stream_callbacks.py",
+      "lineRange": [
+        211,
+        226
+      ],
+      "summary": "位于 tests/test_graph_stream_callbacks.py 的函数 test_should_cancel_exception_propagates，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_graph_stream_callbacks.py:_Message",
+      "type": "class",
+      "name": "_Message",
+      "filePath": "tests/test_graph_stream_callbacks.py",
+      "lineRange": [
+        13,
+        18
+      ],
+      "summary": "位于 tests/test_graph_stream_callbacks.py 的类 _Message，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_graph_stream_callbacks.py:_FakeGraph",
+      "type": "class",
+      "name": "_FakeGraph",
+      "filePath": "tests/test_graph_stream_callbacks.py",
+      "lineRange": [
+        40,
+        53
+      ],
+      "summary": "位于 tests/test_graph_stream_callbacks.py 的类 _FakeGraph，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "图编排",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_market_toolnode.py",
+      "type": "file",
+      "name": "test_market_toolnode.py",
+      "filePath": "tests/test_market_toolnode.py",
+      "summary": "覆盖 test_market_toolnode.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_market_toolnode.py:test_market_toolnode_can_execute_verified_snapshot",
+      "type": "function",
+      "name": "test_market_toolnode_can_execute_verified_snapshot",
+      "filePath": "tests/test_market_toolnode.py",
+      "lineRange": [
+        14,
+        23
+      ],
+      "summary": "位于 tests/test_market_toolnode.py 的函数 test_market_toolnode_can_execute_verified_snapshot，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:cli/announcements.py",
+      "target": "function:cli/announcements.py:fetch_announcements",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/announcements.py",
+      "target": "function:cli/announcements.py:display_announcements",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/announcements.py",
+      "target": "function:cli/announcements.py:fetch_announcements",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/announcements.py",
+      "target": "function:cli/announcements.py:display_announcements",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/announcements.py",
+      "target": "file:cli/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:default_command",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:web_command",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:create_layout",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:format_tokens",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:update_display",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:get_user_selections",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:get_analysis_date",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:save_report_to_disk",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:display_complete_report",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:update_research_team_status",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:update_analyst_statuses",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:extract_content_string",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:classify_message_type",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:format_tool_args",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:_build_run_config",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:run_analysis",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:analyze",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "class:cli/main.py:MessageBuffer",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:default_command",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:web_command",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "class:cli/main.py:MessageBuffer",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:create_layout",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:format_tokens",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:update_display",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:get_user_selections",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:get_analysis_date",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:save_report_to_disk",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:display_complete_report",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:update_research_team_status",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:update_analyst_statuses",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:extract_content_string",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:classify_message_type",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:format_tool_args",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:_build_run_config",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:run_analysis",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "function:cli/main.py:analyze",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "file:cli/announcements.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "file:cli/stats_handler.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "file:cli/utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "file:tradingagents/graph/analyst_execution.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "file:tradingagents/graph/trading_graph.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:cli/main.py",
+      "target": "file:tradingagents/reporting.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:cli/stats_handler.py",
+      "target": "class:cli/stats_handler.py:StatsCallbackHandler",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:cli/stats_handler.py",
+      "target": "class:cli/stats_handler.py:StatsCallbackHandler",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_analyst_execution.py",
+      "target": "class:tests/test_analyst_execution.py:AnalystExecutionPlanTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_analyst_execution.py",
+      "target": "class:tests/test_analyst_execution.py:AnalystWallTimeTrackerTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_analyst_execution.py",
+      "target": "class:tests/test_analyst_execution.py:AnalystExecutionPlanTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_analyst_execution.py",
+      "target": "class:tests/test_analyst_execution.py:AnalystWallTimeTrackerTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_analyst_execution.py",
+      "target": "file:tradingagents/graph/analyst_execution.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_cli_config_precedence.py",
+      "target": "function:tests/test_cli_config_precedence.py:test_research_depth_sets_both_rounds_without_env",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_cli_config_precedence.py",
+      "target": "function:tests/test_cli_config_precedence.py:test_env_round_counts_win_over_selection",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_cli_config_precedence.py",
+      "target": "function:tests/test_cli_config_precedence.py:test_partial_env_only_overrides_that_count",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_cli_config_precedence.py",
+      "target": "function:tests/test_cli_config_precedence.py:test_checkpoint_none_preserves_env_default",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_cli_config_precedence.py",
+      "target": "function:tests/test_cli_config_precedence.py:test_checkpoint_flag_overrides_env",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_cli_config_precedence.py",
+      "target": "function:tests/test_cli_config_precedence.py:test_research_depth_sets_both_rounds_without_env",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_cli_config_precedence.py",
+      "target": "function:tests/test_cli_config_precedence.py:test_env_round_counts_win_over_selection",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_cli_config_precedence.py",
+      "target": "function:tests/test_cli_config_precedence.py:test_partial_env_only_overrides_that_count",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_cli_config_precedence.py",
+      "target": "function:tests/test_cli_config_precedence.py:test_checkpoint_none_preserves_env_default",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_cli_config_precedence.py",
+      "target": "function:tests/test_cli_config_precedence.py:test_checkpoint_flag_overrides_env",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_cli_config_precedence.py",
+      "target": "file:cli/main.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_cli_no_console.py",
+      "target": "function:tests/test_cli_no_console.py:test_no_console_error_tuple_matches_platform",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_cli_no_console.py",
+      "target": "function:tests/test_cli_no_console.py:test_missing_console_prints_actionable_message",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_cli_no_console.py",
+      "target": "function:tests/test_cli_no_console.py:test_unrelated_errors_still_propagate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_cli_no_console.py",
+      "target": "function:tests/test_cli_no_console.py:test_no_console_error_tuple_matches_platform",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_cli_no_console.py",
+      "target": "function:tests/test_cli_no_console.py:test_missing_console_prints_actionable_message",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_cli_no_console.py",
+      "target": "function:tests/test_cli_no_console.py:test_unrelated_errors_still_propagate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_cli_no_console.py",
+      "target": "file:cli/main.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "function:tests/test_graph_stream_callbacks.py:_state",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "function:tests/test_graph_stream_callbacks.py:_graph",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "function:tests/test_graph_stream_callbacks.py:test_on_chunk_receives_chunks_and_returns_final_state_and_signal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "function:tests/test_graph_stream_callbacks.py:test_callback_free_non_debug_uses_invoke",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "function:tests/test_graph_stream_callbacks.py:test_callback_free_debug_streams_and_merges_chunks",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "function:tests/test_graph_stream_callbacks.py:test_should_cancel_only_forces_streaming",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "function:tests/test_graph_stream_callbacks.py:test_preflight_cancellation_skips_pending_resolution",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "function:tests/test_graph_stream_callbacks.py:test_cancellation_skips_all_completion_side_effects",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "function:tests/test_graph_stream_callbacks.py:test_callback_exception_propagates",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "function:tests/test_graph_stream_callbacks.py:test_should_cancel_exception_propagates",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "class:tests/test_graph_stream_callbacks.py:_Message",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "class:tests/test_graph_stream_callbacks.py:_FakeGraph",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "class:tests/test_graph_stream_callbacks.py:_Message",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "function:tests/test_graph_stream_callbacks.py:_state",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "class:tests/test_graph_stream_callbacks.py:_FakeGraph",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "function:tests/test_graph_stream_callbacks.py:_graph",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "function:tests/test_graph_stream_callbacks.py:test_on_chunk_receives_chunks_and_returns_final_state_and_signal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "function:tests/test_graph_stream_callbacks.py:test_callback_free_non_debug_uses_invoke",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "function:tests/test_graph_stream_callbacks.py:test_callback_free_debug_streams_and_merges_chunks",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "function:tests/test_graph_stream_callbacks.py:test_should_cancel_only_forces_streaming",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "function:tests/test_graph_stream_callbacks.py:test_preflight_cancellation_skips_pending_resolution",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "function:tests/test_graph_stream_callbacks.py:test_cancellation_skips_all_completion_side_effects",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "function:tests/test_graph_stream_callbacks.py:test_callback_exception_propagates",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "function:tests/test_graph_stream_callbacks.py:test_should_cancel_exception_propagates",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "file:tradingagents/graph/propagation.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_graph_stream_callbacks.py",
+      "target": "file:tradingagents/graph/trading_graph.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_market_toolnode.py",
+      "target": "function:tests/test_market_toolnode.py:test_market_toolnode_can_execute_verified_snapshot",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_market_toolnode.py",
+      "target": "function:tests/test_market_toolnode.py:test_market_toolnode_can_execute_verified_snapshot",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_market_toolnode.py",
+      "target": "file:tradingagents/graph/trading_graph.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

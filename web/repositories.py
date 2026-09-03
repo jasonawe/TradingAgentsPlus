@@ -12,6 +12,8 @@ from typing import Any
 
 from cli.utils import is_valid_ticker_input, normalize_ticker_symbol
 
+from .models import AnalysisRequest
+from .scheduled import validate_cron_expression
 from .storage import SQLiteStore
 
 _UNSET = object()
@@ -54,6 +56,21 @@ class WatchlistRepository:
         with self.store.connection() as conn:
             rows = conn.execute("SELECT * FROM watchlist_items WHERE watchlist_id=? ORDER BY position,id", (watchlist_id,)).fetchall()
         return [_row(row) for row in rows]
+
+    def contains(self, symbol: str, asset_type: str, watchlist_id: str = "default") -> bool:
+        if asset_type not in {"stock", "crypto"}:
+            raise ValueError("invalid asset_type")
+        canonical = normalize_ticker_symbol(symbol)
+        if not canonical or not is_valid_ticker_input(str(symbol)):
+            raise ValueError("invalid symbol")
+        self.get_default() if watchlist_id == "default" else None
+        with self.store.connection() as conn:
+            row = conn.execute(
+                "SELECT 1 FROM watchlist_items "
+                "WHERE watchlist_id=? AND symbol=? AND asset_type=?",
+                (watchlist_id, canonical, asset_type),
+            ).fetchone()
+        return row is not None
 
     def add_item(self, symbol: str, *, asset_type: str, note: str | None = None, watchlist_id: str = "default") -> dict[str, Any]:
         if asset_type not in {"stock", "crypto"}:
@@ -112,13 +129,21 @@ class WatchlistRepository:
     def delete_item(self, item_id: str, *, expected_version: int) -> None:
         now = _now()
         with self.store.connection() as conn:
-            item = conn.execute("SELECT watchlist_id,position FROM watchlist_items WHERE id=?", (item_id,)).fetchone()
+            item = conn.execute(
+                "SELECT watchlist_id,position,symbol,asset_type "
+                "FROM watchlist_items WHERE id=?",
+                (item_id,),
+            ).fetchone()
             if item is None:
                 raise KeyError(item_id)
-            watchlist_id = item[0]
+            watchlist_id = item["watchlist_id"]
             if conn.execute("UPDATE watchlists SET version=version+1,updated_at=? WHERE id=? AND version=?", (now, watchlist_id, expected_version)).rowcount != 1:
                 raise RuntimeError("version conflict")
-            position = item[1]
+            position = item["position"]
+            conn.execute(
+                "DELETE FROM scheduled_jobs WHERE symbol=? AND asset_type=?",
+                (item["symbol"], item["asset_type"]),
+            )
             conn.execute("DELETE FROM watchlist_items WHERE id=? AND watchlist_id=?", (item_id, watchlist_id))
             conn.execute("UPDATE watchlist_items SET position=position-1 WHERE watchlist_id=? AND position > ?", (watchlist_id, position))
 
@@ -243,6 +268,12 @@ class SnapshotRepository:
 
 
 class SettingsRepository:
+    SCHEDULER_ENABLED = "scheduler.enabled"
+    SCHEDULER_MAX_CONCURRENT_RUNS = "scheduler.max_concurrent_runs"
+    SCHEDULER_DEFAULTS = {
+        SCHEDULER_ENABLED: "true",
+        SCHEDULER_MAX_CONCURRENT_RUNS: "3",
+    }
     ALLOWED = frozenset({
         "quote_ttl_seconds",
         "quote_strategy_id",
@@ -251,11 +282,26 @@ class SettingsRepository:
         "run_timeout_seconds",
         "run_heartbeat_interval_seconds",
         "run_heartbeat_timeout_seconds",
+        SCHEDULER_ENABLED,
+        SCHEDULER_MAX_CONCURRENT_RUNS,
     })
-    def __init__(self, store: SQLiteStore) -> None: self.store = store
+    def __init__(self, store: SQLiteStore) -> None:
+        self.store = store
+        with self.store.connection() as conn:
+            for key, value in self.SCHEDULER_DEFAULTS.items():
+                conn.execute(
+                    "INSERT OR IGNORE INTO settings(key,value,source,updated_at) "
+                    "VALUES (?,?,?,?)",
+                    (key, value, "default", _now()),
+                )
+
     def set(self, key: str, value: Any, *, source: str = "sqlite") -> None:
         if key not in self.ALLOWED:
             return
+        if key == self.SCHEDULER_ENABLED:
+            value = self._canonical_scheduler_enabled(value)
+        elif key == self.SCHEDULER_MAX_CONCURRENT_RUNS:
+            value = str(self._parse_max_concurrent_runs(value))
         with self.store.connection() as conn:
             conn.execute("INSERT OR REPLACE INTO settings(key,value,source,updated_at) VALUES (?,?,?,?)", (key, str(value), source, _now()))
     def get(self, key: str) -> dict[str, str] | None:
@@ -272,6 +318,66 @@ class SettingsRepository:
         with self.store.connection() as conn:
             rows = conn.execute(f"SELECT key,value,source FROM settings WHERE key IN ({placeholders})", tuple(self.ALLOWED)).fetchall()
         return {row["key"]: {"value": row["value"], "source": row["source"]} for row in rows}
+
+    def scheduler_settings(self) -> dict[str, Any]:
+        enabled = self.get(self.SCHEDULER_ENABLED)
+        maximum = self.get(self.SCHEDULER_MAX_CONCURRENT_RUNS)
+        return {
+            "enabled": (enabled or {}).get("value") == "true",
+            "max_concurrent_runs": self._parse_max_concurrent_runs(
+                (maximum or {}).get("value", "3")
+            ),
+        }
+
+    def update_scheduler_settings(
+        self,
+        *,
+        enabled: bool | object = _UNSET,
+        max_concurrent_runs: int | str | object = _UNSET,
+    ) -> dict[str, Any]:
+        updates: list[tuple[str, str]] = []
+        if enabled is not _UNSET:
+            updates.append(
+                (self.SCHEDULER_ENABLED, self._canonical_scheduler_enabled(enabled))
+            )
+        if max_concurrent_runs is not _UNSET:
+            updates.append(
+                (
+                    self.SCHEDULER_MAX_CONCURRENT_RUNS,
+                    str(self._parse_max_concurrent_runs(max_concurrent_runs)),
+                )
+            )
+        now = _now()
+        with self.store.connection() as conn:
+            for key, value in updates:
+                conn.execute(
+                    "INSERT OR REPLACE INTO settings(key,value,source,updated_at) "
+                    "VALUES (?,?,?,?)",
+                    (key, value, "sqlite", now),
+                )
+        return self.scheduler_settings()
+
+    @staticmethod
+    def _canonical_scheduler_enabled(value: Any) -> str:
+        if not isinstance(value, bool):
+            raise ValueError("scheduler.enabled must be a boolean")
+        return "true" if value else "false"
+
+    @staticmethod
+    def _parse_max_concurrent_runs(value: Any) -> int:
+        if isinstance(value, bool):
+            raise ValueError("scheduler.max_concurrent_runs must be an integer in 1..10")
+        try:
+            parsed = int(value)
+        except (TypeError, ValueError):
+            raise ValueError(
+                "scheduler.max_concurrent_runs must be an integer in 1..10"
+            ) from None
+        if isinstance(value, float) and not value.is_integer():
+            raise ValueError("scheduler.max_concurrent_runs must be an integer in 1..10")
+        if not 1 <= parsed <= 10:
+            raise ValueError("scheduler.max_concurrent_runs must be in 1..10")
+        return parsed
 
 
 class AnalysisRunRepository:
@@ -296,6 +402,44 @@ class AnalysisRunRepository:
             rows = conn.execute("SELECT * FROM web_runs" + (" WHERE status=?" if status else ""), (status,) if status else ()).fetchall()
         return [self._decode(row) for row in rows]
 
+    def latest_successful_request(
+        self, symbol: str, asset_type: str
+    ) -> dict[str, Any] | None:
+        canonical = normalize_ticker_symbol(symbol)
+        if not canonical or not is_valid_ticker_input(str(symbol)):
+            raise ValueError("invalid symbol")
+        if asset_type not in {"stock", "crypto"}:
+            raise ValueError("invalid asset_type")
+        with self.store.connection() as conn:
+            rows = conn.execute(
+                "SELECT run_id,request_json,finished_at FROM web_runs "
+                "WHERE status='completed' AND finished_at IS NOT NULL"
+            ).fetchall()
+        candidates: list[tuple[datetime, str, Any]] = []
+        for row in rows:
+            try:
+                finished_at = datetime.fromisoformat(
+                    str(row["finished_at"]).replace("Z", "+00:00")
+                )
+                if finished_at.tzinfo is None or finished_at.utcoffset() is None:
+                    finished_at = finished_at.replace(tzinfo=timezone.utc)
+                finished_at = finished_at.astimezone(timezone.utc)
+            except (OverflowError, TypeError, ValueError):
+                continue
+            candidates.append((finished_at, row["run_id"], row))
+        candidates.sort(key=lambda item: (item[0], item[1]), reverse=True)
+        for _, _, row in candidates:
+            try:
+                request = AnalysisRequest.model_validate(json.loads(row["request_json"]))
+            except (TypeError, ValueError):
+                continue
+            if request.ticker != canonical:
+                continue
+            if request.asset_type.value != asset_type:
+                continue
+            return request.model_dump(mode="json")
+        return None
+
     @staticmethod
     def _decode(row) -> dict[str, Any] | None:
         value = _row(row)
@@ -318,6 +462,283 @@ class AnalysisRunRepository:
         return value
 
 
+class ScheduledJobRepository:
+    ASSET_TYPES = frozenset({"stock", "crypto"})
+
+    def __init__(self, store: SQLiteStore) -> None:
+        self.store = store
+
+    def create(
+        self,
+        symbol: str,
+        *,
+        asset_type: str,
+        cron_expression: str,
+        enabled: bool = True,
+        note: str | None = None,
+        job_id: str | None = None,
+    ) -> dict[str, Any]:
+        canonical = self._validate_asset(symbol, asset_type)
+        normalized_cron = validate_cron_expression(cron_expression)
+        if not isinstance(enabled, bool):
+            raise ValueError("invalid enabled")
+        now = _now()
+        identifier = job_id or f"scheduled-job-{uuid.uuid4().hex}"
+        try:
+            with self.store.connection() as conn:
+                conn.execute(
+                    "INSERT INTO scheduled_jobs("
+                    "id,symbol,asset_type,cron_expression,enabled,note,created_at,updated_at"
+                    ") VALUES (?,?,?,?,?,?,?,?)",
+                    (
+                        identifier,
+                        canonical,
+                        asset_type,
+                        normalized_cron,
+                        int(enabled),
+                        note,
+                        now,
+                        now,
+                    ),
+                )
+        except sqlite3.IntegrityError as exc:
+            if "UNIQUE" in str(exc).upper():
+                raise ValueError("scheduled job already exists for asset") from exc
+            raise
+        return self.get(identifier)
+
+    def get(self, job_id: str) -> dict[str, Any]:
+        with self.store.connection() as conn:
+            row = conn.execute("SELECT * FROM scheduled_jobs WHERE id=?", (job_id,)).fetchone()
+        if row is None:
+            raise KeyError(job_id)
+        return self._decode(row)
+
+    def get_by_asset(self, symbol: str, asset_type: str) -> dict[str, Any] | None:
+        canonical = self._validate_asset(symbol, asset_type)
+        with self.store.connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM scheduled_jobs WHERE symbol=? AND asset_type=?",
+                (canonical, asset_type),
+            ).fetchone()
+        return self._decode(row) if row is not None else None
+
+    def list(self, enabled: bool | None = None) -> list[dict[str, Any]]:
+        if enabled is not None and not isinstance(enabled, bool):
+            raise ValueError("invalid enabled")
+        sql = "SELECT * FROM scheduled_jobs"
+        parameters: tuple[Any, ...] = ()
+        if enabled is not None:
+            sql += " WHERE enabled=?"
+            parameters = (int(enabled),)
+        sql += " ORDER BY created_at DESC,id DESC"
+        with self.store.connection() as conn:
+            rows = conn.execute(sql, parameters).fetchall()
+        return [self._decode(row) for row in rows]
+
+    def update(
+        self,
+        job_id: str,
+        *,
+        symbol: str | None = None,
+        asset_type: str | None = None,
+        cron_expression: str | None = None,
+        enabled: bool | None = None,
+        note: str | None | object = _UNSET,
+    ) -> dict[str, Any]:
+        current = self.get(job_id)
+        target_symbol = symbol if symbol is not None else current["symbol"]
+        target_asset_type = asset_type if asset_type is not None else current["asset_type"]
+        canonical = self._validate_asset(target_symbol, target_asset_type)
+        target_cron = cron_expression if cron_expression is not None else current["cron_expression"]
+        normalized_cron = validate_cron_expression(target_cron)
+        target_enabled = enabled if enabled is not None else current["enabled"]
+        if not isinstance(target_enabled, bool):
+            raise ValueError("invalid enabled")
+        target_note = current["note"] if note is _UNSET else note
+        try:
+            with self.store.connection() as conn:
+                conn.execute(
+                    "UPDATE scheduled_jobs SET "
+                    "symbol=?,asset_type=?,cron_expression=?,enabled=?,note=?,updated_at=? "
+                    "WHERE id=?",
+                    (
+                        canonical,
+                        target_asset_type,
+                        normalized_cron,
+                        int(target_enabled),
+                        target_note,
+                        _now(),
+                        job_id,
+                    ),
+                )
+        except sqlite3.IntegrityError as exc:
+            if "UNIQUE" in str(exc).upper():
+                raise ValueError("scheduled job already exists for asset") from exc
+            raise
+        return self.get(job_id)
+
+    def toggle(self, job_id: str, enabled: bool) -> dict[str, Any]:
+        if not isinstance(enabled, bool):
+            raise ValueError("invalid enabled")
+        return self.update(job_id, enabled=enabled)
+
+    def delete(self, job_id: str) -> None:
+        with self.store.connection() as conn:
+            result = conn.execute("DELETE FROM scheduled_jobs WHERE id=?", (job_id,))
+        if result.rowcount != 1:
+            raise KeyError(job_id)
+
+    @classmethod
+    def _validate_asset(cls, symbol: str, asset_type: str) -> str:
+        if asset_type not in cls.ASSET_TYPES:
+            raise ValueError("invalid asset_type")
+        canonical = normalize_ticker_symbol(symbol)
+        if not canonical or not is_valid_ticker_input(str(symbol)):
+            raise ValueError("invalid symbol")
+        return canonical
+
+    @staticmethod
+    def _decode(row) -> dict[str, Any]:
+        value = _row(row)
+        value["enabled"] = bool(value["enabled"])
+        return value
+
+
+class ScheduledRunLogRepository:
+    STATUSES = frozenset({"queued", "running", "succeeded", "failed", "skipped"})
+    PARAMETER_SOURCES = frozenset({"last_successful", "global_default"})
+    _SELECT = (
+        "SELECT logs.*,web_runs.report_id AS report_id "
+        "FROM scheduled_run_logs AS logs "
+        "LEFT JOIN web_runs ON web_runs.run_id=logs.run_id"
+    )
+
+    def __init__(self, store: SQLiteStore) -> None:
+        self.store = store
+
+    def create(
+        self,
+        job_id: str,
+        *,
+        symbol: str,
+        asset_type: str,
+        scheduled_for: str,
+        fired_at: str,
+        status: str,
+        run_id: str | None = None,
+        skip_reason: str | None = None,
+        error: str | None = None,
+        parameter_source: str | None = None,
+        log_id: str | None = None,
+    ) -> dict[str, Any]:
+        canonical = ScheduledJobRepository._validate_asset(symbol, asset_type)
+        self._validate_status(status)
+        self._validate_parameter_source(parameter_source)
+        identifier = log_id or f"scheduled-log-{uuid.uuid4().hex}"
+        with self.store.connection() as conn:
+            conn.execute(
+                "INSERT INTO scheduled_run_logs("
+                "id,job_id,symbol,asset_type,scheduled_for,fired_at,status,run_id,"
+                "skip_reason,error,parameter_source"
+                ") VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                (
+                    identifier,
+                    job_id,
+                    canonical,
+                    asset_type,
+                    scheduled_for,
+                    fired_at,
+                    status,
+                    run_id,
+                    skip_reason,
+                    error,
+                    parameter_source,
+                ),
+            )
+        return self.get(identifier)
+
+    def get(self, log_id: str) -> dict[str, Any]:
+        with self.store.connection() as conn:
+            row = conn.execute(f"{self._SELECT} WHERE logs.id=?", (log_id,)).fetchone()
+        if row is None:
+            raise KeyError(log_id)
+        return _row(row)
+
+    def list(
+        self, job_id: str | None = None, *, limit: int = 20
+    ) -> list[dict[str, Any]]:
+        if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 1000:
+            raise ValueError("invalid log limit")
+        sql = self._SELECT
+        parameters: tuple[Any, ...]
+        if job_id is not None:
+            sql += " WHERE logs.job_id=?"
+            parameters = (job_id, limit)
+        else:
+            parameters = (limit,)
+        sql += " ORDER BY logs.fired_at DESC,logs.id DESC LIMIT ?"
+        with self.store.connection() as conn:
+            rows = conn.execute(sql, parameters).fetchall()
+        return [_row(row) for row in rows]
+
+    def list_incomplete(self, *, limit: int = 1000) -> list[dict[str, Any]]:
+        if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 10000:
+            raise ValueError("invalid incomplete log limit")
+        with self.store.connection() as conn:
+            rows = conn.execute(
+                f"{self._SELECT} WHERE logs.status IN ('queued','running') "
+                "ORDER BY logs.fired_at ASC,logs.id ASC LIMIT ?",
+                (limit,),
+            ).fetchall()
+        return [_row(row) for row in rows]
+
+    def update(
+        self,
+        log_id: str,
+        *,
+        status: str | None = None,
+        run_id: str | None | object = _UNSET,
+        skip_reason: str | None | object = _UNSET,
+        error: str | None | object = _UNSET,
+        parameter_source: str | None | object = _UNSET,
+    ) -> dict[str, Any]:
+        current = self.get(log_id)
+        target_status = status if status is not None else current["status"]
+        target_run_id = current["run_id"] if run_id is _UNSET else run_id
+        target_skip_reason = current["skip_reason"] if skip_reason is _UNSET else skip_reason
+        target_error = current["error"] if error is _UNSET else error
+        target_source = (
+            current["parameter_source"] if parameter_source is _UNSET else parameter_source
+        )
+        self._validate_status(target_status)
+        self._validate_parameter_source(target_source)
+        with self.store.connection() as conn:
+            conn.execute(
+                "UPDATE scheduled_run_logs SET "
+                "status=?,run_id=?,skip_reason=?,error=?,parameter_source=? WHERE id=?",
+                (
+                    target_status,
+                    target_run_id,
+                    target_skip_reason,
+                    target_error,
+                    target_source,
+                    log_id,
+                ),
+            )
+        return self.get(log_id)
+
+    @classmethod
+    def _validate_status(cls, status: str) -> None:
+        if status not in cls.STATUSES:
+            raise ValueError("invalid scheduled run status")
+
+    @classmethod
+    def _validate_parameter_source(cls, parameter_source: str | None) -> None:
+        if parameter_source is not None and parameter_source not in cls.PARAMETER_SOURCES:
+            raise ValueError("invalid parameter_source")
+
+
 class ReportIndexRepository:
     """SQLite read index for report metadata with a durable outbox overlay."""
 
@@ -329,7 +750,7 @@ class ReportIndexRepository:
     INDEX_STATUSES = frozenset({"indexed", "pending", "error"})
     PATH_STATES = frozenset({"valid", "missing", "unsafe"})
     ASSET_TYPES = frozenset({"stock", "crypto"})
-    SORTS = frozenset({"generated_at_desc", "generated_at_asc"})
+    SORTS = frozenset({"generated_at_desc", "generated_at_asc", "ticker_asc"})
     _FIELDS = (
         "report_id",
         "run_id",
@@ -528,10 +949,14 @@ class ReportIndexRepository:
             filters.append("analysis_date<=?")
             parameters.append(str(date_to))
         where = " AND ".join(filters)
-        direction = "DESC" if sort == "generated_at_desc" else "ASC"
-        order = (
-            f"generated_at IS NULL ASC, generated_at {direction}, report_id ASC"
-        )
+        if sort == "ticker_asc":
+            order = "ticker COLLATE NOCASE ASC, generated_at IS NULL ASC, generated_at DESC, report_id ASC"
+        else:
+            direction = "DESC" if sort == "generated_at_desc" else "ASC"
+            order = (
+                f"generated_at IS NULL ASC, generated_at {direction}, "
+                "ticker COLLATE NOCASE ASC, report_id ASC"
+            )
         offset = (page - 1) * page_size
         cte = self._combined_cte()
         with self.store.connection() as conn:

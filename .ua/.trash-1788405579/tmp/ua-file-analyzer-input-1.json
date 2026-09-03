@@ -1,0 +1,535 @@
+{
+  "projectRoot": "/Users/shenkang/workroom/languages/agent/TradingAgents",
+  "batchFiles": [
+    {
+      "path": "scripts/smoke_structured_output.py",
+      "language": "python",
+      "sizeLines": 174,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_i18n_coverage.py",
+      "language": "python",
+      "sizeLines": 59,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_instrument_identity.py",
+      "language": "python",
+      "sizeLines": 170,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_market_data_validator.py",
+      "language": "python",
+      "sizeLines": 76,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_news_analyst_prompt.py",
+      "language": "python",
+      "sizeLines": 25,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_structured_agent_prompts.py",
+      "language": "python",
+      "sizeLines": 147,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_structured_agents.py",
+      "language": "python",
+      "sizeLines": 408,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/__init__.py",
+      "language": "python",
+      "sizeLines": 37,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/analysts/fundamentals_analyst.py",
+      "language": "python",
+      "sizeLines": 69,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/analysts/market_analyst.py",
+      "language": "python",
+      "sizeLines": 95,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/analysts/news_analyst.py",
+      "language": "python",
+      "sizeLines": 69,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/analysts/sentiment_analyst.py",
+      "language": "python",
+      "sizeLines": 210,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/analysts/social_media_analyst.py",
+      "language": "python",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/managers/portfolio_manager.py",
+      "language": "python",
+      "sizeLines": 95,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/managers/research_manager.py",
+      "language": "python",
+      "sizeLines": 70,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/researchers/bear_researcher.py",
+      "language": "python",
+      "sizeLines": 63,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/researchers/bull_researcher.py",
+      "language": "python",
+      "sizeLines": 61,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/risk_mgmt/aggressive_debator.py",
+      "language": "python",
+      "sizeLines": 59,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/risk_mgmt/conservative_debator.py",
+      "language": "python",
+      "sizeLines": 61,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/risk_mgmt/neutral_debator.py",
+      "language": "python",
+      "sizeLines": 59,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/schemas.py",
+      "language": "python",
+      "sizeLines": 341,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/trader/trader.py",
+      "language": "python",
+      "sizeLines": 67,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/utils/agent_utils.py",
+      "language": "python",
+      "sizeLines": 217,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/utils/core_stock_tools.py",
+      "language": "python",
+      "sizeLines": 24,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/utils/fundamental_data_tools.py",
+      "language": "python",
+      "sizeLines": 79,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/utils/macro_data_tools.py",
+      "language": "python",
+      "sizeLines": 36,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/utils/market_data_validation_tools.py",
+      "language": "python",
+      "sizeLines": 23,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/utils/news_data_tools.py",
+      "language": "python",
+      "sizeLines": 60,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/utils/prediction_markets_tools.py",
+      "language": "python",
+      "sizeLines": 31,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/utils/structured.py",
+      "language": "python",
+      "sizeLines": 89,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/agents/utils/technical_indicators_tools.py",
+      "language": "python",
+      "sizeLines": 35,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tradingagents/dataflows/market_data_validator.py",
+      "language": "python",
+      "sizeLines": 123,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "scripts/smoke_structured_output.py": [
+      "tradingagents/agents/managers/portfolio_manager.py",
+      "tradingagents/agents/managers/research_manager.py",
+      "tradingagents/agents/trader/trader.py",
+      "tradingagents/graph/signal_processing.py",
+      "tradingagents/llm_clients/__init__.py"
+    ],
+    "tests/test_i18n_coverage.py": [
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tests/test_instrument_identity.py": [
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tests/test_market_data_validator.py": [
+      "tradingagents/dataflows/market_data_validator.py"
+    ],
+    "tests/test_news_analyst_prompt.py": [
+      "tradingagents/agents/analysts/news_analyst.py",
+      "tradingagents/agents/utils/news_data_tools.py"
+    ],
+    "tests/test_structured_agent_prompts.py": [
+      "tradingagents/agents/analysts/sentiment_analyst.py",
+      "tradingagents/agents/managers/portfolio_manager.py",
+      "tradingagents/agents/managers/research_manager.py",
+      "tradingagents/agents/trader/trader.py",
+      "tradingagents/agents/utils/structured.py"
+    ],
+    "tests/test_structured_agents.py": [
+      "tradingagents/agents/analysts/sentiment_analyst.py",
+      "tradingagents/agents/managers/research_manager.py",
+      "tradingagents/agents/schemas.py",
+      "tradingagents/agents/trader/trader.py"
+    ],
+    "tradingagents/agents/__init__.py": [
+      "tradingagents/agents/analysts/fundamentals_analyst.py",
+      "tradingagents/agents/analysts/market_analyst.py",
+      "tradingagents/agents/analysts/news_analyst.py",
+      "tradingagents/agents/analysts/sentiment_analyst.py",
+      "tradingagents/agents/managers/portfolio_manager.py",
+      "tradingagents/agents/managers/research_manager.py",
+      "tradingagents/agents/researchers/bear_researcher.py",
+      "tradingagents/agents/researchers/bull_researcher.py",
+      "tradingagents/agents/risk_mgmt/aggressive_debator.py",
+      "tradingagents/agents/risk_mgmt/conservative_debator.py",
+      "tradingagents/agents/risk_mgmt/neutral_debator.py",
+      "tradingagents/agents/trader/trader.py",
+      "tradingagents/agents/utils/agent_states.py",
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tradingagents/agents/analysts/fundamentals_analyst.py": [
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tradingagents/agents/analysts/market_analyst.py": [
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tradingagents/agents/analysts/news_analyst.py": [
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tradingagents/agents/analysts/sentiment_analyst.py": [
+      "tradingagents/agents/schemas.py",
+      "tradingagents/agents/utils/agent_utils.py",
+      "tradingagents/agents/utils/structured.py",
+      "tradingagents/dataflows/reddit.py",
+      "tradingagents/dataflows/stocktwits.py"
+    ],
+    "tradingagents/agents/analysts/social_media_analyst.py": [
+      "tradingagents/agents/analysts/sentiment_analyst.py"
+    ],
+    "tradingagents/agents/managers/portfolio_manager.py": [
+      "tradingagents/agents/schemas.py",
+      "tradingagents/agents/utils/agent_utils.py",
+      "tradingagents/agents/utils/structured.py"
+    ],
+    "tradingagents/agents/managers/research_manager.py": [
+      "tradingagents/agents/schemas.py",
+      "tradingagents/agents/utils/agent_utils.py",
+      "tradingagents/agents/utils/structured.py"
+    ],
+    "tradingagents/agents/researchers/bear_researcher.py": [
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tradingagents/agents/researchers/bull_researcher.py": [
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tradingagents/agents/risk_mgmt/aggressive_debator.py": [
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tradingagents/agents/risk_mgmt/conservative_debator.py": [
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tradingagents/agents/risk_mgmt/neutral_debator.py": [
+      "tradingagents/agents/utils/agent_utils.py"
+    ],
+    "tradingagents/agents/schemas.py": [],
+    "tradingagents/agents/trader/trader.py": [
+      "tradingagents/agents/schemas.py",
+      "tradingagents/agents/utils/agent_utils.py",
+      "tradingagents/agents/utils/structured.py"
+    ],
+    "tradingagents/agents/utils/agent_utils.py": [
+      "tradingagents/agents/utils/core_stock_tools.py",
+      "tradingagents/agents/utils/fundamental_data_tools.py",
+      "tradingagents/agents/utils/macro_data_tools.py",
+      "tradingagents/agents/utils/market_data_validation_tools.py",
+      "tradingagents/agents/utils/news_data_tools.py",
+      "tradingagents/agents/utils/prediction_markets_tools.py",
+      "tradingagents/agents/utils/technical_indicators_tools.py"
+    ],
+    "tradingagents/agents/utils/core_stock_tools.py": [
+      "tradingagents/dataflows/interface.py"
+    ],
+    "tradingagents/agents/utils/fundamental_data_tools.py": [
+      "tradingagents/dataflows/interface.py"
+    ],
+    "tradingagents/agents/utils/macro_data_tools.py": [
+      "tradingagents/dataflows/interface.py"
+    ],
+    "tradingagents/agents/utils/market_data_validation_tools.py": [
+      "tradingagents/dataflows/market_data_validator.py"
+    ],
+    "tradingagents/agents/utils/news_data_tools.py": [
+      "tradingagents/dataflows/interface.py"
+    ],
+    "tradingagents/agents/utils/prediction_markets_tools.py": [
+      "tradingagents/dataflows/interface.py"
+    ],
+    "tradingagents/agents/utils/structured.py": [],
+    "tradingagents/agents/utils/technical_indicators_tools.py": [
+      "tradingagents/dataflows/interface.py"
+    ],
+    "tradingagents/dataflows/market_data_validator.py": [
+      "tradingagents/dataflows/stockstats_utils.py"
+    ]
+  },
+  "neighborMap": {
+    "scripts/smoke_structured_output.py": [
+      {
+        "path": "tradingagents/graph/signal_processing.py",
+        "batchIndex": 3,
+        "symbols": [
+          "SignalProcessor"
+        ]
+      },
+      {
+        "path": "tradingagents/llm_clients/__init__.py",
+        "batchIndex": 4,
+        "symbols": []
+      }
+    ],
+    "tradingagents/agents/__init__.py": [
+      {
+        "path": "tradingagents/agents/utils/agent_states.py",
+        "batchIndex": 3,
+        "symbols": [
+          "InvestDebateState",
+          "RiskDebateState",
+          "AgentState"
+        ]
+      },
+      {
+        "path": "tradingagents/graph/setup.py",
+        "batchIndex": 3,
+        "symbols": [
+          "GraphSetup"
+        ]
+      }
+    ],
+    "tradingagents/agents/analysts/sentiment_analyst.py": [
+      {
+        "path": "tradingagents/dataflows/reddit.py",
+        "batchIndex": 2,
+        "symbols": [
+          "_search_qs",
+          "_iso_to_timestamp",
+          "_strip_html",
+          "_retry_after_seconds",
+          "_fetch_subreddit_rss",
+          "_fetch_subreddit_json",
+          "_fetch_subreddit",
+          "fetch_reddit_posts"
+        ]
+      },
+      {
+        "path": "tradingagents/dataflows/stocktwits.py",
+        "batchIndex": 2,
+        "symbols": [
+          "_stocktwits_symbol",
+          "fetch_stocktwits_messages"
+        ]
+      }
+    ],
+    "tradingagents/agents/managers/portfolio_manager.py": [
+      {
+        "path": "tests/test_memory_log.py",
+        "batchIndex": 3,
+        "symbols": [
+          "make_log",
+          "_seed_completed",
+          "_resolve_entry",
+          "_price_df",
+          "_make_pm_state",
+          "_structured_pm_llm",
+          "TestTradingMemoryLogCore",
+          "TestDeferredReflection",
+          "TestPortfolioManagerInjection",
+          "TestLegacyRemoval"
+        ]
+      }
+    ],
+    "tradingagents/agents/schemas.py": [
+      {
+        "path": "tests/test_memory_log.py",
+        "batchIndex": 3,
+        "symbols": [
+          "make_log",
+          "_seed_completed",
+          "_resolve_entry",
+          "_price_df",
+          "_make_pm_state",
+          "_structured_pm_llm",
+          "TestTradingMemoryLogCore",
+          "TestDeferredReflection",
+          "TestPortfolioManagerInjection",
+          "TestLegacyRemoval"
+        ]
+      }
+    ],
+    "tradingagents/agents/utils/agent_utils.py": [
+      {
+        "path": "tests/test_symbol_normalization_paths.py",
+        "batchIndex": 3,
+        "symbols": [
+          "test_identity_lookup_normalizes_symbol",
+          "test_fetch_returns_normalizes_symbol",
+          "test_news_lookup_normalizes_symbol"
+        ]
+      },
+      {
+        "path": "tests/test_ticker_symbol_handling.py",
+        "batchIndex": 7,
+        "symbols": [
+          "TickerSymbolHandlingTests"
+        ]
+      },
+      {
+        "path": "tradingagents/graph/trading_graph.py",
+        "batchIndex": 3,
+        "symbols": [
+          "_coerce_max_retries",
+          "TradingAgentsGraph"
+        ]
+      }
+    ],
+    "tradingagents/agents/utils/core_stock_tools.py": [
+      {
+        "path": "tradingagents/dataflows/interface.py",
+        "batchIndex": 2,
+        "symbols": [
+          "get_category_for_method",
+          "get_vendor",
+          "route_to_vendor"
+        ]
+      }
+    ],
+    "tradingagents/agents/utils/fundamental_data_tools.py": [
+      {
+        "path": "tradingagents/dataflows/interface.py",
+        "batchIndex": 2,
+        "symbols": [
+          "get_category_for_method",
+          "get_vendor",
+          "route_to_vendor"
+        ]
+      }
+    ],
+    "tradingagents/agents/utils/macro_data_tools.py": [
+      {
+        "path": "tradingagents/dataflows/interface.py",
+        "batchIndex": 2,
+        "symbols": [
+          "get_category_for_method",
+          "get_vendor",
+          "route_to_vendor"
+        ]
+      }
+    ],
+    "tradingagents/agents/utils/news_data_tools.py": [
+      {
+        "path": "tradingagents/dataflows/interface.py",
+        "batchIndex": 2,
+        "symbols": [
+          "get_category_for_method",
+          "get_vendor",
+          "route_to_vendor"
+        ]
+      }
+    ],
+    "tradingagents/agents/utils/prediction_markets_tools.py": [
+      {
+        "path": "tradingagents/dataflows/interface.py",
+        "batchIndex": 2,
+        "symbols": [
+          "get_category_for_method",
+          "get_vendor",
+          "route_to_vendor"
+        ]
+      }
+    ],
+    "tradingagents/agents/utils/technical_indicators_tools.py": [
+      {
+        "path": "tradingagents/dataflows/interface.py",
+        "batchIndex": 2,
+        "symbols": [
+          "get_category_for_method",
+          "get_vendor",
+          "route_to_vendor"
+        ]
+      }
+    ],
+    "tradingagents/dataflows/market_data_validator.py": [
+      {
+        "path": "tradingagents/dataflows/stockstats_utils.py",
+        "batchIndex": 2,
+        "symbols": [
+          "yf_retry",
+          "_ensure_date_column",
+          "_clean_dataframe",
+          "_coerce_ohlcv_dates",
+          "_assert_ohlcv_not_stale",
+          "_needs_same_day_refresh",
+          "load_ohlcv",
+          "filter_financials_by_date",
+          "StockstatsUtils"
+        ]
+      }
+    ]
+  }
+}

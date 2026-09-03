@@ -1,0 +1,96 @@
+{
+  "nodes": [
+    {
+      "id": "file:.superpowers/brainstorm/41801-1787718122/.server-stopped",
+      "type": "file",
+      "name": ".server-stopped",
+      "filePath": ".superpowers/brainstorm/41801-1787718122/.server-stopped",
+      "summary": "项目文件 .superpowers/brainstorm/41801-1787718122/.server-stopped，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。",
+      "tags": [
+        "project-artifact",
+        "tradingagents",
+        "reference"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:.superpowers/brainstorm/70330-1787815068/.server-stopped",
+      "type": "file",
+      "name": ".server-stopped",
+      "filePath": ".superpowers/brainstorm/70330-1787815068/.server-stopped",
+      "summary": "项目文件 .superpowers/brainstorm/70330-1787815068/.server-stopped，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。",
+      "tags": [
+        "project-artifact",
+        "tradingagents",
+        "reference"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:.superpowers/brainstorm/70330-1787815068/portfolio-layout-options.html",
+      "type": "file",
+      "name": "portfolio-layout-options.html",
+      "filePath": ".superpowers/brainstorm/70330-1787815068/portfolio-layout-options.html",
+      "summary": "前端 HTML 资源，用于展示 portfolio-layout-options 相关的交互原型或应用界面结构。",
+      "tags": [
+        "frontend",
+        "project-artifact",
+        "tradingagents"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:.superpowers/brainstorm/81139-1787817330/.server-stopped",
+      "type": "file",
+      "name": ".server-stopped",
+      "filePath": ".superpowers/brainstorm/81139-1787817330/.server-stopped",
+      "summary": "项目文件 .superpowers/brainstorm/81139-1787817330/.server-stopped，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。",
+      "tags": [
+        "project-artifact",
+        "tradingagents",
+        "reference"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:.ua/.understandignore",
+      "type": "file",
+      "name": ".understandignore",
+      "filePath": ".ua/.understandignore",
+      "summary": "项目文件 .ua/.understandignore，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。",
+      "tags": [
+        "project-artifact",
+        "tradingagents",
+        "reference"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:.ua/config.json",
+      "type": "config",
+      "name": "config.json",
+      "filePath": ".ua/config.json",
+      "summary": "项目配置文件 config.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。",
+      "tags": [
+        "configuration",
+        "metadata",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:.ua/intermediate/raw-scan.json",
+      "type": "config",
+      "name": "raw-scan.json",
+      "filePath": ".ua/intermediate/raw-scan.json",
+      "summary": "项目配置文件 raw-scan.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。",
+      "tags": [
+        "configuration",
+        "metadata",
+        "project-artifact"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": []
+}

@@ -1,0 +1,345 @@
+{
+  "nodes": [
+    {
+      "id": "config:.ua/intermediate/scan-result.json",
+      "type": "config",
+      "name": "scan-result.json",
+      "filePath": ".ua/intermediate/scan-result.json",
+      "summary": "项目配置文件 scan-result.json，集中描述运行环境、工具链或 Understand 中间产物所需的结构化设置。",
+      "tags": [
+        "configuration",
+        "metadata",
+        "project-artifact"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:.ua/tmp/synthesize-scan.mjs",
+      "type": "file",
+      "name": "synthesize-scan.mjs",
+      "filePath": ".ua/tmp/synthesize-scan.mjs",
+      "summary": "项目文件 .ua/tmp/synthesize-scan.mjs，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。",
+      "tags": [
+        "project-artifact",
+        "tradingagents",
+        "reference"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:.ua/tmp/ua-scan-files.stderr",
+      "type": "file",
+      "name": "ua-scan-files.stderr",
+      "filePath": ".ua/tmp/ua-scan-files.stderr",
+      "summary": "项目文件 .ua/tmp/ua-scan-files.stderr，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。",
+      "tags": [
+        "project-artifact",
+        "tradingagents",
+        "reference"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:cli/static/welcome.txt",
+      "type": "document",
+      "name": "welcome.txt",
+      "filePath": "cli/static/welcome.txt",
+      "summary": "设计或实施计划文档，围绕 welcome 描述目标、方案、任务拆分与验证要求。",
+      "tags": [
+        "documentation",
+        "frontend",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "tests/__init__.py",
+      "summary": "项目文件 tests/__init__.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。",
+      "tags": [
+        "test",
+        "project-artifact",
+        "tradingagents"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/conftest.py",
+      "type": "file",
+      "name": "conftest.py",
+      "filePath": "tests/conftest.py",
+      "summary": "项目文件 tests/conftest.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。",
+      "tags": [
+        "test",
+        "implementation",
+        "project-artifact"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/conftest.py:pytest_configure",
+      "type": "function",
+      "name": "pytest_configure",
+      "filePath": "tests/conftest.py",
+      "lineRange": [
+        9,
+        11
+      ],
+      "summary": "实现 pytest_configure，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/conftest.py:_dummy_api_keys",
+      "type": "function",
+      "name": "_dummy_api_keys",
+      "filePath": "tests/conftest.py",
+      "lineRange": [
+        33,
+        37
+      ],
+      "summary": "实现 _dummy_api_keys，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/conftest.py:_isolate_config",
+      "type": "function",
+      "name": "_isolate_config",
+      "filePath": "tests/conftest.py",
+      "lineRange": [
+        41,
+        56
+      ],
+      "summary": "实现 _isolate_config，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/conftest.py:mock_llm_client",
+      "type": "function",
+      "name": "mock_llm_client",
+      "filePath": "tests/conftest.py",
+      "lineRange": [
+        60,
+        67
+      ],
+      "summary": "实现 mock_llm_client，负责该模块中的具体处理流程。",
+      "tags": [
+        "implementation",
+        "function",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_cli_env_skip.py",
+      "type": "file",
+      "name": "test_cli_env_skip.py",
+      "filePath": "tests/test_cli_env_skip.py",
+      "summary": "项目文件 tests/test_cli_env_skip.py，承载与 TradingAgents 分析平台相关的结构化内容或实现逻辑。",
+      "tags": [
+        "test",
+        "environment",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_cli_env_skip.py:TestProviderDefaultUrl",
+      "type": "class",
+      "name": "TestProviderDefaultUrl",
+      "filePath": "tests/test_cli_env_skip.py",
+      "lineRange": [
+        16,
+        30
+      ],
+      "summary": "封装 TestProviderDefaultUrl，组织该模块的相关状态与行为。",
+      "tags": [
+        "implementation",
+        "class",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_cli_env_skip.py:TestCliSkipsPromptsFromEnv",
+      "type": "class",
+      "name": "TestCliSkipsPromptsFromEnv",
+      "filePath": "tests/test_cli_env_skip.py",
+      "lineRange": [
+        34,
+        82
+      ],
+      "summary": "封装 TestCliSkipsPromptsFromEnv，组织该模块的相关状态与行为。",
+      "tags": [
+        "implementation",
+        "class",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_cli_env_skip.py:TestResearchDepthSkippedFromEnv",
+      "type": "class",
+      "name": "TestResearchDepthSkippedFromEnv",
+      "filePath": "tests/test_cli_env_skip.py",
+      "lineRange": [
+        86,
+        115
+      ],
+      "summary": "封装 TestResearchDepthSkippedFromEnv，组织该模块的相关状态与行为。",
+      "tags": [
+        "implementation",
+        "class",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_cli_env_skip.py:TestReasoningEffortSkippedFromEnv",
+      "type": "class",
+      "name": "TestReasoningEffortSkippedFromEnv",
+      "filePath": "tests/test_cli_env_skip.py",
+      "lineRange": [
+        119,
+        145
+      ],
+      "summary": "封装 TestReasoningEffortSkippedFromEnv，组织该模块的相关状态与行为。",
+      "tags": [
+        "implementation",
+        "class",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:tests/conftest.py",
+      "target": "function:tests/conftest.py:pytest_configure",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/conftest.py",
+      "target": "function:tests/conftest.py:pytest_configure",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/conftest.py",
+      "target": "function:tests/conftest.py:_dummy_api_keys",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/conftest.py",
+      "target": "function:tests/conftest.py:_dummy_api_keys",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/conftest.py",
+      "target": "function:tests/conftest.py:_isolate_config",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/conftest.py",
+      "target": "function:tests/conftest.py:_isolate_config",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/conftest.py",
+      "target": "function:tests/conftest.py:mock_llm_client",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/conftest.py",
+      "target": "function:tests/conftest.py:mock_llm_client",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_cli_env_skip.py",
+      "target": "class:tests/test_cli_env_skip.py:TestProviderDefaultUrl",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_cli_env_skip.py",
+      "target": "class:tests/test_cli_env_skip.py:TestProviderDefaultUrl",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_cli_env_skip.py",
+      "target": "class:tests/test_cli_env_skip.py:TestCliSkipsPromptsFromEnv",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_cli_env_skip.py",
+      "target": "class:tests/test_cli_env_skip.py:TestCliSkipsPromptsFromEnv",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_cli_env_skip.py",
+      "target": "class:tests/test_cli_env_skip.py:TestResearchDepthSkippedFromEnv",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_cli_env_skip.py",
+      "target": "class:tests/test_cli_env_skip.py:TestResearchDepthSkippedFromEnv",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_cli_env_skip.py",
+      "target": "class:tests/test_cli_env_skip.py:TestReasoningEffortSkippedFromEnv",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_cli_env_skip.py",
+      "target": "class:tests/test_cli_env_skip.py:TestReasoningEffortSkippedFromEnv",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

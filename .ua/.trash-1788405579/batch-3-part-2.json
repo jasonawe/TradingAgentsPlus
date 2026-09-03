@@ -1,0 +1,1259 @@
+{
+  "nodes": [
+    {
+      "id": "file:tests/test_memory_log.py",
+      "type": "file",
+      "name": "test_memory_log.py",
+      "filePath": "tests/test_memory_log.py",
+      "summary": "覆盖 test_memory_log.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_memory_log.py:make_log",
+      "type": "function",
+      "name": "make_log",
+      "filePath": "tests/test_memory_log.py",
+      "lineRange": [
+        34,
+        36
+      ],
+      "summary": "位于 tests/test_memory_log.py 的函数 make_log，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_memory_log.py:_seed_completed",
+      "type": "function",
+      "name": "_seed_completed",
+      "filePath": "tests/test_memory_log.py",
+      "lineRange": [
+        39,
+        48
+      ],
+      "summary": "位于 tests/test_memory_log.py 的函数 _seed_completed，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_memory_log.py:_resolve_entry",
+      "type": "function",
+      "name": "_resolve_entry",
+      "filePath": "tests/test_memory_log.py",
+      "lineRange": [
+        51,
+        54
+      ],
+      "summary": "位于 tests/test_memory_log.py 的函数 _resolve_entry，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_memory_log.py:_price_df",
+      "type": "function",
+      "name": "_price_df",
+      "filePath": "tests/test_memory_log.py",
+      "lineRange": [
+        57,
+        59
+      ],
+      "summary": "位于 tests/test_memory_log.py 的函数 _price_df，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_memory_log.py:_make_pm_state",
+      "type": "function",
+      "name": "_make_pm_state",
+      "filePath": "tests/test_memory_log.py",
+      "lineRange": [
+        62,
+        84
+      ],
+      "summary": "位于 tests/test_memory_log.py 的函数 _make_pm_state，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_memory_log.py:_structured_pm_llm",
+      "type": "function",
+      "name": "_structured_pm_llm",
+      "filePath": "tests/test_memory_log.py",
+      "lineRange": [
+        87,
+        103
+      ],
+      "summary": "位于 tests/test_memory_log.py 的函数 _structured_pm_llm，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_memory_log.py:TestTradingMemoryLogCore",
+      "type": "class",
+      "name": "TestTradingMemoryLogCore",
+      "filePath": "tests/test_memory_log.py",
+      "lineRange": [
+        110,
+        380
+      ],
+      "summary": "位于 tests/test_memory_log.py 的类 TestTradingMemoryLogCore，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:tests/test_memory_log.py:TestDeferredReflection",
+      "type": "class",
+      "name": "TestDeferredReflection",
+      "filePath": "tests/test_memory_log.py",
+      "lineRange": [
+        387,
+        666
+      ],
+      "summary": "位于 tests/test_memory_log.py 的类 TestDeferredReflection，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:tests/test_memory_log.py:TestPortfolioManagerInjection",
+      "type": "class",
+      "name": "TestPortfolioManagerInjection",
+      "filePath": "tests/test_memory_log.py",
+      "lineRange": [
+        673,
+        798
+      ],
+      "summary": "位于 tests/test_memory_log.py 的类 TestPortfolioManagerInjection，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:tests/test_memory_log.py:TestLegacyRemoval",
+      "type": "class",
+      "name": "TestLegacyRemoval",
+      "filePath": "tests/test_memory_log.py",
+      "lineRange": [
+        805,
+        871
+      ],
+      "summary": "位于 tests/test_memory_log.py 的类 TestLegacyRemoval，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_reporting.py",
+      "type": "file",
+      "name": "test_reporting.py",
+      "filePath": "tests/test_reporting.py",
+      "summary": "覆盖 test_reporting.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_reporting.py:_state",
+      "type": "function",
+      "name": "_state",
+      "filePath": "tests/test_reporting.py",
+      "lineRange": [
+        12,
+        19
+      ],
+      "summary": "位于 tests/test_reporting.py 的函数 _state，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_reporting.py:test_write_report_tree_creates_files",
+      "type": "function",
+      "name": "test_write_report_tree_creates_files",
+      "filePath": "tests/test_reporting.py",
+      "lineRange": [
+        23,
+        33
+      ],
+      "summary": "位于 tests/test_reporting.py 的函数 test_write_report_tree_creates_files，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_reporting.py:test_save_reports_explicit_path",
+      "type": "function",
+      "name": "test_save_reports_explicit_path",
+      "filePath": "tests/test_reporting.py",
+      "lineRange": [
+        37,
+        41
+      ],
+      "summary": "位于 tests/test_reporting.py 的函数 test_save_reports_explicit_path，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_reporting.py:test_save_reports_defaults_under_results_dir",
+      "type": "function",
+      "name": "test_save_reports_defaults_under_results_dir",
+      "filePath": "tests/test_reporting.py",
+      "lineRange": [
+        45,
+        50
+      ],
+      "summary": "位于 tests/test_reporting.py 的函数 test_save_reports_defaults_under_results_dir，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_risk_router_path_map.py",
+      "type": "file",
+      "name": "test_risk_router_path_map.py",
+      "filePath": "tests/test_risk_router_path_map.py",
+      "summary": "覆盖 test_risk_router_path_map.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_risk_router_path_map.py:_state",
+      "type": "function",
+      "name": "_state",
+      "filePath": "tests/test_risk_router_path_map.py",
+      "lineRange": [
+        16,
+        17
+      ],
+      "summary": "位于 tests/test_risk_router_path_map.py 的函数 _state，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_risk_router_path_map.py:_debate_state",
+      "type": "function",
+      "name": "_debate_state",
+      "filePath": "tests/test_risk_router_path_map.py",
+      "lineRange": [
+        20,
+        21
+      ],
+      "summary": "位于 tests/test_risk_router_path_map.py 的函数 _debate_state，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_risk_router_path_map.py:test_router_return_always_routable",
+      "type": "function",
+      "name": "test_router_return_always_routable",
+      "filePath": "tests/test_risk_router_path_map.py",
+      "lineRange": [
+        33,
+        36
+      ],
+      "summary": "位于 tests/test_risk_router_path_map.py 的函数 test_router_return_always_routable，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_risk_router_path_map.py:test_router_terminates_at_round_limit",
+      "type": "function",
+      "name": "test_router_terminates_at_round_limit",
+      "filePath": "tests/test_risk_router_path_map.py",
+      "lineRange": [
+        40,
+        43
+      ],
+      "summary": "位于 tests/test_risk_router_path_map.py 的函数 test_router_terminates_at_round_limit，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_risk_router_path_map.py:test_path_map_covers_full_router_range",
+      "type": "function",
+      "name": "test_path_map_covers_full_router_range",
+      "filePath": "tests/test_risk_router_path_map.py",
+      "lineRange": [
+        47,
+        57
+      ],
+      "summary": "位于 tests/test_risk_router_path_map.py 的函数 test_path_map_covers_full_router_range，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_risk_router_path_map.py:test_debate_router_return_always_routable",
+      "type": "function",
+      "name": "test_debate_router_return_always_routable",
+      "filePath": "tests/test_risk_router_path_map.py",
+      "lineRange": [
+        66,
+        69
+      ],
+      "summary": "位于 tests/test_risk_router_path_map.py 的函数 test_debate_router_return_always_routable，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_risk_router_path_map.py:test_debate_path_map_covers_full_router_range",
+      "type": "function",
+      "name": "test_debate_path_map_covers_full_router_range",
+      "filePath": "tests/test_risk_router_path_map.py",
+      "lineRange": [
+        73,
+        81
+      ],
+      "summary": "位于 tests/test_risk_router_path_map.py 的函数 test_debate_path_map_covers_full_router_range，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_signal_processing.py",
+      "type": "file",
+      "name": "test_signal_processing.py",
+      "filePath": "tests/test_signal_processing.py",
+      "summary": "覆盖 test_signal_processing.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_signal_processing.py:TestParseRating",
+      "type": "class",
+      "name": "TestParseRating",
+      "filePath": "tests/test_signal_processing.py",
+      "lineRange": [
+        22,
+        61
+      ],
+      "summary": "位于 tests/test_signal_processing.py 的类 TestParseRating，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_signal_processing.py:TestSignalProcessor",
+      "type": "class",
+      "name": "TestSignalProcessor",
+      "filePath": "tests/test_signal_processing.py",
+      "lineRange": [
+        70,
+        89
+      ],
+      "summary": "位于 tests/test_signal_processing.py 的类 TestSignalProcessor，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_symbol_normalization_paths.py",
+      "type": "file",
+      "name": "test_symbol_normalization_paths.py",
+      "filePath": "tests/test_symbol_normalization_paths.py",
+      "summary": "覆盖 test_symbol_normalization_paths.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_symbol_normalization_paths.py:test_identity_lookup_normalizes_symbol",
+      "type": "function",
+      "name": "test_identity_lookup_normalizes_symbol",
+      "filePath": "tests/test_symbol_normalization_paths.py",
+      "lineRange": [
+        16,
+        33
+      ],
+      "summary": "位于 tests/test_symbol_normalization_paths.py 的函数 test_identity_lookup_normalizes_symbol，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_symbol_normalization_paths.py:test_fetch_returns_normalizes_symbol",
+      "type": "function",
+      "name": "test_fetch_returns_normalizes_symbol",
+      "filePath": "tests/test_symbol_normalization_paths.py",
+      "lineRange": [
+        36,
+        55
+      ],
+      "summary": "位于 tests/test_symbol_normalization_paths.py 的函数 test_fetch_returns_normalizes_symbol，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_symbol_normalization_paths.py:test_news_lookup_normalizes_symbol",
+      "type": "function",
+      "name": "test_news_lookup_normalizes_symbol",
+      "filePath": "tests/test_symbol_normalization_paths.py",
+      "lineRange": [
+        58,
+        75
+      ],
+      "summary": "位于 tests/test_symbol_normalization_paths.py 的函数 test_news_lookup_normalizes_symbol，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_web_command.py",
+      "type": "file",
+      "name": "test_web_command.py",
+      "filePath": "tests/test_web_command.py",
+      "summary": "覆盖 test_web_command.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_command.py:test_web_command_starts_uvicorn_without_api_key",
+      "type": "function",
+      "name": "test_web_command_starts_uvicorn_without_api_key",
+      "filePath": "tests/test_web_command.py",
+      "lineRange": [
+        9,
+        23
+      ],
+      "summary": "位于 tests/test_web_command.py 的函数 test_web_command_starts_uvicorn_without_api_key，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_web_command.py:test_web_command_allows_external_host_binding",
+      "type": "function",
+      "name": "test_web_command_allows_external_host_binding",
+      "filePath": "tests/test_web_command.py",
+      "lineRange": [
+        26,
+        40
+      ],
+      "summary": "位于 tests/test_web_command.py 的函数 test_web_command_allows_external_host_binding，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "Web",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/agent_states.py",
+      "type": "file",
+      "name": "agent_states.py",
+      "filePath": "tradingagents/agents/utils/agent_states.py",
+      "summary": "实现 tradingagents/agents/utils/agent_states.py 在交易分析系统中的核心逻辑，对外提供 InvestDebateState、RiskDebateState、AgentState 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/agents/utils/agent_states.py:InvestDebateState",
+      "type": "class",
+      "name": "InvestDebateState",
+      "filePath": "tradingagents/agents/utils/agent_states.py",
+      "lineRange": [
+        8,
+        18
+      ],
+      "summary": "位于 tradingagents/agents/utils/agent_states.py 的类 InvestDebateState，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/agents/utils/agent_states.py:RiskDebateState",
+      "type": "class",
+      "name": "RiskDebateState",
+      "filePath": "tradingagents/agents/utils/agent_states.py",
+      "lineRange": [
+        22,
+        44
+      ],
+      "summary": "位于 tradingagents/agents/utils/agent_states.py 的类 RiskDebateState，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tradingagents/agents/utils/agent_states.py:AgentState",
+      "type": "class",
+      "name": "AgentState",
+      "filePath": "tradingagents/agents/utils/agent_states.py",
+      "lineRange": [
+        47,
+        76
+      ],
+      "summary": "位于 tradingagents/agents/utils/agent_states.py 的类 AgentState，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/memory.py",
+      "type": "file",
+      "name": "memory.py",
+      "filePath": "tradingagents/agents/utils/memory.py",
+      "summary": "实现 tradingagents/agents/utils/memory.py 在交易分析系统中的核心逻辑，对外提供 TradingMemoryLog 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:tradingagents/agents/utils/memory.py:TradingMemoryLog",
+      "type": "class",
+      "name": "TradingMemoryLog",
+      "filePath": "tradingagents/agents/utils/memory.py",
+      "lineRange": [
+        9,
+        299
+      ],
+      "summary": "位于 tradingagents/agents/utils/memory.py 的类 TradingMemoryLog，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tradingagents/agents/utils/rating.py",
+      "type": "file",
+      "name": "rating.py",
+      "filePath": "tradingagents/agents/utils/rating.py",
+      "summary": "实现 tradingagents/agents/utils/rating.py 在交易分析系统中的核心逻辑，对外提供 parse_rating 等接口，并负责相关数据或流程的协调。",
+      "tags": [
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tradingagents/agents/utils/rating.py:parse_rating",
+      "type": "function",
+      "name": "parse_rating",
+      "filePath": "tradingagents/agents/utils/rating.py",
+      "lineRange": [
+        28,
+        48
+      ],
+      "summary": "位于 tradingagents/agents/utils/rating.py 的函数 parse_rating，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "智能体",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "function:tests/test_memory_log.py:make_log",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "function:tests/test_memory_log.py:_seed_completed",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "function:tests/test_memory_log.py:_resolve_entry",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "function:tests/test_memory_log.py:_price_df",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "function:tests/test_memory_log.py:_make_pm_state",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "function:tests/test_memory_log.py:_structured_pm_llm",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "class:tests/test_memory_log.py:TestTradingMemoryLogCore",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "class:tests/test_memory_log.py:TestDeferredReflection",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "class:tests/test_memory_log.py:TestPortfolioManagerInjection",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "class:tests/test_memory_log.py:TestLegacyRemoval",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "function:tests/test_memory_log.py:make_log",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "function:tests/test_memory_log.py:_seed_completed",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "function:tests/test_memory_log.py:_resolve_entry",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "function:tests/test_memory_log.py:_price_df",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "function:tests/test_memory_log.py:_make_pm_state",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "function:tests/test_memory_log.py:_structured_pm_llm",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "class:tests/test_memory_log.py:TestTradingMemoryLogCore",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "class:tests/test_memory_log.py:TestDeferredReflection",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "class:tests/test_memory_log.py:TestPortfolioManagerInjection",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "class:tests/test_memory_log.py:TestLegacyRemoval",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "file:tradingagents/agents/managers/portfolio_manager.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "file:tradingagents/agents/schemas.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "file:tradingagents/agents/utils/memory.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "file:tradingagents/graph/propagation.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "file:tradingagents/graph/reflection.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_memory_log.py",
+      "target": "file:tradingagents/graph/trading_graph.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_reporting.py",
+      "target": "function:tests/test_reporting.py:_state",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_reporting.py",
+      "target": "function:tests/test_reporting.py:test_write_report_tree_creates_files",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_reporting.py",
+      "target": "function:tests/test_reporting.py:test_save_reports_explicit_path",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_reporting.py",
+      "target": "function:tests/test_reporting.py:test_save_reports_defaults_under_results_dir",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_reporting.py",
+      "target": "function:tests/test_reporting.py:_state",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_reporting.py",
+      "target": "function:tests/test_reporting.py:test_write_report_tree_creates_files",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_reporting.py",
+      "target": "function:tests/test_reporting.py:test_save_reports_explicit_path",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_reporting.py",
+      "target": "function:tests/test_reporting.py:test_save_reports_defaults_under_results_dir",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_reporting.py",
+      "target": "file:tradingagents/graph/trading_graph.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_reporting.py",
+      "target": "file:tradingagents/reporting.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_risk_router_path_map.py",
+      "target": "function:tests/test_risk_router_path_map.py:_state",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_risk_router_path_map.py",
+      "target": "function:tests/test_risk_router_path_map.py:_debate_state",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_risk_router_path_map.py",
+      "target": "function:tests/test_risk_router_path_map.py:test_router_return_always_routable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_risk_router_path_map.py",
+      "target": "function:tests/test_risk_router_path_map.py:test_router_terminates_at_round_limit",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_risk_router_path_map.py",
+      "target": "function:tests/test_risk_router_path_map.py:test_path_map_covers_full_router_range",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_risk_router_path_map.py",
+      "target": "function:tests/test_risk_router_path_map.py:test_debate_router_return_always_routable",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_risk_router_path_map.py",
+      "target": "function:tests/test_risk_router_path_map.py:test_debate_path_map_covers_full_router_range",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_risk_router_path_map.py",
+      "target": "function:tests/test_risk_router_path_map.py:_state",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_risk_router_path_map.py",
+      "target": "function:tests/test_risk_router_path_map.py:_debate_state",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_risk_router_path_map.py",
+      "target": "function:tests/test_risk_router_path_map.py:test_router_return_always_routable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_risk_router_path_map.py",
+      "target": "function:tests/test_risk_router_path_map.py:test_router_terminates_at_round_limit",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_risk_router_path_map.py",
+      "target": "function:tests/test_risk_router_path_map.py:test_path_map_covers_full_router_range",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_risk_router_path_map.py",
+      "target": "function:tests/test_risk_router_path_map.py:test_debate_router_return_always_routable",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_risk_router_path_map.py",
+      "target": "function:tests/test_risk_router_path_map.py:test_debate_path_map_covers_full_router_range",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_risk_router_path_map.py",
+      "target": "file:tradingagents/graph/conditional_logic.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_risk_router_path_map.py",
+      "target": "file:tradingagents/graph/setup.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_signal_processing.py",
+      "target": "class:tests/test_signal_processing.py:TestParseRating",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_signal_processing.py",
+      "target": "class:tests/test_signal_processing.py:TestSignalProcessor",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_signal_processing.py",
+      "target": "class:tests/test_signal_processing.py:TestParseRating",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_signal_processing.py",
+      "target": "class:tests/test_signal_processing.py:TestSignalProcessor",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_signal_processing.py",
+      "target": "file:tradingagents/agents/utils/rating.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_signal_processing.py",
+      "target": "file:tradingagents/graph/signal_processing.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_symbol_normalization_paths.py",
+      "target": "function:tests/test_symbol_normalization_paths.py:test_identity_lookup_normalizes_symbol",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_symbol_normalization_paths.py",
+      "target": "function:tests/test_symbol_normalization_paths.py:test_fetch_returns_normalizes_symbol",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_symbol_normalization_paths.py",
+      "target": "function:tests/test_symbol_normalization_paths.py:test_news_lookup_normalizes_symbol",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_symbol_normalization_paths.py",
+      "target": "function:tests/test_symbol_normalization_paths.py:test_identity_lookup_normalizes_symbol",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_symbol_normalization_paths.py",
+      "target": "function:tests/test_symbol_normalization_paths.py:test_fetch_returns_normalizes_symbol",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_symbol_normalization_paths.py",
+      "target": "function:tests/test_symbol_normalization_paths.py:test_news_lookup_normalizes_symbol",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_symbol_normalization_paths.py",
+      "target": "file:tradingagents/agents/utils/agent_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_symbol_normalization_paths.py",
+      "target": "file:tradingagents/dataflows/yfinance_news.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_symbol_normalization_paths.py",
+      "target": "file:tradingagents/graph/trading_graph.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_web_command.py",
+      "target": "function:tests/test_web_command.py:test_web_command_starts_uvicorn_without_api_key",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_command.py",
+      "target": "function:tests/test_web_command.py:test_web_command_allows_external_host_binding",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_web_command.py",
+      "target": "function:tests/test_web_command.py:test_web_command_starts_uvicorn_without_api_key",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_command.py",
+      "target": "function:tests/test_web_command.py:test_web_command_allows_external_host_binding",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_web_command.py",
+      "target": "file:cli/main.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_states.py",
+      "target": "class:tradingagents/agents/utils/agent_states.py:InvestDebateState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_states.py",
+      "target": "class:tradingagents/agents/utils/agent_states.py:RiskDebateState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_states.py",
+      "target": "class:tradingagents/agents/utils/agent_states.py:AgentState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_states.py",
+      "target": "class:tradingagents/agents/utils/agent_states.py:InvestDebateState",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_states.py",
+      "target": "class:tradingagents/agents/utils/agent_states.py:RiskDebateState",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/agent_states.py",
+      "target": "class:tradingagents/agents/utils/agent_states.py:AgentState",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/memory.py",
+      "target": "class:tradingagents/agents/utils/memory.py:TradingMemoryLog",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/memory.py",
+      "target": "class:tradingagents/agents/utils/memory.py:TradingMemoryLog",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tradingagents/agents/utils/memory.py",
+      "target": "file:tradingagents/agents/utils/rating.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tradingagents/agents/utils/rating.py",
+      "target": "function:tradingagents/agents/utils/rating.py:parse_rating",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tradingagents/agents/utils/rating.py",
+      "target": "function:tradingagents/agents/utils/rating.py:parse_rating",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

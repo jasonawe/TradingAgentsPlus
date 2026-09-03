@@ -1,21 +1,29 @@
 {
   "name": "tradingagents",
-  "description": "TradingAgents is a multi-agent LLM financial trading framework for research, combining specialized analysts, researchers, traders, and risk management agents. Note: this project has over 100 source files; consider scoping analysis to a subdirectory for faster results.",
+  "description": "TradingAgents 是一个由多智能体与大语言模型驱动的金融交易框架。注意：该项目包含超过 100 个源文件；如需更快的分析，建议将范围限定到某个子目录。",
   "languages": [
     "config",
+    "css",
     "dockerfile",
+    "html",
+    "javascript",
+    "json",
     "markdown",
     "python",
+    "sql",
+    "stderr",
     "toml",
     "txt",
     "unknown",
     "yaml"
   ],
   "frameworks": [
+    "FastAPI",
+    "Uvicorn",
+    "Pytest",
     "Docker",
     "Docker Compose",
-    "GitHub Actions",
-    "Pytest"
+    "GitHub Actions"
   ],
   "files": [
     {
@@ -39,8 +47,68 @@
     {
       "path": ".github/workflows/ci.yml",
       "language": "yaml",
-      "sizeLines": 61,
+      "sizeLines": 88,
       "fileCategory": "infra"
+    },
+    {
+      "path": ".superpowers/brainstorm/41801-1787718122/.server-stopped",
+      "language": "unknown",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".superpowers/brainstorm/41801-1787718122/console-layout.html",
+      "language": "html",
+      "sizeLines": 80,
+      "fileCategory": "markup"
+    },
+    {
+      "path": ".superpowers/brainstorm/41801-1787718122/visual-style.html",
+      "language": "html",
+      "sizeLines": 48,
+      "fileCategory": "markup"
+    },
+    {
+      "path": ".superpowers/brainstorm/41801-1787718122/waiting-architecture.html",
+      "language": "html",
+      "sizeLines": 3,
+      "fileCategory": "markup"
+    },
+    {
+      "path": ".superpowers/brainstorm/70330-1787815068/.server-stopped",
+      "language": "unknown",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".superpowers/brainstorm/70330-1787815068/portfolio-layout-options.html",
+      "language": "html",
+      "sizeLines": 62,
+      "fileCategory": "markup"
+    },
+    {
+      "path": ".superpowers/brainstorm/81139-1787817330/.server-stopped",
+      "language": "unknown",
+      "sizeLines": 1,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".superpowers/brainstorm/81139-1787817330/portfolio-layout-options.html",
+      "language": "html",
+      "sizeLines": 8,
+      "fileCategory": "markup"
+    },
+    {
+      "path": ".superpowers/brainstorm/81139-1787817330/report-reading-options.html",
+      "language": "html",
+      "sizeLines": 19,
+      "fileCategory": "markup"
+    },
+    {
+      "path": ".superpowers/brainstorm/81139-1787817330/waiting-architecture.html",
+      "language": "html",
+      "sizeLines": 3,
+      "fileCategory": "markup"
     },
     {
       "path": "CHANGELOG.md",
@@ -57,7 +125,7 @@
     {
       "path": "README.md",
       "language": "markdown",
-      "sizeLines": 304,
+      "sizeLines": 384,
       "fileCategory": "docs"
     },
     {
@@ -81,7 +149,7 @@
     {
       "path": "cli/main.py",
       "language": "python",
-      "sizeLines": 1317,
+      "sizeLines": 1347,
       "fileCategory": "code"
     },
     {
@@ -115,6 +183,114 @@
       "fileCategory": "infra"
     },
     {
+      "path": "docs/superpowers/plans/2026-08-26-web-analysis-console-plan.md",
+      "language": "markdown",
+      "sizeLines": 459,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-27-personal-investor-platform-plan.md",
+      "language": "markdown",
+      "sizeLines": 314,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-27-web-report-library-models-language-plan.md",
+      "language": "markdown",
+      "sizeLines": 41,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-28-report-publish-integrity-plan.md",
+      "language": "markdown",
+      "sizeLines": 43,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-31-platform-reliability-operations-plan.md",
+      "language": "markdown",
+      "sizeLines": 632,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-31-rating-localization-plan.md",
+      "language": "markdown",
+      "sizeLines": 111,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-09-01-compact-section-headers.md",
+      "language": "markdown",
+      "sizeLines": 42,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-09-02-manager-concurrency.md",
+      "language": "markdown",
+      "sizeLines": 705,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-09-02-scheduled-analysis.md",
+      "language": "markdown",
+      "sizeLines": 77,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-26-web-analysis-console-design.md",
+      "language": "markdown",
+      "sizeLines": 329,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-27-personal-investor-platform-design.md",
+      "language": "markdown",
+      "sizeLines": 379,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-27-web-report-library-models-language-design.md",
+      "language": "markdown",
+      "sizeLines": 181,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-31-platform-reliability-operations-design.md",
+      "language": "markdown",
+      "sizeLines": 253,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-08-31-rating-localization-design.md",
+      "language": "markdown",
+      "sizeLines": 61,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-01-analysis-timeout-recovery-design.md",
+      "language": "markdown",
+      "sizeLines": 247,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-01-compact-section-headers-design.md",
+      "language": "markdown",
+      "sizeLines": 30,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-02-scheduled-analysis-design.md",
+      "language": "markdown",
+      "sizeLines": 392,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-02-ui-modern-redesign-design.md",
+      "language": "markdown",
+      "sizeLines": 219,
+      "fileCategory": "docs"
+    },
+    {
       "path": "main.py",
       "language": "python",
       "sizeLines": 19,
@@ -123,7 +299,7 @@
     {
       "path": "pyproject.toml",
       "language": "toml",
-      "sizeLines": 88,
+      "sizeLines": 101,
       "fileCategory": "config"
     },
     {
@@ -171,7 +347,7 @@
     {
       "path": "tests/test_anthropic_effort.py",
       "language": "python",
-      "sizeLines": 98,
+      "sizeLines": 114,
       "fileCategory": "code"
     },
     {
@@ -196,6 +372,12 @@
       "path": "tests/test_checkpoint_resume.py",
       "language": "python",
       "sizeLines": 218,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_chunk3_contract_fixes.py",
+      "language": "python",
+      "sizeLines": 92,
       "fileCategory": "code"
     },
     {
@@ -253,6 +435,12 @@
       "fileCategory": "code"
     },
     {
+      "path": "tests/test_error_classifier.py",
+      "language": "python",
+      "sizeLines": 133,
+      "fileCategory": "code"
+    },
+    {
       "path": "tests/test_fred.py",
       "language": "python",
       "sizeLines": 194,
@@ -268,6 +456,12 @@
       "path": "tests/test_google_thinking_level.py",
       "language": "python",
       "sizeLines": 46,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_graph_stream_callbacks.py",
+      "language": "python",
+      "sizeLines": 226,
       "fileCategory": "code"
     },
     {
@@ -289,9 +483,21 @@
       "fileCategory": "code"
     },
     {
+      "path": "tests/test_llm_timeout.py",
+      "language": "python",
+      "sizeLines": 158,
+      "fileCategory": "code"
+    },
+    {
       "path": "tests/test_market_data_validator.py",
       "language": "python",
       "sizeLines": 76,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_market_localization.py",
+      "language": "python",
+      "sizeLines": 163,
       "fileCategory": "code"
     },
     {
@@ -345,7 +551,7 @@
     {
       "path": "tests/test_ollama_base_url.py",
       "language": "python",
-      "sizeLines": 188,
+      "sizeLines": 196,
       "fileCategory": "code"
     },
     {
@@ -357,7 +563,7 @@
     {
       "path": "tests/test_openai_reasoning_effort.py",
       "language": "python",
-      "sizeLines": 42,
+      "sizeLines": 52,
       "fileCategory": "code"
     },
     {
@@ -370,6 +576,12 @@
       "path": "tests/test_openrouter_model_select.py",
       "language": "python",
       "sizeLines": 122,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_packaging_contract.py",
+      "language": "python",
+      "sizeLines": 9,
       "fileCategory": "code"
     },
     {
@@ -403,9 +615,39 @@
       "fileCategory": "code"
     },
     {
+      "path": "tests/test_run_manager_concurrency.py",
+      "language": "python",
+      "sizeLines": 140,
+      "fileCategory": "code"
+    },
+    {
       "path": "tests/test_safe_ticker_component.py",
       "language": "python",
       "sizeLines": 57,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_scheduled_api.py",
+      "language": "python",
+      "sizeLines": 325,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_scheduled_primitives.py",
+      "language": "python",
+      "sizeLines": 176,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_scheduled_repositories.py",
+      "language": "python",
+      "sizeLines": 293,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_scheduled_service.py",
+      "language": "python",
+      "sizeLines": 494,
       "fileCategory": "code"
     },
     {
@@ -453,7 +695,7 @@
     {
       "path": "tests/test_temperature_config.py",
       "language": "python",
-      "sizeLines": 83,
+      "sizeLines": 101,
       "fileCategory": "code"
     },
     {
@@ -472,6 +714,132 @@
       "path": "tests/test_vendor_routing.py",
       "language": "python",
       "sizeLines": 123,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_api.py",
+      "language": "python",
+      "sizeLines": 538,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_api_recovery.py",
+      "language": "python",
+      "sizeLines": 179,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_artifacts.py",
+      "language": "python",
+      "sizeLines": 257,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_browser.py",
+      "language": "python",
+      "sizeLines": 265,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_command.py",
+      "language": "python",
+      "sizeLines": 40,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_history.py",
+      "language": "python",
+      "sizeLines": 214,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_lease.py",
+      "language": "python",
+      "sizeLines": 163,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_manager.py",
+      "language": "python",
+      "sizeLines": 672,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_markdown.py",
+      "language": "python",
+      "sizeLines": 42,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_market_data.py",
+      "language": "python",
+      "sizeLines": 496,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_market_providers.py",
+      "language": "python",
+      "sizeLines": 124,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_models.py",
+      "language": "python",
+      "sizeLines": 305,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_repositories.py",
+      "language": "python",
+      "sizeLines": 324,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_retry.py",
+      "language": "python",
+      "sizeLines": 287,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_runner.py",
+      "language": "python",
+      "sizeLines": 219,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_runner_recovery.py",
+      "language": "python",
+      "sizeLines": 135,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_settings.py",
+      "language": "python",
+      "sizeLines": 28,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_snapshots.py",
+      "language": "python",
+      "sizeLines": 93,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_static.py",
+      "language": "python",
+      "sizeLines": 460,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_storage.py",
+      "language": "python",
+      "sizeLines": 265,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tests/test_web_synthesis.py",
+      "language": "python",
+      "sizeLines": 40,
       "fileCategory": "code"
     },
     {
@@ -663,7 +1031,7 @@
     {
       "path": "tradingagents/dataflows/alpha_vantage_common.py",
       "language": "python",
-      "sizeLines": 151,
+      "sizeLines": 160,
       "fileCategory": "code"
     },
     {
@@ -693,7 +1061,7 @@
     {
       "path": "tradingagents/dataflows/config.py",
       "language": "python",
-      "sizeLines": 41,
+      "sizeLines": 60,
       "fileCategory": "code"
     },
     {
@@ -771,13 +1139,13 @@
     {
       "path": "tradingagents/default_config.py",
       "language": "python",
-      "sizeLines": 164,
+      "sizeLines": 174,
       "fileCategory": "code"
     },
     {
       "path": "tradingagents/graph/__init__.py",
       "language": "python",
-      "sizeLines": 17,
+      "sizeLines": 18,
       "fileCategory": "code"
     },
     {
@@ -801,7 +1169,7 @@
     {
       "path": "tradingagents/graph/propagation.py",
       "language": "python",
-      "sizeLines": 84,
+      "sizeLines": 88,
       "fileCategory": "code"
     },
     {
@@ -825,7 +1193,7 @@
     {
       "path": "tradingagents/graph/trading_graph.py",
       "language": "python",
-      "sizeLines": 528,
+      "sizeLines": 576,
       "fileCategory": "code"
     },
     {
@@ -837,7 +1205,7 @@
     {
       "path": "tradingagents/llm_clients/anthropic_client.py",
       "language": "python",
-      "sizeLines": 78,
+      "sizeLines": 91,
       "fileCategory": "code"
     },
     {
@@ -849,19 +1217,19 @@
     {
       "path": "tradingagents/llm_clients/azure_client.py",
       "language": "python",
-      "sizeLines": 51,
+      "sizeLines": 64,
       "fileCategory": "code"
     },
     {
       "path": "tradingagents/llm_clients/base_client.py",
       "language": "python",
-      "sizeLines": 62,
+      "sizeLines": 116,
       "fileCategory": "code"
     },
     {
       "path": "tradingagents/llm_clients/bedrock_client.py",
       "language": "python",
-      "sizeLines": 76,
+      "sizeLines": 89,
       "fileCategory": "code"
     },
     {
@@ -879,7 +1247,7 @@
     {
       "path": "tradingagents/llm_clients/google_client.py",
       "language": "python",
-      "sizeLines": 57,
+      "sizeLines": 70,
       "fileCategory": "code"
     },
     {
@@ -891,7 +1259,7 @@
     {
       "path": "tradingagents/llm_clients/openai_client.py",
       "language": "python",
-      "sizeLines": 337,
+      "sizeLines": 350,
       "fileCategory": "code"
     },
     {
@@ -905,16 +1273,284 @@
       "language": "python",
       "sizeLines": 101,
       "fileCategory": "code"
+    },
+    {
+      "path": "web/__init__.py",
+      "language": "python",
+      "sizeLines": 5,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/app.py",
+      "language": "python",
+      "sizeLines": 947,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/artifacts.py",
+      "language": "python",
+      "sizeLines": 191,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/checkpoint_resume.py",
+      "language": "python",
+      "sizeLines": 147,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/config.py",
+      "language": "python",
+      "sizeLines": 249,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/error_classifier.py",
+      "language": "python",
+      "sizeLines": 227,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/error_codes.py",
+      "language": "python",
+      "sizeLines": 120,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/history.py",
+      "language": "python",
+      "sizeLines": 571,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/lease.py",
+      "language": "python",
+      "sizeLines": 112,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/manager.py",
+      "language": "python",
+      "sizeLines": 1586,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/markdown.py",
+      "language": "python",
+      "sizeLines": 74,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/market_data.py",
+      "language": "python",
+      "sizeLines": 474,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/market_localization.py",
+      "language": "python",
+      "sizeLines": 244,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/market_models.py",
+      "language": "python",
+      "sizeLines": 251,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/migrations/001_personal_platform.sql",
+      "language": "sql",
+      "sizeLines": 106,
+      "fileCategory": "data"
+    },
+    {
+      "path": "web/migrations/002_reliability_operations.sql",
+      "language": "sql",
+      "sizeLines": 61,
+      "fileCategory": "data"
+    },
+    {
+      "path": "web/migrations/003_watchlist_newest_first.sql",
+      "language": "sql",
+      "sizeLines": 2,
+      "fileCategory": "data"
+    },
+    {
+      "path": "web/migrations/004_analysis_timeout_recovery.sql",
+      "language": "sql",
+      "sizeLines": 29,
+      "fileCategory": "data"
+    },
+    {
+      "path": "web/migrations/005_scheduled_analysis.sql",
+      "language": "sql",
+      "sizeLines": 31,
+      "fileCategory": "data"
+    },
+    {
+      "path": "web/models.py",
+      "language": "python",
+      "sizeLines": 371,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/providers/__init__.py",
+      "language": "python",
+      "sizeLines": 4,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/providers/alpha_vantage_provider.py",
+      "language": "python",
+      "sizeLines": 96,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/providers/yfinance_provider.py",
+      "language": "python",
+      "sizeLines": 129,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/repositories.py",
+      "language": "python",
+      "sizeLines": 1360,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/runner.py",
+      "language": "python",
+      "sizeLines": 478,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/scheduled.py",
+      "language": "python",
+      "sizeLines": 156,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/scheduler.py",
+      "language": "python",
+      "sizeLines": 394,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/snapshots.py",
+      "language": "python",
+      "sizeLines": 252,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/app.js",
+      "language": "javascript",
+      "sizeLines": 423,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/i18n.js",
+      "language": "javascript",
+      "sizeLines": 395,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/i18n.test.js",
+      "language": "javascript",
+      "sizeLines": 51,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/index.html",
+      "language": "html",
+      "sizeLines": 262,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "web/static/kline-chart.js",
+      "language": "javascript",
+      "sizeLines": 236,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/kline-chart.test.js",
+      "language": "javascript",
+      "sizeLines": 132,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/quote-refresh.js",
+      "language": "javascript",
+      "sizeLines": 72,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/quote-refresh.test.js",
+      "language": "javascript",
+      "sizeLines": 33,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/rating-labels.js",
+      "language": "javascript",
+      "sizeLines": 33,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/rating-labels.test.js",
+      "language": "javascript",
+      "sizeLines": 54,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/scheduled.js",
+      "language": "javascript",
+      "sizeLines": 154,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/static/styles.css",
+      "language": "css",
+      "sizeLines": 513,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "web/static/watchlist-chart.js",
+      "language": "javascript",
+      "sizeLines": 190,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/storage.py",
+      "language": "python",
+      "sizeLines": 240,
+      "fileCategory": "code"
+    },
+    {
+      "path": "web/synthesis.py",
+      "language": "python",
+      "sizeLines": 63,
+      "fileCategory": "code"
     }
   ],
-  "totalFiles": 148,
+  "totalFiles": 251,
   "filteredByIgnore": 0,
-  "estimatedComplexity": "moderate",
+  "estimatedComplexity": "large",
   "importMap": {
     ".dockerignore": [],
     ".env.enterprise.example": [],
     ".env.example": [],
     ".github/workflows/ci.yml": [],
+    ".superpowers/brainstorm/41801-1787718122/.server-stopped": [],
+    ".superpowers/brainstorm/41801-1787718122/console-layout.html": [],
+    ".superpowers/brainstorm/41801-1787718122/visual-style.html": [],
+    ".superpowers/brainstorm/41801-1787718122/waiting-architecture.html": [],
+    ".superpowers/brainstorm/70330-1787815068/.server-stopped": [],
+    ".superpowers/brainstorm/70330-1787815068/portfolio-layout-options.html": [],
+    ".superpowers/brainstorm/81139-1787817330/.server-stopped": [],
+    ".superpowers/brainstorm/81139-1787817330/portfolio-layout-options.html": [],
+    ".superpowers/brainstorm/81139-1787817330/report-reading-options.html": [],
+    ".superpowers/brainstorm/81139-1787817330/waiting-architecture.html": [],
     "CHANGELOG.md": [],
     "Dockerfile": [],
     "README.md": [],
@@ -941,6 +1577,24 @@
       "tradingagents/llm_clients/model_catalog.py"
     ],
     "docker-compose.yml": [],
+    "docs/superpowers/plans/2026-08-26-web-analysis-console-plan.md": [],
+    "docs/superpowers/plans/2026-08-27-personal-investor-platform-plan.md": [],
+    "docs/superpowers/plans/2026-08-27-web-report-library-models-language-plan.md": [],
+    "docs/superpowers/plans/2026-08-28-report-publish-integrity-plan.md": [],
+    "docs/superpowers/plans/2026-08-31-platform-reliability-operations-plan.md": [],
+    "docs/superpowers/plans/2026-08-31-rating-localization-plan.md": [],
+    "docs/superpowers/plans/2026-09-01-compact-section-headers.md": [],
+    "docs/superpowers/plans/2026-09-02-manager-concurrency.md": [],
+    "docs/superpowers/plans/2026-09-02-scheduled-analysis.md": [],
+    "docs/superpowers/specs/2026-08-26-web-analysis-console-design.md": [],
+    "docs/superpowers/specs/2026-08-27-personal-investor-platform-design.md": [],
+    "docs/superpowers/specs/2026-08-27-web-report-library-models-language-design.md": [],
+    "docs/superpowers/specs/2026-08-31-platform-reliability-operations-design.md": [],
+    "docs/superpowers/specs/2026-08-31-rating-localization-design.md": [],
+    "docs/superpowers/specs/2026-09-01-analysis-timeout-recovery-design.md": [],
+    "docs/superpowers/specs/2026-09-01-compact-section-headers-design.md": [],
+    "docs/superpowers/specs/2026-09-02-scheduled-analysis-design.md": [],
+    "docs/superpowers/specs/2026-09-02-ui-modern-redesign-design.md": [],
     "main.py": [
       "tradingagents/default_config.py",
       "tradingagents/graph/trading_graph.py"
@@ -983,6 +1637,14 @@
     "tests/test_checkpoint_resume.py": [
       "tradingagents/graph/checkpointer.py"
     ],
+    "tests/test_chunk3_contract_fixes.py": [
+      "web/app.py",
+      "web/history.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/repositories.py",
+      "web/storage.py"
+    ],
     "tests/test_cli_config_precedence.py": [
       "cli/main.py"
     ],
@@ -1015,6 +1677,10 @@
     "tests/test_env_overrides.py": [
       "tradingagents/default_config.py"
     ],
+    "tests/test_error_classifier.py": [
+      "web/error_classifier.py",
+      "web/error_codes.py"
+    ],
     "tests/test_fred.py": [
       "tradingagents/dataflows/__init__.py",
       "tradingagents/dataflows/config.py",
@@ -1028,6 +1694,10 @@
     "tests/test_google_thinking_level.py": [
       "tradingagents/llm_clients/google_client.py"
     ],
+    "tests/test_graph_stream_callbacks.py": [
+      "tradingagents/graph/propagation.py",
+      "tradingagents/graph/trading_graph.py"
+    ],
     "tests/test_i18n_coverage.py": [
       "tradingagents/agents/utils/agent_utils.py"
     ],
@@ -1038,8 +1708,20 @@
       "tradingagents/default_config.py",
       "tradingagents/graph/trading_graph.py"
     ],
+    "tests/test_llm_timeout.py": [
+      "tradingagents/dataflows/__init__.py",
+      "tradingagents/dataflows/alpha_vantage_common.py",
+      "tradingagents/dataflows/config.py",
+      "tradingagents/llm_clients/anthropic_client.py",
+      "tradingagents/llm_clients/azure_client.py",
+      "tradingagents/llm_clients/google_client.py",
+      "tradingagents/llm_clients/openai_client.py"
+    ],
     "tests/test_market_data_validator.py": [
       "tradingagents/dataflows/market_data_validator.py"
+    ],
+    "tests/test_market_localization.py": [
+      "web/market_localization.py"
     ],
     "tests/test_market_toolnode.py": [
       "tradingagents/graph/trading_graph.py"
@@ -1093,6 +1775,7 @@
       "cli/__init__.py",
       "cli/utils.py"
     ],
+    "tests/test_packaging_contract.py": [],
     "tests/test_polymarket.py": [
       "tradingagents/dataflows/__init__.py",
       "tradingagents/dataflows/config.py",
@@ -1115,8 +1798,38 @@
       "tradingagents/graph/conditional_logic.py",
       "tradingagents/graph/setup.py"
     ],
+    "tests/test_run_manager_concurrency.py": [
+      "web/manager.py",
+      "web/models.py"
+    ],
     "tests/test_safe_ticker_component.py": [
       "tradingagents/dataflows/utils.py"
+    ],
+    "tests/test_scheduled_api.py": [
+      "web/app.py",
+      "web/error_codes.py",
+      "web/history.py",
+      "web/manager.py",
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_scheduled_primitives.py": [
+      "tradingagents/default_config.py",
+      "web/config.py",
+      "web/repositories.py",
+      "web/scheduled.py",
+      "web/storage.py"
+    ],
+    "tests/test_scheduled_repositories.py": [
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_scheduled_service.py": [
+      "web/manager.py",
+      "web/models.py",
+      "web/repositories.py",
+      "web/scheduler.py",
+      "web/storage.py"
     ],
     "tests/test_signal_processing.py": [
       "tradingagents/agents/utils/rating.py",
@@ -1172,6 +1885,100 @@
       "tradingagents/dataflows/interface.py",
       "tradingagents/dataflows/symbol_utils.py",
       "tradingagents/default_config.py"
+    ],
+    "tests/test_web_api.py": [
+      "web/app.py",
+      "web/history.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_api_recovery.py": [
+      "web/app.py",
+      "web/error_codes.py",
+      "web/manager.py",
+      "web/models.py"
+    ],
+    "tests/test_web_artifacts.py": [
+      "web/artifacts.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_browser.py": [],
+    "tests/test_web_command.py": [
+      "cli/main.py"
+    ],
+    "tests/test_web_history.py": [
+      "web/history.py",
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_lease.py": [
+      "web/error_codes.py",
+      "web/lease.py",
+      "web/manager.py",
+      "web/models.py"
+    ],
+    "tests/test_web_manager.py": [
+      "web/manager.py",
+      "web/models.py"
+    ],
+    "tests/test_web_markdown.py": [
+      "web/markdown.py"
+    ],
+    "tests/test_web_market_data.py": [
+      "web/market_data.py",
+      "web/market_models.py"
+    ],
+    "tests/test_web_market_providers.py": [
+      "web/market_models.py",
+      "web/providers/alpha_vantage_provider.py",
+      "web/providers/yfinance_provider.py"
+    ],
+    "tests/test_web_models.py": [
+      "web/config.py",
+      "web/models.py"
+    ],
+    "tests/test_web_repositories.py": [
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_retry.py": [
+      "tradingagents/graph/checkpointer.py",
+      "web/checkpoint_resume.py",
+      "web/error_codes.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_runner.py": [
+      "web/manager.py",
+      "web/models.py",
+      "web/runner.py"
+    ],
+    "tests/test_web_runner_recovery.py": [
+      "web/artifacts.py",
+      "web/error_codes.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/runner.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_settings.py": [
+      "web/repositories.py",
+      "web/storage.py"
+    ],
+    "tests/test_web_snapshots.py": [
+      "web/snapshots.py"
+    ],
+    "tests/test_web_static.py": [],
+    "tests/test_web_storage.py": [
+      "web/storage.py"
+    ],
+    "tests/test_web_synthesis.py": [
+      "web/synthesis.py"
     ],
     "tests/test_yfinance_stale_ohlcv_guard.py": [
       "tradingagents/dataflows/__init__.py",
@@ -1293,6 +2100,7 @@
       "tradingagents/dataflows/alpha_vantage_stock.py"
     ],
     "tradingagents/dataflows/alpha_vantage_common.py": [
+      "tradingagents/dataflows/config.py",
       "tradingagents/dataflows/errors.py"
     ],
     "tradingagents/dataflows/alpha_vantage_fundamentals.py": [
@@ -1430,6 +2238,166 @@
     "tradingagents/llm_clients/validators.py": [
       "tradingagents/llm_clients/model_catalog.py"
     ],
-    "tradingagents/reporting.py": []
+    "tradingagents/reporting.py": [],
+    "web/__init__.py": [
+      "web/models.py"
+    ],
+    "web/app.py": [
+      "tradingagents/default_config.py",
+      "web/artifacts.py",
+      "web/config.py",
+      "web/error_codes.py",
+      "web/history.py",
+      "web/manager.py",
+      "web/market_data.py",
+      "web/market_models.py",
+      "web/models.py",
+      "web/providers/__init__.py",
+      "web/repositories.py",
+      "web/runner.py",
+      "web/scheduled.py",
+      "web/scheduler.py",
+      "web/snapshots.py",
+      "web/storage.py"
+    ],
+    "web/artifacts.py": [
+      "web/storage.py"
+    ],
+    "web/checkpoint_resume.py": [
+      "tradingagents/graph/checkpointer.py"
+    ],
+    "web/config.py": [
+      "tradingagents/default_config.py",
+      "tradingagents/llm_clients/model_catalog.py"
+    ],
+    "web/error_classifier.py": [
+      "web/error_codes.py"
+    ],
+    "web/error_codes.py": [],
+    "web/history.py": [
+      "web/markdown.py",
+      "web/repositories.py"
+    ],
+    "web/lease.py": [],
+    "web/manager.py": [
+      "web/config.py",
+      "web/error_codes.py",
+      "web/lease.py",
+      "web/models.py",
+      "web/repositories.py"
+    ],
+    "web/markdown.py": [],
+    "web/market_data.py": [
+      "web/market_models.py"
+    ],
+    "web/market_localization.py": [],
+    "web/market_models.py": [
+      "web/market_localization.py"
+    ],
+    "web/migrations/001_personal_platform.sql": [],
+    "web/migrations/002_reliability_operations.sql": [],
+    "web/migrations/003_watchlist_newest_first.sql": [],
+    "web/migrations/004_analysis_timeout_recovery.sql": [],
+    "web/migrations/005_scheduled_analysis.sql": [],
+    "web/models.py": [
+      "cli/models.py",
+      "cli/utils.py"
+    ],
+    "web/providers/__init__.py": [
+      "web/providers/alpha_vantage_provider.py",
+      "web/providers/yfinance_provider.py"
+    ],
+    "web/providers/alpha_vantage_provider.py": [
+      "cli/utils.py",
+      "tradingagents/dataflows/alpha_vantage_common.py",
+      "web/market_models.py"
+    ],
+    "web/providers/yfinance_provider.py": [
+      "cli/utils.py",
+      "web/market_models.py"
+    ],
+    "web/repositories.py": [
+      "cli/utils.py",
+      "web/models.py",
+      "web/scheduled.py",
+      "web/storage.py"
+    ],
+    "web/runner.py": [
+      "tradingagents/dataflows/utils.py",
+      "tradingagents/default_config.py",
+      "tradingagents/graph/propagation.py",
+      "tradingagents/graph/trading_graph.py",
+      "web/artifacts.py",
+      "web/checkpoint_resume.py",
+      "web/error_classifier.py",
+      "web/error_codes.py",
+      "web/manager.py",
+      "web/models.py",
+      "web/snapshots.py"
+    ],
+    "web/scheduled.py": [
+      "cli/models.py",
+      "cli/utils.py",
+      "tradingagents/default_config.py",
+      "web/config.py",
+      "web/models.py"
+    ],
+    "web/scheduler.py": [
+      "web/manager.py",
+      "web/models.py",
+      "web/repositories.py",
+      "web/scheduled.py"
+    ],
+    "web/snapshots.py": [],
+    "web/static/app.js": [],
+    "web/static/i18n.js": [],
+    "web/static/i18n.test.js": [
+      "web/static/i18n.js"
+    ],
+    "web/static/index.html": [],
+    "web/static/kline-chart.js": [],
+    "web/static/kline-chart.test.js": [
+      "web/static/kline-chart.js"
+    ],
+    "web/static/quote-refresh.js": [],
+    "web/static/quote-refresh.test.js": [
+      "web/static/quote-refresh.js"
+    ],
+    "web/static/rating-labels.js": [],
+    "web/static/rating-labels.test.js": [
+      "web/static/rating-labels.js"
+    ],
+    "web/static/scheduled.js": [],
+    "web/static/styles.css": [],
+    "web/static/watchlist-chart.js": [],
+    "web/storage.py": [],
+    "web/synthesis.py": []
+  },
+  "scriptCompleted": true,
+  "contentDigest": "3c7e5319f6aaa1386d1483544248bf4e846e98437c947bc542e7ea97d26e5a8a",
+  "stats": {
+    "filesScanned": 251,
+    "byCategory": {
+      "infra": 4,
+      "config": 3,
+      "code": 208,
+      "markup": 9,
+      "docs": 22,
+      "data": 5
+    },
+    "byLanguage": {
+      "unknown": 4,
+      "config": 2,
+      "yaml": 2,
+      "html": 8,
+      "markdown": 20,
+      "dockerfile": 1,
+      "python": 194,
+      "txt": 2,
+      "toml": 1,
+      "sql": 5,
+      "javascript": 11,
+      "css": 1
+    }
   }
 }

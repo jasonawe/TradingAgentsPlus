@@ -1,0 +1,21 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 0,
+  "filesSkipped": [
+    ".superpowers/brainstorm/41801-1787718122/console-layout.html",
+    ".superpowers/brainstorm/41801-1787718122/visual-style.html",
+    ".superpowers/brainstorm/41801-1787718122/waiting-architecture.html"
+  ],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 0,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": []
+}

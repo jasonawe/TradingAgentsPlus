@@ -1,0 +1,1468 @@
+{
+  "nodes": [
+    {
+      "id": "file:tests/test_no_data_handling.py",
+      "type": "file",
+      "name": "test_no_data_handling.py",
+      "filePath": "tests/test_no_data_handling.py",
+      "summary": "覆盖 test_no_data_handling.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_no_data_handling.py:TestLoadOhlcvNoPoison",
+      "type": "class",
+      "name": "TestLoadOhlcvNoPoison",
+      "filePath": "tests/test_no_data_handling.py",
+      "lineRange": [
+        23,
+        46
+      ],
+      "summary": "位于 tests/test_no_data_handling.py 的类 TestLoadOhlcvNoPoison，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_no_data_handling.py:TestRouteToVendorSentinel",
+      "type": "class",
+      "name": "TestRouteToVendorSentinel",
+      "filePath": "tests/test_no_data_handling.py",
+      "lineRange": [
+        50,
+        84
+      ],
+      "summary": "位于 tests/test_no_data_handling.py 的类 TestRouteToVendorSentinel，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_ohlcv_cache_freshness.py",
+      "type": "file",
+      "name": "test_ohlcv_cache_freshness.py",
+      "filePath": "tests/test_ohlcv_cache_freshness.py",
+      "summary": "覆盖 test_ohlcv_cache_freshness.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_ohlcv_cache_freshness.py:_write",
+      "type": "function",
+      "name": "_write",
+      "filePath": "tests/test_ohlcv_cache_freshness.py",
+      "lineRange": [
+        23,
+        29
+      ],
+      "summary": "位于 tests/test_ohlcv_cache_freshness.py 的函数 _write，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ohlcv_cache_freshness.py:test_current_day_cache_past_ttl_is_refreshed",
+      "type": "function",
+      "name": "test_current_day_cache_past_ttl_is_refreshed",
+      "filePath": "tests/test_ohlcv_cache_freshness.py",
+      "lineRange": [
+        33,
+        35
+      ],
+      "summary": "位于 tests/test_ohlcv_cache_freshness.py 的函数 test_current_day_cache_past_ttl_is_refreshed，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ohlcv_cache_freshness.py:test_partial_current_day_bar_is_still_refreshed",
+      "type": "function",
+      "name": "test_partial_current_day_bar_is_still_refreshed",
+      "filePath": "tests/test_ohlcv_cache_freshness.py",
+      "lineRange": [
+        39,
+        43
+      ],
+      "summary": "位于 tests/test_ohlcv_cache_freshness.py 的函数 test_partial_current_day_bar_is_still_refreshed，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ohlcv_cache_freshness.py:test_recent_cache_is_not_refetched",
+      "type": "function",
+      "name": "test_recent_cache_is_not_refetched",
+      "filePath": "tests/test_ohlcv_cache_freshness.py",
+      "lineRange": [
+        47,
+        49
+      ],
+      "summary": "位于 tests/test_ohlcv_cache_freshness.py 的函数 test_recent_cache_is_not_refetched，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ohlcv_cache_freshness.py:test_historical_request_always_uses_cache",
+      "type": "function",
+      "name": "test_historical_request_always_uses_cache",
+      "filePath": "tests/test_ohlcv_cache_freshness.py",
+      "lineRange": [
+        53,
+        57
+      ],
+      "summary": "位于 tests/test_ohlcv_cache_freshness.py 的函数 test_historical_request_always_uses_cache，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ohlcv_cache_freshness.py:test_load_ohlcv_refetches_stale_same_day_cache",
+      "type": "function",
+      "name": "test_load_ohlcv_refetches_stale_same_day_cache",
+      "filePath": "tests/test_ohlcv_cache_freshness.py",
+      "lineRange": [
+        61,
+        91
+      ],
+      "summary": "位于 tests/test_ohlcv_cache_freshness.py 的函数 test_load_ohlcv_refetches_stale_same_day_cache，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_ohlcv_cache_freshness.py:test_load_ohlcv_reuses_fresh_same_day_cache",
+      "type": "function",
+      "name": "test_load_ohlcv_reuses_fresh_same_day_cache",
+      "filePath": "tests/test_ohlcv_cache_freshness.py",
+      "lineRange": [
+        95,
+        109
+      ],
+      "summary": "位于 tests/test_ohlcv_cache_freshness.py 的函数 test_load_ohlcv_reuses_fresh_same_day_cache，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_polymarket.py",
+      "type": "file",
+      "name": "test_polymarket.py",
+      "filePath": "tests/test_polymarket.py",
+      "summary": "覆盖 test_polymarket.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_polymarket.py:_market",
+      "type": "function",
+      "name": "_market",
+      "filePath": "tests/test_polymarket.py",
+      "lineRange": [
+        19,
+        28
+      ],
+      "summary": "位于 tests/test_polymarket.py 的函数 _market，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_polymarket.py:PolymarketFilterTests",
+      "type": "class",
+      "name": "PolymarketFilterTests",
+      "filePath": "tests/test_polymarket.py",
+      "lineRange": [
+        49,
+        67
+      ],
+      "summary": "位于 tests/test_polymarket.py 的类 PolymarketFilterTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_polymarket.py:PolymarketFormatTests",
+      "type": "class",
+      "name": "PolymarketFormatTests",
+      "filePath": "tests/test_polymarket.py",
+      "lineRange": [
+        71,
+        90
+      ],
+      "summary": "位于 tests/test_polymarket.py 的类 PolymarketFormatTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_polymarket.py:PolymarketResilienceTests",
+      "type": "class",
+      "name": "PolymarketResilienceTests",
+      "filePath": "tests/test_polymarket.py",
+      "lineRange": [
+        94,
+        102
+      ],
+      "summary": "位于 tests/test_polymarket.py 的类 PolymarketResilienceTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_polymarket.py:PolymarketRoutingTests",
+      "type": "class",
+      "name": "PolymarketRoutingTests",
+      "filePath": "tests/test_polymarket.py",
+      "lineRange": [
+        106,
+        125
+      ],
+      "summary": "位于 tests/test_polymarket.py 的类 PolymarketRoutingTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_reddit_fallback.py",
+      "type": "file",
+      "name": "test_reddit_fallback.py",
+      "filePath": "tests/test_reddit_fallback.py",
+      "summary": "覆盖 test_reddit_fallback.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_reddit_fallback.py:_resp",
+      "type": "function",
+      "name": "_resp",
+      "filePath": "tests/test_reddit_fallback.py",
+      "lineRange": [
+        30,
+        41
+      ],
+      "summary": "位于 tests/test_reddit_fallback.py 的函数 _resp，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_reddit_fallback.py:_atom_resp",
+      "type": "function",
+      "name": "_atom_resp",
+      "filePath": "tests/test_reddit_fallback.py",
+      "lineRange": [
+        44,
+        45
+      ],
+      "summary": "位于 tests/test_reddit_fallback.py 的函数 _atom_resp，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_reddit_fallback.py:_raise",
+      "type": "function",
+      "name": "_raise",
+      "filePath": "tests/test_reddit_fallback.py",
+      "lineRange": [
+        48,
+        51
+      ],
+      "summary": "位于 tests/test_reddit_fallback.py 的函数 _raise，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_reddit_fallback.py:TestIsoToTimestamp",
+      "type": "class",
+      "name": "TestIsoToTimestamp",
+      "filePath": "tests/test_reddit_fallback.py",
+      "lineRange": [
+        55,
+        62
+      ],
+      "summary": "位于 tests/test_reddit_fallback.py 的类 TestIsoToTimestamp，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_reddit_fallback.py:TestStripHtml",
+      "type": "class",
+      "name": "TestStripHtml",
+      "filePath": "tests/test_reddit_fallback.py",
+      "lineRange": [
+        66,
+        72
+      ],
+      "summary": "位于 tests/test_reddit_fallback.py 的类 TestStripHtml，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_reddit_fallback.py:TestRssParsing",
+      "type": "class",
+      "name": "TestRssParsing",
+      "filePath": "tests/test_reddit_fallback.py",
+      "lineRange": [
+        76,
+        90
+      ],
+      "summary": "位于 tests/test_reddit_fallback.py 的类 TestRssParsing，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_reddit_fallback.py:TestFetchSubredditIsRssFirst",
+      "type": "class",
+      "name": "TestFetchSubredditIsRssFirst",
+      "filePath": "tests/test_reddit_fallback.py",
+      "lineRange": [
+        94,
+        106
+      ],
+      "summary": "位于 tests/test_reddit_fallback.py 的类 TestFetchSubredditIsRssFirst，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_reddit_fallback.py:TestJsonPathFallsBackToRss",
+      "type": "class",
+      "name": "TestJsonPathFallsBackToRss",
+      "filePath": "tests/test_reddit_fallback.py",
+      "lineRange": [
+        110,
+        121
+      ],
+      "summary": "位于 tests/test_reddit_fallback.py 的类 TestJsonPathFallsBackToRss，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_reddit_fallback.py:TestRss429Backoff",
+      "type": "class",
+      "name": "TestRss429Backoff",
+      "filePath": "tests/test_reddit_fallback.py",
+      "lineRange": [
+        125,
+        148
+      ],
+      "summary": "位于 tests/test_reddit_fallback.py 的类 TestRss429Backoff，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_reddit_fallback.py:TestChunkedTransferErrorsHandled",
+      "type": "class",
+      "name": "TestChunkedTransferErrorsHandled",
+      "filePath": "tests/test_reddit_fallback.py",
+      "lineRange": [
+        152,
+        164
+      ],
+      "summary": "位于 tests/test_reddit_fallback.py 的类 TestChunkedTransferErrorsHandled，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_reddit_fallback.py:TestFormatterHandlesRssPosts",
+      "type": "class",
+      "name": "TestFormatterHandlesRssPosts",
+      "filePath": "tests/test_reddit_fallback.py",
+      "lineRange": [
+        168,
+        192
+      ],
+      "summary": "位于 tests/test_reddit_fallback.py 的类 TestFormatterHandlesRssPosts，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_reddit_fallback.py:TestCryptoSearchTerm",
+      "type": "class",
+      "name": "TestCryptoSearchTerm",
+      "filePath": "tests/test_reddit_fallback.py",
+      "lineRange": [
+        196,
+        214
+      ],
+      "summary": "位于 tests/test_reddit_fallback.py 的类 TestCryptoSearchTerm，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_stockstats_date_column.py",
+      "type": "file",
+      "name": "test_stockstats_date_column.py",
+      "filePath": "tests/test_stockstats_date_column.py",
+      "summary": "覆盖 test_stockstats_date_column.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_stockstats_date_column.py:_ohlcv",
+      "type": "function",
+      "name": "_ohlcv",
+      "filePath": "tests/test_stockstats_date_column.py",
+      "lineRange": [
+        15,
+        25
+      ],
+      "summary": "位于 tests/test_stockstats_date_column.py 的函数 _ohlcv，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_stockstats_date_column.py:TestEnsureDateColumn",
+      "type": "class",
+      "name": "TestEnsureDateColumn",
+      "filePath": "tests/test_stockstats_date_column.py",
+      "lineRange": [
+        29,
+        45
+      ],
+      "summary": "位于 tests/test_stockstats_date_column.py 的类 TestEnsureDateColumn，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_stockstats_date_column.py:TestCleanDataframeAcrossVersions",
+      "type": "class",
+      "name": "TestCleanDataframeAcrossVersions",
+      "filePath": "tests/test_stockstats_date_column.py",
+      "lineRange": [
+        49,
+        70
+      ],
+      "summary": "位于 tests/test_stockstats_date_column.py 的类 TestCleanDataframeAcrossVersions，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_stocktwits_resilience.py",
+      "type": "file",
+      "name": "test_stocktwits_resilience.py",
+      "filePath": "tests/test_stocktwits_resilience.py",
+      "summary": "覆盖 test_stocktwits_resilience.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_stocktwits_resilience.py:_raise",
+      "type": "function",
+      "name": "_raise",
+      "filePath": "tests/test_stocktwits_resilience.py",
+      "lineRange": [
+        19,
+        29
+      ],
+      "summary": "位于 tests/test_stocktwits_resilience.py 的函数 _raise，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "函数",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:tests/test_stocktwits_resilience.py:TestStockTwitsResilience",
+      "type": "class",
+      "name": "TestStockTwitsResilience",
+      "filePath": "tests/test_stocktwits_resilience.py",
+      "lineRange": [
+        33,
+        46
+      ],
+      "summary": "位于 tests/test_stocktwits_resilience.py 的类 TestStockTwitsResilience，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_stocktwits_resilience.py:TestStockTwitsCryptoSymbols",
+      "type": "class",
+      "name": "TestStockTwitsCryptoSymbols",
+      "filePath": "tests/test_stocktwits_resilience.py",
+      "lineRange": [
+        50,
+        77
+      ],
+      "summary": "位于 tests/test_stocktwits_resilience.py 的类 TestStockTwitsCryptoSymbols，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "市场数据",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_symbol_utils.py",
+      "type": "file",
+      "name": "test_symbol_utils.py",
+      "filePath": "tests/test_symbol_utils.py",
+      "summary": "覆盖 test_symbol_utils.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_symbol_utils.py:TestNormalizeSymbol",
+      "type": "class",
+      "name": "TestNormalizeSymbol",
+      "filePath": "tests/test_symbol_utils.py",
+      "lineRange": [
+        16,
+        53
+      ],
+      "summary": "位于 tests/test_symbol_utils.py 的类 TestNormalizeSymbol，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_symbol_utils.py:TestNoMarketDataError",
+      "type": "class",
+      "name": "TestNoMarketDataError",
+      "filePath": "tests/test_symbol_utils.py",
+      "lineRange": [
+        57,
+        67
+      ],
+      "summary": "位于 tests/test_symbol_utils.py 的类 TestNoMarketDataError，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_symbol_utils.py:TestIsYahooSafe",
+      "type": "class",
+      "name": "TestIsYahooSafe",
+      "filePath": "tests/test_symbol_utils.py",
+      "lineRange": [
+        71,
+        78
+      ],
+      "summary": "位于 tests/test_symbol_utils.py 的类 TestIsYahooSafe，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_symbol_utils.py:TestCryptoBase",
+      "type": "class",
+      "name": "TestCryptoBase",
+      "filePath": "tests/test_symbol_utils.py",
+      "lineRange": [
+        82,
+        98
+      ],
+      "summary": "位于 tests/test_symbol_utils.py 的类 TestCryptoBase，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_vendor_errors.py",
+      "type": "file",
+      "name": "test_vendor_errors.py",
+      "filePath": "tests/test_vendor_errors.py",
+      "summary": "覆盖 test_vendor_errors.py 相关行为的自动化测试，验证边界条件与回归场景。",
+      "tags": [
+        "测试",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_vendor_errors.py:HierarchyTests",
+      "type": "class",
+      "name": "HierarchyTests",
+      "filePath": "tests/test_vendor_errors.py",
+      "lineRange": [
+        29,
+        49
+      ],
+      "summary": "位于 tests/test_vendor_errors.py 的类 HierarchyTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_vendor_errors.py:RouterHandlesBaseTypesTests",
+      "type": "class",
+      "name": "RouterHandlesBaseTypesTests",
+      "filePath": "tests/test_vendor_errors.py",
+      "lineRange": [
+        53,
+        101
+      ],
+      "summary": "位于 tests/test_vendor_errors.py 的类 RouterHandlesBaseTypesTests，承担该模块中的专门职责并被测试或其他流程使用。",
+      "tags": [
+        "类",
+        "测试",
+        "校验",
+        "代码实现"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:tests/test_no_data_handling.py",
+      "target": "class:tests/test_no_data_handling.py:TestLoadOhlcvNoPoison",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_no_data_handling.py",
+      "target": "class:tests/test_no_data_handling.py:TestRouteToVendorSentinel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_no_data_handling.py",
+      "target": "class:tests/test_no_data_handling.py:TestLoadOhlcvNoPoison",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_no_data_handling.py",
+      "target": "class:tests/test_no_data_handling.py:TestRouteToVendorSentinel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_no_data_handling.py",
+      "target": "file:tradingagents/dataflows/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_no_data_handling.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_no_data_handling.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_no_data_handling.py",
+      "target": "file:tradingagents/dataflows/stockstats_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_no_data_handling.py",
+      "target": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_ohlcv_cache_freshness.py",
+      "target": "function:tests/test_ohlcv_cache_freshness.py:_write",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ohlcv_cache_freshness.py",
+      "target": "function:tests/test_ohlcv_cache_freshness.py:test_current_day_cache_past_ttl_is_refreshed",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ohlcv_cache_freshness.py",
+      "target": "function:tests/test_ohlcv_cache_freshness.py:test_partial_current_day_bar_is_still_refreshed",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ohlcv_cache_freshness.py",
+      "target": "function:tests/test_ohlcv_cache_freshness.py:test_recent_cache_is_not_refetched",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ohlcv_cache_freshness.py",
+      "target": "function:tests/test_ohlcv_cache_freshness.py:test_historical_request_always_uses_cache",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ohlcv_cache_freshness.py",
+      "target": "function:tests/test_ohlcv_cache_freshness.py:test_load_ohlcv_refetches_stale_same_day_cache",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ohlcv_cache_freshness.py",
+      "target": "function:tests/test_ohlcv_cache_freshness.py:test_load_ohlcv_reuses_fresh_same_day_cache",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_ohlcv_cache_freshness.py",
+      "target": "function:tests/test_ohlcv_cache_freshness.py:_write",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ohlcv_cache_freshness.py",
+      "target": "function:tests/test_ohlcv_cache_freshness.py:test_current_day_cache_past_ttl_is_refreshed",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ohlcv_cache_freshness.py",
+      "target": "function:tests/test_ohlcv_cache_freshness.py:test_partial_current_day_bar_is_still_refreshed",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ohlcv_cache_freshness.py",
+      "target": "function:tests/test_ohlcv_cache_freshness.py:test_recent_cache_is_not_refetched",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ohlcv_cache_freshness.py",
+      "target": "function:tests/test_ohlcv_cache_freshness.py:test_historical_request_always_uses_cache",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ohlcv_cache_freshness.py",
+      "target": "function:tests/test_ohlcv_cache_freshness.py:test_load_ohlcv_refetches_stale_same_day_cache",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ohlcv_cache_freshness.py",
+      "target": "function:tests/test_ohlcv_cache_freshness.py:test_load_ohlcv_reuses_fresh_same_day_cache",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_ohlcv_cache_freshness.py",
+      "target": "file:tradingagents/dataflows/stockstats_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_polymarket.py",
+      "target": "function:tests/test_polymarket.py:_market",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_polymarket.py",
+      "target": "class:tests/test_polymarket.py:PolymarketFilterTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_polymarket.py",
+      "target": "class:tests/test_polymarket.py:PolymarketFormatTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_polymarket.py",
+      "target": "class:tests/test_polymarket.py:PolymarketResilienceTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_polymarket.py",
+      "target": "class:tests/test_polymarket.py:PolymarketRoutingTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_polymarket.py",
+      "target": "function:tests/test_polymarket.py:_market",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_polymarket.py",
+      "target": "class:tests/test_polymarket.py:PolymarketFilterTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_polymarket.py",
+      "target": "class:tests/test_polymarket.py:PolymarketFormatTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_polymarket.py",
+      "target": "class:tests/test_polymarket.py:PolymarketResilienceTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_polymarket.py",
+      "target": "class:tests/test_polymarket.py:PolymarketRoutingTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_polymarket.py",
+      "target": "file:tradingagents/dataflows/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_polymarket.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_polymarket.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_polymarket.py",
+      "target": "file:tradingagents/dataflows/polymarket.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_polymarket.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "function:tests/test_reddit_fallback.py:_resp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "function:tests/test_reddit_fallback.py:_atom_resp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "function:tests/test_reddit_fallback.py:_raise",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "class:tests/test_reddit_fallback.py:TestIsoToTimestamp",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "class:tests/test_reddit_fallback.py:TestStripHtml",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "class:tests/test_reddit_fallback.py:TestRssParsing",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "class:tests/test_reddit_fallback.py:TestFetchSubredditIsRssFirst",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "class:tests/test_reddit_fallback.py:TestJsonPathFallsBackToRss",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "class:tests/test_reddit_fallback.py:TestRss429Backoff",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "class:tests/test_reddit_fallback.py:TestChunkedTransferErrorsHandled",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "class:tests/test_reddit_fallback.py:TestFormatterHandlesRssPosts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "class:tests/test_reddit_fallback.py:TestCryptoSearchTerm",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "function:tests/test_reddit_fallback.py:_resp",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "function:tests/test_reddit_fallback.py:_atom_resp",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "function:tests/test_reddit_fallback.py:_raise",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "class:tests/test_reddit_fallback.py:TestIsoToTimestamp",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "class:tests/test_reddit_fallback.py:TestStripHtml",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "class:tests/test_reddit_fallback.py:TestRssParsing",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "class:tests/test_reddit_fallback.py:TestFetchSubredditIsRssFirst",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "class:tests/test_reddit_fallback.py:TestJsonPathFallsBackToRss",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "class:tests/test_reddit_fallback.py:TestRss429Backoff",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "class:tests/test_reddit_fallback.py:TestChunkedTransferErrorsHandled",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "class:tests/test_reddit_fallback.py:TestFormatterHandlesRssPosts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "class:tests/test_reddit_fallback.py:TestCryptoSearchTerm",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "file:tradingagents/dataflows/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_reddit_fallback.py",
+      "target": "file:tradingagents/dataflows/reddit.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_stockstats_date_column.py",
+      "target": "function:tests/test_stockstats_date_column.py:_ohlcv",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_stockstats_date_column.py",
+      "target": "class:tests/test_stockstats_date_column.py:TestEnsureDateColumn",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_stockstats_date_column.py",
+      "target": "class:tests/test_stockstats_date_column.py:TestCleanDataframeAcrossVersions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_stockstats_date_column.py",
+      "target": "function:tests/test_stockstats_date_column.py:_ohlcv",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_stockstats_date_column.py",
+      "target": "class:tests/test_stockstats_date_column.py:TestEnsureDateColumn",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_stockstats_date_column.py",
+      "target": "class:tests/test_stockstats_date_column.py:TestCleanDataframeAcrossVersions",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_stockstats_date_column.py",
+      "target": "file:tradingagents/dataflows/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_stocktwits_resilience.py",
+      "target": "function:tests/test_stocktwits_resilience.py:_raise",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_stocktwits_resilience.py",
+      "target": "class:tests/test_stocktwits_resilience.py:TestStockTwitsResilience",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_stocktwits_resilience.py",
+      "target": "class:tests/test_stocktwits_resilience.py:TestStockTwitsCryptoSymbols",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_stocktwits_resilience.py",
+      "target": "function:tests/test_stocktwits_resilience.py:_raise",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_stocktwits_resilience.py",
+      "target": "class:tests/test_stocktwits_resilience.py:TestStockTwitsResilience",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_stocktwits_resilience.py",
+      "target": "class:tests/test_stocktwits_resilience.py:TestStockTwitsCryptoSymbols",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_stocktwits_resilience.py",
+      "target": "file:tradingagents/dataflows/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_stocktwits_resilience.py",
+      "target": "file:tradingagents/dataflows/stocktwits.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_symbol_utils.py",
+      "target": "class:tests/test_symbol_utils.py:TestNormalizeSymbol",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_symbol_utils.py",
+      "target": "class:tests/test_symbol_utils.py:TestNoMarketDataError",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_symbol_utils.py",
+      "target": "class:tests/test_symbol_utils.py:TestIsYahooSafe",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_symbol_utils.py",
+      "target": "class:tests/test_symbol_utils.py:TestCryptoBase",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_symbol_utils.py",
+      "target": "class:tests/test_symbol_utils.py:TestNormalizeSymbol",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_symbol_utils.py",
+      "target": "class:tests/test_symbol_utils.py:TestNoMarketDataError",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_symbol_utils.py",
+      "target": "class:tests/test_symbol_utils.py:TestIsYahooSafe",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_symbol_utils.py",
+      "target": "class:tests/test_symbol_utils.py:TestCryptoBase",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_symbol_utils.py",
+      "target": "file:tradingagents/dataflows/symbol_utils.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_errors.py",
+      "target": "class:tests/test_vendor_errors.py:HierarchyTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_vendor_errors.py",
+      "target": "class:tests/test_vendor_errors.py:RouterHandlesBaseTypesTests",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_vendor_errors.py",
+      "target": "class:tests/test_vendor_errors.py:HierarchyTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_vendor_errors.py",
+      "target": "class:tests/test_vendor_errors.py:RouterHandlesBaseTypesTests",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_vendor_errors.py",
+      "target": "file:tradingagents/dataflows/__init__.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_errors.py",
+      "target": "file:tradingagents/dataflows/alpha_vantage_common.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_errors.py",
+      "target": "file:tradingagents/dataflows/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_errors.py",
+      "target": "file:tradingagents/dataflows/errors.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_errors.py",
+      "target": "file:tradingagents/dataflows/fred.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_errors.py",
+      "target": "file:tradingagents/dataflows/interface.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_vendor_errors.py",
+      "target": "file:tradingagents/default_config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    }
+  ]
+}

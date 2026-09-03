@@ -1,0 +1,122 @@
+{
+  "nodes": [
+    {
+      "id": "document:docs/superpowers/specs/2026-08-26-web-analysis-console-design.md",
+      "type": "document",
+      "name": "2026-08-26-web-analysis-console-design.md",
+      "filePath": "docs/superpowers/specs/2026-08-26-web-analysis-console-design.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-26-web-analysis-console-design 描述目标、方案、任务拆分与验证要求。",
+      "tags": [
+        "documentation",
+        "design-spec",
+        "project-artifact"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-08-27-personal-investor-platform-design.md",
+      "type": "document",
+      "name": "2026-08-27-personal-investor-platform-design.md",
+      "filePath": "docs/superpowers/specs/2026-08-27-personal-investor-platform-design.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-27-personal-investor-platform-design 描述目标、方案、任务拆分与验证要求。",
+      "tags": [
+        "documentation",
+        "design-spec",
+        "project-artifact"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-08-27-web-report-library-models-language-design.md",
+      "type": "document",
+      "name": "2026-08-27-web-report-library-models-language-design.md",
+      "filePath": "docs/superpowers/specs/2026-08-27-web-report-library-models-language-design.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-27-web-report-library-models-language-design 描述目标、方案、任务拆分与验证要求。",
+      "tags": [
+        "documentation",
+        "design-spec",
+        "project-artifact"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-08-31-platform-reliability-operations-design.md",
+      "type": "document",
+      "name": "2026-08-31-platform-reliability-operations-design.md",
+      "filePath": "docs/superpowers/specs/2026-08-31-platform-reliability-operations-design.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-31-platform-reliability-operations-design 描述目标、方案、任务拆分与验证要求。",
+      "tags": [
+        "documentation",
+        "design-spec",
+        "project-artifact"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-08-31-rating-localization-design.md",
+      "type": "document",
+      "name": "2026-08-31-rating-localization-design.md",
+      "filePath": "docs/superpowers/specs/2026-08-31-rating-localization-design.md",
+      "summary": "设计或实施计划文档，围绕 2026-08-31-rating-localization-design 描述目标、方案、任务拆分与验证要求。",
+      "tags": [
+        "documentation",
+        "design-spec",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-09-01-analysis-timeout-recovery-design.md",
+      "type": "document",
+      "name": "2026-09-01-analysis-timeout-recovery-design.md",
+      "filePath": "docs/superpowers/specs/2026-09-01-analysis-timeout-recovery-design.md",
+      "summary": "设计或实施计划文档，围绕 2026-09-01-analysis-timeout-recovery-design 描述目标、方案、任务拆分与验证要求。",
+      "tags": [
+        "documentation",
+        "design-spec",
+        "project-artifact"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-09-01-compact-section-headers-design.md",
+      "type": "document",
+      "name": "2026-09-01-compact-section-headers-design.md",
+      "filePath": "docs/superpowers/specs/2026-09-01-compact-section-headers-design.md",
+      "summary": "设计或实施计划文档，围绕 2026-09-01-compact-section-headers-design 描述目标、方案、任务拆分与验证要求。",
+      "tags": [
+        "documentation",
+        "design-spec",
+        "project-artifact"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-09-02-scheduled-analysis-design.md",
+      "type": "document",
+      "name": "2026-09-02-scheduled-analysis-design.md",
+      "filePath": "docs/superpowers/specs/2026-09-02-scheduled-analysis-design.md",
+      "summary": "设计或实施计划文档，围绕 2026-09-02-scheduled-analysis-design 描述目标、方案、任务拆分与验证要求。",
+      "tags": [
+        "documentation",
+        "design-spec",
+        "project-artifact"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/superpowers/specs/2026-09-02-ui-modern-redesign-design.md",
+      "type": "document",
+      "name": "2026-09-02-ui-modern-redesign-design.md",
+      "filePath": "docs/superpowers/specs/2026-09-02-ui-modern-redesign-design.md",
+      "summary": "设计或实施计划文档，围绕 2026-09-02-ui-modern-redesign-design 描述目标、方案、任务拆分与验证要求。",
+      "tags": [
+        "documentation",
+        "design-spec",
+        "project-artifact"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": []
+}
