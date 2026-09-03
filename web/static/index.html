@@ -27,6 +27,7 @@
           <a href="#/" data-view="setup" class="is-active"><svg class="icon" aria-hidden="true"><use href="#i-watchlist"/></svg><span class="nav-label" data-i18n="nav.watchlist">我的关注</span></a>
           <a href="#/analysis" data-view="analysis"><svg class="icon" aria-hidden="true"><use href="#i-analysis"/></svg><span class="nav-label" data-i18n="nav.analysis">分析任务</span></a>
           <a href="#/active" data-view="active"><svg class="icon" aria-hidden="true"><use href="#i-active"/></svg><span class="nav-label" data-i18n="nav.active">进行中</span></a>
+          <a href="#/scheduled" data-view="scheduled"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg><span class="nav-label" data-i18n="nav.scheduled">定时任务</span></a>
           <a href="#/reports" data-view="library"><svg class="icon" aria-hidden="true"><use href="#i-reports"/></svg><span class="nav-label" data-i18n="nav.reports">报告库</span></a>
           <a href="#/settings" data-view="settings"><svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg><span class="nav-label" data-i18n="nav.settings">设置诊断</span></a>
         </nav>
@@ -108,6 +109,31 @@
         <div id="run-grid" class="run-grid" hidden><aside class="timeline-panel"><div class="panel-heading"><span class="kicker" data-i18n="run.deskProgress">分析进度</span><span id="progress-label">0%</span></div><div class="progress-track"><div id="progress-bar" class="progress-bar"></div></div><ol id="phase-timeline" class="phase-timeline"></ol><div class="current-agent"><span class="status-pulse"></span><div><small data-i18n="run.currentlyWorking">当前工作代理</small><strong id="current-agent" data-i18n="run.preparing">正在准备分析……</strong></div></div></aside><section class="activity-panel"><div class="panel-heading"><span class="kicker" data-i18n="run.fieldNotes">过程记录</span><span id="event-count">0 条事件</span></div><div id="activity-feed" class="activity-feed" aria-live="polite"></div></section></div>
         <section id="terminal-panel" class="terminal-panel" hidden></section>
       </section>
+      <section id="scheduled-view" class="view scheduled-view" aria-labelledby="scheduled-title" hidden>
+        <div class="scheduled-header">
+          <div>
+            <h1 id="scheduled-title" class="visually-hidden" data-i18n="scheduler.title">定时任务</h1>
+          </div>
+          <div class="scheduled-header-actions">
+            <button id="scheduled-master-enabled" class="switch-control" type="button" role="switch" aria-checked="true" aria-label="启用定时任务"><span aria-hidden="true"></span><b>启用</b></button>
+            <button id="scheduled-settings" class="button button-secondary" type="button" aria-label="定时任务设置" data-i18n="scheduler.settings">设置</button>
+            <button id="scheduled-add" class="button button-primary" type="button" data-i18n="scheduler.add">新增任务</button>
+          </div>
+        </div>
+        <p id="scheduled-error" class="form-error" role="alert" aria-live="polite"></p>
+        <div id="scheduled-list" class="scheduled-list" aria-live="polite" aria-busy="false">
+          <div class="scheduled-loading"><span class="skeleton"></span><span class="skeleton"></span><span class="skeleton"></span></div>
+        </div>
+        <aside id="scheduled-settings-drawer" class="scheduled-drawer" aria-label="定时任务设置" aria-hidden="true" hidden>
+          <div class="scheduled-drawer-backdrop" data-scheduled-close-drawer></div>
+          <div class="scheduled-drawer-panel" role="dialog" aria-modal="true" aria-labelledby="scheduled-settings-title">
+            <div class="scheduled-drawer-heading"><h2 id="scheduled-settings-title" data-i18n="scheduler.settings">定时任务设置</h2><button type="button" class="button button-secondary btn-icon" data-scheduled-close-drawer aria-label="关闭">×</button></div>
+            <div class="setting-switch"><span data-i18n="scheduler.masterSwitch">启用定时任务</span><button id="scheduled-drawer-enabled" class="switch-control" type="button" role="switch" aria-checked="true" aria-label="启用定时任务"><span aria-hidden="true"></span><b>启用</b></button></div>
+            <label class="field"><span data-i18n="scheduler.maxConcurrent">最大并行任务数</span><input id="scheduled-max-concurrent" type="range" min="1" max="10" step="1" value="3" /><output id="scheduled-max-concurrent-value" for="scheduled-max-concurrent">3</output></label>
+            <p id="scheduled-settings-error" class="form-error" role="alert" aria-live="polite"></p>
+          </div>
+        </aside>
+      </section>
       <section id="asset-detail-view" class="view" aria-labelledby="asset-detail-title" hidden>
         <h1 id="asset-detail-title" class="visually-hidden" data-i18n="asset.detailTitle">资产详情</h1>
         <div class="asset-detail-header">
@@ -151,7 +177,8 @@
     <script src="/static/i18n.js?v=20260901-restore-route-fix-1" defer></script>
     <script src="/static/rating-labels.js?v=20260901-rating-localization-2" defer></script>
     <script src="/static/kline-chart.js?v=20260901-watchlist-chart-1" defer></script>
-            <script src="/static/quote-refresh.js?v=20260901-market-health-1" defer></script>
+    <script src="/static/quote-refresh.js?v=20260901-market-health-1" defer></script>
+    <script src="/static/scheduled.js?v=20260903-scheduled-workspace-1" defer></script>
     <script src="/static/app.js?v=20260901-zh-auto-hint-1" defer></script>
     <svg width="0" height="0" style="position:absolute" aria-hidden="true">
       <defs>
@@ -171,6 +198,9 @@
         </symbol>
         <symbol id="i-active" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </symbol>
+        <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>
         </symbol>
         <symbol id="i-reports" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>

@@ -386,3 +386,68 @@ def test_show_active_handles_runs_list_contract():
     assert ").run;" not in js  # legacy single-run accessor gone
 
 
+def test_scheduled_workspace_has_navigation_controls_and_controller():
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    js = (STATIC / "app.js").read_text(encoding="utf-8")
+    scheduled = (STATIC / "scheduled.js").read_text(encoding="utf-8")
+    resources = (STATIC / "i18n.js").read_text(encoding="utf-8")
+
+    assert html.index('data-view="active"') < html.index('data-view="scheduled"')
+    assert html.index('data-view="scheduled"') < html.index('data-view="library"')
+    for value in (
+        'id="scheduled-view"',
+        'id="scheduled-master-enabled"',
+        'id="scheduled-add"',
+        'id="scheduled-settings"',
+        'id="scheduled-list"',
+        'id="scheduled-settings-drawer"',
+    ):
+        assert value in html
+    assert 'symbol id="i-clock"' in html
+    assert 'scheduled: "/scheduled"' in js
+    assert "window.TradingAgentsScheduled" in js
+    assert '/static/scheduled.js?v=' in html
+    assert '"nav.scheduled": "定时任务"' in resources
+
+    for endpoint in (
+        '"/api/scheduled/jobs"',
+        '"/api/scheduled/settings"',
+        '"/api/scheduled/cron/preview',
+        '"/api/watchlist"',
+    ):
+        assert endpoint in scheduled
+    for action in ("/toggle", "/run", "/logs"):
+        assert action in scheduled
+    assert "setInterval" in scheduled
+    assert "document.hidden" in scheduled
+
+
+def test_scheduled_workspace_covers_empty_error_forms_and_history_states():
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    scheduled = (STATIC / "scheduled.js").read_text(encoding="utf-8")
+    resources = (STATIC / "i18n.js").read_text(encoding="utf-8")
+
+    for value in (
+        'aria-live="polite"',
+        'role="switch"',
+        'type="range"',
+        'aria-label="定时任务设置"',
+    ):
+        assert value in html
+    for key in (
+        "scheduler.emptyTitle",
+        "scheduler.emptyBody",
+        "scheduler.loadError",
+        "scheduler.invalidCron",
+        "scheduler.deleteConsequence",
+        "scheduler.historyEmpty",
+    ):
+        assert f'"{key}"' in resources
+    assert "scheduler.historyEmpty" in scheduled
+    assert "scheduler.deleteConsequence" in scheduled
+    assert "scheduler.invalidCron" in scheduled
+    assert "aria-expanded" in scheduled
+    assert "refreshExpandedLogs" in scheduled
+    assert "formCronValid" in scheduled
+    assert 't("scheduler.confirmDelete")' in scheduled
+    assert "drawerFocus" in scheduled
