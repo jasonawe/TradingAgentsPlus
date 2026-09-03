@@ -750,7 +750,7 @@ class ReportIndexRepository:
     INDEX_STATUSES = frozenset({"indexed", "pending", "error"})
     PATH_STATES = frozenset({"valid", "missing", "unsafe"})
     ASSET_TYPES = frozenset({"stock", "crypto"})
-    SORTS = frozenset({"generated_at_desc", "generated_at_asc"})
+    SORTS = frozenset({"generated_at_desc", "generated_at_asc", "ticker_asc"})
     _FIELDS = (
         "report_id",
         "run_id",
@@ -949,10 +949,14 @@ class ReportIndexRepository:
             filters.append("analysis_date<=?")
             parameters.append(str(date_to))
         where = " AND ".join(filters)
-        direction = "DESC" if sort == "generated_at_desc" else "ASC"
-        order = (
-            f"generated_at IS NULL ASC, generated_at {direction}, report_id ASC"
-        )
+        if sort == "ticker_asc":
+            order = "ticker COLLATE NOCASE ASC, generated_at IS NULL ASC, generated_at DESC, report_id ASC"
+        else:
+            direction = "DESC" if sort == "generated_at_desc" else "ASC"
+            order = (
+                f"generated_at IS NULL ASC, generated_at {direction}, "
+                "ticker COLLATE NOCASE ASC, report_id ASC"
+            )
         offset = (page - 1) * page_size
         cte = self._combined_cte()
         with self.store.connection() as conn:

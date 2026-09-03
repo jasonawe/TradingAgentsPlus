@@ -4,6 +4,7 @@
   const state = {
     jobs: [],
     watchlist: [],
+    quotes: {},
     settings: { enabled: true, max_concurrent_runs: 3 },
     active: false,
     visible: !document.hidden,
@@ -35,11 +36,12 @@
     return label === key ? reason || "" : label;
   };
   const jsonHeaders = { "Content-Type": "application/json" };
-  const NETWORK_TIMEOUT_MS = 4000;
+  const NETWORK_TIMEOUT_MS = 15000;
   const SCHEDULED_JOBS_API = "/api/scheduled/jobs";
   const SCHEDULED_SETTINGS_API = "/api/scheduled/settings";
   const SCHEDULED_CRON_PREVIEW_API = "/api/scheduled/cron/preview";
   const WATCHLIST_API = "/api/watchlist";
+  const QUOTES_API = "/api/quotes";
 
   async function request(path, options = {}) {
     const controller = new AbortController();
@@ -78,7 +80,7 @@
       const result = job.last_run_status ? `<span class="scheduled-status status-${esc(job.last_run_status)}">${esc(statusLabel(job.last_run_status))}</span>` : `<span class="muted">${esc(t("scheduler.noLastRun"))}</span>`;
       const report = job.last_report_id ? `<a href="/reports/${encodeURIComponent(job.last_report_id)}" class="text-button">${esc(t("scheduler.report"))}</a>` : "";
       return `<tbody class="scheduled-job-group"><tr class="scheduled-job-row${expanded ? " is-expanded" : ""}">
-        <td data-label="${esc(t("scheduler.asset"))}"><strong>${esc(job.symbol)}</strong><small>${esc(job.asset_type === "crypto" ? t("assets.crypto") : t("assets.stock"))}</small></td>
+        <td data-label="${esc(t("scheduler.asset"))}">${formatAssetCell(job.symbol, job.asset_type)}</td>
         <td data-label="${esc(t("scheduler.cron"))}"><code>${esc(job.cron_expression)}</code>${job.note ? `<small>${esc(job.note)}</small>` : ""}</td>
         <td data-label="${esc(t("scheduler.nextRun"))}">${esc(formatTime(job.next_run_at))}</td>
         <td data-label="${esc(t("scheduler.lastResult"))}">${result}${report}</td>
@@ -116,12 +118,57 @@
       state.jobs = Array.isArray(jobs.items) ? jobs.items : [];
       state.settings = { ...state.settings, ...settings };
       state.watchlist = Array.isArray(watchlist.items) ? watchlist.items : [];
+      await refreshAssetQuotes([
+        ...state.watchlist,
+        ...(Array.isArray(jobs.items) ? jobs.items.map((j) => ({ symbol: j.symbol, asset_type: j.asset_type })) : []),
+      ]);
       if (silent) await refreshExpandedLogs();
       setError("");
       updateSwitches();
       render();
     } catch (error) { setError(error.message || t("scheduler.loadError")); if (!silent) { state.jobs = []; render(); } }
     finally { state.loading = false; render(); }
+  }
+  function identityFor(symbol) {
+    const quote = state.quotes?.[symbol];
+    if (!quote) {
+      return { nameZh: "", nameEn: "", exchangeZh: "", exchangeEn: "" };
+    }
+    const pick = (...vals) => vals.find((v) => v && String(v).trim()) || "";
+    return {
+      nameZh: pick(quote.asset_name_zh, quote.name_zh),
+      nameEn: pick(quote.asset_name, quote.name, quote.quote?.raw_summary),
+      exchangeZh: pick(quote.exchange_name_zh),
+      exchangeEn: pick(quote.exchange, quote.quote?.exchange),
+    };
+  }
+  function formatAssetCell(symbol, assetType) {
+    const id = identityFor(symbol);
+    const lines = [];
+    if (id.nameZh && id.exchangeZh) lines.push(`<small>${esc(id.nameZh)} · ${esc(id.exchangeZh)}</small>`);
+    else if (id.nameZh) lines.push(`<small>${esc(id.nameZh)}</small>`);
+    else if (id.exchangeZh) lines.push(`<small>${esc(id.exchangeZh)}</small>`);
+    if (id.nameEn && id.exchangeEn) lines.push(`<small class="muted">${esc(id.nameEn)} · ${esc(id.exchangeEn)}</small>`);
+    else if (id.nameEn) lines.push(`<small class="muted">${esc(id.nameEn)}</small>`);
+    else if (id.exchangeEn) lines.push(`<small class="muted">${esc(id.exchangeEn)}</small>`);
+    if (!lines.length) lines.push(`<small>${esc(assetType === "crypto" ? t("assets.crypto") : t("assets.stock"))}</small>`);
+    return `<strong>${esc(symbol)}</strong>${lines.join("")}`;
+  }
+  async function refreshAssetQuotes(items) {
+    state.quotes = {};
+    if (!items || !items.length) return;
+    const grouped = items.reduce((acc, item) => {
+      const key = item.asset_type || "stock";
+      (acc[key] ||= new Set()).add(item.symbol);
+      return acc;
+    }, {});
+    await Promise.all(Object.entries(grouped).map(async ([assetType, symbolSet]) => {
+      const symbols = Array.from(symbolSet).join(",");
+      try {
+        const response = await request(`${QUOTES_API}?symbols=${encodeURIComponent(symbols)}&asset_type=${encodeURIComponent(assetType)}`);
+        (response.items || []).forEach((q) => { state.quotes[q.symbol] = q; });
+      } catch (_) { /* ignore quote failures; will fall back to asset_type label */ }
+    }));
   }
   function updateSwitches() {
     [$("scheduled-master-enabled"), $("scheduled-drawer-enabled")].forEach((node) => { if (!node) return; node.classList.toggle("is-on", Boolean(state.settings.enabled)); node.setAttribute("aria-checked", String(Boolean(state.settings.enabled))); const b = node.querySelector("b"); if (b) b.textContent = state.settings.enabled ? t("scheduler.toggleOn") : t("scheduler.toggleOff"); });
@@ -131,7 +178,19 @@
   function setActive(active) { init(); const wasActive = state.active; state.active = Boolean(active); if (state.active && !wasActive) load(); else if (!state.active) { clearInterval(state.timer); state.timer = null; closeDrawer(); closeForm(); } schedulePolling(); }
 
   function formMarkup(job = null) {
-    const options = state.watchlist.map((item) => `<option value="${esc(item.symbol)}" data-asset-type="${esc(item.asset_type || "stock")}" ${job?.symbol === item.symbol ? "selected" : ""}>${esc(item.symbol)} · ${esc(item.asset_type === "crypto" ? t("assets.crypto") : t("assets.stock"))}</option>`).join("");
+    const options = state.watchlist.map((item) => {
+      const id = identityFor(item.symbol);
+      const labelParts = [item.symbol];
+      if (id.nameZh) labelParts.push(id.nameZh);
+      if (id.exchangeZh) labelParts.push(id.exchangeZh);
+      if (labelParts.length === 1) labelParts.push(item.asset_type === "crypto" ? t("assets.crypto") : t("assets.stock"));
+      const labelText = labelParts.join(" · ");
+      const enParts = [];
+      if (id.nameEn) enParts.push(id.nameEn);
+      if (id.exchangeEn) enParts.push(id.exchangeEn);
+      const enText = enParts.length ? ` (${enParts.join(" · ")})` : "";
+      return `<option value="${esc(item.symbol)}" data-asset-type="${esc(item.asset_type || "stock")}" ${job?.symbol === item.symbol ? "selected" : ""}>${esc(labelText)}${enText ? esc(enText) : ""}</option>`;
+    }).join("");
     return `<div class="modal-overlay" data-scheduled-close-form></div><div class="modal-dialog scheduled-form-dialog" role="dialog" aria-modal="true" aria-labelledby="scheduled-form-title"><h2 id="scheduled-form-title">${esc(job ? t("scheduler.edit") : t("scheduler.add"))}</h2><form id="scheduled-form" novalidate><label class="field"><span>${esc(t("scheduler.asset"))}</span><select id="scheduled-symbol" required>${options || `<option value="">${esc(t("scheduler.watchlistEmpty"))}</option>`}</select></label><label class="field"><span>${esc(t("scheduler.cron"))}</span><input id="scheduled-cron" required autocomplete="off" value="${esc(job?.cron_expression || "0 9 * * 1-5")}" aria-describedby="scheduled-cron-hint scheduled-cron-error" /><small id="scheduled-cron-hint" class="field-hint">${esc(t("scheduler.cronHint"))}</small><p id="scheduled-cron-error" class="form-error" role="alert" aria-live="polite"></p><ul id="scheduled-cron-preview" class="scheduled-preview" aria-live="polite"></ul></label><label class="field"><span>${esc(t("scheduler.note"))}</span><textarea id="scheduled-note" rows="3" maxlength="500">${esc(job?.note || "")}</textarea></label><p id="scheduled-form-error" class="form-error" role="alert" aria-live="polite"></p><div class="modal-actions"><button type="button" class="button button-secondary" data-scheduled-close-form>${esc(t("actions.cancel"))}</button><button type="submit" class="button button-primary">${esc(t("scheduler.save"))}</button></div></form></div>`;
   }
   function openForm(job = null) {
