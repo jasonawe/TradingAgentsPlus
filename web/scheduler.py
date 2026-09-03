@@ -92,6 +92,7 @@ class ScheduledAnalysisService:
             self._stopped = False
             self._reconcile_stop.clear()
             self.resync()
+            self._reconcile_incomplete_logs()
             self.scheduler.resume()
 
     def shutdown(self) -> None:
@@ -164,6 +165,7 @@ class ScheduledAnalysisService:
             "next_run_at": next_run_time.isoformat() if next_run_time else None,
             "last_run_at": last["fired_at"] if last else None,
             "last_run_status": last["status"] if last else None,
+            "last_report_id": last["report_id"] if last else None,
         }
 
     def list_jobs(self) -> dict[str, Any]:
@@ -229,6 +231,7 @@ class ScheduledAnalysisService:
                 return None
         if any(
             active.request.ticker == request.ticker
+            and active.request.asset_type == request.asset_type
             for active in self.manager.list_active_runs()
         ):
             return self._skip(
@@ -292,6 +295,38 @@ class ScheduledAnalysisService:
         finally:
             with self._lock:
                 self._reconcile_threads.discard(threading.current_thread())
+
+    def _reconcile_incomplete_logs(self) -> None:
+        """Resume or close logs left behind by a previous process instance."""
+        for log in self.logs.list_incomplete():
+            run_id = log.get("run_id")
+            if not run_id:
+                with suppress(KeyError, RuntimeError):
+                    self.logs.update(log["id"], status="failed", error="run unavailable")
+                continue
+            try:
+                record = self.manager.get_run(run_id)
+            except KeyError:
+                with suppress(KeyError, RuntimeError):
+                    self.logs.update(log["id"], status="failed", error="run unavailable")
+                continue
+            if record.status in self._TERMINAL_STATUSES:
+                status = "succeeded" if record.status is RunStatus.COMPLETED else "failed"
+                error = None if status == "succeeded" else (
+                    record.error_message or record.terminal_reason or record.status.value
+                )
+                with suppress(KeyError, RuntimeError):
+                    self.logs.update(log["id"], status=status, error=error)
+                continue
+            reconcile_thread = threading.Thread(
+                target=self._reconcile_run_tracked,
+                args=(log["id"], run_id),
+                name=f"scheduled-reconcile-{run_id}",
+                daemon=True,
+            )
+            with self._lock:
+                self._reconcile_threads.add(reconcile_thread)
+            reconcile_thread.start()
 
     def _reconcile_run(self, log_id: str, run_id: str) -> None:
         cursor = 0

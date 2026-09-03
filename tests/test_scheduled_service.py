@@ -57,11 +57,11 @@ class FakeScheduler:
         return registered["job"] if registered else None
 
 
-def _request(ticker="AAPL"):
+def _request(ticker="AAPL", asset_type="stock"):
     return AnalysisRequest(
         ticker=ticker,
         analysis_date=date(2026, 9, 2),
-        asset_type="stock",
+        asset_type=asset_type,
         analysts=["market", "news"],
         research_depth=1,
         output_language="English",
@@ -156,6 +156,59 @@ def test_start_resync_and_shutdown_are_idempotent_and_register_only_enabled_jobs
     store.close()
 
 
+def test_start_reconciles_incomplete_logs_left_by_a_service_restart(tmp_path):
+    database = tmp_path / "restart-reconciliation.sqlite3"
+    store = SQLiteStore(database)
+    settings = SettingsRepository(store)
+    manager = RunManager(store=store)
+    manager.configure_concurrency(settings.all())
+    jobs = ScheduledJobRepository(store)
+    logs = ScheduledRunLogRepository(store)
+    job = jobs.create("AAPL", asset_type="stock", cron_expression="0 9 * * *")
+    run = manager.start_run(_request(), worker=None)
+    log = logs.create(
+        job["id"],
+        symbol="AAPL",
+        asset_type="stock",
+        scheduled_for=datetime.now(timezone.utc).isoformat(),
+        fired_at=datetime.now(timezone.utc).isoformat(),
+        status="running",
+        run_id=run.run_id,
+        parameter_source="global_default",
+    )
+    manager.shutdown(wait=False)
+    store.close()
+
+    restored_store = SQLiteStore(database)
+    restored_settings = SettingsRepository(restored_store)
+    restored_manager = RunManager(store=restored_store)
+    service = ScheduledAnalysisService(
+        jobs=ScheduledJobRepository(restored_store),
+        logs=ScheduledRunLogRepository(restored_store),
+        runs=AnalysisRunRepository(restored_store),
+        watchlist=WatchlistRepository(restored_store),
+        settings=restored_settings,
+        manager=restored_manager,
+        worker=lambda _run_id: None,
+        normalize_request=lambda request: request,
+        config={},
+        scheduler=FakeScheduler(),
+        timezone=timezone.utc,
+    )
+
+    service.start()
+
+    deadline = time.monotonic() + 2
+    while time.monotonic() < deadline and service.logs.get(log["id"])["status"] != "failed":
+        time.sleep(0.01)
+    restored = service.logs.get(log["id"])
+    assert restored["status"] == "failed"
+    assert restored["error"]
+    service.shutdown()
+    restored_manager.shutdown()
+    restored_store.close()
+
+
 def test_real_scheduler_records_the_nominal_fire_time(tmp_path):
     service, store, manager, scheduler = _service(tmp_path, real_scheduler=True)
     service.watchlist.add_item("AAPL", asset_type="stock")
@@ -198,6 +251,7 @@ def test_job_serialization_includes_next_and_latest_log_fields(tmp_path):
     assert item["next_run_at"] is not None
     assert item["last_run_at"] == now.isoformat()
     assert item["last_run_status"] == "skipped"
+    assert item["last_report_id"] is None
     assert service.preview("0 9 * * *", count=2, now=now) == [
         "2026-09-02T09:00:00+00:00",
         "2026-09-03T09:00:00+00:00",
@@ -371,6 +425,29 @@ def test_asset_busy_takes_precedence_when_the_manager_is_also_at_capacity(tmp_pa
     manager.start_run(_request("AAPL"), worker=lambda _run_id: time.sleep(1))
 
     assert service.trigger(job["id"])["skip_reason"] == "asset_busy"
+    manager.shutdown(wait=False)
+    store.close()
+
+
+def test_same_ticker_different_asset_type_is_not_marked_asset_busy(tmp_path):
+    import threading
+
+    service, store, manager, _scheduler = _service(tmp_path)
+    release = threading.Event()
+    service.watchlist.add_item("BTC-USD", asset_type="crypto")
+    job = service.jobs.create(
+        "BTC-USD", asset_type="crypto", cron_expression="0 9 * * *"
+    )
+    manager.start_run(
+        _request("BTC-USD", asset_type="stock"),
+        worker=lambda _run_id: release.wait(2),
+    )
+
+    log = service.trigger(job["id"])
+
+    assert log["skip_reason"] is None
+    assert log["status"] in {"queued", "running", "succeeded"}
+    release.set()
     manager.shutdown(wait=False)
     store.close()
 

@@ -451,3 +451,10 @@ def test_scheduled_workspace_covers_empty_error_forms_and_history_states():
     assert "formCronValid" in scheduled
     assert 't("scheduler.confirmDelete")' in scheduled
     assert "drawerFocus" in scheduled
+
+
+def test_scheduled_form_submits_the_selected_watchlist_asset_type():
+    scheduled = (STATIC / "scheduled.js").read_text(encoding="utf-8")
+
+    assert 'selectedOptions[0]?.dataset.assetType' in scheduled
+    assert 'id="scheduled-asset-type"' not in scheduled

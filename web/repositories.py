@@ -682,6 +682,17 @@ class ScheduledRunLogRepository:
             rows = conn.execute(sql, parameters).fetchall()
         return [_row(row) for row in rows]
 
+    def list_incomplete(self, *, limit: int = 1000) -> list[dict[str, Any]]:
+        if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 10000:
+            raise ValueError("invalid incomplete log limit")
+        with self.store.connection() as conn:
+            rows = conn.execute(
+                f"{self._SELECT} WHERE logs.status IN ('queued','running') "
+                "ORDER BY logs.fired_at ASC,logs.id ASC LIMIT ?",
+                (limit,),
+            ).fetchall()
+        return [_row(row) for row in rows]
+
     def update(
         self,
         log_id: str,

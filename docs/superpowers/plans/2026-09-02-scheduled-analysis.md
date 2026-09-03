@@ -74,4 +74,4 @@
 
 - [x] Run focused scheduled/API/static tests and the full suite.
 - [x] Update the design status block and README with the delivered scheduler behavior.
-- [ ] Refresh the knowledge graph incrementally after implementation and validate its metadata/fingerprints.
+- [x] Refresh the knowledge graph incrementally after implementation and validate its metadata/fingerprints.
