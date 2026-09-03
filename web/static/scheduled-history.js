@@ -10,6 +10,7 @@
     hasNext: false,
     items: [],
     jobs: [],
+    quotes: {},
     active: false,
     visible: !document.hidden,
     initialised: false,
@@ -91,9 +92,12 @@
   }
 
   function assetIdentity(row) {
-    const sym = esc(row.symbol);
-    if (!row.symbol) return "—";
-    return sym;
+    if (!row.symbol) return "<strong>—</strong>";
+    const quote = state.quotes[row.symbol];
+    if (window.TradingAgentsQuotes?.formatAssetCell) {
+      return window.TradingAgentsQuotes.formatAssetCell(row.symbol, row.asset_type, quote, esc);
+    }
+    return `<strong>${esc(row.symbol)}</strong><small>${esc(row.asset_type === "crypto" ? t("assets.crypto") : t("assets.stock"))}</small>`;
   }
 
   function statusMarkup(row) {
@@ -141,7 +145,7 @@
     tbody.innerHTML = state.items.map((row) => `
       <tr>
         <td>${formatTime(row.fired_at)}</td>
-        <td><strong>${assetIdentity(row)}</strong>${row.asset_type ? `<small>${esc(row.asset_type === "crypto" ? t("assets.crypto") : t("assets.stock"))}</small>` : ""}</td>
+        <td>${assetIdentity(row)}</td>
         <td>${statusMarkup(row)}</td>
         <td>${sourceMarkup(row.parameter_source)}</td>
         <td>${row.started_at && row.finished_at ? esc(formatDuration(row.started_at, row.finished_at)) : "—"}</td>
@@ -198,6 +202,28 @@
     } finally {
       state.loading = false;
     }
+    refreshAssetQuotes();
+  }
+
+  async function refreshAssetQuotes() {
+    if (!state.items.length) return;
+    const grouped = state.items.reduce((acc, item) => {
+      if (!item.symbol) return acc;
+      const key = item.asset_type || "stock";
+      (acc[key] ||= new Set()).add(item.symbol);
+      return acc;
+    }, {});
+    let changed = false;
+    await Promise.all(Object.entries(grouped).map(async ([assetType, symbolSet]) => {
+      const symbols = [...symbolSet];
+      try {
+        const response = window.TradingAgentsQuotes?.fetch
+          ? await window.TradingAgentsQuotes.fetch(symbols, assetType)
+          : await api(`/api/quotes?symbols=${encodeURIComponent(symbols.join(","))}&asset_type=${encodeURIComponent(assetType)}`);
+        (response.items || []).forEach((q) => { state.quotes[q.symbol] = q; changed = true; });
+      } catch (_) { /* ignore quote failures; will fall back to asset_type label */ }
+    }));
+    if (changed) renderRows();
   }
 
   function bindEvents() {
