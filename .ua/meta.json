@@ -1,6 +1,8 @@
 {
-  "lastAnalyzedAt": "2026-09-03T03:16:57.836Z",
-  "gitCommitHash": "ea63848c24d641857bcf64e431ce239cc6d23828",
+  "lastAnalyzedAt": "2026-09-03T10:42:08.253789Z",
+  "gitCommitHash": "3ddae8d26b6ffabf6a3726722713b25d08887b57",
   "version": "1.0.0",
-  "analyzedFiles": 251
+  "analyzedFiles": 251,
+  "needsFullRebuild": true,
+  "staleReason": "README update; commit history advanced past last full rebuild"
 }
