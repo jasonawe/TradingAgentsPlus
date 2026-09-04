@@ -35,7 +35,7 @@ from .manager import AssetBusyError, EventBatch, MaxConcurrentRunsError, RunMana
 from .market_data import ProviderRouter, QuoteService
 from .market_models import ProviderError
 from .models import AnalysisRequest, EventEnvelope, RunRecord
-from .providers import AlphaVantageProvider, YFinanceProvider
+from .providers import AlphaVantageProvider, EastMoneyProvider, YFinanceProvider
 from .repositories import (
     AnalysisRunRepository,
     ProviderHealthRepository,
@@ -286,7 +286,7 @@ def create_app(
     app.state.scheduler = scheduler_service
     app.state.artifact_repository = artifact_repository
     app.state.repositories = repositories
-    providers = {"yfinance": YFinanceProvider(), "alpha_vantage": AlphaVantageProvider()}
+    providers = {"yfinance": YFinanceProvider(), "alpha_vantage": AlphaVantageProvider(), "eastmoney": EastMoneyProvider()}
     app.state.market_router = ProviderRouter(providers, health=provider_health_repo)
     app.state.market_service = QuoteService(
         app.state.market_router,

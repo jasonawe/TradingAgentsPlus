@@ -63,11 +63,6 @@ _BOUNDED_EXECUTOR = _DaemonExecutor()
 
 
 class ProviderRouter:
-    STRATEGIES = {
-        "default-yfinance": ("yfinance",),
-        "fallback-yfinance-alpha-vantage": ("yfinance", "alpha_vantage"),
-    }
-
     def __init__(
         self,
         providers: dict[str, Any],
@@ -76,7 +71,12 @@ class ProviderRouter:
         health: Any | None = None,
     ):
         self.providers = providers
-        self.strategies = strategies or self.STRATEGIES
+        # Lazy import keeps the router usable in contexts where config.py is not
+        # importable (e.g. unit tests) and lets the chain follow the catalog.
+        if strategies is None:
+            from .config import QUOTE_STRATEGIES
+            strategies = {k: tuple(v["providers"]) for k, v in QUOTE_STRATEGIES.items()}
+        self.strategies = strategies
         self.health = health
 
     def chain(self, strategy: str) -> tuple[Any, ...]:
@@ -216,7 +216,7 @@ class ProviderRouter:
         self,
         symbol: str,
         asset_type: str,
-        strategy: str = "default-yfinance",
+        strategy: str = "default-eastmoney",
         *,
         timeout_seconds: float = 10,
         retries: int = 1,
@@ -236,7 +236,7 @@ class ProviderRouter:
         interval: str,
         start: Any,
         end: Any,
-        strategy: str = "default-yfinance",
+        strategy: str = "default-eastmoney",
         *,
         timeout_seconds: float = 10,
         retries: int = 1,
@@ -257,7 +257,7 @@ class ProviderRouter:
         self,
         symbol: str,
         asset_type: str,
-        strategy: str = "default-yfinance",
+        strategy: str = "default-eastmoney",
         *,
         timeout_seconds: float = 10,
         retries: int = 1,
@@ -302,7 +302,7 @@ class QuoteService:
         )
         self.ttl_seconds = max(15, min(60, int(ttl_value)))
         self.strategy = strategy or self._resolved(
-            "quote_strategy_id", "TRADINGAGENTS_QUOTE_STRATEGY", "default-yfinance"
+            "quote_strategy_id", "TRADINGAGENTS_QUOTE_STRATEGY", "default-eastmoney"
         )
         if self.strategy not in self.router.strategies:
             raise ValueError(f"unknown quote strategy: {self.strategy}")

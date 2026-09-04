@@ -78,7 +78,7 @@ DEFAULT_CONFIG = _apply_env_overrides({
     "results_dir": os.getenv("TRADINGAGENTS_RESULTS_DIR", os.path.join(_TRADINGAGENTS_HOME, "logs")),
     "data_cache_dir": os.getenv("TRADINGAGENTS_CACHE_DIR", os.path.join(_TRADINGAGENTS_HOME, "cache")),
     "quote_ttl_seconds": 60,
-    "quote_strategy_id": "default-yfinance",
+    "quote_strategy_id": "default-eastmoney",
     "run_timeout_seconds": 7200,
     "run_heartbeat_interval_seconds": 15,
     "run_heartbeat_timeout_seconds": 180,

@@ -269,7 +269,7 @@ class WebRunRunner:
                         "summary_status": summary_status,
                         "quote_strategy_id": request.quote_strategy_id,
                         "effective_quote_strategy_id": request.quote_strategy_id,
-                        "effective_quote_provider_chain": (["yfinance"] if request.quote_strategy_id == "default-yfinance" else ["yfinance", "alpha_vantage"] if request.quote_strategy_id == "fallback-yfinance-alpha-vantage" else []),
+                        "effective_quote_provider_chain": (["eastmoney", "yfinance"] if request.quote_strategy_id == "default-eastmoney" else ["yfinance"] if request.quote_strategy_id == "default-yfinance" else ["eastmoney", "yfinance", "alpha_vantage"] if request.quote_strategy_id == "fallback-yfinance-alpha-vantage" else []),
                         "data_snapshot_id": manifest["id"],
                         "data_status": "complete",
                         "reproducibility": "partial",

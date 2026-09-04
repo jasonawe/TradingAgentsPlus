@@ -232,7 +232,7 @@ tradingagents web --host 0.0.0.0 --port 8000
 
 For example, open `http://192.168.112.100:8000` when `192.168.112.100` is the host machine's LAN address. Only do this on a trusted network because the console has no login layer.
 
-关注列表行情是只读市场快照；平台不连接券商、不执行交易，也不管理真实持仓。当前默认使用 `yfinance`，配置 `ALPHA_VANTAGE_API_KEY` 后可在需要时回退到 Alpha Vantage。每条行情会记录来源、报价时间、抓取时间、缓存状态（`live`、`hit`、`miss`、`stale`）、数据新鲜度（`fresh`、`delayed`、`stale`、`unavailable`）和过期秒数。设置诊断页会展示每个实际尝试过的供应商健康状态、成功/失败次数、最近错误和延迟；前端请求使用 4 秒超时与 5/10/20/40/60 秒退避，并在页面不可见时暂停刷新。Polygon、Twelve Data、Tushare、AKShare 等供应商可以在同一 Provider 契约后扩展接入。
+关注列表行情是只读市场快照；平台不连接券商、不执行交易，也不管理真实持仓。当前默认行情策略 `default-eastmoney`，对 `.SS`/`.SZ` A 股先走 EastMoney 推送接口（无需 API key，盘中实时，返回日线和分笔精度），失败时回退 `yfinance`；非 A 股或 EastMoney 不支持的标的直接落到 `yfinance`。配置 `ALPHA_VANTAGE_API_KEY` 后还可在 `/settings` 切换到 `fallback-yfinance-alpha-vantage` 链。每条行情会记录来源、报价时间、抓取时间、缓存状态（`live`、`hit`、`miss`、`stale`）、数据新鲜度（`fresh`、`delayed`、`stale`、`unavailable`）和过期秒数。设置诊断页会展示每个实际尝试过的供应商健康状态、成功/失败次数、最近错误和延迟；前端请求使用 4 秒超时与 5/10/20/40/60 秒退避，并在页面不可见时暂停刷新。Polygon、Twelve Data、Tushare、AKShare 等供应商可以在同一 Provider 契约后扩展接入。
 
 定时任务使用标准 5 字段 Cron 和服务所在时区。任务、触发日志、全局启用开关及最大并发数都持久化到 SQLite；服务重启后会恢复仍启用的任务，但不会补跑停机期间错过的触发。定时分析按优先级解析运行参数：开启“公共默认参数覆盖”后使用该覆盖值；否则复用该资产最近一次成功分析的参数；都没有时回退到全局默认（厂商 / Quick / Deep 模型 / 分析类型 / 研究深度 / 输出语言）。公共默认参数在 `/scheduled` 顶部“定时任务设置”抽屉里配置，对所有定时任务统一生效。删除关注资产会在同一事务中删除对应定时任务和历史日志。默认最多同时运行 3 个不同资产的分析，可在 `/scheduled` 的设置中调整为 1–10；同一资产不会并行启动第二个任务。
 

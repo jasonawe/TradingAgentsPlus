@@ -24,8 +24,9 @@ OUTPUT_LANGUAGES: tuple[str, ...] = (
 )
 
 QUOTE_STRATEGIES = {
+    "default-eastmoney": {"providers": ["eastmoney", "yfinance"]},
     "default-yfinance": {"providers": ["yfinance"]},
-    "fallback-yfinance-alpha-vantage": {"providers": ["yfinance", "alpha_vantage"]},
+    "fallback-yfinance-alpha-vantage": {"providers": ["eastmoney", "yfinance", "alpha_vantage"]},
 }
 
 _RUN_LIFECYCLE_SETTINGS = {
@@ -100,7 +101,7 @@ def market_data_catalog(
         return config.get(key, default), "default"
 
     strategy, source = resolved(
-        "quote_strategy_id", "TRADINGAGENTS_QUOTE_STRATEGY", "default-yfinance"
+        "quote_strategy_id", "TRADINGAGENTS_QUOTE_STRATEGY", "default-eastmoney"
     )
     ttl, ttl_source = resolved("quote_ttl_seconds", "TRADINGAGENTS_QUOTE_TTL_SECONDS", 60)
     try:
@@ -109,17 +110,20 @@ def market_data_catalog(
         ttl = 60
     yfinance_installed = importlib.util.find_spec("yfinance") is not None
     alpha_configured = bool(os.getenv("ALPHA_VANTAGE_API_KEY"))
+    # East Money uses stdlib urllib only — always available when Python is present.
+    eastmoney_installed = True
     provider_ready = {
         "yfinance": yfinance_installed,
         "alpha_vantage": yfinance_installed and alpha_configured,
+        "eastmoney": eastmoney_installed,
     }
     return {
         "quote_strategy_id": {
-            "value": strategy if strategy in QUOTE_STRATEGIES else "default-yfinance",
+            "value": strategy if strategy in QUOTE_STRATEGIES else "default-eastmoney",
             "source": source,
         },
         "quote_provider_chain": {
-            "value": QUOTE_STRATEGIES.get(strategy, QUOTE_STRATEGIES["default-yfinance"])[
+            "value": QUOTE_STRATEGIES.get(strategy, QUOTE_STRATEGIES["default-eastmoney"])[
                 "providers"
             ],
             "source": source,
@@ -151,6 +155,15 @@ def market_data_catalog(
                 "capabilities": ["quote", "identity"],
                 "status": "ready" if alpha_configured else "not_configured",
                 "reason": None if alpha_configured else "未配置 Alpha Vantage API Key",
+            },
+            {
+                "id": "eastmoney",
+                "installed": eastmoney_installed,
+                "available": eastmoney_installed,
+                "configured": eastmoney_installed,
+                "capabilities": ["quote", "identity"],
+                "status": "ready",
+                "reason": None,
             },
         ],
     }
