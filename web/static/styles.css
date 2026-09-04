@@ -563,3 +563,16 @@ table.data .num { font-family: var(--mono); font-weight: 600; text-align: right;
 .asset-metrics-grid .asset-metric dd { font-size: 16px; font-weight: 600; color: var(--text); margin: 0; word-break: break-all; }
 .asset-metrics-grid .asset-metric dd.is-missing { color: var(--muted); font-weight: 400; }
 .watchlist-row .quote-cap { color: var(--muted); font-weight: 500; }
+
+/* Quote strategy selector */
+.quote-strategy-selector { margin-bottom: 20px; }
+.quote-strategy-selector fieldset { border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px 16px; }
+.quote-strategy-selector legend { padding: 0 6px; font-weight: 600; color: var(--text); }
+.quote-strategy-options { display: flex; flex-direction: column; gap: 8px; }
+.quote-strategy-option { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--r-sm); cursor: pointer; background: var(--surface-2); transition: border-color 0.15s, background 0.15s; }
+.quote-strategy-option:hover { border-color: var(--accent); }
+.quote-strategy-option.is-disabled { opacity: 0.55; cursor: not-allowed; }
+.quote-strategy-option input[type="radio"] { margin-top: 4px; }
+.quote-strategy-body { display: flex; flex-direction: column; gap: 2px; }
+.quote-strategy-body strong { font-size: 14px; }
+.quote-strategy-body small { font-family: var(--font-mono); font-size: 12px; }

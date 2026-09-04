@@ -41,6 +41,11 @@
     cache.delete(key);
   }
 
+  function reset() {
+    cache.clear();
+    inflight.clear();
+  }
+
 
   function identityFromQuote(quote) {
     if (!quote) return { nameZh: "", nameEn: "", exchangeZh: "", exchangeEn: "" };
@@ -70,5 +75,5 @@
     return `<strong>${safe(symbol)}</strong>${lines.join("")}`;
   }
 
-  root.TradingAgentsQuotes = { fetch: fetchQuotes, invalidate, formatAssetCell, identityFromQuote };
+  root.TradingAgentsQuotes = { fetch: fetchQuotes, invalidate, reset, formatAssetCell, identityFromQuote };
 })(window);

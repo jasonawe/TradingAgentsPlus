@@ -508,6 +508,22 @@ def create_app(
         fields["effective_output_language"] = fields["output_language"]
         return {"schema_version": 1, "fields": fields, "strategies": [{"id": k, "providers": v["providers"], "available": next((s["available"] for s in catalog["strategies"] if s["id"] == k), False)} for k, v in QUOTE_STRATEGIES.items()], "provider_health": {item["provider"]: item for item in provider_health_repo.list()}}
 
+    @app.patch("/api/settings/quote-strategy")
+    def update_quote_strategy(payload: dict[str, Any]) -> dict[str, Any]:
+        """Persist a user-chosen quote strategy. Validates against QUOTE_STRATEGIES."""
+        strategy_id = (payload or {}).get("strategy_id")
+        if not isinstance(strategy_id, str) or strategy_id not in QUOTE_STRATEGIES:
+            raise _error(status.HTTP_400_BAD_REQUEST, "unknown quote strategy")
+        settings_repo.set("quote_strategy_id", strategy_id, source="sqlite")
+        catalog = market_data_catalog(active_config, settings_repo.all())
+        return {
+            "strategy": {
+                "id": strategy_id,
+                "providers": QUOTE_STRATEGIES[strategy_id]["providers"],
+            },
+            "fields": {key: catalog[key] for key in ("quote_strategy_id", "quote_provider_chain", "quote_ttl_seconds")},
+        }
+
     @app.get("/api/scheduled/jobs")
     def list_scheduled_jobs() -> dict[str, Any]:
         return scheduler_service.list_jobs()

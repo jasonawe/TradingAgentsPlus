@@ -48,7 +48,46 @@
   function showLibrary() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; switchView("library"); setConnection("ready"); renderLibrary(); loadLibraryPage(); }
   function showScheduled() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("scheduled"); setConnection("ready"); }
   function showScheduledHistory() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("scheduled-history"); setConnection("ready"); window.TradingAgentsScheduledHistory?.refresh?.(); }
-  async function showSettings() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("settings"); setConnection("ready"); try { const [settings, providers] = await Promise.all([api("/api/settings"), api("/api/providers/market-data")]); const fields = settings.fields || {}; $("settings-fields").innerHTML = Object.entries(fields).map(([key, value]) => `<div><dt>${escapeHtml(t(`settings.${key}`))}</dt><dd>${escapeHtml(typeof value === "object" ? `${i18n.displayValue(value.value)}（${t("settings.source", { value: i18n.displayValue(value.source, t("settings.unknownSource")) })}）` : i18n.displayValue(value))}</dd></div>`).join(""); $("provider-status-list").innerHTML = (providers.providers || []).map((item) => `<div class="provider-status"><strong>${escapeHtml(item.label || item.id)}</strong><span class="status-chip ${item.status}">${escapeHtml(i18n.label("provider_status", item.status))}</span></div>`).join("") || `<p class="muted">${escapeHtml(t("settings.noProviders"))}</p>`; } catch (_) { $("settings-fields").innerHTML = `<p class="muted">${escapeHtml(t("settings.unavailable"))}</p>`; } }
+  async function showSettings() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("settings"); setConnection("ready"); try { const [settings, providers] = await Promise.all([api("/api/settings"), api("/api/providers/market-data")]); const fields = settings.fields || {}; $("settings-fields").innerHTML = Object.entries(fields).map(([key, value]) => `<div><dt>${escapeHtml(t(`settings.${key}`))}</dt><dd>${escapeHtml(typeof value === "object" ? `${i18n.displayValue(value.value)}（${t("settings.source", { value: i18n.displayValue(value.source, t("settings.unknownSource")) })}）` : i18n.displayValue(value))}</dd></div>`).join(""); $("provider-status-list").innerHTML = (providers.providers || []).map((item) => `<div class="provider-status"><strong>${escapeHtml(item.label || item.id)}</strong><span class="status-chip ${item.status}">${escapeHtml(i18n.label("provider_status", item.status))}</span></div>`).join("") || `<p class="muted">${escapeHtml(t("settings.noProviders"))}</p>`; renderQuoteStrategySelector(settings); } catch (_) { $("settings-fields").innerHTML = `<p class="muted">${escapeHtml(t("settings.unavailable"))}</p>`; } }
+  async function renderQuoteStrategySelector(settings) {
+    const container = $("quote-strategy-selector");
+    const list = $("quote-strategy-options");
+    const status = $("quote-strategy-status");
+    if (!container || !list) return;
+    container.hidden = false;
+    const currentId = settings?.fields?.quote_strategy_id?.value;
+    const strategies = settings?.strategies || [];
+    if (!strategies.length) { container.hidden = true; return; }
+    list.innerHTML = strategies.map((s) => {
+      const checked = s.id === currentId ? "checked" : "";
+      const unavailable = !s.available ? " is-disabled" : "";
+      const providersText = (s.providers || []).map((p) => escapeHtml(p)).join(" → ");
+      return `<label class="quote-strategy-option${unavailable}" data-strategy-id="${escapeHtml(s.id)}">
+        <input type="radio" name="quote-strategy" value="${escapeHtml(s.id)}" ${checked} ${s.available ? "" : "disabled"} />
+        <span class="quote-strategy-body">
+          <strong>${escapeHtml(t(`settings.quoteStrategy.${s.id}`, s.id))}</strong>
+          <small class="muted">${providersText}</small>
+        </span>
+      </label>`;
+    }).join("");
+    list.querySelectorAll('input[name="quote-strategy"]').forEach((input) => {
+      input.addEventListener("change", async (event) => {
+        const strategyId = event.target.value;
+        if (!strategyId || strategyId === currentId) return;
+        status.textContent = t("settings.quoteStrategySaving");
+        try {
+          await api("/api/settings/quote-strategy", { method: "PATCH", body: JSON.stringify({ strategy_id: strategyId }), headers: { "Content-Type": "application/json" } });
+          status.textContent = t("settings.quoteStrategySaved");
+          // Refresh settings view + provider health to reflect the change
+          await showSettings();
+          // Bust the watchlist quote cache so the user sees fresh data on the new chain
+          window.TradingAgentsQuotes?.reset?.();
+        } catch (error) {
+          status.textContent = localizeError(error.message);
+        }
+      });
+    });
+  }
   const ASSET_DETAIL_DAYS = { "30": "1M", "90": "3M", "180": "6M", "365": "1Y" };
   const ASSET_KLINE_DEFAULT_DAYS = 90;
   const ASSET_RUN_STATUS_KEYS = { queued: "status.queued", running: "status.running", publishing: "status.publishing", completed: "status.completed", failed: "status.failed", cancelled: "status.cancelled", interrupted: "status.interrupted", timed_out: "status.timed_out" };
