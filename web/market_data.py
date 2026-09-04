@@ -22,11 +22,17 @@ from .market_models import (
     QuoteSnapshot,
 )
 
+# Codes that should let the chain fall through to the next provider rather
+# than aborting. ``NO_DATA`` is treated as fall-through because it indicates
+# the symbol is outside this provider's coverage (e.g. AKShare's A-share
+# stock list doesn't include ETFs), not a provider health issue — the next
+# provider in the chain may still have data for the same symbol.
 TRANSIENT = {
     ProviderErrorCode.NOT_CONFIGURED,
     ProviderErrorCode.RATE_LIMITED,
     ProviderErrorCode.TIMEOUT,
     ProviderErrorCode.PROVIDER_ERROR,
+    ProviderErrorCode.NO_DATA,
 }
 
 
