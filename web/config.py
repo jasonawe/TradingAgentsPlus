@@ -24,9 +24,12 @@ OUTPUT_LANGUAGES: tuple[str, ...] = (
 )
 
 QUOTE_STRATEGIES = {
+    "default-akshare": {"providers": ["akshare", "yfinance"]},
     "default-eastmoney": {"providers": ["eastmoney", "yfinance"]},
     "default-yfinance": {"providers": ["yfinance"]},
-    "fallback-yfinance-alpha-vantage": {"providers": ["eastmoney", "yfinance", "alpha_vantage"]},
+    "fallback-yfinance-alpha-vantage": {
+        "providers": ["akshare", "eastmoney", "yfinance", "alpha_vantage"]
+    },
 }
 
 _RUN_LIFECYCLE_SETTINGS = {
@@ -112,10 +115,12 @@ def market_data_catalog(
     alpha_configured = bool(os.getenv("ALPHA_VANTAGE_API_KEY"))
     # East Money uses stdlib urllib only — always available when Python is present.
     eastmoney_installed = True
+    akshare_installed = importlib.util.find_spec("akshare") is not None
     provider_ready = {
         "yfinance": yfinance_installed,
         "alpha_vantage": yfinance_installed and alpha_configured,
         "eastmoney": eastmoney_installed,
+        "akshare": akshare_installed,
     }
     return {
         "quote_strategy_id": {
@@ -164,6 +169,15 @@ def market_data_catalog(
                 "capabilities": ["quote", "identity"],
                 "status": "ready",
                 "reason": None,
+            },
+            {
+                "id": "akshare",
+                "installed": akshare_installed,
+                "available": akshare_installed,
+                "configured": akshare_installed,
+                "capabilities": ["quote", "identity"],
+                "status": "ready" if akshare_installed else "not_configured",
+                "reason": None if akshare_installed else "未安装 akshare",
             },
         ],
     }
