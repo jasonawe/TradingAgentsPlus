@@ -73,6 +73,13 @@ class QuoteSnapshot(BaseModel):
     high: float | None = None
     low: float | None = None
     volume: float | None = None
+    volume_ratio: float | None = None
+    turnover: float | None = None
+    turnover_rate: float | None = None
+    market_cap: float | None = None
+    circulating_cap: float | None = None
+    pe_ratio: float | None = None
+    amplitude: float | None = None
     previous_close: float | None = None
     change: float | None = None
     change_percent: float | None = None
@@ -106,7 +113,9 @@ class QuoteSnapshot(BaseModel):
             self.is_delayed = False
         elif self.freshness == Freshness.UNAVAILABLE:
             self.price = self.previous_close = self.change = self.change_percent = None
-            self.open = self.high = self.low = self.volume = None
+            self.open = self.high = self.low = self.volume = self.turnover = None
+            self.volume_ratio = self.turnover_rate = self.market_cap = self.circulating_cap = None
+            self.pe_ratio = self.amplitude = None
             self.is_delayed = False
         elif self.freshness in (Freshness.DELAYED, Freshness.STALE):
             self.is_delayed = True
@@ -181,6 +190,14 @@ class QuoteItem(BaseModel):
     asset_name_zh: str | None = None
     exchange_name_zh: str | None = None
     source: str | None = None
+    volume: float | None = None
+    turnover: float | None = None
+    turnover_rate: float | None = None
+    market_cap: float | None = None
+    circulating_cap: float | None = None
+    pe_ratio: float | None = None
+    amplitude: float | None = None
+    volume_ratio: float | None = None
     quote_time: datetime | None = None
     fetched_at: datetime | None = None
     freshness: Freshness | None = None
@@ -203,6 +220,14 @@ class QuoteItem(BaseModel):
             self.previous_close = self.quote.previous_close
             self.change = self.quote.change
             self.change_percent = self.quote.change_percent
+            self.volume = self.quote.volume
+            self.turnover = self.quote.turnover
+            self.turnover_rate = self.quote.turnover_rate
+            self.market_cap = self.quote.market_cap
+            self.circulating_cap = self.quote.circulating_cap
+            self.pe_ratio = self.quote.pe_ratio
+            self.amplitude = self.quote.amplitude
+            self.volume_ratio = self.quote.volume_ratio
             self.currency = self.quote.currency
             self.market_status = self.quote.market_status
             self.exchange = self.quote.exchange

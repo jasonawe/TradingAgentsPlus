@@ -242,6 +242,19 @@
             <button id="asset-detail-run" class="button button-primary" type="button" data-i18n="actions.startAnalysis">开始分析</button>
           </div>
         </div>
+        <section class="asset-detail-panel" id="asset-detail-metrics-panel">
+          <div class="section-heading"><h2 data-i18n="asset.metricsTitle">行情指标</h2></div>
+          <dl id="asset-detail-metrics" class="asset-metrics-grid">
+            <div class="asset-metric"><dt data-i18n="asset.metric.marketCap">总市值</dt><dd id="asset-metric-market-cap">—</dd></div>
+            <div class="asset-metric"><dt data-i18n="asset.metric.circulatingCap">流通市值</dt><dd id="asset-metric-circulating-cap">—</dd></div>
+            <div class="asset-metric"><dt data-i18n="asset.metric.volume">成交量</dt><dd id="asset-metric-volume">—</dd></div>
+            <div class="asset-metric"><dt data-i18n="asset.metric.turnover">成交额</dt><dd id="asset-metric-turnover">—</dd></div>
+            <div class="asset-metric"><dt data-i18n="asset.metric.turnoverRate">换手率</dt><dd id="asset-metric-turnover-rate">—</dd></div>
+            <div class="asset-metric"><dt data-i18n="asset.metric.volumeRatio">量比</dt><dd id="asset-metric-volume-ratio">—</dd></div>
+            <div class="asset-metric"><dt data-i18n="asset.metric.peRatio">市盈率</dt><dd id="asset-metric-pe-ratio">—</dd></div>
+            <div class="asset-metric"><dt data-i18n="asset.metric.amplitude">振幅</dt><dd id="asset-metric-amplitude">—</dd></div>
+          </dl>
+        </section>
         <section class="asset-detail-panel">
           <div class="panel-heading"><span class="kicker" data-i18n="asset.kLineChart">K 线走势</span><div id="asset-kline-intervals" class="kline-intervals" role="group" aria-label="K 线区间"><button type="button" class="kline-interval is-active" data-asset-kline-days="30">1M</button><button type="button" class="kline-interval" data-asset-kline-days="90">3M</button><button type="button" class="kline-interval" data-asset-kline-days="180">6M</button><button type="button" class="kline-interval" data-asset-kline-days="365">1Y</button></div></div>
           <div id="asset-kline-chart" class="asset-kline-chart" aria-live="polite"></div>

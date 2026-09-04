@@ -555,3 +555,11 @@ table.data .num { font-family: var(--mono); font-weight: 600; text-align: right;
   .asset-detail-header { padding: 20px; }
   .report-panel, .settings-card { padding: 20px; }
 }
+
+/* Quantitative metrics panel */
+.asset-metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px 20px; margin: 0; padding: 0; }
+.asset-metrics-grid .asset-metric { background: var(--surface-2); border-radius: var(--r-md); padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.asset-metrics-grid .asset-metric dt { font-size: 12px; color: var(--muted); margin: 0; }
+.asset-metrics-grid .asset-metric dd { font-size: 16px; font-weight: 600; color: var(--text); margin: 0; word-break: break-all; }
+.asset-metrics-grid .asset-metric dd.is-missing { color: var(--muted); font-weight: 400; }
+.watchlist-row .quote-cap { color: var(--muted); font-weight: 500; }

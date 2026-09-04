@@ -63,9 +63,15 @@ def _http_get_json(url: str, timeout: float = 8.0) -> dict[str, Any]:
 # f43: latest price (¥), f44: high (¥), f45: low (¥),
 # f46: open (¥), f60: previous close (¥), f169: change amount (¥),
 # f170: change percent (percent units — e.g. 1.5 = 1.5%),
-# f57: ticker code, f58: ticker name, f86: timestamp (epoch seconds),
-# f107: market (int, 1=SH/0=SZ), f116: total market cap, f117: circulating cap, f168: turnover.
-_QUOTE_FIELDS = "f43,f44,f45,f46,f60,f169,f170,f57,f58,f86,f107,f116,f117,f168"
+# f47: volume (in 手, 1 手 = 100 shares), f48: turnover (¥),
+# f50: volume ratio, f57: ticker code, f58: ticker name,
+# f60: previous close (¥), f86: timestamp (epoch seconds),
+# f107: market (int, 1=SH/0=SZ),
+# f116: total market cap (¥), f117: circulating cap (¥),
+# f162: turnover rate (%), f167: PE ratio (TTM), f168: turnover,
+# f169: change amount (¥), f170: change percent (%),
+# f171: amplitude (%), f191: volume (in shares).
+_QUOTE_FIELDS = "f43,f44,f45,f46,f47,f48,f50,f60,f169,f170,f57,f58,f86,f107,f116,f117,f162,f167,f168,f171"
 
 
 class EastMoneyProvider:
@@ -149,6 +155,19 @@ class EastMoneyProvider:
             previous_close=num("f60"),
             change=num("f169"),
             change_percent=num("f170"),
+            # Quantitative metrics (all already divided under invt=2&fltt=2):
+            #   f47 is volume in 手 (1 手 = 100 shares) → multiply for shares;
+            #   f48 turnover is already in ¥; f50 量比; f116/f117 cap in ¥;
+            #   f162 换手率 in %; f167 市盈率(动); f168 turnover 元 (alt);
+            #   f171 振幅 in %.
+            volume=(num("f47") * 100 if num("f47") is not None else None),
+            turnover=num("f48") or num("f168"),
+            volume_ratio=num("f50"),
+            turnover_rate=num("f162"),
+            market_cap=num("f116"),
+            circulating_cap=num("f117"),
+            pe_ratio=num("f167"),
+            amplitude=num("f171"),
             currency="CNY",
             as_of=as_of,
             fetched_at=datetime.now(timezone.utc),
