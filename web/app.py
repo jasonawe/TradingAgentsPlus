@@ -20,6 +20,8 @@ from fastapi.staticfiles import StaticFiles
 
 from tradingagents.default_config import DEFAULT_CONFIG
 
+from cli.utils import is_valid_ticker_input, normalize_ticker_symbol
+
 from .artifacts import ArtifactRepository
 from .config import (
     OUTPUT_LANGUAGES,
@@ -47,6 +49,7 @@ from .repositories import (
     SettingsRepository,
     SnapshotRepository,
     WatchlistRepository,
+    NoteRepository,
 )
 from .runner import WebRunRunner
 from .scheduled import CronExpressionError, validate_cron_expression
@@ -213,6 +216,7 @@ def create_app(
     scheduled_log_repo = ScheduledRunLogRepository(store)
     repositories = {
         "watchlist": watchlist_repo,
+        "notes": NoteRepository(store),
         "quotes": QuoteRepository(store),
         "runs": analysis_run_repo,
         "snapshots": SnapshotRepository(store),
@@ -407,6 +411,70 @@ def create_app(
             raise _error(409, "关注列表版本冲突，请刷新后重试") from exc
         except (TypeError, ValueError) as exc:
             raise _error(422, "排序参数无效") from exc
+
+    @app.get("/api/notes")
+    def list_notes(
+        symbol: str = Query(...),
+        asset_type: str = Query("stock"),
+    ) -> dict[str, Any]:
+        canonical = normalize_ticker_symbol(symbol)
+        if not canonical or not is_valid_ticker_input(canonical):
+            raise _error(422, "笔记参数无效")
+        if asset_type not in {"stock", "crypto"}:
+            raise _error(422, "资产类型无效")
+        repo = app.state.repositories["notes"]
+        items = repo.list_for(canonical, asset_type)
+        return {"items": items}
+
+    @app.post("/api/notes", status_code=201)
+    def create_note(payload: dict[str, Any]) -> dict[str, Any]:
+        raw_symbol = payload.get("symbol")
+        asset_type = payload.get("asset_type", "stock")
+        body = payload.get("body_md")
+        if not isinstance(raw_symbol, str) or not raw_symbol.strip():
+            raise _error(422, "笔记参数无效")
+        if not isinstance(body, str):
+            raise _error(422, "笔记内容必填")
+        canonical = normalize_ticker_symbol(raw_symbol)
+        if not canonical or not is_valid_ticker_input(canonical):
+            raise _error(422, "笔记参数无效")
+        if asset_type not in {"stock", "crypto"}:
+            raise _error(422, "资产类型无效")
+        try:
+            note = app.state.repositories["notes"].create(
+                canonical, body, asset_type=asset_type
+            )
+        except ValueError as exc:
+            raise _error(422, str(exc)) from exc
+        return note
+
+    @app.patch("/api/notes/{note_id}")
+    def update_note(note_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        body = payload.get("body_md")
+        if not isinstance(body, str):
+            raise _error(422, "笔记内容必填")
+        try:
+            note = app.state.repositories["notes"].update(note_id, body)
+        except KeyError as exc:
+            raise _error(404, "笔记不存在") from exc
+        except ValueError as exc:
+            raise _error(422, str(exc)) from exc
+        return note
+
+    @app.delete("/api/notes/{note_id}", status_code=204)
+    def delete_note(note_id: str) -> Response:
+        try:
+            app.state.repositories["notes"].soft_delete(note_id)
+        except KeyError as exc:
+            raise _error(404, "笔记不存在") from exc
+        return Response(status_code=204)
+
+    @app.post("/api/notes/{note_id}/restore")
+    def restore_note(note_id: str) -> dict[str, Any]:
+        try:
+            return app.state.repositories["notes"].restore(note_id)
+        except KeyError as exc:
+            raise _error(404, "笔记不存在") from exc
 
     @app.get("/api/quotes")
     def get_quotes(symbols: str = Query(...), asset_type: str = Query("stock")) -> dict[str, Any]:

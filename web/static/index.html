@@ -269,9 +269,24 @@
           <div id="asset-runs-list" class="asset-runs-list"><p class="muted" data-i18n="asset.runsLoading">正在加载分析任务…</p></div>
         </section>
       </section>
-      <section id="report-view" class="view" aria-labelledby="report-title" hidden>
-        <section id="report-panel" class="report-panel"><div class="report-heading"><div><h2 id="report-title" data-i18n="report.decisionReport">决策报告</h2><dl id="report-meta" class="report-meta"></dl></div><div class="report-actions"><button id="report-back-library" class="button button-secondary" type="button" data-i18n="actions.backReports">返回报告库</button><button id="download-report" class="button button-secondary" type="button" data-i18n="actions.downloadMarkdown">下载 Markdown</button><button id="new-analysis" class="button button-primary" type="button"><span data-i18n="actions.newAnalysis">新建分析</span> <span aria-hidden="true">&#8594;</span></button></div></div><section id="executive-summary" class="executive-summary" hidden><div class="summary-heading"><p class="kicker" data-i18n="report.executiveSummary">综合研判</p><span class="summary-badge" data-i18n="report.deepModelSummary">深度模型综合</span></div><div id="executive-summary-content" class="summary-content"></div></section><details id="detail-report" class="detail-report"><summary data-i18n="report.showDetails">展开详细智能体报告</summary><div id="report-content" class="report-content"></div></details></section>
+        <section class="asset-detail-panel">
+          <div class="section-heading">
+            <h2 data-i18n="notes.title">我的笔记</h2>
+            <button type="button" class="button button-secondary notes-add-button" data-notes-add data-notes-target="#asset-notes-list" data-asset-type="stock" data-symbol="" data-i18n="notes.add">新建笔记</button>
+          </div>
+          <div id="asset-notes-list" class="notes-list" aria-live="polite"><p class="muted" data-i18n="notes.emptyShort">暂无笔记</p></div>
+        </section>
       </section>
+      <section id="report-view" class="view" aria-labelledby="report-title" hidden>
+        <section id="report-panel" class="report-panel"><div class="report-heading"><div><h2 id="report-title" data-i18n="report.decisionReport">决策报告</h2><dl id="report-meta" class="report-meta"></dl></div><div class="report-actions"><button id="report-back-library" class="button button-secondary" type="button" data-i18n="actions.backReports">返回报告库</button><button id="download-report" class="button button-secondary" type="button" data-i18n="actions.downloadMarkdown">下载 Markdown</button><button id="new-analysis" class="button button-primary" type="button"><span data-i18n="actions.newAnalysis">新建分析</span> <span aria-hidden="true">&#8594;</span></button></div></div><section id="executive-summary" class="executive-summary" hidden><div class="summary-heading"><p class="kicker" data-i18n="report.executiveSummary">综合研判</p><span class="summary-badge" data-i18n="report.deepModelSummary">深度模型综合</span></div><div id="executive-summary-content" class="summary-content"></div></section><details id="detail-report" class="detail-report"><summary data-i18n="report.showDetails">展开详细智能体报告</summary><div id="report-content" class="report-content"></div></details>
+        <section class="report-notes-panel">
+          <div class="section-heading">
+            <h2 data-i18n="notes.title">我的笔记</h2>
+            <button type="button" class="button button-secondary notes-add-button" data-notes-add data-notes-target="#report-notes-list" data-asset-type="stock" data-symbol="" data-i18n="notes.add">新建笔记</button>
+          </div>
+          <div id="report-notes-list" class="notes-list" aria-live="polite"><p class="muted" data-i18n="notes.emptyShort">暂无笔记</p></div>
+        </section>
+      </section></section>
       <div id="modal-root" class="modal-root" aria-hidden="true"></div>
           </div>
         </main>
@@ -284,6 +299,7 @@
     <script src="/static/quote-cache.js?v=20260903-quote-cache-1" defer></script>
     <script src="/static/scheduled.js?v=20260903-scheduled-workspace-1" defer></script>
     <script src="/static/scheduled-history.js?v=20260903-scheduled-history-1" defer></script>
+    <script src="/static/notes.js?v=20260906-notes-panel-1" defer></script>
     <script src="/static/app.js?v=20260901-zh-auto-hint-1" defer></script>
     <svg width="0" height="0" style="position:absolute" aria-hidden="true">
       <defs>

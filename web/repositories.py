@@ -167,6 +167,120 @@ class WatchlistRepository:
         conn.execute("INSERT OR IGNORE INTO watchlists(id,name,version,created_at,updated_at) VALUES (?,?,1,?,?)", (watchlist_id, "我的关注", now, now))
 
 
+class NoteRepository:
+    """Free-form research notes per asset.
+
+    Notes are stored per ``(symbol, asset_type)`` and ordered by ``created_at
+    DESC``. Soft deletion (``deleted_at``) keeps history for accidental
+    undelete while still hiding deleted rows from listings.
+    """
+
+    def __init__(self, store: SQLiteStore) -> None:
+        self.store = store
+
+    def list_for(
+        self,
+        symbol: str,
+        asset_type: str = "stock",
+        *,
+        include_deleted: bool = False,
+    ) -> list[dict[str, Any]]:
+        with self.store.connection() as conn:
+            if include_deleted:
+                rows = conn.execute(
+                    "SELECT * FROM notes WHERE symbol=? AND asset_type=? "
+                    "ORDER BY created_at DESC, id DESC",
+                    (symbol, asset_type),
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT * FROM notes WHERE symbol=? AND asset_type=? "
+                    "AND deleted_at IS NULL "
+                    "ORDER BY created_at DESC, id DESC",
+                    (symbol, asset_type),
+                ).fetchall()
+        return [_row(row) for row in rows]
+
+    def get(self, note_id: str) -> dict[str, Any]:
+        with self.store.connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM notes WHERE id=?", (note_id,)
+            ).fetchone()
+        if row is None:
+            raise KeyError(note_id)
+        return _row(row)
+
+    def create(
+        self,
+        symbol: str,
+        body_md: str,
+        asset_type: str = "stock",
+    ) -> dict[str, Any]:
+        body = (body_md or "").strip()
+        if not body:
+            raise ValueError("note body must not be empty")
+        now = _now()
+        note_id = f"note-{uuid.uuid4().hex}"
+        with self.store.connection() as conn:
+            conn.execute(
+                "INSERT INTO notes(id,symbol,asset_type,body_md,created_at,updated_at) "
+                "VALUES (?,?,?,?,?,?)",
+                (note_id, symbol, asset_type, body, now, now),
+            )
+            row = conn.execute(
+                "SELECT * FROM notes WHERE id=?", (note_id,)
+            ).fetchone()
+        return _row(row)
+
+    def update(
+        self,
+        note_id: str,
+        body_md: str,
+    ) -> dict[str, Any]:
+        body = (body_md or "").strip()
+        if not body:
+            raise ValueError("note body must not be empty")
+        now = _now()
+        with self.store.connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM notes WHERE id=? AND deleted_at IS NULL",
+                (note_id,),
+            ).fetchone()
+            if row is None:
+                raise KeyError(note_id)
+            conn.execute(
+                "UPDATE notes SET body_md=?, updated_at=? WHERE id=?",
+                (body, now, note_id),
+            )
+            row = conn.execute(
+                "SELECT * FROM notes WHERE id=?", (note_id,)
+            ).fetchone()
+        return _row(row)
+
+    def soft_delete(self, note_id: str) -> None:
+        now = _now()
+        with self.store.connection() as conn:
+            cursor = conn.execute(
+                "UPDATE notes SET deleted_at=? WHERE id=? AND deleted_at IS NULL",
+                (now, note_id),
+            )
+            if cursor.rowcount == 0:
+                raise KeyError(note_id)
+
+    def restore(self, note_id: str) -> dict[str, Any]:
+        with self.store.connection() as conn:
+            cursor = conn.execute(
+                "UPDATE notes SET deleted_at=NULL WHERE id=?",
+                (note_id,),
+            )
+            if cursor.rowcount == 0:
+                raise KeyError(note_id)
+            row = conn.execute(
+                "SELECT * FROM notes WHERE id=?", (note_id,)
+            ).fetchone()
+        return _row(row)
+
+
 class QuoteRepository:
     def __init__(self, store: SQLiteStore) -> None:
         self.store = store
