@@ -228,8 +228,9 @@
     formatDateLabel,
   };
   if (typeof window !== "undefined") {
-    window.KLineChart = api;
+    try { window.KLineChart = api; } catch (_) {}
   }
+  try { if (typeof __TA_MODULES__ !== "undefined") __TA_MODULES__.KLineChart = api; } catch (_) {}
   if (typeof module !== "undefined" && module.exports) {
     module.exports = api;
   }

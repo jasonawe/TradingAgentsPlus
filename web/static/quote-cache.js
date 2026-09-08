@@ -75,5 +75,6 @@
     return `<strong>${safe(symbol)}</strong>${lines.join("")}`;
   }
 
-  root.TradingAgentsQuotes = { fetch: fetchQuotes, invalidate, reset, formatAssetCell, identityFromQuote };
+  try { root.TradingAgentsQuotes = { fetch: fetchQuotes, invalidate, reset, formatAssetCell, identityFromQuote }; } catch (_) {}
+  try { if (typeof __TA_MODULES__ !== "undefined") __TA_MODULES__.TradingAgentsQuotes = { fetch: fetchQuotes, invalidate, reset, formatAssetCell, identityFromQuote }; } catch (_) {}
 })(window);

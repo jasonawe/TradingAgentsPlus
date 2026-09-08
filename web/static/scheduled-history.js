@@ -292,7 +292,8 @@
     if (active) { bindEvents(); init(); }
   }
 
-  root.TradingAgentsScheduledHistory = { init, show, hide, setActive, refresh: loadPage };
+  try { root.TradingAgentsScheduledHistory = { init, show, hide, setActive, refresh: loadPage }; } catch (_) {}
+  try { if (typeof __TA_MODULES__ !== "undefined") __TA_MODULES__.TradingAgentsScheduledHistory = { init, show, hide, setActive, refresh: loadPage }; } catch (_) {}
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => { bindEvents(); }, { once: true });
   else bindEvents();
 })(window);

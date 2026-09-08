@@ -1546,3 +1546,248 @@ class ReportRepository:
         return metadata.get("status") == "completed"
     def iter_ready(self, root):
         return iter(sorted(path.parent for path in Path(root).rglob("complete_report.md") if self.is_gate_ready(path.parent)))
+
+
+VALID_ALERT_KINDS = {"price", "quantitative"}
+VALID_ALERT_METRICS = {"volume", "turnover", "turnover_rate", "market_cap", "circulating_cap", "pe_ratio", "amplitude", "change_percent"}
+PRICE_DIRECTIONS = {"above", "below"}
+
+
+def _alert_validate_params(kind: str, params: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(params, dict):
+        raise ValueError("params must be an object")
+    if kind == "price":
+        threshold = params.get("threshold")
+        direction = params.get("direction", "above")
+        try:
+            threshold = float(threshold)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("price alert requires numeric threshold") from exc
+        if direction not in PRICE_DIRECTIONS:
+            raise ValueError("price direction must be 'above' or 'below'")
+        return {"threshold": threshold, "direction": direction}
+    if kind == "quantitative":
+        metric = params.get("metric")
+        if metric not in VALID_ALERT_METRICS:
+            raise ValueError(f"quantitative metric must be one of {sorted(VALID_ALERT_METRICS)}")
+        try:
+            change_pct = float(params.get("change_pct", 0))
+        except (TypeError, ValueError) as exc:
+            raise ValueError("change_pct must be numeric") from exc
+        try:
+            window = int(params.get("window_minutes", 0))
+        except (TypeError, ValueError) as exc:
+            raise ValueError("window_minutes must be integer") from exc
+        if window < 0 or window > 24 * 60:
+            raise ValueError("window_minutes must be 0..1440")
+        return {"metric": metric, "change_pct": change_pct, "window_minutes": window}
+    raise ValueError(f"unknown alert kind: {kind}")
+
+
+class AlertRepository:
+    def __init__(self, store: SQLiteStore) -> None:
+        self.store = store
+
+    def _row_to_alert(self, row) -> dict[str, Any]:
+        item = _row(row)
+        if item is None:
+            return None
+        try:
+            item["params"] = json.loads(item.pop("params_json") or "{}")
+        except (TypeError, ValueError):
+            item["params"] = {}
+        item["enabled"] = bool(item.get("enabled"))
+        return item
+
+    def list_active(self) -> list[dict[str, Any]]:
+        with self.store.connection() as conn:
+            rows = conn.execute(
+                "SELECT * FROM alerts WHERE deleted_at IS NULL AND enabled=1 ORDER BY symbol,kind,created_at"
+            ).fetchall()
+        return [self._row_to_alert(row) for row in rows]
+
+    def list_for_symbol(self, symbol: str, asset_type: str = "stock") -> list[dict[str, Any]]:
+        canonical = normalize_ticker_symbol(symbol)
+        with self.store.connection() as conn:
+            rows = conn.execute(
+                "SELECT * FROM alerts WHERE symbol=? AND asset_type=? AND deleted_at IS NULL ORDER BY created_at",
+                (canonical, asset_type),
+            ).fetchall()
+        return [self._row_to_alert(row) for row in rows]
+
+    def list_all(self) -> list[dict[str, Any]]:
+        with self.store.connection() as conn:
+            rows = conn.execute(
+                "SELECT * FROM alerts WHERE deleted_at IS NULL ORDER BY symbol,kind,created_at"
+            ).fetchall()
+        return [self._row_to_alert(row) for row in rows]
+
+    def get(self, alert_id: str) -> dict[str, Any]:
+        with self.store.connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM alerts WHERE id=? AND deleted_at IS NULL",
+                (alert_id,),
+            ).fetchone()
+        if row is None:
+            raise KeyError(alert_id)
+        return self._row_to_alert(row)
+
+    def create(self, *, symbol: str, asset_type: str, kind: str, params: dict[str, Any], cooldown_seconds: int = 3600) -> dict[str, Any]:
+        if kind not in VALID_ALERT_KINDS:
+            raise ValueError(f"kind must be one of {sorted(VALID_ALERT_KINDS)}")
+        if asset_type not in {"stock", "crypto"}:
+            raise ValueError("invalid asset_type")
+        canonical = normalize_ticker_symbol(symbol)
+        if not canonical or not is_valid_ticker_input(str(symbol)):
+            raise ValueError("invalid symbol")
+        clean_params = _alert_validate_params(kind, params)
+        now = _now()
+        alert_id = "alert-" + uuid.uuid4().hex
+        with self.store.connection() as conn:
+            conn.execute(
+                "INSERT INTO alerts(id,symbol,asset_type,kind,params_json,enabled,cooldown_seconds,created_at,updated_at)"
+                " VALUES (?,?,?,?,?,?,?,?,?)",
+                (
+                    alert_id,
+                    canonical,
+                    asset_type,
+                    kind,
+                    json.dumps(clean_params, ensure_ascii=False),
+                    1,
+                    max(0, int(cooldown_seconds or 0)),
+                    now,
+                    now,
+                ),
+            )
+        return self.get(alert_id)
+
+    def update(self, alert_id: str, **fields: Any) -> dict[str, Any]:
+        updates: dict[str, Any] = {}
+        if "params" in fields:
+            current = self.get(alert_id)
+            updates["params_json"] = json.dumps(_alert_validate_params(current["kind"], fields["params"]), ensure_ascii=False)
+        if "enabled" in fields:
+            updates["enabled"] = 1 if fields["enabled"] else 0
+        if "cooldown_seconds" in fields:
+            try:
+                updates["cooldown_seconds"] = max(0, int(fields["cooldown_seconds"]))
+            except (TypeError, ValueError) as exc:
+                raise ValueError("cooldown_seconds must be integer") from exc
+        if not updates:
+            return self.get(alert_id)
+        updates["updated_at"] = _now()
+        assignments = ",".join(f"{key}=?" for key in updates)
+        with self.store.connection() as conn:
+            cursor = conn.execute(
+                f"UPDATE alerts SET {assignments} WHERE id=? AND deleted_at IS NULL",
+                (*updates.values(), alert_id),
+            )
+            if cursor.rowcount == 0:
+                raise KeyError(alert_id)
+        return self.get(alert_id)
+
+    def soft_delete(self, alert_id: str) -> None:
+        now = _now()
+        with self.store.connection() as conn:
+            cursor = conn.execute(
+                "UPDATE alerts SET deleted_at=?, enabled=0, updated_at=? WHERE id=? AND deleted_at IS NULL",
+                (now, now, alert_id),
+            )
+            if cursor.rowcount == 0:
+                raise KeyError(alert_id)
+
+    def mark_evaluated(self, alert_ids: list[str]) -> None:
+        if not alert_ids:
+            return
+        now = _now()
+        with self.store.connection() as conn:
+            conn.executemany(
+                "UPDATE alerts SET last_evaluated_at=? WHERE id=?",
+                [(now, aid) for aid in alert_ids],
+            )
+
+    def record_event(self, alert_id: str, message: str, snapshot: dict[str, Any]) -> dict[str, Any]:
+        now = _now()
+        with self.store.connection() as conn:
+            row = conn.execute("SELECT symbol,asset_type,kind FROM alerts WHERE id=?", (alert_id,)).fetchone()
+            if row is None:
+                raise KeyError(alert_id)
+            event_id = "alert-evt-" + uuid.uuid4().hex
+            conn.execute(
+                "INSERT INTO alert_events(id,alert_id,symbol,asset_type,kind,triggered_at,message,snapshot_json)"
+                " VALUES (?,?,?,?,?,?,?,?)",
+                (
+                    event_id,
+                    alert_id,
+                    row["symbol"],
+                    row["asset_type"],
+                    row["kind"],
+                    now,
+                    message,
+                    json.dumps(snapshot or {}, ensure_ascii=False),
+                ),
+            )
+            conn.execute(
+                "UPDATE alerts SET last_triggered_at=?, updated_at=? WHERE id=?",
+                (now, now, alert_id),
+            )
+            event_row = conn.execute("SELECT * FROM alert_events WHERE id=?", (event_id,)).fetchone()
+        return self._row_to_event(event_row)
+
+    def list_events(self, *, symbol: str | None = None, asset_type: str | None = None, limit: int = 50, unacknowledged_only: bool = False) -> list[dict[str, Any]]:
+        clauses: list[str] = []
+        params: list[Any] = []
+        if symbol:
+            clauses.append("symbol=?")
+            params.append(normalize_ticker_symbol(symbol))
+        if asset_type:
+            clauses.append("asset_type=?")
+            params.append(asset_type)
+        if unacknowledged_only:
+            clauses.append("acknowledged_at IS NULL")
+        where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
+        params.append(max(1, min(int(limit), 500)))
+        with self.store.connection() as conn:
+            rows = conn.execute(
+                f"SELECT * FROM alert_events{where} ORDER BY triggered_at DESC LIMIT ?",
+                tuple(params),
+            ).fetchall()
+        return [self._row_to_event(row) for row in rows]
+
+    def _row_to_event(self, row) -> dict[str, Any]:
+        item = _row(row)
+        if item is None:
+            return None
+        try:
+            item["snapshot"] = json.loads(item.pop("snapshot_json") or "{}")
+        except (TypeError, ValueError):
+            item["snapshot"] = {}
+        return item
+
+    def acknowledge_event(self, event_id: str) -> dict[str, Any]:
+        now = _now()
+        with self.store.connection() as conn:
+            cursor = conn.execute(
+                "UPDATE alert_events SET acknowledged_at=? WHERE id=? AND acknowledged_at IS NULL",
+                (now, event_id),
+            )
+            if cursor.rowcount == 0:
+                raise KeyError(event_id)
+            row = conn.execute("SELECT * FROM alert_events WHERE id=?", (event_id,)).fetchone()
+        return self._row_to_event(row)
+
+    def acknowledge_all(self) -> int:
+        now = _now()
+        with self.store.connection() as conn:
+            cursor = conn.execute(
+                "UPDATE alert_events SET acknowledged_at=? WHERE acknowledged_at IS NULL",
+                (now,),
+            )
+            return cursor.rowcount
+
+    def count_unacknowledged(self) -> int:
+        with self.store.connection() as conn:
+            row = conn.execute(
+                "SELECT COUNT(*) AS n FROM alert_events WHERE acknowledged_at IS NULL"
+            ).fetchone()
+        return int(row["n"]) if row else 0

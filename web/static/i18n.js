@@ -3,7 +3,8 @@
 
   const api = factory();
   if (typeof module === "object" && module.exports) module.exports = api;
-  else root.TradingAgentsI18n = api;
+  try { root.TradingAgentsI18n = api; } catch (_) {}
+  try { if (typeof __TA_MODULES__ !== "undefined") __TA_MODULES__.TradingAgentsI18n = api; } catch (_) {}
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
@@ -111,6 +112,56 @@
     "settings.quoteStrategy.fallback-yfinance-alpha-vantage": "EastMoney + yfinance + Alpha Vantage（需 API key）",
     "modal.confirmTitle": "请确认操作",
     "modal.confirmRemoveTitle": "移除关注",
+"alerts.title": "价格与量化告警",
+    "alerts.empty": "还没有告警规则。点右上角「新建」设定价格阈值或量化指标。",
+    "alerts.emptyShort": "暂无告警",
+    "alerts.add": "新建告警",
+    "alerts.edit": "编辑",
+    "alerts.delete": "删除",
+    "alerts.deleteConfirm": "确认删除这条告警?",
+    "alerts.placeholder.price": "阈值,例如 35.50",
+    "alerts.placeholder.changePct": "幅度,例如 20 表示 ±20%",
+    "alerts.placeholder.window": "窗口(分钟)",
+    "alerts.kind.price": "价格",
+    "alerts.kind.quantitative": "量化",
+    "alerts.direction": "方向",
+    "alerts.direction.above": "涨破",
+    "alerts.direction.below": "跌破",
+    "alerts.metric": "指标",
+    "alerts.metric.volume": "成交量",
+    "alerts.metric.turnover": "成交额",
+    "alerts.metric.turnover_rate": "换手率",
+    "alerts.metric.market_cap": "市值",
+    "alerts.metric.circulating_cap": "流通市值",
+    "alerts.metric.pe_ratio": "市盈率",
+    "alerts.metric.amplitude": "振幅",
+    "alerts.metric.change_percent": "涨跌幅",
+    "alerts.threshold": "阈值",
+    "alerts.changePct": "变化幅度",
+    "alerts.window": "窗口",
+    "alerts.cooldown": "冷却(秒)",
+    "alerts.cooldownHint": "同一告警两次触发之间的最小间隔",
+    "alerts.save": "保存",
+    "alerts.cancel": "取消",
+    "alerts.errors.invalidParams": "参数无效",
+    "alerts.errors.loadFailed": "加载告警失败",
+    "alerts.errors.saveFailed": "保存告警失败",
+    "alerts.errors.deleteFailed": "删除告警失败",
+    "alerts.bell": "告警",
+    "alerts.unread": "未读",
+    "alerts.markAllRead": "全部已读",
+    "alerts.eventsTitle": "触发历史",
+    "alerts.eventsEmpty": "还没有触发记录",
+    "alerts.toggle": "启用/停用",
+    "alerts.enabled": "启用",
+    "alerts.disabled": "停用",
+    "alerts.kindLabel": "类型",
+    "alerts.formTitle": "新建告警",
+    "alerts.editTitle": "编辑告警",
+    "alerts.ack": "已读",
+    "alerts.ruleLabel": "规则",
+    "alerts.thresholdAndDirection": "{direction} {threshold}",
+    "alerts.metricAndThreshold": "{metric} 变化 {changePct}% (窗口 {window} 分钟)",
     "notes.title": "我的笔记",
     "notes.empty": "还没有笔记。点右上角「新建」开始记录想法、复盘、待办。",
     "notes.emptyShort": "暂无笔记",
@@ -119,10 +170,7 @@
     "notes.delete": "删除",
     "notes.restore": "恢复",
     "notes.deleteConfirm": "确认删除这条笔记?删除后可恢复。",
-    "notes.placeholder": "支持 Markdown:
-####  标题
-- 列表
-**粗体** *斜体* `code`",
+    "notes.placeholder": "支持 Markdown:\n####  标题\n- 列表\n**粗体** *斜体* `code`",
     "notes.save": "保存",
     "notes.cancel": "取消",
     "notes.preview": "预览",

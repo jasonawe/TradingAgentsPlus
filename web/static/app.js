@@ -1,7 +1,15 @@
 (() => {
   "use strict";
 
-  const i18n = window.TradingAgentsI18n;
+  function ta(name) {
+    try { if (window[name]) return window[name]; } catch (_) {}
+    try {
+      if (typeof __TA_MODULES__ !== "undefined" && __TA_MODULES__[name]) return __TA_MODULES__[name];
+    } catch (_) {}
+    return undefined;
+  }
+
+  const i18n = ta("TradingAgentsI18n") || (() => { const f = function(k,v){return k;}; f.locale="zh-CN"; return f; })();
   const PHASE_KEYS = ["analyst", "research", "trading", "risk", "portfolio"];
   const REPORT_GROUPS = [["report.analysts", "analysts", [["agent.market", "market"], ["agent.social", "sentiment"], ["agent.news", "news"], ["agent.fundamentals", "fundamentals"]]], ["report.research", "research", [["agent.bull", "bull"], ["agent.bear", "bear"], ["agent.manager", "manager"]]], ["report.trading", "trading", [["agent.trader", "trader"]]], ["report.risk", "risk", [["agent.aggressive", "aggressive"], ["agent.conservative", "conservative"], ["agent.neutral", "neutral"]]], ["report.portfolio", "portfolio", [["agent.portfolio", "decision"]]]];
   const AGENT_KEYS = { "Market Analyst": "agent.market", "Sentiment Analyst": "agent.social", "News Analyst": "agent.news", "Fundamentals Analyst": "agent.fundamentals", "Bull Researcher": "agent.bull", "Bear Researcher": "agent.bear", "Research Manager": "agent.manager", Trader: "agent.trader", "Aggressive Analyst": "agent.aggressive", "Conservative Analyst": "agent.conservative", "Neutral Analyst": "agent.neutral", "Portfolio Manager": "agent.portfolio" };
@@ -24,7 +32,7 @@
   function translateDynamic(value) { return t(AGENT_KEYS[value] || PHASE_NAME_KEYS[value] || DYNAMIC_KEYS[value] || value); }
   function languageLabel(value) { return i18n.label("language", value, value); }
   function formatRating(value) { return window.formatInvestmentRating(value, state.language); }
-  function applyTranslations() { document.documentElement.lang = i18n.locale; document.title = t("app.title"); document.querySelectorAll("[data-i18n]").forEach((node) => { node.textContent = t(node.dataset.i18n); }); document.querySelectorAll("[data-i18n-html]").forEach((node) => { node.innerHTML = t(node.dataset.i18nHtml); }); document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => { node.placeholder = t(node.dataset.i18nPlaceholder); }); if (state.config) { renderFormOptions(state.config); toggleCryptoAnalyst(); } renderPhases(); renderHistory(state.history); if (!libraryView.hidden) renderLibrary(); if (state.runRecord) renderRunHeader(state.runRecord); updateTickerHint(); }
+  function applyTranslations() { try { document.documentElement.lang = i18n.locale; } catch (_) {} try { document.title = t("app.title"); } catch (_) {} document.querySelectorAll("[data-i18n]").forEach((node) => { node.textContent = t(node.dataset.i18n); }); document.querySelectorAll("[data-i18n-html]").forEach((node) => { node.innerHTML = t(node.dataset.i18nHtml); }); document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => { node.placeholder = t(node.dataset.i18nPlaceholder); }); if (state.config) { renderFormOptions(state.config); toggleCryptoAnalyst(); } renderPhases(); renderHistory(state.history); if (!libraryView.hidden) renderLibrary(); if (state.runRecord) renderRunHeader(state.runRecord); updateTickerHint(); }
   function updateTickerHint() { const select = $("watchlist-asset-type"); const hint = $("watchlist-ticker-hint"); if (!select || !hint) return; const key = select.value === "crypto" ? "form.tickerHint.crypto" : "form.tickerHint.stock"; hint.dataset.i18nHtml = key; hint.innerHTML = t(key); }
   function setConnection(key) { const node = $("connection-status"); node.textContent = t(`connection.${key}`); node.className = `connection-dot is-${key === "live" || key === "complete" ? "live" : key === "ready" ? "idle" : "error"}`; }
   function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c])); }
@@ -41,13 +49,13 @@
   function routePath(view, { reportId = null, symbol = null } = {}) { if (view === "report" && reportId) return `/reports/${encodeURIComponent(reportId)}`; if (view === "asset" && symbol) return `/assets/${encodeURIComponent(symbol)}`; if (view === "scheduled-history") return ROUTES["scheduled-history"]; return ROUTES[view] || ROUTES.setup; }
   function routeForPath(pathname) { const path = normalizePath(pathname); if (path === "/") return { view: "setup" }; for (const [view, route] of Object.entries(ROUTES)) if (view !== "setup" && path === route) return { view }; if (path.startsWith("/reports/")) { const reportId = decodeURIComponent(path.slice("/reports/".length)); return reportId ? { view: "report", reportId } : { view: "library" }; } if (path.startsWith("/assets/")) { const symbol = decodeURIComponent(path.slice("/assets/".length)); return symbol ? { view: "asset", symbol } : { view: "setup" }; } if (path === "/scheduled/history") return { view: "scheduled-history" }; return null; }
   function setRoute(view, { reportId = null, symbol = null, replace = false } = {}) { const path = routePath(view, { reportId, symbol }); if (normalizePath(window.location.pathname) === normalizePath(path)) return; const method = replace ? "replaceState" : "pushState"; window.history[method]({ view, reportId, symbol }, "", path); }
-  function switchView(view) { setupView.hidden = view !== "setup"; analysisView.hidden = view !== "analysis"; activeView.hidden = !["active", "run"].includes(view); scheduledView.hidden = view !== "scheduled"; scheduledHistoryView.hidden = view !== "scheduled-history"; reportView.hidden = view !== "report"; libraryView.hidden = view !== "library"; settingsView.hidden = view !== "settings"; assetView.hidden = view !== "asset"; const activeNav = view === "report" ? "library" : view === "asset" ? "setup" : view === "scheduled-history" ? "scheduled" : view; document.querySelectorAll(".nav-primary a").forEach((link) => link.classList.toggle("is-active", link.dataset.view === activeNav)); updateTopbar(view); window.TradingAgentsScheduled?.setActive(view === "scheduled"); window.TradingAgentsScheduledHistory?.setActive(view === "scheduled-history"); }
+  function switchView(view) { setupView.hidden = view !== "setup"; analysisView.hidden = view !== "analysis"; activeView.hidden = !["active", "run"].includes(view); scheduledView.hidden = view !== "scheduled"; scheduledHistoryView.hidden = view !== "scheduled-history"; reportView.hidden = view !== "report"; libraryView.hidden = view !== "library"; settingsView.hidden = view !== "settings"; assetView.hidden = view !== "asset"; const activeNav = view === "report" ? "library" : view === "asset" ? "setup" : view === "scheduled-history" ? "scheduled" : view; document.querySelectorAll(".nav-primary a").forEach((link) => link.classList.toggle("is-active", link.dataset.view === activeNav)); updateTopbar(view); ta("TradingAgentsScheduled")?.setActive(view === "scheduled"); ta("TradingAgentsScheduledHistory")?.setActive(view === "scheduled-history"); }
   function showSetup() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("setup"); setConnection("ready"); loadWatchlist(); }
   function showAnalysis() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("analysis"); setConnection("ready"); }
   async function showActive() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("active"); setConnection("ready"); $("active-empty").hidden = true; $("run-header").hidden = true; $("run-grid").hidden = true; $("terminal-panel").hidden = true; try { const runs = (await api("/api/runs/active")).runs || []; const active = pickActiveRun(runs); if (active && ACTIVE_RUN_STATUSES.has(active.status)) { state.runId = active.run_id; resetRunState(); showRun(active); connectEvents(); } else { $("active-empty").hidden = false; } } catch (_) { $("active-empty").hidden = false; } }
   function showLibrary() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; switchView("library"); setConnection("ready"); renderLibrary(); loadLibraryPage(); }
   function showScheduled() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("scheduled"); setConnection("ready"); }
-  function showScheduledHistory() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("scheduled-history"); setConnection("ready"); window.TradingAgentsScheduledHistory?.refresh?.(); }
+  function showScheduledHistory() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("scheduled-history"); setConnection("ready"); ta("TradingAgentsScheduledHistory")?.refresh?.(); }
   async function showSettings() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("settings"); setConnection("ready"); try { const [settings, providers] = await Promise.all([api("/api/settings"), api("/api/providers/market-data")]); const fields = settings.fields || {}; $("settings-fields").innerHTML = Object.entries(fields).map(([key, value]) => `<div><dt>${escapeHtml(t(`settings.${key}`))}</dt><dd>${escapeHtml(typeof value === "object" ? `${i18n.displayValue(value.value)}（${t("settings.source", { value: i18n.displayValue(value.source, t("settings.unknownSource")) })}）` : i18n.displayValue(value))}</dd></div>`).join(""); $("provider-status-list").innerHTML = (providers.providers || []).map((item) => `<div class="provider-status"><strong>${escapeHtml(item.label || item.id)}</strong><span class="status-chip ${item.status}">${escapeHtml(i18n.label("provider_status", item.status))}</span></div>`).join("") || `<p class="muted">${escapeHtml(t("settings.noProviders"))}</p>`; renderQuoteStrategySelector(settings); } catch (_) { $("settings-fields").innerHTML = `<p class="muted">${escapeHtml(t("settings.unavailable"))}</p>`; } }
   async function renderQuoteStrategySelector(settings) {
     const container = $("quote-strategy-selector");
@@ -81,7 +89,7 @@
           // Refresh settings view + provider health to reflect the change
           await showSettings();
           // Bust the watchlist quote cache so the user sees fresh data on the new chain
-          window.TradingAgentsQuotes?.reset?.();
+          ta("TradingAgentsQuotes")?.reset?.();
         } catch (error) {
           status.textContent = localizeError(error.message);
         }
@@ -177,13 +185,22 @@
       .catch(() => {})
       .finally(() => {
         const notesEl = $("asset-notes-list");
-        if (notesEl && window.TradingAgentsNotes?.mount) {
+        if (notesEl && ta("TradingAgentsNotes")?.mount) {
           const addBtn = document.querySelector('[data-notes-target="#asset-notes-list"]');
           if (addBtn) {
             addBtn.dataset.symbol = symbol;
             addBtn.dataset.assetType = assetType;
           }
-          window.TradingAgentsNotes.mount(notesEl, symbol, assetType);
+          ta("TradingAgentsNotes").mount(notesEl, symbol, assetType);
+        }
+        const alertsEl = $("asset-alerts-list");
+        if (alertsEl && ta("TradingAgentsAlerts")?.mount) {
+          const addBtn = document.querySelector('[data-alerts-target="#asset-alerts-list"]');
+          if (addBtn) {
+            addBtn.dataset.symbol = symbol;
+            addBtn.dataset.assetType = assetType;
+          }
+          ta("TradingAgentsAlerts").mount(alertsEl, symbol, assetType);
         }
       });
   }
@@ -249,17 +266,17 @@
   async function renderAssetKline(detailState) {
     const chart = $("asset-kline-chart");
     const status = $("asset-kline-status");
-    if (!window.KLineChart || !chart) {
+    if (!ta("KLineChart") || !chart) {
       if (status) status.textContent = t("watchlist.chartUnavailable");
       return;
     }
     if (status) status.textContent = t("watchlist.chartLoading");
     try {
-      const items = await window.KLineChart.fetchCandles(detailState.symbol, "1d", window.KLineChart.computeRange(detailState.days).start, window.KLineChart.computeRange(detailState.days).end, detailState.assetType, (url) => fetch(url, { credentials: "same-origin" }));
+      const items = await ta("KLineChart").fetchCandles(detailState.symbol, "1d", ta("KLineChart").computeRange(detailState.days).start, ta("KLineChart").computeRange(detailState.days).end, detailState.assetType, (url) => fetch(url, { credentials: "same-origin" }));
       if (!items.length) { if (status) status.textContent = t("watchlist.chartEmpty"); chart.innerHTML = ""; return; }
-      chart.innerHTML = window.KLineChart.buildSvg(items, { width: chart.clientWidth || 720, height: 320 });
-      const bounds = window.KLineChart.computeBounds(items);
-      const summary = bounds ? `${t("asset.kLineRange", { from: window.KLineChart.formatDateLabel(items[0].time), to: window.KLineChart.formatDateLabel(items[items.length - 1].time) })} · ${t("asset.kLinePoints", { value: items.length })}` : "";
+      chart.innerHTML = ta("KLineChart").buildSvg(items, { width: chart.clientWidth || 720, height: 320 });
+      const bounds = ta("KLineChart").computeBounds(items);
+      const summary = bounds ? `${t("asset.kLineRange", { from: ta("KLineChart").formatDateLabel(items[0].time), to: ta("KLineChart").formatDateLabel(items[items.length - 1].time) })} · ${t("asset.kLinePoints", { value: items.length })}` : "";
       if (status) status.textContent = summary;
     } catch (error) {
       if (status) status.textContent = t("watchlist.chartError", { value: localizeError(error.message) });
@@ -395,13 +412,13 @@
     const notesEl = $("report-notes-list");
     const ticker = report.ticker || state.runRecord?.request?.ticker || "";
     const assetType = report.asset_type || state.runRecord?.request?.asset_type || "stock";
-    if (notesEl && ticker && window.TradingAgentsNotes?.mount) {
+    if (notesEl && ticker && ta("TradingAgentsNotes")?.mount) {
       const addBtn = document.querySelector('[data-notes-target="#report-notes-list"]');
       if (addBtn) {
         addBtn.dataset.symbol = ticker;
         addBtn.dataset.assetType = assetType;
       }
-      window.TradingAgentsNotes.mount(notesEl, ticker, assetType);
+      ta("TradingAgentsNotes").mount(notesEl, ticker, assetType);
     } else if (notesEl) {
       notesEl.innerHTML = '<p class="muted">' + escapeHtml(t("notes.emptyShort")) + '</p>';
     }
@@ -421,8 +438,8 @@
       exchange_name_zh: record.asset_identity.exchange_zh,
       exchange: record.asset_identity.exchange,
     }) || null;
-    const tickerCell = window.TradingAgentsQuotes?.formatAssetCell
-      ? window.TradingAgentsQuotes.formatAssetCell(ticker, record.asset_type, quote, escapeHtml)
+    const tickerCell = ta("TradingAgentsQuotes")?.formatAssetCell
+      ? ta("TradingAgentsQuotes").formatAssetCell(ticker, record.asset_type, quote, escapeHtml)
       : `<span class="library-row-ticker">${escapeHtml(ticker)}</span>`;
     const metadataParts = [];
     if (assetLabel) metadataParts.push(assetLabel);
@@ -447,8 +464,8 @@
     await Promise.all(Object.entries(grouped).map(async ([assetType, symbolSet]) => {
       const symbols = [...symbolSet];
       try {
-        const response = window.TradingAgentsQuotes?.fetch
-          ? await window.TradingAgentsQuotes.fetch(symbols, assetType)
+        const response = ta("TradingAgentsQuotes")?.fetch
+          ? await ta("TradingAgentsQuotes").fetch(symbols, assetType)
           : await api(`/api/quotes?symbols=${encodeURIComponent(symbols.join(","))}&asset_type=${encodeURIComponent(assetType)}`);
         (response.items || []).forEach((q) => { state.library.quotes[q.symbol] = q; changed = true; });
       } catch (_) { /* ignore quote failures; will fall back to asset_type label */ }
@@ -524,10 +541,9 @@
   function renderWatchlist(items, quotes = {}) { state.watchlist.items = items || []; state.watchlist.quotes = quotes || {}; const list = $("watchlist-list"); if (!list) return; if (!state.watchlist.items.length) { list.innerHTML = `<p class="muted watchlist-empty">${escapeHtml(t("watchlist.empty"))}</p>`; return; } const rows = sortedWatchlistItems(state.watchlist.items, state.watchlist.quotes, state.watchlist.sort).map((item) => { const quote = quotes[item.symbol] || {}; const analysis = latestAnalysisFor(item.symbol); const formattedPrice = formatQuotePrice(quote.price, item.asset_type); const priceDigits = formattedPrice?.digits ?? null; const price = formattedPrice?.text == null ? `<span class="quote-price is-missing">${escapeHtml(t("watchlist.noQuote"))}</span>` : `<span class="quote-price">${escapeHtml(formattedPrice.text)}</span>`; const currency = quote.currency ? `<span class="quote-currency">${escapeHtml(quote.currency)}</span>` : ""; const change = watchlistChangeMarkup(quote.change_percent); const source = quote.source ? `${escapeHtml(t("watchlist.source", { value: quote.source }))} · ${quoteFreshness(quote)}` : escapeHtml(quote.error?.message || t("watchlist.dataSourceUnavailable")); const quoteTime = quote.quote_time || quote.as_of || quote.fetched_at; const precisionLabel = item.asset_type === "crypto" && priceDigits != null ? t("watchlist.pricePrecision", { value: priceDigits }) : ""; const capText = formatCompactYuan(quote.market_cap);
             const capMarkup = capText ? `<span class="quote-cap">${escapeHtml(t("asset.metric.marketCap"))}: ¥${escapeHtml(capText)}</span>` : "";
             const quoteMeta = quoteTime ? `${source} · ${escapeHtml(new Date(quoteTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }))}${precisionLabel ? ` · ${escapeHtml(precisionLabel)}` : ""}${capMarkup ? ` · ${capMarkup}` : ""}` : `${source}${precisionLabel ? ` · ${escapeHtml(precisionLabel)}` : ""}${capMarkup ? ` · ${capMarkup}` : ""}`; const identity = i18n.assetIdentity(quote); const analysisDate = watchlistAnalysisDate(analysis); const analysisSignal = analysis ? (formatRating(analysis.rating || analysis.signal) || t("status.completed")) : ""; const analysisSignalKey = analysis ? watchlistSignalKey(analysis.rating || analysis.signal) : "empty"; const dateMarkup = analysisDate ? `<div class="analysis-date"><span class="analysis-label">${escapeHtml(t("watchlist.latestAnalysisLabel"))}</span><span class="analysis-date-value">${escapeHtml(analysisDate)}</span></div>` : `<span class="analysis-date is-missing">${escapeHtml(t("watchlist.noAnalysis"))}</span>`; const signalChip = analysis ? `<span class="signal-chip is-${escapeHtml(analysisSignalKey)}">${escapeHtml(analysisSignal)}</span>` : `<span class="signal-chip is-empty">${escapeHtml(t("watchlist.noAnalysis"))}</span>`; const reportAction = analysis?.report_id ? `<button type="button" class="text-button" data-report-id="${escapeHtml(analysis.report_id)}">${escapeHtml(t("actions.viewReport"))}</button>` : "";
-            const notesAction = `<button type="button" class="text-button watchlist-notes-button" data-notes-symbol="${escapeHtml(item.symbol)}" data-notes-asset="${escapeHtml(item.asset_type)}" title="${escapeHtml(t("notes.title"))}">📝 ${escapeHtml(t("notes.title"))}</button>`;
-            const html = `<article class="watchlist-row"><div class="watchlist-asset"><span class="symbol">${escapeHtml(item.symbol)}</span><span class="asset-meta">${escapeHtml(identity.name)} · ${escapeHtml(identity.exchange)}</span><span class="asset-type">${escapeHtml(t(item.asset_type === "crypto" ? "assets.crypto" : "assets.stock"))}</span></div><div class="watchlist-quote"><div class="quote-value"><span class="quote-number">${price} ${currency}</span>${change}</div><span class="quote-meta">${quoteMeta}</span></div><div class="watchlist-analysis">${dateMarkup}${signalChip}</div><div class="watchlist-actions"><button type="button" class="text-button watchlist-analyze" data-analyze-symbol="${escapeHtml(item.symbol)}" data-analyze-asset="${escapeHtml(item.asset_type)}">${escapeHtml(t("actions.startAnalysis"))}</button>${notesAction}${reportAction}<button type="button" class="icon-button" data-remove-watchlist="${escapeHtml(item.id)}" data-version="${escapeHtml(state.watchlist.version)}" aria-label="${escapeHtml(`${t("actions.remove")} ${item.symbol}`)}" title="${escapeHtml(t("actions.remove"))}">×</button></div></article>`; return { symbol: item.symbol, html }; }); list.innerHTML = rows.map(r => r.html).join(""); bindReportLinks(list); list.querySelectorAll("[data-analyze-symbol]").forEach((button) => button.addEventListener("click", () => { $("ticker").value = button.dataset.analyzeSymbol; $("asset-type").value = button.dataset.analyzeAsset; toggleCryptoAnalyst(); navigate("analysis"); $("analysis-form").scrollIntoView({ behavior: "smooth", block: "start" }); })); list.querySelectorAll(".watchlist-notes-button").forEach((button) => button.addEventListener("click", (event) => { event.preventDefault(); event.stopPropagation(); const symbol = button.dataset.notesSymbol; if (symbol) navigate("asset", { symbol }); }));
-      list.querySelectorAll("[data-remove-watchlist]").forEach((button) => button.addEventListener("click", async (event) => { event.preventDefault(); event.stopPropagation(); const row = button.closest(".watchlist-row"); if (!row) return; const symbol = row.querySelector(".symbol")?.textContent || ""; const confirmed = await openConfirmModal({ title: t("modal.confirmRemoveTitle"), message: t("watchlist.confirmRemove", { value: symbol }), confirmText: t("actions.confirmRemove"), cancelText: t("actions.cancel"), danger: true }); if (!confirmed) return; button.disabled = true; try { await api(`/api/watchlist/items/${encodeURIComponent(button.dataset.removeWatchlist)}?version=${encodeURIComponent(button.dataset.version)}`, { method: "DELETE" }); await loadWatchlist(); } catch (error) { $("watchlist-error").textContent = localizeError(error.message); button.disabled = false; } })); list.querySelectorAll(".watchlist-row").forEach((row) => row.addEventListener("click", (event) => { if (event.target.closest(".watchlist-actions, .watchlist-chart")) return; const symbol = row.querySelector(".symbol")?.textContent || ""; if (symbol) navigate("asset", { symbol }); })); }
-  async function loadWatchlist({ quotesOnly = false, signal = null } = {}) { const list = $("watchlist-list"); if (list) list.setAttribute("aria-busy", "true"); try { $("watchlist-error").textContent = ""; let items = state.watchlist.items; if (!quotesOnly) { const response = await api("/api/watchlist", { signal }); state.watchlist.version = response.watchlist?.version || 1; items = response.items || []; } if (!items.length) { renderWatchlist(items, {}); return { items, quotes: {} }; } const grouped = items.reduce((result, item) => { const key = item.asset_type || "stock"; (result[key] ||= []).push(item.symbol); return result; }, {}); const quotes = { ...state.watchlist.quotes }; await Promise.all(Object.entries(grouped).map(async ([assetType, symbols]) => { const response = window.TradingAgentsQuotes?.fetch ? await window.TradingAgentsQuotes.fetch(symbols, assetType) : await api(`/api/quotes?symbols=${encodeURIComponent(symbols.join(","))}&asset_type=${encodeURIComponent(assetType)}`, { signal }); (response.items || []).forEach((item) => { quotes[item.symbol] = item; }); })); renderWatchlist(items, quotes); return { items, quotes }; } catch (error) { if (error?.name !== "AbortError") { if (!state.watchlist.items.length && list) list.innerHTML = `<p class="muted">${escapeHtml(t("watchlist.unavailable"))}</p>`; $("watchlist-error").textContent = localizeError(error.message); } throw error; } finally { if (list) list.setAttribute("aria-busy", "false"); } }
+            const html = `<article class="watchlist-row"><div class="watchlist-asset"><span class="symbol">${escapeHtml(item.symbol)}</span><span class="asset-meta">${escapeHtml(identity.name)} · ${escapeHtml(identity.exchange)}</span><span class="asset-type">${escapeHtml(t(item.asset_type === "crypto" ? "assets.crypto" : "assets.stock"))}</span></div><div class="watchlist-quote"><div class="quote-value"><span class="quote-number">${price} ${currency}</span>${change}</div><span class="quote-meta">${quoteMeta}</span></div><div class="watchlist-analysis">${dateMarkup}${signalChip}</div><div class="watchlist-actions"><button type="button" class="text-button watchlist-analyze" data-analyze-symbol="${escapeHtml(item.symbol)}" data-analyze-asset="${escapeHtml(item.asset_type)}">${escapeHtml(t("actions.startAnalysis"))}</button>${reportAction}<button type="button" class="icon-button" data-remove-watchlist="${escapeHtml(item.id)}" data-version="${escapeHtml(state.watchlist.version)}" aria-label="${escapeHtml(`${t("actions.remove")} ${item.symbol}`)}" title="${escapeHtml(t("actions.remove"))}">×</button></div></article>`; return { symbol: item.symbol, html }; }); list.innerHTML = rows.map(r => r.html).join(""); bindReportLinks(list); list.querySelectorAll("[data-analyze-symbol]").forEach((button) => button.addEventListener("click", () => { $("ticker").value = button.dataset.analyzeSymbol; $("asset-type").value = button.dataset.analyzeAsset; toggleCryptoAnalyst(); navigate("analysis"); $("analysis-form").scrollIntoView({ behavior: "smooth", block: "start" }); })); list.querySelectorAll("[data-remove-watchlist]").forEach((button) => button.addEventListener("click", async (event) => { event.preventDefault(); event.stopPropagation(); const row = button.closest(".watchlist-row"); if (!row) return; const symbol = row.querySelector(".symbol")?.textContent || ""; const confirmed = await openConfirmModal({ title: t("modal.confirmRemoveTitle"), message: t("watchlist.confirmRemove", { value: symbol }), confirmText: t("actions.confirmRemove"), cancelText: t("actions.cancel"), danger: true }); if (!confirmed) return; button.disabled = true; try { await api(`/api/watchlist/items/${encodeURIComponent(button.dataset.removeWatchlist)}?version=${encodeURIComponent(button.dataset.version)}`, { method: "DELETE" }); await loadWatchlist(); } catch (error) { $("watchlist-error").textContent = localizeError(error.message); button.disabled = false; } })); list.querySelectorAll(".watchlist-row").forEach((row) => row.addEventListener("click", (event) => { if (event.target.closest(".watchlist-actions, .watchlist-chart")) return; const symbol = row.querySelector(".symbol")?.textContent || ""; if (symbol) navigate("asset", { symbol }); }));
+ }
+  async function loadWatchlist({ quotesOnly = false, signal = null } = {}) { const list = $("watchlist-list"); if (list) list.setAttribute("aria-busy", "true"); let lastFetchTriggers = []; try { $("watchlist-error").textContent = ""; let items = state.watchlist.items; if (!quotesOnly) { const response = await api("/api/watchlist", { signal }); state.watchlist.version = response.watchlist?.version || 1; items = response.items || []; } if (!items.length) { renderWatchlist(items, {}); return { items, quotes: {} }; } const grouped = items.reduce((result, item) => { const key = item.asset_type || "stock"; (result[key] ||= []).push(item.symbol); return result; }, {}); const quotes = { ...state.watchlist.quotes }; await Promise.all(Object.entries(grouped).map(async ([assetType, symbols]) => { const response = ta("TradingAgentsQuotes")?.fetch ? await ta("TradingAgentsQuotes").fetch(symbols, assetType) : await api(`/api/quotes?symbols=${encodeURIComponent(symbols.join(","))}&asset_type=${encodeURIComponent(assetType)}`, { signal }); if (response && response.alert_triggers && response.alert_triggers.length) { lastFetchTriggers = lastFetchTriggers.concat(response.alert_triggers); } (response.items || []).forEach((item) => { quotes[item.symbol] = item; }); })); renderWatchlist(items, quotes); return { items, quotes, triggers: lastFetchTriggers }; } catch (error) { if (error?.name !== "AbortError") { if (!state.watchlist.items.length && list) list.innerHTML = `<p class="muted">${escapeHtml(t("watchlist.unavailable"))}</p>`; $("watchlist-error").textContent = localizeError(error.message); } throw error; } finally { if (list) list.setAttribute("aria-busy", "false"); } }
   async function addWatchlistItem(event) { event.preventDefault(); const symbol = $("watchlist-symbol").value.trim(); if (!symbol) { $("watchlist-error").textContent = t("watchlist.symbolRequired"); return; } try { await api("/api/watchlist/items", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ symbol, asset_type: $("watchlist-asset-type").value }) }); $("watchlist-symbol").value = ""; await loadWatchlist(); } catch (error) { $("watchlist-error").textContent = localizeError(error.message); } }
   function renderLibrary() { const list = $("library-list"); const records = state.library.items; $("library-total").textContent = t("library.total", { count: state.library.total }); $("library-prev").disabled = state.library.page <= 1; $("library-next").disabled = !state.library.hasNext; if (!records.length) { list.innerHTML = `<p class="muted">${escapeHtml(state.library.total ? t("library.noMatches") : t("history.empty"))}</p>`; return; } list.innerHTML = records.map((record) => historyItem(record, true)).join(""); bindReportLinks(list); }
   async function loadLibraryPage() { const requestSeq = ++state.library.requestSeq; const params = new URLSearchParams({ page: String(state.library.page), page_size: String(state.library.pageSize), sort: state.filters.sort === "oldest" ? "generated_at_asc" : state.filters.sort === "ticker" ? "ticker_asc" : "generated_at_desc" }); if (state.filters.search.trim()) params.set("query", state.filters.search.trim()); if (state.filters.asset) params.set("asset_type", state.filters.asset); if (state.filters.status) params.set("status", state.filters.status); try { const response = await api(`/api/history?${params.toString()}`); if (requestSeq !== state.library.requestSeq) return; const items = response.items || response; state.library.items = Array.isArray(items) ? items : []; state.library.page = Number(response.page || state.library.page); state.library.pageSize = Number(response.page_size || state.library.pageSize); state.library.total = Number(response.total ?? state.library.items.length); state.library.hasNext = Boolean(response.has_next); renderLibrary(); } catch (_) { if (requestSeq !== state.library.requestSeq) return; state.library.items = []; state.library.total = 0; state.library.hasNext = false; renderLibrary(); } refreshLibraryQuotes(); }
@@ -613,8 +629,23 @@ document.addEventListener("click", (event) => { const retryBtn = event.target.cl
     if (["setup", "analysis", "active", "scheduled", "library", "settings"].includes(view)) navigate(view);
   }));
   window.addEventListener("popstate", () => applyRoute(window.location.pathname));
-  function startQuoteRefresh() { quoteRefreshController?.stop(); quoteRefreshController = new window.QuoteRefreshController({ timeoutMs: 4000, backoff: [QUOTE_REFRESH_MS, 10000, 20000, 40000, 60000], fetcher: (signal) => loadWatchlist({ quotesOnly: true, signal }), onData: () => {}, onError: () => {} }); quoteRefreshController.setVisible(!document.hidden); }
+  function startQuoteRefresh() { quoteRefreshController?.stop(); try { const C = ta("QuoteRefreshController"); if (typeof C === "function") { quoteRefreshController = new C({ timeoutMs: 4000, backoff: [QUOTE_REFRESH_MS, 10000, 20000, 40000, 60000], fetcher: async (signal) => { const result = await loadWatchlist({ quotesOnly: true, signal }); if (result && result.triggers && ta("TradingAgentsAlerts")?.handleQuoteTriggers) { ta("TradingAgentsAlerts").handleQuoteTriggers(result.triggers); } return result; }, onData: () => {}, onError: () => {} }); } } catch (_) {} quoteRefreshController.setVisible(!document.hidden); }
   document.addEventListener("visibilitychange", () => quoteRefreshController?.setVisible(!document.hidden));
-  initTheme(); initSidebarToggle(); initSidebarCollapse(); applyTranslations(); renderPhases(); api("/api/config").then(setupForm).catch(() => {}); api("/api/history").then(renderHistory).catch(() => {}); loadWatchlist().finally(startQuoteRefresh); applyRoute(window.location.pathname); restoreActiveRun();
-  window.TradingAgentsApp = { navigate, setRoute, applyRoute };
+  try { initTheme(); } catch (_) {}
+try { initSidebarToggle(); } catch (_) {}
+try { initSidebarCollapse(); } catch (_) {}
+try { applyTranslations(); } catch (_) {}
+try { renderPhases(); } catch (_) {}
+try { api("/api/config").then(setupForm).catch(() => {}); } catch (_) {}
+try { api("/api/history").then(renderHistory).catch(() => {}); } catch (_) {}
+try { loadWatchlist().finally(startQuoteRefresh); } catch (_) {}
+try { applyRoute(window.location.pathname); } catch (_) {}
+try { restoreActiveRun(); } catch (_) {}
+  if (ta("TradingAgentsAlerts")?.bindDrawer) {
+    ta("TradingAgentsAlerts").bindDrawer();
+    ta("TradingAgentsAlerts").refreshEvents();
+    ta("TradingAgentsAlerts").startPolling(60000);
+  }
+  try { window.TradingAgentsApp = { navigate, setRoute, applyRoute }; } catch (_) {}
+  try { if (typeof __TA_MODULES__ !== "undefined") __TA_MODULES__.TradingAgentsApp = { navigate, setRoute, applyRoute }; } catch (_) {}
 })();

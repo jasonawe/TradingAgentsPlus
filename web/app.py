@@ -38,7 +38,9 @@ from .market_data import ProviderRouter, QuoteService
 from .market_models import ProviderError
 from .models import AnalysisRequest, EventEnvelope, RunRecord
 from .providers import AKShareProvider, AlphaVantageProvider, EastMoneyProvider, YFinanceProvider
+from .alert_engine import AlertEngine
 from .repositories import (
+    AlertRepository,
     AnalysisRunRepository,
     ProviderHealthRepository,
     QuoteRepository,
@@ -217,6 +219,7 @@ def create_app(
     repositories = {
         "watchlist": watchlist_repo,
         "notes": NoteRepository(store),
+        "alerts": AlertRepository(store),
         "quotes": QuoteRepository(store),
         "runs": analysis_run_repo,
         "snapshots": SnapshotRepository(store),
@@ -298,6 +301,7 @@ def create_app(
         settings=settings_repo,
         config=active_config,
     )
+    app.state.alert_engine = AlertEngine(app.state.repositories["alerts"])
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(_request: Request, _exc: RequestValidationError) -> JSONResponse:
@@ -311,9 +315,13 @@ def create_app(
 
     def _console_entry() -> Response:
         index_path = _STATIC_DIR / "index.html"
+        headers = {"Cache-Control": "no-store, must-revalidate"}
         if index_path.is_file():
-            return FileResponse(index_path, media_type="text/html")
-        return HTMLResponse("<!doctype html><title>TradingAgents</title><h1>TradingAgents</h1>")
+            return FileResponse(index_path, media_type="text/html", headers=headers)
+        return HTMLResponse(
+            "<!doctype html><title>TradingAgents</title><h1>TradingAgents</h1>",
+            headers=headers,
+        )
 
     @app.get("/", response_class=HTMLResponse, include_in_schema=False)
     @app.get("/analysis", response_class=HTMLResponse, include_in_schema=False)
@@ -483,11 +491,127 @@ def create_app(
             raise _error(422, "symbols 最多支持 50 个资产")
         try:
             result = app.state.market_service.get_quotes(values, asset_type)
-            if isinstance(result, dict):
-                return result
-            return result.model_dump(mode="json")
+            payload = result if isinstance(result, dict) else result.model_dump(mode="json")
         except ValueError as exc:
             raise _error(422, "行情参数无效") from exc
+        try:
+            triggers = _evaluate_alerts_for_response(app, values, asset_type, payload)
+        except Exception:
+            triggers = []
+        if triggers:
+            payload["alert_triggers"] = triggers
+        return payload
+
+    def _evaluate_alerts_for_response(app, symbols: list[str], asset_type: str, payload: dict[str, Any]) -> list[dict[str, Any]]:
+        engine: AlertEngine | None = getattr(app.state, "alert_engine", None)
+        if engine is None:
+            return []
+        items = {item.get("symbol"): item for item in (payload.get("items") or []) if isinstance(item, dict)}
+        triggers: list[dict[str, Any]] = []
+        for symbol in symbols:
+            quote = items.get(symbol) or items.get(symbol.upper())
+            if not quote:
+                continue
+            triggers.extend(_triggers_to_payload(engine, symbol, asset_type, quote))
+        return triggers
+
+    def _triggers_to_payload(engine: AlertEngine, symbol: str, asset_type: str, quote: dict[str, Any]) -> list[dict[str, Any]]:
+        raw_triggers = engine.evaluate_quote(symbol, asset_type, quote)
+        events = engine.record_triggers(raw_triggers)
+        return [
+            {
+                "alert_id": trigger.alert_id,
+                "symbol": trigger.symbol,
+                "asset_type": trigger.asset_type,
+                "kind": trigger.kind,
+                "message": trigger.message,
+                "snapshot": trigger.snapshot,
+                "event": event,
+            }
+            for trigger, event in zip(raw_triggers, events)
+        ]
+
+    @app.get("/api/alerts")
+    def list_alerts(symbol: str | None = Query(None), asset_type: str | None = Query(None)) -> dict[str, Any]:
+        repo = app.state.repositories["alerts"]
+        if symbol:
+            items = repo.list_for_symbol(symbol, asset_type or "stock")
+        else:
+            items = repo.list_all()
+        return {"items": items}
+
+    @app.post("/api/alerts", status_code=201)
+    def create_alert(payload: dict[str, Any]) -> dict[str, Any]:
+        repo = app.state.repositories["alerts"]
+        try:
+            symbol = payload.get("symbol")
+            asset_type = payload.get("asset_type", "stock")
+            kind = payload.get("kind")
+            params = payload.get("params") or {}
+            cooldown = int(payload.get("cooldown_seconds", 3600))
+            if not isinstance(symbol, str) or not symbol.strip():
+                raise ValueError("symbol 必填")
+            alert = repo.create(
+                symbol=symbol,
+                asset_type=asset_type,
+                kind=kind,
+                params=params,
+                cooldown_seconds=cooldown,
+            )
+            return alert
+        except ValueError as exc:
+            raise _error(422, str(exc)) from exc
+
+    @app.patch("/api/alerts/{alert_id}")
+    def update_alert(alert_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        repo = app.state.repositories["alerts"]
+        try:
+            return repo.update(alert_id, **payload)
+        except KeyError as exc:
+            raise _error(404, "告警不存在") from exc
+        except ValueError as exc:
+            raise _error(422, str(exc)) from exc
+
+    @app.delete("/api/alerts/{alert_id}", status_code=204)
+    def delete_alert(alert_id: str) -> Response:
+        repo = app.state.repositories["alerts"]
+        try:
+            repo.soft_delete(alert_id)
+        except KeyError as exc:
+            raise _error(404, "告警不存在") from exc
+        return Response(status_code=204)
+
+    @app.get("/api/alerts/events")
+    def list_alert_events(
+        symbol: str | None = Query(None),
+        asset_type: str | None = Query(None),
+        limit: int = Query(50, ge=1, le=500),
+        unacknowledged_only: bool = Query(False),
+    ) -> dict[str, Any]:
+        repo = app.state.repositories["alerts"]
+        items = repo.list_events(
+            symbol=symbol,
+            asset_type=asset_type,
+            limit=limit,
+            unacknowledged_only=unacknowledged_only,
+        )
+        unread = repo.count_unacknowledged()
+        return {"items": items, "unread": unread}
+
+    @app.post("/api/alerts/events/{event_id}/ack", status_code=204)
+    def acknowledge_alert_event(event_id: str) -> Response:
+        repo = app.state.repositories["alerts"]
+        try:
+            repo.acknowledge_event(event_id)
+        except KeyError as exc:
+            raise _error(404, "事件不存在") from exc
+        return Response(status_code=204)
+
+    @app.post("/api/alerts/events/ack-all", status_code=204)
+    def acknowledge_all_alert_events() -> Response:
+        repo = app.state.repositories["alerts"]
+        repo.acknowledge_all()
+        return Response(status_code=204)
 
     @app.get("/api/assets/{symbol}/candles")
     def get_candles(symbol: str, interval: str = Query("1d"), start: date | None = None, end: date | None = None) -> dict[str, Any]:

@@ -386,6 +386,7 @@ async function load({ silent = false } = {}) {
     $("scheduled-overrides-save")?.addEventListener("click", () => saveAnalysisDefaults());
     $("scheduled-overrides-reset")?.addEventListener("click", () => resetAnalysisDefaults());
  document.addEventListener("visibilitychange", () => { state.visible = !document.hidden; schedulePolling(); if (state.active && state.visible) load({ silent: true }); }); document.addEventListener("keydown", (event) => { if (event.key === "Escape") { closeDrawer(); if ($("modal-root")?.querySelector("#scheduled-form")) closeForm(); } }); }
-  root.TradingAgentsScheduled = { init, show: () => { init(); setActive(true); }, setActive };
+  try { root.TradingAgentsScheduled = { init, show: () => { init(); setActive(true); }, setActive }; } catch (_) {}
+  try { if (typeof __TA_MODULES__ !== "undefined") __TA_MODULES__.TradingAgentsScheduled = { init, show: () => { init(); setActive(true); }, setActive }; } catch (_) {}
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true }); else init();
 })(window);

@@ -4,8 +4,9 @@
   if (typeof module === "object" && module.exports) {
     module.exports = factory();
   } else {
-    root.formatInvestmentRating = factory();
+    try { root.formatInvestmentRating = factory(); } catch (_) {}
   }
+  try { if (typeof __TA_MODULES__ !== "undefined") __TA_MODULES__.formatInvestmentRating = factory(); } catch (_) {}
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 

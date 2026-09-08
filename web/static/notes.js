@@ -2,12 +2,13 @@
   "use strict";
   const api = factory();
   if (typeof module === "object" && module.exports) module.exports = api;
-  else root.TradingAgentsNotes = api;
+  try { window.TradingAgentsNotes = api; } catch (_) { /* window frozen */ }
+  try { if (typeof __TA_MODULES__ !== "undefined") __TA_MODULES__.TradingAgentsNotes = api; } catch (_) {}
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
   function t(key, vars) {
-    const i18n = root.TradingAgentsI18n;
+    const i18n = window.TradingAgentsI18n;
     return i18n ? i18n.t(key, vars || {}) : key;
   }
   function escapeHtml(value) {
@@ -217,7 +218,7 @@
       const deleteBtn = event.target.closest('[data-note-action="delete"]');
       if (deleteBtn) {
         const id = deleteBtn.dataset.noteId;
-        if (typeof root.confirm === "function" && !root.confirm(t("notes.deleteConfirm"))) return;
+        if (typeof window.confirm === "function" && !window.confirm(t("notes.deleteConfirm"))) return;
         deleteNote(rootEl, id);
         return;
       }

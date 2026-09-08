@@ -224,3 +224,6 @@ reports/
 
 # Local web state (sqlite, runtime artifact)
 web/state.db
+
+# Editor backups
+*.bak

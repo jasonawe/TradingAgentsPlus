@@ -1,7 +1,8 @@
 (function (root, factory) {
   const exported = factory();
   if (typeof module === "object" && module.exports) module.exports = exported;
-  root.QuoteRefreshController = exported.QuoteRefreshController;
+  try { root.QuoteRefreshController = exported.QuoteRefreshController; } catch (_) {}
+  try { if (typeof __TA_MODULES__ !== "undefined") __TA_MODULES__.QuoteRefreshController = exported.QuoteRefreshController; } catch (_) {}
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   class QuoteRefreshController {
     constructor(options) {
