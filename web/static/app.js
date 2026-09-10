@@ -44,7 +44,7 @@
   function startElapsed(startedAt) { state.startedAt = startedAt || new Date().toISOString(); clearInterval(state.elapsedTimer); $("elapsed-time").textContent = formatElapsed(state.startedAt); state.elapsedTimer = setInterval(() => { if (state.startedAt) $("elapsed-time").textContent = formatElapsed(state.startedAt); }, 1000); }
   function stopElapsed() { clearInterval(state.elapsedTimer); state.elapsedTimer = null; }
   function resetRunState() { stopElapsed(); state.lastSeq = 0; state.seen = new Set(); state.reportId = null; state.runRecord = null; state.startedAt = null; state.phases = PHASE_KEYS.map((key) => ({ key, status: "pending" })); $("activity-feed").innerHTML = ""; $("terminal-panel").hidden = true; $("report-panel").hidden = true; $("run-grid").hidden = false; $("progress-bar").style.width = "0%"; $("progress-label").textContent = "0%"; $("event-count").textContent = t("run.events", { count: 0 }); $("elapsed-time").textContent = t("run.elapsed", { time: "00:00" }); renderPhases(); }
-  const ROUTES = { setup: "/", analysis: "/analysis", active: "/active", scheduled: "/scheduled", "scheduled-history": "/scheduled/history", library: "/reports", settings: "/settings", alerts: "/alerts", notes: "/notes" };
+  const ROUTES = { setup: "/", analysis: "/analysis", active: "/active", scheduled: "/scheduled", "scheduled-history": "/scheduled/history", library: "/reports", settings: "/settings", alerts: "/alerts", notes: "/notes", "agent-audit": "/agent-audit" };
   function normalizePath(pathname) { const value = String(pathname || "/").replace(/\/+$/, ""); return value || "/"; }
   function routePath(view, { reportId = null, symbol = null } = {}) { if (view === "report" && reportId) return `/reports/${encodeURIComponent(reportId)}`; if (view === "asset" && symbol) return `/assets/${encodeURIComponent(symbol)}`; if (view === "scheduled-history") return ROUTES["scheduled-history"]; return ROUTES[view] || ROUTES.setup; }
   function routeForPath(pathname) { const path = normalizePath(pathname); if (path === "/") return { view: "setup" }; for (const [view, route] of Object.entries(ROUTES)) if (view !== "setup" && path === route) return { view }; if (path.startsWith("/reports/")) { const reportId = decodeURIComponent(path.slice("/reports/".length)); return reportId ? { view: "report", reportId } : { view: "library" }; } if (path.startsWith("/assets/")) { const symbol = decodeURIComponent(path.slice("/assets/".length)); return symbol ? { view: "asset", symbol } : { view: "setup" }; } if (path === "/scheduled/history") return { view: "scheduled-history" }; return null; }
@@ -947,6 +947,9 @@
       "scheduled-history": { crumb: "nav.scheduled", title: "scheduler.history.title" },
       library: { crumb: "nav.reports", title: "library.title" },
       settings: { crumb: "nav.settings", title: "settings.title" },
+      alerts: { crumb: "nav.alerts", title: "alerts.title" },
+      notes: { crumb: "nav.notes", title: "notes.title" },
+      "agent-audit": { crumb: "nav.agentAudit", title: "agentAudit.title" },
     };
     const entry = map[view] || map.setup;
     titleNode.textContent = t(entry.title);
