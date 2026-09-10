@@ -372,8 +372,37 @@
         btn.onclick = () => {
           const days = Number(btn.dataset.assetKlineDays);
           detailState.days = days;
+          detailState.period = null;
           intervals.querySelectorAll("[data-asset-kline-days]").forEach((b) => b.classList.toggle("is-active", b === btn));
+          const periods = $("asset-kline-periods");
+          if (periods) periods.querySelectorAll(".kline-interval").forEach((b) => b.classList.remove("is-active"));
           renderAssetKline(detailState);
+        };
+      });
+    }
+    const periods = $("asset-kline-periods");
+    if (periods) {
+      periods.querySelectorAll("[data-asset-kline-period]").forEach((btn) => {
+        btn.onclick = async () => {
+          const period = btn.dataset.assetKlinePeriod;
+          detailState.period = period;
+          periods.querySelectorAll("[data-asset-kline-period]").forEach((b) => b.classList.toggle("is-active", b === btn));
+          if (intervals) intervals.querySelectorAll("[data-asset-kline-days]").forEach((b) => b.classList.remove("is-active"));
+          if (typeof window.LightweightKline?.load === "function") {
+            const chartEl = $("asset-kline-chart");
+            const statusEl = $("asset-kline-status");
+            chartEl.innerHTML = "";
+            statusEl.textContent = "\u52a0\u8f7d\u4e2d...";
+            try {
+              await window.LightweightKline.load(
+                { chartEl, statusEl },
+                detailState.symbol,
+                period
+              );
+            } catch (e) {
+              statusEl.textContent = "⚠️ 加载失败: " + (e.message || e);
+            }
+          }
         };
       });
     }

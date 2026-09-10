@@ -605,6 +605,20 @@ def create_app(
             for trigger, event in zip(raw_triggers, events)
         ]
 
+    @app.get("/api/market/kline")
+    def get_kline(
+        symbol: str = Query(..., description="ticker, 如 600036.SS / AAPL"),
+        period: str = Query("1d", description="1d / 1w / 1M / 1m / 5m / 15m / 30m / 60m"),
+        count: int = Query(240, ge=30, le=1000),
+    ) -> dict[str, Any]:
+        """返回 K 线 OHLCV + 成交量 + MA20/60,TradingView Lightweight Charts 格式。"""
+        from web.bar_generator import build_kline_response
+
+        try:
+            return build_kline_response(symbol, period, count)
+        except ValueError as exc:
+            raise _error(422, str(exc)) from exc
+
     @app.get("/api/alerts")
     def list_alerts(
         symbol: str | None = Query(None),
