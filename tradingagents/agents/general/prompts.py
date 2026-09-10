@@ -46,17 +46,48 @@ SYSTEM_PROMPT_BASE = """你是 TradingAgents 理财通用 Agent,帮助用户做�
 # 渲染函数
 # ════════════════════════════════════════════════════════
 
-def _format_tool_descriptions(tools: Iterable[Any]) -> str:
-    """把 LangChain tools 转成 - tool_name: description 列表。"""
+def _format_tool_descriptions(
+    tools: Iterable[Any],
+    *,
+    max_per_tool_chars: int = 150,
+    max_total_chars: int = 1500,
+) -> str:
+    """把 LangChain tools 转成 - tool_name: description 列表。
+
+    Args:
+        tools: LangChain tool 列表
+        max_per_tool_chars: 单个 tool description 最大字符数(默认 150)
+        max_total_chars: 所有 tool descriptions 总字符数上限(默认 1500)
+
+    Returns:
+        markdown bullet list,超出总上限时追加"(还有 N 个工具...)"标记
+    """
     lines = []
     for t in tools:
         name = getattr(t, "name", str(t))
         desc = getattr(t, "description", "") or ""
-        # 截断到 200 字符避免 prompt 过长
-        if len(desc) > 200:
-            desc = desc[:197] + "..."
+        if len(desc) > max_per_tool_chars:
+            desc = desc[: max_per_tool_chars - 3] + "..."
         lines.append(f"- `{name}`: {desc}")
-    return "\n".join(lines) if lines else "(无可用工具)"
+
+    text = "\n".join(lines) if lines else "(无可用工具)"
+
+    # 总长度截断:超出时取前 N 个工具
+    if len(text) > max_total_chars:
+        kept: list[str] = []
+        total = 0
+        truncated = 0
+        for line in lines:
+            if total + len(line) + 1 > max_total_chars:
+                truncated += 1
+                continue
+            kept.append(line)
+            total += len(line) + 1
+        if truncated:
+            kept.append(f"\n_(还有 {truncated} 个工具未列出,详见工具列表)_")
+        text = "\n".join(kept)
+
+    return text
 
 
 def _format_preferences(preferences: dict[str, Any]) -> str:
@@ -92,7 +123,11 @@ def render_system_prompt(
         mode = "guided"
 
     base = SYSTEM_PROMPT_BASE.format(
-        tool_descriptions=_format_tool_descriptions(tools),
+        tool_descriptions=_format_tool_descriptions(
+            tools,
+            max_per_tool_chars=150,
+            max_total_chars=1500,
+        ),
         user_preferences=_format_preferences(preferences or {}),
         current_date=current_date or datetime.utcnow().strftime("%Y-%m-%d"),
     )

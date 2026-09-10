@@ -178,26 +178,52 @@ def chat_once(
     session_id: str,
     user_message: str,
 ) -> dict[str, Any]:
-    """同步调用一次 — 返回 {"answer": str, "tool_calls": [...], "events": [...]}。
+    """同步调用一次 — 返回完整结构化结果。
 
     适合非流式场景(测试 / 一次性调用)。
+
+    Returns:
+        {
+            "answer": str,             # LLM 最终回答(最后一个 reasoning)
+            "tool_calls": list[dict],  # 所有 tool 调用 [{name, args}]
+            "tool_results": list[dict],# 所有 tool 返回 [{name, content, tool_call_id}]
+            "events": list[tuple],     # 完整事件流 (event_type, payload)
+        }
+
+    事件流格式:
+        reasoning  → LLM 思考过程(中间或最终)
+        tool_call  → LLM 决定调用的工具
+        tool_result→ 工具返回结果
+        final      → 同 reasoning 的最后一个,作为 answer
+        error      → 异常
     """
     events: list[tuple[str, dict[str, Any]]] = []
-    final_content = ""
+    final_answer = ""
 
     for event_type, payload in stream_chat(agent, session_id, user_message):
         events.append((event_type, payload))
         if event_type == "reasoning":
-            final_content = payload.get("content", "")
+            # stream_chat 按消息顺序 yield,最后一个 reasoning 就是 LLM 最终回答
+            final_answer = payload.get("content", "")
 
     tool_calls = [
         {"name": p["name"], "args": p["args"]}
         for et, p in events
         if et == "tool_call"
     ]
+    tool_results = [
+        {
+            "name": p.get("name", "(tool)"),
+            "content": p.get("content", ""),
+            "tool_call_id": p.get("tool_call_id"),
+        }
+        for et, p in events
+        if et == "tool_result"
+    ]
     return {
-        "answer": final_content,
+        "answer": final_answer,
         "tool_calls": tool_calls,
+        "tool_results": tool_results,
         "events": events,
     }
 
