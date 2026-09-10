@@ -910,3 +910,119 @@ table.data .num { font-family: var(--mono); font-weight: 600; text-align: right;
 /* Button danger variant (general, not modal-specific) */
 .button.button-danger { background: linear-gradient(180deg, #ef4444, var(--red)); color: #fff; border-color: transparent; }
 .button.button-danger:hover { background: linear-gradient(180deg, var(--red), #b91c1c); }
+
+/* ─────────────────────────────────────────────────────
+   Stage C Day 3: Agent Audit page
+   ───────────────────────────────────────────────────── */
+
+.agent-audit-list {
+  margin-top: 16px;
+}
+
+.agent-audit-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.agent-audit-row {
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 10px 12px;
+}
+
+.agent-audit-row-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.agent-audit-id {
+  font-family: ui-monospace, monospace;
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+.agent-audit-tool {
+  font-weight: 600;
+  font-family: ui-monospace, monospace;
+  color: var(--text);
+}
+
+.agent-audit-status {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.agent-audit-status-pending {
+  background: rgba(255, 184, 0, 0.15);
+  color: #b8770a;
+  border: 1px solid #ffb800;
+}
+
+.agent-audit-status-confirmed,
+.agent-audit-status-executed {
+  background: rgba(0, 200, 100, 0.12);
+  color: #1c7d3e;
+  border: 1px solid #00c864;
+}
+
+.agent-audit-status-rejected,
+.agent-audit-status-failed {
+  background: rgba(220, 50, 50, 0.10);
+  color: #a02828;
+  border: 1px solid #dc3232;
+}
+
+.agent-audit-time {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-family: ui-monospace, monospace;
+}
+
+.agent-audit-args {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 6px 8px;
+  margin: 4px 0;
+  max-height: 100px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--text);
+}
+
+.agent-audit-row-footer {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-family: ui-monospace, monospace;
+  margin-top: 4px;
+}
+
+.view-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 12px 0;
+}
+
+.view-pagination span {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-family: ui-monospace, monospace;
+}

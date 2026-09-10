@@ -17,7 +17,7 @@
         }
       })();
     </script>
-    <link rel="stylesheet" href="/static/styles.css?v=20260910-styles-2" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260910-styles-3" />
     <link rel="stylesheet" href="/static/agent.css?v=20260910-agent-1" />
   </head>
   <body>
@@ -32,6 +32,7 @@
           <a href="/reports" data-view="library"><svg class="icon" aria-hidden="true"><use href="#i-reports"/></svg><span class="nav-label" data-i18n="nav.reports">报告库</span></a>
           <a href="/alerts" data-view="alerts"><svg class="icon" aria-hidden="true"><use href="#i-alerts"/></svg><span class="nav-label" data-i18n="nav.alerts">告警管理</span></a>
           <a href="/notes" data-view="notes"><svg class="icon" aria-hidden="true"><use href="#i-notes"/></svg><span class="nav-label" data-i18n="nav.notes">笔记</span></a>
+          <a href="/agent-audit" data-view="agent-audit"><svg class="icon" aria-hidden="true"><use href="#i-alerts"/></svg><span class="nav-label" data-i18n="nav.agentAudit">Agent 审计</span></a>
           <a href="/settings" data-view="settings"><svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg><span class="nav-label" data-i18n="nav.settings">设置诊断</span></a>
         </nav>
         <div class="sidebar-cta">
@@ -419,6 +420,35 @@
         </header>
         <div id="notes-all-list" class="notes-all-list"><p class="muted" data-i18n="notes.loading">加载中…</p></div>
       </section>
+      <section id="agent-audit-view" class="view" aria-labelledby="agent-audit-title" hidden>
+        <h1 id="agent-audit-title" class="visually-hidden">Agent 审计</h1>
+        <header class="view-heading">
+          <div>
+            <p class="kicker">Agent 审计日志</p>
+            <h2>Stage C 写操作审计</h2>
+            <p class="muted">通用 Agent 所有写操作的审计记录(告警 / 笔记 / 偏好等)。支持状态过滤与翻页。</p>
+          </div>
+          <div class="view-heading-actions">
+            <select id="agent-audit-status-filter">
+              <option value="">全部状态</option>
+              <option value="pending">待确认</option>
+              <option value="confirmed">已确认</option>
+              <option value="rejected">已拒绝</option>
+              <option value="executed">已执行</option>
+              <option value="failed">失败</option>
+            </select>
+            <button type="button" class="button button-secondary" id="agent-audit-refresh">刷新</button>
+          </div>
+        </header>
+        <div id="agent-audit-list" class="agent-audit-list">
+          <p class="muted">加载中…</p>
+        </div>
+        <div class="view-pagination">
+          <button type="button" class="button button-secondary" id="agent-audit-prev" disabled>上一页</button>
+          <span id="agent-audit-page-info">第 1 页</span>
+          <button type="button" class="button button-secondary" id="agent-audit-next" disabled>下一页</button>
+        </div>
+      </section>
       <section id="report-view" class="view" aria-labelledby="report-title" hidden>
         <section id="report-panel" class="report-panel"><div class="report-heading"><div><h2 id="report-title" data-i18n="report.decisionReport">决策报告</h2><dl id="report-meta" class="report-meta"></dl></div><div class="report-actions"><button id="report-back-library" class="button button-secondary" type="button" data-i18n="actions.backReports">返回报告库</button><button id="download-report" class="button button-secondary" type="button" data-i18n="actions.downloadMarkdown">下载 Markdown</button><button id="new-analysis" class="button button-primary" type="button"><span data-i18n="actions.newAnalysis">新建分析</span> <span aria-hidden="true">&#8594;</span></button></div></div><section id="executive-summary" class="executive-summary" hidden><div class="summary-heading"><p class="kicker" data-i18n="report.executiveSummary">综合研判</p><span class="summary-badge" data-i18n="report.deepModelSummary">深度模型综合</span></div><div id="executive-summary-content" class="summary-content"></div></section><details id="detail-report" class="detail-report"><summary data-i18n="report.showDetails">展开详细智能体报告</summary><div id="report-content" class="report-content"></div></details>
         <section class="report-notes-panel">
@@ -452,7 +482,7 @@
     <script src="/static/scheduled-history.js?v=20260909-scheduled-history-1" defer></script>
     <script src="/static/notes.js?v=20260910-notes-5" defer></script>
     <script src="/static/alerts.js?v=20260910-alerts-5" defer></script>
-    <script src="/static/app.js?v=20260910-app-16" defer></script>
+    <script src="/static/app.js?v=20260910-app-17" defer></script>
     <script src="/static/agent.js?v=20260910-agent-2" defer></script>
     <svg width="0" height="0" style="position:absolute" aria-hidden="true">
       <defs>

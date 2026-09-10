@@ -394,6 +394,7 @@ def create_app(
     @app.get("/settings", response_class=HTMLResponse, include_in_schema=False)
     @app.get("/alerts", response_class=HTMLResponse, include_in_schema=False)
     @app.get("/notes", response_class=HTMLResponse, include_in_schema=False)
+    @app.get("/agent-audit", response_class=HTMLResponse, include_in_schema=False)
     def index() -> Response:
         return _console_entry()
 
