@@ -151,4 +151,27 @@ __all__ = [
     "describe_impact",
     "check_max_tool_calls",
     "build_confirmation",
+    "validate_write_intent",
 ]
+
+def validate_write_intent(
+    tool_name: str, tool_args: dict[str, Any] | None = None
+) -> tuple[bool, str]:
+    """一体化校验写操作意图(O6v2 HITL 入口)。
+
+    Args:
+        tool_name: 工具名
+        tool_args: 工具参数
+
+    Returns:
+        (is_write, impact):
+            is_write: True 表示需要 confirm(HITL)
+            impact: 人类可读的影响描述(给前端 dialog 用)
+    """
+    is_write = is_write_tool(tool_name)
+    impact = describe_impact(tool_name, tool_args or {})
+    return is_write, impact
+
+
+# 更新 __all__
+

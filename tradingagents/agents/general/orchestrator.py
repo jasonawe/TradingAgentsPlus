@@ -126,13 +126,18 @@ def stream_chat(
     inputs = {"messages": [HumanMessage(content=user_message)]}
 
     try:
-        # stream_mode="values" 每次返回完整 state,简单可靠
-        for chunk in agent.stream(inputs, config=config, stream_mode="values"):
-            msgs = chunk.get("messages", []) if isinstance(chunk, dict) else []
-            if not msgs:
-                continue
-            last = msgs[-1]
-            yield from _emit_message(last)
+        # stream_mode="messages" 只 yield 新增的 message token/块,
+        # 比 "values" 更高效(SSE 流式友好,不去重不发完整 state)
+        for chunk in agent.stream(inputs, config=config, stream_mode="messages"):
+            # chunk 是 (message_chunk, metadata) tuple
+            if isinstance(chunk, tuple) and len(chunk) >= 1:
+                msg_chunk = chunk[0]
+                yield from _emit_message(msg_chunk)
+            else:
+                # 兼容 "values" 模式(如果上游改成 values)
+                msgs = chunk.get("messages", []) if isinstance(chunk, dict) else []
+                if msgs:
+                    yield from _emit_message(msgs[-1])
 
     except Exception as e:
         yield ("error", {"error": f"{type(e).__name__}: {e}"})

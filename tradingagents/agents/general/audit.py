@@ -145,6 +145,11 @@ def list_writes(
         conn.close()
 
 
+VALID_WRITE_STATUSES: set[str] = {
+    "pending", "confirmed", "rejected", "executed", "failed",
+}
+
+
 def update_write_status(
     db_path: Path | None,
     audit_id: int,
@@ -155,9 +160,17 @@ def update_write_status(
 ) -> bool:
     """更新 audit log 状态(用户确认 / 拒绝 / 执行后回填)。
 
+    Raises:
+        ValueError: 如果 status 不在 VALID_WRITE_STATUSES 中
+
     Returns:
         是否真的更新了
     """
+    if status not in VALID_WRITE_STATUSES:
+        raise ValueError(
+            f"Invalid status {status!r}; must be one of {sorted(VALID_WRITE_STATUSES)}"
+        )
+
     if db_path is None:
         db_path = _default_db_path()
 
@@ -184,4 +197,5 @@ __all__ = [
     "log_write",
     "list_writes",
     "update_write_status",
+    "VALID_WRITE_STATUSES",
 ]

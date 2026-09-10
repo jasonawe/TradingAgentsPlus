@@ -64,20 +64,43 @@ def get_quote(
         if snap is None:
             return f"NO_DATA: 未能获取 {symbol!r} 的报价"
 
-        # 格式化为 LLM 友好文本
-        return (
-            f"symbol: {snap.symbol}\n"
-            f"price: {snap.price}\n"
-            f"change: {snap.change}\n"
-            f"change_percent: {snap.change_percent:.4f}\n"
-            f"volume: {snap.volume}\n"
-            f"open: {snap.open}\n"
-            f"high: {snap.high}\n"
-            f"low: {snap.low}\n"
-            f"currency: {snap.currency}\n"
-            f"source: {snap.source}\n"
-            f"fetched_at: {snap.fetched_at.isoformat() if hasattr(snap.fetched_at, 'isoformat') else snap.fetched_at}\n"
-        )
+        # 基础行情
+        lines = [
+            f"symbol: {snap.symbol}",
+            f"price: {snap.price}",
+            f"change: {snap.change}",
+            f"change_percent: {snap.change_percent:.4f}" if snap.change_percent is not None else None,
+            f"volume: {snap.volume}",
+            f"open: {snap.open}",
+            f"high: {snap.high}",
+            f"low: {snap.low}",
+            f"previous_close: {snap.previous_close}",
+            f"currency: {snap.currency}",
+            f"exchange: {snap.exchange}",
+        ]
+        # 量化指标(可能为 None,过滤掉)
+        quant_fields = {
+            "volume_ratio": snap.volume_ratio,
+            "turnover": snap.turnover,
+            "turnover_rate": snap.turnover_rate,
+            "market_cap": snap.market_cap,
+            "circulating_cap": snap.circulating_cap,
+            "pe_ratio": snap.pe_ratio,
+            "amplitude": snap.amplitude,
+        }
+        quant_lines = [
+            f"  - {k}: {v}" for k, v in quant_fields.items() if v is not None
+        ]
+        if quant_lines:
+            lines.append("quantitative_metrics:")
+            lines.extend(quant_lines)
+
+        lines.extend([
+            f"source: {snap.source}",
+            f"fetched_at: {snap.fetched_at.isoformat() if hasattr(snap.fetched_at, 'isoformat') else snap.fetched_at}",
+            f"freshness: {snap.freshness}",
+        ])
+        return "\n".join(line for line in lines if line is not None)
     except Exception as e:
         return f"ERROR: get_quote({symbol}) failed - {type(e).__name__}: {e}"
 

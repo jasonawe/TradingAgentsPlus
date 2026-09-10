@@ -265,3 +265,13 @@ __all__ = [
     "search_references",
     "list_references_by_session",
 ]
+
+
+# ════════════════════════════════════════════════════════
+# 命名说明
+# ════════════════════════════════════════════════════════
+#
+# 原 _agent_db_path 函数已被 agent_memory_db_path 取代(语义更清晰)。
+# 这里保留别名以兼容已有调用,新代码请直接用 agent_memory_db_path。
+
+_agent_db_path = agent_memory_db_path  # type: ignore[misc]
