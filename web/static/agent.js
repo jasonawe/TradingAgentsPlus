@@ -12,6 +12,10 @@
     sessionId: null,
     busy: false,
     currentAssistantMsg: null,
+    // 当前 pending 的写操作 confirm(等用户决定)
+    pendingConfirm: null,
+    // 上一次 user_message(用于 confirm 时 replay)
+    lastUserMessage: "",
   };
 
   const SUGGESTIONS = [
@@ -236,6 +240,7 @@
     // 用户消息
     appendMessage("user", text);
     state.inputEl.value = "";
+    state.lastUserMessage = text;
     setBusy(true);
 
     // 流式接收 assistant 回答
@@ -311,12 +316,31 @@
     } else if (eventType === "tool_result") {
       const content = data.payload?.content || "";
       appendToolResult(content);
+    } else if (eventType === "confirm_request") {
+      // HITL: 写操作需要用户确认
+      showConfirmDialog(data.payload);
+    } else if (eventType === "audit_decision") {
+      // 用户决策已记录
+      appendMessage("audit", `✓ 决策已记录 (audit_id=${data.payload?.audit_id}, approved=${data.payload?.approved})`);
+      if (state.pendingConfirm) {
+        state.pendingConfirm.resolve();
+        state.pendingConfirm = null;
+      }
     } else if (eventType === "error") {
       const errMsg = data.payload?.error || "未知错误";
       appendError(errMsg);
+      if (state.pendingConfirm) {
+        state.pendingConfirm.resolve();
+        state.pendingConfirm = null;
+      }
     } else if (eventType === "done") {
       assistant.el.classList.remove("is-loading");
       state.currentAssistantMsg = null;
+      if (state.pendingConfirm) {
+        // stream 结束但 confirm 没处理(不应该发生)
+        state.pendingConfirm.resolve();
+        state.pendingConfirm = null;
+      }
     }
   }
 
@@ -325,6 +349,142 @@
     state.sendBtn.disabled = busy;
     state.sendBtn.textContent = busy ? "发送中…" : "发送";
     state.inputEl.disabled = busy;
+  }
+
+  // ─────────────────────────────────────────────────────
+  // Confirm dialog(HITL 写操作确认)
+  // ─────────────────────────────────────────────────────
+
+  function showConfirmDialog(payload) {
+    // payload: {tool_call_id, tool_name, tool_args, impact, audit_id}
+    if (state.pendingConfirm) {
+      // 已经有 pending — 提示前端不能叠加
+      appendError("已有待确认的写操作,请先处理");
+      return;
+    }
+
+    // 把 confirm_request 作为一条消息加进 UI
+    const confirmEl = document.createElement("div");
+    confirmEl.className = "agent-message is-confirm";
+
+    const header = document.createElement("div");
+    header.className = "agent-confirm-header";
+    header.textContent = "⚠️ 写操作需要你确认";
+
+    const toolName = document.createElement("div");
+    toolName.className = "agent-confirm-tool";
+    toolName.textContent = `🔧 ${payload.tool_name}`;
+
+    const args = document.createElement("pre");
+    args.className = "agent-confirm-args";
+    args.textContent = JSON.stringify(payload.tool_args, null, 2);
+
+    const impact = document.createElement("div");
+    impact.className = "agent-confirm-impact";
+    impact.textContent = `📋 影响: ${payload.impact || "执行写操作"}`;
+
+    const auditInfo = document.createElement("div");
+    auditInfo.className = "agent-confirm-audit";
+    auditInfo.textContent = `audit_id: ${payload.audit_id}`;
+
+    const btnRow = document.createElement("div");
+    btnRow.className = "agent-confirm-actions";
+    const approveBtn = document.createElement("button");
+    approveBtn.type = "button";
+    approveBtn.className = "agent-confirm-approve";
+    approveBtn.textContent = "✓ 确认执行";
+    const rejectBtn = document.createElement("button");
+    rejectBtn.type = "button";
+    rejectBtn.className = "agent-confirm-reject";
+    rejectBtn.textContent = "✕ 拒绝";
+    btnRow.appendChild(approveBtn);
+    btnRow.appendChild(rejectBtn);
+
+    confirmEl.appendChild(header);
+    confirmEl.appendChild(toolName);
+    confirmEl.appendChild(args);
+    confirmEl.appendChild(impact);
+    confirmEl.appendChild(auditInfo);
+    confirmEl.appendChild(btnRow);
+    state.messagesEl.appendChild(confirmEl);
+    scrollToBottom();
+
+    // pending 标记(等 audit_decision 或 error 事件 resolve)
+    let resolveFn;
+    const promise = new Promise((res) => { resolveFn = res; });
+    state.pendingConfirm = {
+      payload,
+      resolve: resolveFn,
+      promise,
+    };
+
+    approveBtn.addEventListener("click", () => sendConfirmDecision(true, payload, approveBtn, rejectBtn));
+    rejectBtn.addEventListener("click", () => sendConfirmDecision(false, payload, approveBtn, rejectBtn));
+  }
+
+  async function sendConfirmDecision(approve, payload, approveBtn, rejectBtn) {
+    // 禁用按钮
+    approveBtn.disabled = true;
+    rejectBtn.disabled = true;
+    approveBtn.textContent = approve ? "执行中…" : "处理中…";
+
+    try {
+      const resp = await fetch(`/api/agent/sessions/${encodeURIComponent(state.sessionId)}/confirm`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          audit_id: payload.audit_id,
+          tool_name: payload.tool_name,
+          tool_args: payload.tool_args,
+          tool_call_id: payload.tool_call_id,
+          approve,
+          user_message: state.lastUserMessage,
+        }),
+      });
+
+      if (!resp.ok) {
+        appendError(`confirm HTTP ${resp.status}`);
+        if (state.pendingConfirm) {
+          state.pendingConfirm.resolve();
+          state.pendingConfirm = null;
+        }
+        return;
+      }
+
+      // 流式接收 resume 后的结果
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      const assistant = appendStreamingMessage("assistant");
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let idx;
+        while ((idx = buffer.indexOf("\n\n")) !== -1) {
+          const raw = buffer.slice(0, idx);
+          buffer = buffer.slice(idx + 4);
+          const lines = raw.split("\n");
+          let eventType = null;
+          let dataLine = null;
+          for (const line of lines) {
+            if (line.startsWith("event: ")) eventType = line.slice(7).trim();
+            else if (line.startsWith("data: ")) dataLine = line.slice(6).trim();
+          }
+          if (eventType && dataLine) {
+            handleSseEvent(eventType, dataLine, assistant);
+            // 如果又有 confirm_request,停止当前 resume 处理,让 confirm dialog 处理
+            if (eventType === "confirm_request") return;
+          }
+        }
+      }
+    } catch (e) {
+      appendError(`confirm 失败: ${e.message || e}`);
+      if (state.pendingConfirm) {
+        state.pendingConfirm.resolve();
+        state.pendingConfirm = null;
+      }
+    }
   }
 
   // ─────────────────────────────────────────────────────

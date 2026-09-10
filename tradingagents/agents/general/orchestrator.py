@@ -111,7 +111,9 @@ def stream_chat(
       - "reasoning": LLM 思考过程(AIMessage content)
       - "tool_call":  LLM 决定调用的工具(name + args)
       - "tool_result": 工具返回结果(content, 可能含错误)
-      - "final":      最终回答(纯文本,LLM 没再调工具时)
+      - "confirm_request": 写操作需要用户确认 — yield 后立即停止 generator,
+                            前端必须发 /api/agent/sessions/{sid}/confirm
+                            才能继续(用户在 Drawer 点 确认/拒绝 后)
       - "error":      异常(payload 含 error 字段)
 
     Args:
@@ -132,12 +134,20 @@ def stream_chat(
             # chunk 是 (message_chunk, metadata) tuple
             if isinstance(chunk, tuple) and len(chunk) >= 1:
                 msg_chunk = chunk[0]
-                yield from _emit_message(msg_chunk)
+                for event_type, payload in _emit_message(msg_chunk):
+                    yield (event_type, payload)
+                    # HITL: 写操作需要确认 → yield confirm_request 后立即停止
+                    # generator,让前端弹 confirm dialog
+                    if event_type == "confirm_request":
+                        return
             else:
                 # 兼容 "values" 模式(如果上游改成 values)
                 msgs = chunk.get("messages", []) if isinstance(chunk, dict) else []
                 if msgs:
-                    yield from _emit_message(msgs[-1])
+                    for event_type, payload in _emit_message(msgs[-1]):
+                        yield (event_type, payload)
+                        if event_type == "confirm_request":
+                            return
 
     except Exception as e:
         yield ("error", {"error": f"{type(e).__name__}: {e}"})
@@ -161,12 +171,30 @@ def _emit_message(msg: Any) -> Generator[tuple[str, dict[str, Any]], None, None]
                 },
             )
     elif isinstance(msg, ToolMessage):
+        content = msg.content if isinstance(msg.content, str) else str(msg.content)
+        # HITL: 检测写工具返回的 AWAITING_CONFIRMATION marker
+        if isinstance(content, str) and content.startswith("AWAITING_CONFIRMATION:"):
+            try:
+                payload = json.loads(content.split(":", 1)[1].strip())
+            except (json.JSONDecodeError, IndexError):
+                payload = {"raw": content}
+            yield (
+                "confirm_request",
+                {
+                    "tool_call_id": msg.tool_call_id,
+                    "tool_name": payload.get("tool_name"),
+                    "tool_args": payload.get("tool_args", {}),
+                    "impact": payload.get("impact"),
+                    "audit_id": payload.get("audit_id"),
+                },
+            )
+            return
         yield (
             "tool_result",
             {
                 "tool_call_id": msg.tool_call_id,
                 "name": getattr(msg, "name", None) or "(tool)",
-                "content": msg.content if isinstance(msg.content, str) else str(msg.content),
+                "content": content,
             },
         )
     elif isinstance(msg, SystemMessage):

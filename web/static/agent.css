@@ -247,3 +247,113 @@
   background: var(--accent-soft);
   border-color: var(--accent);
 }
+
+/* ─────────────────────────────────────────────────────
+   Confirm dialog(HITL 写操作确认)— Day 3 新增
+   ───────────────────────────────────────────────────── */
+
+.agent-message.is-confirm {
+  align-self: stretch;
+  background: var(--warn-soft, rgba(255, 184, 0, 0.12));
+  border: 1px solid var(--warn, #ffb800);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  margin: 6px 0;
+  font-size: 13px;
+}
+
+.agent-confirm-header {
+  font-weight: 600;
+  color: var(--warn, #b8770a);
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.agent-confirm-tool {
+  font-family: ui-monospace, monospace;
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+
+.agent-confirm-args {
+  background: var(--surface-1, #fafafa);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 8px;
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  margin: 6px 0;
+  max-height: 120px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--text);
+}
+
+.agent-confirm-impact {
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+  margin-bottom: 4px;
+}
+
+.agent-confirm-audit {
+  font-size: 11px;
+  color: var(--text-tertiary, #999);
+  font-family: ui-monospace, monospace;
+  margin-bottom: 8px;
+}
+
+.agent-confirm-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.agent-confirm-approve,
+.agent-confirm-reject {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+
+.agent-confirm-approve {
+  background: var(--accent, #0066ff);
+  color: white;
+}
+
+.agent-confirm-approve:hover:not(:disabled) {
+  background: var(--accent-hover, #0052cc);
+}
+
+.agent-confirm-reject {
+  background: var(--surface-2, #f0f0f0);
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.agent-confirm-reject:hover:not(:disabled) {
+  background: var(--surface-3, #e5e5e5);
+}
+
+.agent-confirm-approve:disabled,
+.agent-confirm-reject:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.agent-message.is-audit {
+  align-self: stretch;
+  background: var(--surface-2, #f5f5f5);
+  border-left: 3px solid var(--accent, #0066ff);
+  padding: 6px 10px;
+  font-size: 11px;
+  color: var(--text-secondary, #666);
+  font-family: ui-monospace, monospace;
+  margin: 4px 0;
+}
