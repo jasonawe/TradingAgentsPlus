@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-10
 **Stage:** C (Natural-Language General Agent)
-**Status:** Draft — pending user review
+**Status:** ✅ Approved (O5-O10 全部拍板,2026-09-10)
 **Branch:** (TBD — 当前在 `codex/quant-research-stage-b`,完成后切新分支 `codex/finance-general-agent`)
 **前置依赖:** Stage B(本 PR 中)至少完成 B1(Alpha158),否则通用 agent 没有量化维度可调用
 
@@ -30,12 +30,92 @@ We want a **single natural-language entrypoint** — "帮我看看 600036 的仓
 
 This is the "理财通用 agent" — replaces the need to know the tool layer.
 
-借鉴来源:
+借鉴来源(2026-09-10 调研更新):
+
+**Agent 框架范式**
 - [Vibe-Trading](https://github.com/HKUDS/Vibe-Trading) 的 "Research Loop" 概念
   (Route → Ground → Test → Deliver)
 - [A_Share_investment_Agent](https://github.com/24mlight/A_Share_investment_Agent)
   的角色化辩论
 - LangGraph `langgraph.prebuilt.create_react_agent` + MCP `fastmcp` 框架
+
+**5 个深度参考项目** (完整 deep-dive 见 `docs/superpowers/research/2026-09-10-*.md`)
+
+| 项目 | 价值 | License | 核心启发 |
+|------|------|---------|----------|
+| [WrenAI](https://github.com/Canner/WrenAI) | GenBI 引擎 | Apache-2.0 | **MDL + Memory + Policy 三件套**;Agent-in-the-loop |
+| [FinMem](https://github.com/AI4Finance-Foundation/FinMem) | 分层记忆论文+PoC | MIT | **L1 短期 / L2 长期 / L3 反思** 三层记忆 |
+| [FinRobot](https://github.com/AI4Finance-Foundation/FinRobot) | 多 Agent 投资分析 | MIT | 强 Pydantic schema + 四段式 prompt 范式 |
+| [OpenBB](https://github.com/OpenBB-finance/OpenBB) | 统一数据平台 | **AGPL-3** ⚠️ | Provider 抽象 + MCP first-class (**只学架构,代码 0 fork**) |
+| [Qlib](https://github.com/microsoft/qlib) | 量化研究平台 | MIT | Alpha158 配置驱动 + Exchange 回测参数 + qrun YAML workflow |
+
+**横向对比与决策建议**:`docs/superpowers/research/2026-09-10-finance-agent-references-comparison.md`
+
+## 设计原则(总纲 — 基于 5 项目调研提炼)
+
+通用 agent 的设计,归根到底就是四件事:**一套好工具** + **一份好上下文** + **一道好边界** + **一个好 UI**。
+
+下面 7 条原则是 5 个深度调研项目(WrenAI / FinMem / FinRobot / OpenBB / Qlib)
++ IBM "AI Agents in Finance" 文章 共同印证的"通用 agent 设计共识"。
+Stage C 的所有架构决策必须能映射到这 7 条原则。
+
+### 架构层面(4 条)
+
+**1. Engine 与 Framework 必须解耦**
+- 原则:**工具/上下文**(MDL / Memory / Policy)是 Engine,**Agent 编排**是 Framework,两者解耦
+- 来源:WrenAI 的核心洞察 — 不做 agent 框架,只提供"工具 + 上下文",任何 LLM agent 都能调用
+- 落地:核心 tools 暴露为 **CLI + MCP server + REST** 三套接口;LangGraph 只是其中一个 caller
+
+**2. Agent-in-the-loop 优于 Framework-heavy**
+- 原则:**工具的可组合性**比**agent 编排的复杂度**更重要
+- 来源:WrenAI(无内置 agent)+ OpenBB(纯数据中介)+ Qlib(YAML 反射 workflow);
+  反例是 FinRobot 的"多 Agent 实际是串行多 prompt"被 README 包装成 multi-agent
+- 落地:LangGraph 编排层尽量薄,核心是 tools;agent 框架可替换,工具层不动
+
+**3. Context > Prompt(上下文工程优先)**
+- 原则:**业务语义**比 prompt engineering 更重要,LLM 不知道的"业务知识"必须主动喂给它
+- 来源:WrenAI MDL(业务定义写进 YAML)+ FinMem schema_items(数据库结构向量化)
+  + IBM 文章强调"context engineering is the new prompt engineering"
+- 落地:建 `agent/mdl/*.yaml` + `memory/schema_index`,每次生成 SQL/分析前先 retrieval 相关业务知识
+
+**4. 渐进式 Agent 复杂度**
+- 原则:**从单 agent 循环 → 多 agent 串行 → 多 agent graph** 逐步演进,不要一步到位
+- 来源:FinMem 单 agent observation/thinking/decision 循环已够用 →
+  FinRobot 串行 prompt → LangGraph graph。复杂度要跟业务匹配
+- 落地:Stage C 先用**单 ReAct loop + MemorySaver**,真的需要多个"角色"再加 graph
+
+### 工具设计(3 条)
+
+**5. Pydantic 强类型是 LLM Tool 的标配**
+- 原则:**所有工具的 input/output 必须 Pydantic BaseModel**,LLM 不会瞎传参数
+- 来源:OpenBB 的 `Fetcher[QueryParams, Data]` + FinRobot 的 `Pydantic BaseModel` 强 schema 强制输出
+- 落地:每个 tool 的 args 必须是 `BaseModel`,LangGraph `args_schema` 参数自动推断
+
+**6. Provider 抽象:统一接口 + 注册表 + 多源适配**
+- 原则:**所有外部数据/服务都要走统一抽象**,内部差异由 provider adapter 屏蔽
+- 来源:OpenBB 100+ providers 统一 `obb.equity.price.historical()` 入口 + `PROVIDERS` dict 注册
+- 落地:建 `data/providers/base.py` 定义 `Provider` ABC,3 个 provider 各自实现,统一从 `PROVIDERS[name]` 取
+
+**7. MCP server 是当下 AI 生态的"通用语"**
+- 原则:**必须暴露 MCP server**,否则你的 agent 工具生态是孤岛
+- 来源:OpenBB 直接把 MCP server 作为 first-class surface;
+  Anthropic 推 MCP 是事实标准,Claude Desktop / Cursor 都是 MCP client
+- 落地:Stage C 必做 `mcp_server/server.py`(fastmcp),暴露 8-12 个 tool
+
+### 记忆/治理 + UI(综合)
+
+> **8. 分层记忆 L1/L2/L3** — 见 §Memory 设计(抄 FinMem + WrenAI)
+> **9. 操作治理三层防线** — 见 §MCP Server 设计 / Risk(抄 WrenAI policy.py)
+> **10. SSE 流式 + 折叠 Reasoning Trace** — 见 §UI 设计(FinRobot 教训 + WrenAI legacy/v1)
+
+### 一句话总结
+
+> **好的通用 agent = 一套好工具(Pydantic + Provider + MCP)+ 一份好上下文(MDL + 分层记忆)+ 一道好边界(三层防线 + audit)+ 一个好 UI(SSE + 折叠 trace)**
+>
+> 工具是骨架,上下文是血肉,边界是安全带,UI 是皮肤。
+> **任何一个做不好,agent 都会从"智能助手"变成"昂贵玩具"或"危险工具"。**
+
+---
 
 ## Goal
 
@@ -409,14 +489,29 @@ data: {"session_id": "...", "references_stored": 5}
 - [ ] 不破坏现有 12 个 analyst 的 tool 调用
 - [ ] merge 后打 `v0.7.0` tag
 
-## 待用户拍板的 4 个关键决策
+## ✅ 已拍板的 6 个关键决策(O5-O10,2026-09-10)
 
-| # | 决策 | 选项 | 我的建议 |
+| # | 决策 | 选项 | ✅ 决定 |
 |---|------|------|----------|
 | **O5** | UI 形态 | A 右侧抽屉 / B 全屏页 `/agent` / C 浮窗按钮 | **A**(集成度高,跟现有 SPA 一致) |
-| **O6** | Action 权限 | 1 只读 / 2 读+写(告警+笔记) / 3 读+写+触发分析 | **2**(平衡体验与风险) |
+| **O6v2** ⚠️ 升级 | Action 权限(IBM 文章升级) | 1 只读 / 2 读+写(直接执行) / **O6v2-A 读+写需 confirm**(HITL) / 3 读+写+触发分析 | **O6v2-A 读+写需 confirm**(防御 LLM 失控) |
 | **O7** | MCP 范围 | 1 只 3 alpha / 2 alpha + 5 core quote / 3 全 12 + 写工具 | **2**(核心能力,安全可控) |
 | **O8** | Memory 默认启用 | on / off | **off 默认**,settings 里显式开启(R4 隐私) |
+| **O9** ✨ 新增 | Reasoning trace UI | A SSE 流式显示推理 / B 折叠面板 | **B 折叠面板**(不打扰主流程,Explainability) |
+| **O10** ✨ 新增 | Audit log | A 必做 / B 留接口 | **A 必做**(IBM 文章 + WrenAI `sync_markdown_queries` 印证) |
+
+**6 个决策的来源汇总**:
+
+| 决策 | 主要来源 | 次要来源 |
+|------|----------|----------|
+| O5 | WrenAI legacy/v1 + OpenBB Workspace | UX 习惯 |
+| O6v2 | IBM "AI Agents in Finance" — Human-in-the-loop | WrenAI 三层防线 |
+| O7 | OpenBB MCP server(first-class) | Anthropic MCP 标准 |
+| O8 | R4 隐私 | WrenAI ~/.wren/memory(用户可控) |
+| O9 | IBM 文章 — Explainability | WrenAI trace 在 reasoning 里 |
+| O10 | IBM 文章 — Write audit log | WrenAI `sync_markdown_queries` |
+
+**拍板结果**:所有 6 个决策 (O5 / O6v2 / O7 / O8 / O9 / O10) 全部按 AI 建议通过 ✅
 
 ## File Manifest
 
@@ -432,7 +527,7 @@ data: {"session_id": "...", "references_stored": 5}
 
 ## Next Steps
 
-1. 用户 review 本文档 + O5/O6/O7/O8 拍板
+1. ✅ 用户 review 本文档 + O5-O10 拍板(2026-09-10,全部按建议)
 2. B1 完成后切 `codex/finance-general-agent` 分支
 3. 实现 + 测试
 4. merge main + 打 `v0.7.0` tag
