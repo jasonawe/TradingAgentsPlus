@@ -28,6 +28,11 @@ from tradingagents.agents.utils.agent_utils import (
     get_verified_market_snapshot,
     resolve_instrument_identity,
 )
+from tradingagents.agents.utils.alpha_factors_tools import (
+    compute_alpha_factors,
+    evaluate_alpha,
+    list_alpha_factors,
+)
 from tradingagents.agents.utils.memory import TradingMemoryLog
 from tradingagents.dataflows.config import set_config
 from tradingagents.dataflows.utils import safe_ticker_component
@@ -205,6 +210,10 @@ class TradingAgentsGraph:
                     get_stock_data,
                     # Technical indicators
                     get_indicators,
+                    # Alpha158 量化因子(B1):列表 / 计算 / IC 评估
+                    list_alpha_factors,
+                    compute_alpha_factors,
+                    evaluate_alpha,
                     # Deterministic verification snapshot (bound to the analyst
                     # LLM and required by its prompt; must be executable here or
                     # the call fails and the model reports it "unavailable").
