@@ -1,0 +1,344 @@
+/* Stage C — Agent Chat Drawer
+   SSE 流式 chat UI,通过 /api/agent/chat/stream 与后端通信。
+   暴露 window.TradingAgentsAgentChat.init() 由 app.js 调用。 */
+(() => {
+  "use strict";
+
+  const state = {
+    drawer: null,
+    messagesEl: null,
+    inputEl: null,
+    sendBtn: null,
+    sessionId: null,
+    busy: false,
+    currentAssistantMsg: null,
+  };
+
+  const SUGGESTIONS = [
+    "招商银行 600036 现在多少钱?",
+    "最近 30 天 A 股哪些 ETF 动量最强?",
+    "对比一下 600036 和 600000 的 RSI",
+    "我的关注列表里现在有什么?",
+  ];
+
+  // ─────────────────────────────────────────────────────
+  // 初始化(由 app.js 调用)
+  // ─────────────────────────────────────────────────────
+
+  function init() {
+    state.drawer = document.getElementById("agent-drawer");
+    state.messagesEl = document.getElementById("agent-messages");
+    state.inputEl = document.getElementById("agent-input");
+    state.sendBtn = document.getElementById("agent-send-btn");
+    const entryBtn = document.getElementById("agent-entry-btn");
+    const closeBtn = document.getElementById("agent-close-btn");
+    const clearBtn = document.getElementById("agent-clear-btn");
+
+    if (!state.drawer || !state.messagesEl || !state.inputEl || !state.sendBtn) {
+      console.warn("[AgentChat] DOM elements missing");
+      return;
+    }
+
+    if (entryBtn) {
+      entryBtn.addEventListener("click", openDrawer);
+    }
+    if (closeBtn) {
+      closeBtn.addEventListener("click", closeDrawer);
+    }
+    if (clearBtn) {
+      clearBtn.addEventListener("click", clearConversation);
+    }
+
+    state.sendBtn.addEventListener("click", sendMessage);
+    state.inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // 加载历史 session(可选 — 显示在 welcome 区域)
+    renderWelcome();
+
+    if (typeof window.__TA_MODULES__ !== "undefined") {
+      window.__TA_MODULES__.TradingAgentsAgentChat = { open: openDrawer, close: closeDrawer, send: sendMessage };
+    }
+  }
+
+  // ─────────────────────────────────────────────────────
+  // 抽屉控制
+  // ─────────────────────────────────────────────────────
+
+  async function openDrawer() {
+    if (!state.drawer) return;
+    state.drawer.hidden = false;
+    state.inputEl.focus();
+    // 第一次打开时创建 session
+    if (!state.sessionId) {
+      await ensureSession();
+      // 拉历史(如果有)
+      await loadHistory();
+    }
+  }
+
+  function closeDrawer() {
+    if (state.drawer) state.drawer.hidden = true;
+  }
+
+  // ─────────────────────────────────────────────────────
+  // Session 管理
+  // ─────────────────────────────────────────────────────
+
+  async function ensureSession() {
+    try {
+      const resp = await fetch("/api/agent/sessions", { method: "POST" });
+      if (!resp.ok) {
+        console.error("[AgentChat] failed to create session:", resp.status);
+        return;
+      }
+      const data = await resp.json();
+      state.sessionId = data.session_id;
+    } catch (e) {
+      console.error("[AgentChat] ensureSession error:", e);
+    }
+  }
+
+  async function loadHistory() {
+    if (!state.sessionId) return;
+    try {
+      const resp = await fetch(`/api/agent/sessions/${encodeURIComponent(state.sessionId)}`);
+      if (!resp.ok) return;
+      const data = await resp.json();
+      const history = data.history || [];
+      if (history.length > 0) {
+        // 清空 welcome,显示历史
+        state.messagesEl.innerHTML = "";
+        for (const h of history) {
+          if (h.role === "user") {
+            appendMessage("user", h.content);
+          } else if (h.role === "assistant") {
+            appendMessage("assistant", h.content);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("[AgentChat] loadHistory error:", e);
+    }
+  }
+
+  async function clearConversation() {
+    if (!confirm("确定要清空当前对话吗?(新建 session)")) return;
+    state.sessionId = null;
+    state.messagesEl.innerHTML = "";
+    await ensureSession();
+    renderWelcome();
+  }
+
+  // ─────────────────────────────────────────────────────
+  // 消息渲染
+  // ─────────────────────────────────────────────────────
+
+  function appendMessage(role, content, meta) {
+    const el = document.createElement("div");
+    el.className = `agent-message is-${role}`;
+    const bubble = document.createElement("div");
+    bubble.className = "agent-message-bubble";
+    bubble.textContent = content;
+    el.appendChild(bubble);
+    if (meta) {
+      const m = document.createElement("div");
+      m.className = "agent-message-meta";
+      m.textContent = meta;
+      el.appendChild(m);
+    }
+    state.messagesEl.appendChild(el);
+    scrollToBottom();
+    return el;
+  }
+
+  function appendStreamingMessage(role) {
+    const el = document.createElement("div");
+    el.className = `agent-message is-${role} is-loading`;
+    const bubble = document.createElement("div");
+    bubble.className = "agent-message-bubble";
+    bubble.textContent = "";
+    el.appendChild(bubble);
+    state.messagesEl.appendChild(el);
+    scrollToBottom();
+    state.currentAssistantMsg = { el, bubble, content: "" };
+    return state.currentAssistantMsg;
+  }
+
+  function appendToolCall(name, args) {
+    const argsStr = Object.entries(args || {})
+      .map(([k, v]) => `${k}=${JSON.stringify(v)}`)
+      .join(", ");
+    return appendMessage("tool-call", `🔧 ${name}(${argsStr})`);
+  }
+
+  function appendToolResult(content) {
+    // 截断过长结果
+    const text = content.length > 500 ? content.slice(0, 500) + "..." : content;
+    return appendMessage("tool-result", text);
+  }
+
+  function appendError(content) {
+    return appendMessage("error", content);
+  }
+
+  function scrollToBottom() {
+    requestAnimationFrame(() => {
+      state.messagesEl.scrollTop = state.messagesEl.scrollHeight;
+    });
+  }
+
+  function renderWelcome() {
+    if (state.messagesEl.children.length > 0) return;
+    state.messagesEl.innerHTML = `
+      <div class="agent-welcome">
+        <div class="agent-welcome-icon">💬</div>
+        <div class="agent-welcome-title">理财通用 Agent</div>
+        <div>可以问我行情、因子、定时任务、告警等</div>
+        <div class="agent-welcome-suggestions">
+          ${SUGGESTIONS.map(
+            (s) => `<div class="agent-suggestion-chip" data-suggestion="${s.replace(/"/g, "&quot;")}">${s}</div>`
+          ).join("")}
+      </div>
+    `;
+    // 点击 suggestion 自动填到输入框
+    state.messagesEl.querySelectorAll(".agent-suggestion-chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        state.inputEl.value = chip.dataset.suggestion;
+        state.inputEl.focus();
+      });
+    });
+  }
+
+  // ─────────────────────────────────────────────────────
+  // 发送消息(SSE 流式)
+  // ─────────────────────────────────────────────────────
+
+  async function sendMessage() {
+    if (state.busy) return;
+    const text = state.inputEl.value.trim();
+    if (!text) return;
+
+    await ensureSession();
+    if (!state.sessionId) {
+      appendError("无法创建 session,请稍后再试");
+      return;
+    }
+
+    // 清空 welcome(如果有)
+    const welcome = state.messagesEl.querySelector(".agent-welcome");
+    if (welcome) welcome.remove();
+
+    // 用户消息
+    appendMessage("user", text);
+    state.inputEl.value = "";
+    setBusy(true);
+
+    // 流式接收 assistant 回答
+    const assistant = appendStreamingMessage("assistant");
+
+    try {
+      const resp = await fetch("/api/agent/chat/stream", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: state.sessionId, user_message: text }),
+      });
+
+      if (!resp.ok) {
+        assistant.bubble.textContent = `[错误] HTTP ${resp.status}`;
+        assistant.el.classList.remove("is-loading");
+        assistant.el.classList.add("is-error");
+        setBusy(false);
+        return;
+      }
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        // 解析 SSE 事件(event: ...\ndata: ...\n\n)
+        let idx;
+        while ((idx = buffer.indexOf("\n\n")) !== -1) {
+          const raw = buffer.slice(0, idx);
+          buffer = buffer.slice(idx + 2);
+          const lines = raw.split("\n");
+          let eventType = null;
+          let dataLine = null;
+          for (const line of lines) {
+            if (line.startsWith("event: ")) eventType = line.slice(7).trim();
+            else if (line.startsWith("data: ")) dataLine = line.slice(6).trim();
+          }
+          if (eventType && dataLine) {
+            handleSseEvent(eventType, dataLine, assistant);
+          }
+        }
+      }
+    } catch (e) {
+      assistant.bubble.textContent = `[错误] ${e.message || e}`;
+      assistant.el.classList.remove("is-loading");
+      assistant.el.classList.add("is-error");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function handleSseEvent(eventType, dataLine, assistant) {
+    let data;
+    try {
+      data = JSON.parse(dataLine);
+    } catch (_) {
+      return;
+    }
+
+    if (eventType === "reasoning") {
+      const content = data.payload?.content || "";
+      assistant.content += content;
+      assistant.bubble.textContent = assistant.content;
+      scrollToBottom();
+    } else if (eventType === "tool_call") {
+      const name = data.payload?.name || "(tool)";
+      const args = data.payload?.args || {};
+      appendToolCall(name, args);
+    } else if (eventType === "tool_result") {
+      const content = data.payload?.content || "";
+      appendToolResult(content);
+    } else if (eventType === "error") {
+      const errMsg = data.payload?.error || "未知错误";
+      appendError(errMsg);
+    } else if (eventType === "done") {
+      assistant.el.classList.remove("is-loading");
+      state.currentAssistantMsg = null;
+    }
+  }
+
+  function setBusy(busy) {
+    state.busy = busy;
+    state.sendBtn.disabled = busy;
+    state.sendBtn.textContent = busy ? "发送中…" : "发送";
+    state.inputEl.disabled = busy;
+  }
+
+  // ─────────────────────────────────────────────────────
+  // 暴露
+  // ─────────────────────────────────────────────────────
+
+  window.TradingAgentsAgentChat = {
+    init: init,
+    open: openDrawer,
+    close: closeDrawer,
+    send: sendMessage,
+  };
+
+  if (typeof window.__TA_MODULES__ !== "undefined") {
+    window.__TA_MODULES__.TradingAgentsAgentChat = window.TradingAgentsAgentChat;
+  }
+})();

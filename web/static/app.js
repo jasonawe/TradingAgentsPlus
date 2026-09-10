@@ -1028,6 +1028,9 @@ try { restoreActiveRun(); } catch (_) {}
     ta("TradingAgentsAlerts").refreshEvents();
     ta("TradingAgentsAlerts").startPolling(60000);
   }
+  if (ta("TradingAgentsAgentChat")?.init) {
+    try { ta("TradingAgentsAgentChat").init(); } catch (err) { console.warn("[AgentChat] init failed", err); }
+  }
   try { window.TradingAgentsApp = { navigate, setRoute, applyRoute, openFormModal, openConfirmModal }; } catch (_) {}
   try { if (typeof __TA_MODULES__ !== "undefined") __TA_MODULES__.TradingAgentsApp = { navigate, setRoute, applyRoute, openFormModal, openConfirmModal }; } catch (_) {}
 })();

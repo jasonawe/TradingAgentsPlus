@@ -39,7 +39,7 @@ def agent_memory_db_path(data_dir: str | Path) -> Path:
 
 def agent_session_db_path(data_dir: str | Path, session_id: str) -> Path:
     """L1 短期对话的 per-session SqliteSaver DB 路径。"""
-    safe = safe_ticker_component(f"agent_{session_id}").upper()
+    safe = safe_ticker_component(f"agent_{session_id}")
     d = agent_data_dir(data_dir) / "sessions"
     d.mkdir(parents=True, exist_ok=True)
     return d / f"{safe}.db"
@@ -74,11 +74,11 @@ def list_session_ids(data_dir: str | Path) -> list[str]:
     if not d.exists():
         return []
     ids = []
-    for f in d.glob("AGENT_*.db"):
-        # 文件名格式: AGENT_<safe_id>.db
-        stem = f.stem  # AGENT_<safe_id>
-        if stem.startswith("AGENT_"):
-            ids.append(stem[len("AGENT_"):])
+    for f in d.glob("agent_*.db"):  # case-sensitive lowercase prefix
+        # 文件名格式: agent_<safe_id>.db
+        stem = f.stem  # agent_<safe_id>
+        if stem.startswith("agent_"):
+            ids.append(stem[len("agent_"):])
     return sorted(ids)
 
 

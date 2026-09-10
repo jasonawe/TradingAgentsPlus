@@ -17,7 +17,8 @@
         }
       })();
     </script>
-    <link rel="stylesheet" href="/static/styles.css?v=20260910-styles-1" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260910-styles-2" />
+    <link rel="stylesheet" href="/static/agent.css?v=20260910-agent-1" />
   </head>
   <body>
     <div class="app-shell">
@@ -60,12 +61,31 @@
                 <span id="alerts-bell-badge" class="alerts-bell-badge" hidden></span>
               </button>
             </div>
+            <div class="agent-entry-wrapper">
+              <button type="button" id="agent-entry-btn" class="agent-entry-btn" aria-label="AI Agent" title="AI Agent(理财通用助手)">
+                💬
+              </button>
+            </div>
             <aside id="alerts-drawer" class="alerts-drawer" hidden>
               <header class="alerts-drawer-header">
                 <h3 data-i18n="alerts.eventsTitle">触发历史</h3>
                 <button type="button" id="alerts-ack-all" class="text-button" data-i18n="alerts.markAllRead">全部已读</button>
               </header>
               <div id="alerts-events-list" class="alerts-events-list" aria-live="polite"></div>
+            </aside>
+            <aside id="agent-drawer" class="agent-drawer" hidden>
+              <header class="agent-drawer-header">
+                <h3>💬 AI Agent</h3>
+                <div class="agent-drawer-actions">
+                  <button type="button" id="agent-clear-btn" title="清空对话">🔄</button>
+                  <button type="button" id="agent-close-btn" title="关闭">✕</button>
+                </div>
+              </header>
+              <div id="agent-messages" class="agent-messages" aria-live="polite"></div>
+              <div class="agent-input-area">
+                <textarea id="agent-input" placeholder="问我行情 / 因子 / 告警..." rows="1"></textarea>
+                <button type="button" id="agent-send-btn">发送</button>
+              </div>
             </aside>
             <button type="button" id="theme-toggle" class="theme-toggle" aria-label="切换主题" title="切换主题">
               <svg id="theme-icon-light" width="18" height="18" aria-hidden="true"><use href="#i-moon"/></svg>
@@ -432,7 +452,8 @@
     <script src="/static/scheduled-history.js?v=20260909-scheduled-history-1" defer></script>
     <script src="/static/notes.js?v=20260910-notes-5" defer></script>
     <script src="/static/alerts.js?v=20260910-alerts-5" defer></script>
-    <script src="/static/app.js?v=20260910-app-14" defer></script>
+    <script src="/static/app.js?v=20260910-app-15" defer></script>
+    <script src="/static/agent.js?v=20260910-agent-1" defer></script>
     <svg width="0" height="0" style="position:absolute" aria-hidden="true">
       <defs>
         <symbol id="i-watchlist" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
