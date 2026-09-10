@@ -40,11 +40,27 @@ from .models import AnalysisRequest, EventEnvelope, RunRecord
 from .providers import AKShareProvider, AlphaVantageProvider, EastMoneyProvider, YFinanceProvider
 import logging
 
+# Application loggers (web.*) inherit the root logger; without a configured
+# root handler, INFO messages from app code are silently dropped while
+# uvicorn.log is fine because uvicorn attaches its own handlers. Configure
+# the root logger once so background workers (alert_monitor, quote_prewarmer,
+# scheduler, ...) actually emit their startup / loop messages.
+if not logging.getHandlerByName("tradingagents-app"):
+    _app_handler = logging.StreamHandler()
+    _app_handler.name = "tradingagents-app"
+    _app_handler.setFormatter(
+        logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s")
+    )
+    logging.getLogger().addHandler(_app_handler)
+    if logging.getLogger().level >= logging.INFO:
+        logging.getLogger().setLevel(logging.INFO)
+
 LOGGER = logging.getLogger(__name__)
 
 from .alert_engine import AlertEngine
 from .notifier import Notifier
 from .alert_monitor import AlertMonitor
+from .quote_prewarmer import QuotePrewarmer
 from .repositories import (
     AlertRepository,
     AnalysisRunRepository,
@@ -284,12 +300,18 @@ def create_app(
             alert_monitor = getattr(app.state, "alert_monitor", None)
             if alert_monitor is not None:
                 alert_monitor.start()
+            prewarmer = getattr(app.state, "quote_prewarmer", None)
+            if prewarmer is not None:
+                prewarmer.start()
             yield
         finally:
-            scheduler_service.shutdown()
+            prewarmer = getattr(app.state, "quote_prewarmer", None)
+            if prewarmer is not None:
+                prewarmer.stop()
             monitor = getattr(app.state, "alert_monitor", None)
             if monitor is not None:
                 monitor.stop()
+            scheduler_service.shutdown()
             report_index_stop.set()
             if retry_thread.is_alive():
                 retry_thread.join(timeout=5.0)
@@ -321,6 +343,12 @@ def create_app(
         quote_service=app.state.market_service,
         alert_engine=app.state.alert_engine,
         notifier=app.state.notifier,
+    )
+    app.state.quote_prewarmer = QuotePrewarmer(
+        settings_repo=app.state.repositories["settings"],
+        watchlist_repo=app.state.repositories["watchlist"],
+        alerts_repo=app.state.repositories["alerts"],
+        quote_service=app.state.market_service,
     )
 
     @app.exception_handler(RequestValidationError)

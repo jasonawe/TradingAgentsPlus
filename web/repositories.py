@@ -408,6 +408,9 @@ class SettingsRepository:
         SCHEDULER_ENABLED: "true",
         SCHEDULER_MAX_CONCURRENT_RUNS: "3",
         "scheduled.default_overrides.enabled": "false",
+        "prewarmer.enabled": "true",
+        "prewarmer.interval_seconds": "30",
+        "prewarmer.bootstrap_on_startup": "true",
     }
     SCHEDULER_OVERRIDES_ENABLED = "scheduled.default_overrides.enabled"
     SCHEDULER_OVERRIDES_PROVIDER = "scheduled.default_overrides.provider"
@@ -442,6 +445,9 @@ class SettingsRepository:
         "notifier.feishu_webhook",
         "notifier.monitor_enabled",
         "notifier.monitor_interval_seconds",
+        "prewarmer.enabled",
+        "prewarmer.interval_seconds",
+        "prewarmer.bootstrap_on_startup",
     } | SCHEDULER_OVERRIDES_KEYS)
     def __init__(self, store: SQLiteStore) -> None:
         self.store = store
