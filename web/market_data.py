@@ -338,11 +338,12 @@ class QuoteService:
         now = self.clock().astimezone(timezone.utc)
         if cached:
             cached.stale_seconds = self._quote_age(cached, now)
-        if (
-            cached
-            and cached.stale_seconds is not None
-            and cached.stale_seconds <= self.ttl_seconds
-        ):
+        # Cache TTL must compare against *when we last refreshed* (fetched_at),
+        # not the provider's as_of — for delayed/EOD data the quote timestamp
+        # is the trading day, so an as_of-based check would always miss and
+        # refetch on every request.
+        cache_age = self._cache_age(cached, now) if cached else None
+        if cached and cache_age is not None and cache_age <= self.ttl_seconds:
             cached.cache_status = "hit"
             cached.provider_status = "ready"
             return cached
@@ -372,10 +373,18 @@ class QuoteService:
 
     @staticmethod
     def _quote_age(quote: QuoteSnapshot, now: datetime) -> int | None:
+        """How old the *quote data* is (as_of vs now). Used for staleness display."""
         observed = quote.as_of or quote.fetched_at
         if observed is None:
             return None
         return max(0, int((now - observed).total_seconds()))
+
+    @staticmethod
+    def _cache_age(quote: QuoteSnapshot, now: datetime) -> int | None:
+        """How old the *cached entry* is (fetched_at vs now). Used for TTL."""
+        if quote.fetched_at is None:
+            return None
+        return max(0, int((now - quote.fetched_at).total_seconds()))
 
     def get_quotes(self, symbols: list[str], asset_type: str = "stock") -> BulkQuoteResponse:
         if len(symbols) > self.MAX_SYMBOLS:
