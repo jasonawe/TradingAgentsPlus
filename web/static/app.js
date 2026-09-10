@@ -27,7 +27,7 @@
   }
   const ACTIVE_RUN_STATUSES = new Set(["queued", "running", "publishing"]);
   const $ = (id) => document.getElementById(id);
-  const setupView = $("setup-view"), analysisView = $("analysis-view"), activeView = $("active-view"), scheduledView = $("scheduled-view"), scheduledHistoryView = $("scheduled-history-view"), reportView = $("report-view"), libraryView = $("library-view"), settingsView = $("settings-view"), assetView = $("asset-detail-view"), form = $("analysis-form");
+  const setupView = $("setup-view"), analysisView = $("analysis-view"), activeView = $("active-view"), scheduledView = $("scheduled-view"), scheduledHistoryView = $("scheduled-history-view"), reportView = $("report-view"), libraryView = $("library-view"), settingsView = $("settings-view"), assetView = $("asset-detail-view"), alertsView = $("alerts-view"), notesView = $("notes-view"), form = $("analysis-form");
   function t(key, vars = {}) { return i18n.t(key, vars); }
   function translateDynamic(value) { return t(AGENT_KEYS[value] || PHASE_NAME_KEYS[value] || DYNAMIC_KEYS[value] || value); }
   function languageLabel(value) { return i18n.label("language", value, value); }
@@ -44,19 +44,123 @@
   function startElapsed(startedAt) { state.startedAt = startedAt || new Date().toISOString(); clearInterval(state.elapsedTimer); $("elapsed-time").textContent = formatElapsed(state.startedAt); state.elapsedTimer = setInterval(() => { if (state.startedAt) $("elapsed-time").textContent = formatElapsed(state.startedAt); }, 1000); }
   function stopElapsed() { clearInterval(state.elapsedTimer); state.elapsedTimer = null; }
   function resetRunState() { stopElapsed(); state.lastSeq = 0; state.seen = new Set(); state.reportId = null; state.runRecord = null; state.startedAt = null; state.phases = PHASE_KEYS.map((key) => ({ key, status: "pending" })); $("activity-feed").innerHTML = ""; $("terminal-panel").hidden = true; $("report-panel").hidden = true; $("run-grid").hidden = false; $("progress-bar").style.width = "0%"; $("progress-label").textContent = "0%"; $("event-count").textContent = t("run.events", { count: 0 }); $("elapsed-time").textContent = t("run.elapsed", { time: "00:00" }); renderPhases(); }
-  const ROUTES = { setup: "/", analysis: "/analysis", active: "/active", scheduled: "/scheduled", "scheduled-history": "/scheduled/history", library: "/reports", settings: "/settings" };
+  const ROUTES = { setup: "/", analysis: "/analysis", active: "/active", scheduled: "/scheduled", "scheduled-history": "/scheduled/history", library: "/reports", settings: "/settings", alerts: "/alerts", notes: "/notes" };
   function normalizePath(pathname) { const value = String(pathname || "/").replace(/\/+$/, ""); return value || "/"; }
   function routePath(view, { reportId = null, symbol = null } = {}) { if (view === "report" && reportId) return `/reports/${encodeURIComponent(reportId)}`; if (view === "asset" && symbol) return `/assets/${encodeURIComponent(symbol)}`; if (view === "scheduled-history") return ROUTES["scheduled-history"]; return ROUTES[view] || ROUTES.setup; }
   function routeForPath(pathname) { const path = normalizePath(pathname); if (path === "/") return { view: "setup" }; for (const [view, route] of Object.entries(ROUTES)) if (view !== "setup" && path === route) return { view }; if (path.startsWith("/reports/")) { const reportId = decodeURIComponent(path.slice("/reports/".length)); return reportId ? { view: "report", reportId } : { view: "library" }; } if (path.startsWith("/assets/")) { const symbol = decodeURIComponent(path.slice("/assets/".length)); return symbol ? { view: "asset", symbol } : { view: "setup" }; } if (path === "/scheduled/history") return { view: "scheduled-history" }; return null; }
   function setRoute(view, { reportId = null, symbol = null, replace = false } = {}) { const path = routePath(view, { reportId, symbol }); if (normalizePath(window.location.pathname) === normalizePath(path)) return; const method = replace ? "replaceState" : "pushState"; window.history[method]({ view, reportId, symbol }, "", path); }
-  function switchView(view) { setupView.hidden = view !== "setup"; analysisView.hidden = view !== "analysis"; activeView.hidden = !["active", "run"].includes(view); scheduledView.hidden = view !== "scheduled"; scheduledHistoryView.hidden = view !== "scheduled-history"; reportView.hidden = view !== "report"; libraryView.hidden = view !== "library"; settingsView.hidden = view !== "settings"; assetView.hidden = view !== "asset"; const activeNav = view === "report" ? "library" : view === "asset" ? "setup" : view === "scheduled-history" ? "scheduled" : view; document.querySelectorAll(".nav-primary a").forEach((link) => link.classList.toggle("is-active", link.dataset.view === activeNav)); updateTopbar(view); ta("TradingAgentsScheduled")?.setActive(view === "scheduled"); ta("TradingAgentsScheduledHistory")?.setActive(view === "scheduled-history"); }
+  function switchView(view) { setupView.hidden = view !== "setup"; analysisView.hidden = view !== "analysis"; activeView.hidden = !["active", "run"].includes(view); scheduledView.hidden = view !== "scheduled"; scheduledHistoryView.hidden = view !== "scheduled-history"; reportView.hidden = view !== "report"; libraryView.hidden = view !== "library"; settingsView.hidden = view !== "settings"; assetView.hidden = view !== "asset"; alertsView.hidden = view !== "alerts"; notesView.hidden = view !== "notes"; const activeNav = view === "report" ? "library" : view === "asset" ? "setup" : view === "scheduled-history" ? "scheduled" : view; document.querySelectorAll(".nav-primary a").forEach((link) => link.classList.toggle("is-active", link.dataset.view === activeNav)); updateTopbar(view); ta("TradingAgentsScheduled")?.setActive(view === "scheduled"); ta("TradingAgentsScheduledHistory")?.setActive(view === "scheduled-history"); }
   function showSetup() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("setup"); setConnection("ready"); loadWatchlist(); }
   function showAnalysis() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("analysis"); setConnection("ready"); }
   async function showActive() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("active"); setConnection("ready"); $("active-empty").hidden = true; $("run-header").hidden = true; $("run-grid").hidden = true; $("terminal-panel").hidden = true; try { const runs = (await api("/api/runs/active")).runs || []; const active = pickActiveRun(runs); if (active && ACTIVE_RUN_STATUSES.has(active.status)) { state.runId = active.run_id; resetRunState(); showRun(active); connectEvents(); } else { $("active-empty").hidden = false; } } catch (_) { $("active-empty").hidden = false; } }
   function showLibrary() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; switchView("library"); setConnection("ready"); renderLibrary(); loadLibraryPage(); }
   function showScheduled() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("scheduled"); setConnection("ready"); }
   function showScheduledHistory() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("scheduled-history"); setConnection("ready"); ta("TradingAgentsScheduledHistory")?.refresh?.(); }
-  async function showSettings() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("settings"); setConnection("ready"); try { const [settings, providers] = await Promise.all([api("/api/settings"), api("/api/providers/market-data")]); const fields = settings.fields || {}; $("settings-fields").innerHTML = Object.entries(fields).map(([key, value]) => `<div><dt>${escapeHtml(t(`settings.${key}`))}</dt><dd>${escapeHtml(typeof value === "object" ? `${i18n.displayValue(value.value)}（${t("settings.source", { value: i18n.displayValue(value.source, t("settings.unknownSource")) })}）` : i18n.displayValue(value))}</dd></div>`).join(""); $("provider-status-list").innerHTML = (providers.providers || []).map((item) => `<div class="provider-status"><strong>${escapeHtml(item.label || item.id)}</strong><span class="status-chip ${item.status}">${escapeHtml(i18n.label("provider_status", item.status))}</span></div>`).join("") || `<p class="muted">${escapeHtml(t("settings.noProviders"))}</p>`; renderQuoteStrategySelector(settings); } catch (_) { $("settings-fields").innerHTML = `<p class="muted">${escapeHtml(t("settings.unavailable"))}</p>`; } }
+  async function showSettings() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("settings"); setConnection("ready"); try { const [settings, providers] = await Promise.all([api("/api/settings"), api("/api/providers/market-data")]); const fields = settings.fields || {}; $("settings-fields").innerHTML = Object.entries(fields).map(([key, value]) => `<div><dt>${escapeHtml(t(`settings.${key}`))}</dt><dd>${escapeHtml(typeof value === "object" ? `${i18n.displayValue(value.value)}（${t("settings.source", { value: i18n.displayValue(value.source, t("settings.unknownSource")) })}）` : i18n.displayValue(value))}</dd></div>`).join(""); $("provider-status-list").innerHTML = (providers.providers || []).map((item) => `<div class="provider-status"><strong>${escapeHtml(item.label || item.id)}</strong><span class="status-chip ${item.status}">${escapeHtml(i18n.label("provider_status", item.status))}</span></div>`).join("") || `<p class="muted">${escapeHtml(t("settings.noProviders"))}</p>`; renderQuoteStrategySelector(settings); renderNotifierConfig(settings); } catch (_) { $("settings-fields").innerHTML = `<p class="muted">${escapeHtml(t("settings.unavailable"))}</p>`; } }
+  function showAlerts() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("alerts"); setConnection("ready"); if (ta("TradingAgentsAlerts")?.mountAll) ta("TradingAgentsAlerts").mountAll($("alerts-all-list")); }
+  function showNotes() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("notes"); setConnection("ready"); if (ta("TradingAgentsNotes")?.mountAll) ta("TradingAgentsNotes").mountAll($("notes-all-list")); }
+
+  function bindChannelForm(channel, fields, refs, status) {
+    const { enabledEl, secretEl, secretStatus, saveBtn, testBtn, secretSetKey } = refs;
+    if (!enabledEl || !secretEl || !saveBtn || !testBtn) return;
+    const enabledKey = channel === "pushplus" ? "notifier_pushplus_enabled" : "notifier_feishu_enabled";
+    const secretFieldKey = channel === "pushplus" ? "token" : "webhook";
+    enabledEl.checked = String((fields[enabledKey] && fields[enabledKey].value) || "").toLowerCase() === "true";
+    const secretSet = String((fields[secretSetKey] && fields[secretSetKey].value) || "").toLowerCase() === "true";
+    secretStatus.textContent = secretSet ? t("settings.notifier.tokenSet") : t("settings.notifier.tokenMissing");
+    secretEl.value = "";
+    const flag = "__notifierBound_" + channel;
+    if (saveBtn[flag]) return;
+    saveBtn[flag] = true;
+    saveBtn.addEventListener("click", async () => {
+      status.textContent = t("settings.notifier.saving");
+      try {
+        const payload = { channel: channel, enabled: enabledEl.checked };
+        payload[secretFieldKey] = secretEl.value;
+        await api("/api/settings/notifier", { method: "PATCH", body: JSON.stringify(payload), headers: { "Content-Type": "application/json" } });
+        status.textContent = t("settings.notifier.saved");
+        secretEl.value = "";
+        const fresh = await api("/api/settings");
+        renderNotifierConfig(fresh);
+      } catch (error) {
+        status.textContent = localizeError(error.message);
+      }
+    });
+    testBtn.addEventListener("click", async () => {
+      status.textContent = t("settings.notifier.testing");
+      try {
+        await api("/api/notifier/test?channel=" + encodeURIComponent(channel), { method: "POST" });
+        status.textContent = t("settings.notifier.testSent");
+      } catch (error) {
+        status.textContent = t("settings.notifier.testFailed") + ": " + localizeError(error.message);
+      }
+    });
+  }
+
+  function renderNotifierConfig(settings) {
+    const fields = (settings && settings.fields) || {};
+    const status = $("notifier-status");
+    bindChannelForm("pushplus", fields, {
+      enabledEl: $("notifier-pushplus-enabled"),
+      secretEl: $("notifier-pushplus-token"),
+      secretStatus: $("notifier-pushplus-token-status"),
+      saveBtn: $("notifier-save-pushplus"),
+      testBtn: $("notifier-test-pushplus"),
+      secretSetKey: "notifier_pushplus_token_set",
+    }, status);
+    bindChannelForm("feishu", fields, {
+      enabledEl: $("notifier-feishu-enabled"),
+      secretEl: $("notifier-feishu-webhook"),
+      secretStatus: $("notifier-feishu-webhook-status"),
+      saveBtn: $("notifier-save-feishu"),
+      testBtn: $("notifier-test-feishu"),
+      secretSetKey: "notifier_feishu_webhook_set",
+    }, status);
+    bindMonitorForm(fields, status);
+  }
+
+  function bindMonitorForm(fields, status) {
+    const enabledEl = $("notifier-monitor-enabled");
+    const intervalEl = $("notifier-monitor-interval");
+    const saveBtn = $("notifier-save-monitor");
+    const runBtn = $("notifier-monitor-run-now");
+    const monitorStatus = $("notifier-monitor-status");
+    if (!enabledEl || !intervalEl || !saveBtn || !runBtn) return;
+    const enabledRaw = fields.notifier_monitor_enabled && fields.notifier_monitor_enabled.value;
+    enabledEl.checked = String(enabledRaw).toLowerCase() === "true";
+    const intervalVal = (fields.notifier_monitor_interval_seconds && fields.notifier_monitor_interval_seconds.value) || "60";
+    intervalEl.value = String(parseInt(intervalVal, 10) || 60);
+    const running = String((fields.notifier_monitor_running && fields.notifier_monitor_running.value) || "").toLowerCase() === "true";
+    if (running) monitorStatus.textContent = t("settings.notifier.monitorRunning"); else monitorStatus.textContent = t("settings.notifier.monitorStopped");
+    if (saveBtn.__monitorBound) return;
+    saveBtn.__monitorBound = true;
+    saveBtn.addEventListener("click", async () => {
+      status.textContent = t("settings.notifier.saving");
+      try {
+        const payload = {
+          channel: "monitor",
+          enabled: enabledEl.checked,
+          interval_seconds: parseInt(intervalEl.value, 10) || 60,
+        };
+        await api("/api/settings/notifier", { method: "PATCH", body: JSON.stringify(payload), headers: { "Content-Type": "application/json" } });
+        status.textContent = t("settings.notifier.saved");
+        const fresh = await api("/api/settings");
+        renderNotifierConfig(fresh);
+      } catch (error) {
+        status.textContent = localizeError(error.message);
+      }
+    });
+    runBtn.addEventListener("click", async () => {
+      status.textContent = t("settings.notifier.monitorRunNow");
+      try {
+        const r = await api("/api/notifier/monitor/run", { method: "POST" });
+        const trig = r.triggers || 0;
+        status.textContent = t("settings.notifier.monitorLastRun") + ": " + trig + " " + t("settings.notifier.monitorTriggers");
+      } catch (error) {
+        status.textContent = localizeError(error.message);
+      }
+    });
+  }
   async function renderQuoteStrategySelector(settings) {
     const container = $("quote-strategy-selector");
     const list = $("quote-strategy-options");
@@ -107,10 +211,20 @@
       const overlay = document.createElement("div");
       overlay.className = "modal-overlay";
       const dialog = document.createElement("div");
-      dialog.className = "modal-dialog";
+      dialog.className = "modal-dialog" + (danger ? " is-danger" : "");
       dialog.setAttribute("role", "alertdialog");
       dialog.setAttribute("aria-modal", "true");
-      dialog.innerHTML = `<h3 class="modal-title">${escapeHtml(title)}</h3><p class="modal-message">${escapeHtml(message)}</p><div class="modal-actions"><button type="button" class="button button-secondary modal-cancel">${escapeHtml(cancelText)}</button><button type="button" class="button ${danger ? "button-primary" : "button-primary"} modal-confirm">${escapeHtml(confirmText)}</button></div>`;
+      const confirmIcon = danger ? "&#9888;" : "&#8505;";
+      dialog.innerHTML = `
+        <div class="modal-header">
+          <h3 class="modal-title"><span class="modal-title-icon" aria-hidden="true">${confirmIcon}</span>${escapeHtml(title)}</h3>
+          <button type="button" class="modal-close" aria-label="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+        <p class="modal-message">${escapeHtml(message)}</p>
+        <div class="modal-actions">
+          <button type="button" class="button button-secondary modal-cancel">${escapeHtml(cancelText)}</button>
+          <button type="button" class="button ${danger ? "button-danger" : "button-primary"} modal-confirm">${escapeHtml(confirmText)}</button>
+        </div>`;
       root.innerHTML = "";
       root.appendChild(overlay);
       root.appendChild(dialog);
@@ -131,11 +245,92 @@
         if (event.key === "Escape") { event.preventDefault(); finish(false); }
         else if (event.key === "Enter") { event.preventDefault(); finish(true); }
       };
+      const closeBtn = dialog.querySelector(".modal-close");
+      if (closeBtn) closeBtn.addEventListener("click", () => finish(false));
       dialog.querySelector(".modal-cancel").addEventListener("click", () => finish(false));
       dialog.querySelector(".modal-confirm").addEventListener("click", () => finish(true));
       overlay.addEventListener("click", () => finish(false));
       document.addEventListener("keydown", onKey);
       setTimeout(() => dialog.querySelector(".modal-confirm")?.focus(), 0);
+    });
+  }
+
+  // Generic form modal. `bodyHtml` is the inner content (typically a <form>),
+  // `onSubmit(dialog)` runs when the user clicks the submit button. Returning
+  // a falsy value keeps the modal open; returning truthy closes it.
+  function openFormModal({ title, bodyHtml, submitText, cancelText, width, icon }) {
+    return new Promise((resolve) => {
+      const root = $("modal-root");
+      if (!root) { resolve(null); return; }
+      const previousActive = document.activeElement;
+      const overlay = document.createElement("div");
+      overlay.className = "modal-overlay";
+      const dialog = document.createElement("div");
+      dialog.className = "modal-dialog" + (width === "wide" ? " modal-dialog-wide" : "");
+      dialog.setAttribute("role", "dialog");
+      dialog.setAttribute("aria-modal", "true");
+      dialog.innerHTML = `
+        <div class="modal-header">
+          <h3 class="modal-title">${icon ? '<span class="modal-title-icon" aria-hidden="true">' + icon + "</span>" : ""}${escapeHtml(title)}</h3>
+          <button type="button" class="modal-close" aria-label="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+        <div class="modal-body">${bodyHtml}</div>
+        <div class="modal-actions">
+          <button type="button" class="button button-secondary modal-cancel">${escapeHtml(cancelText || t("actions.cancel"))}</button>
+          <button type="button" class="button button-primary modal-submit">${escapeHtml(submitText || t("actions.save"))}</button>
+        </div>`;
+      root.innerHTML = "";
+      root.appendChild(overlay);
+      root.appendChild(dialog);
+      root.classList.add("is-open");
+      root.setAttribute("aria-hidden", "false");
+      let resolved = false;
+      const finish = (value) => {
+        if (resolved) return;
+        resolved = true;
+        root.classList.remove("is-open");
+        root.setAttribute("aria-hidden", "true");
+        root.innerHTML = "";
+        document.removeEventListener("keydown", onKey);
+        if (previousActive && typeof previousActive.focus === "function") previousActive.focus();
+        resolve(value);
+      };
+      const onKey = (event) => {
+        if (event.key === "Escape") { event.preventDefault(); finish(null); }
+      };
+      dialog.querySelector(".modal-close").addEventListener("click", () => finish(null));
+      dialog.querySelector(".modal-cancel").addEventListener("click", () => finish(null));
+      overlay.addEventListener("click", () => finish(null));
+      document.addEventListener("keydown", onKey);
+      // Submit button click
+      dialog.querySelector(".modal-submit").addEventListener("click", async () => {
+        if (typeof dialog.__onSubmit === "function") {
+          const result = await dialog.__onSubmit(dialog);
+          if (result !== false) finish(result === undefined ? true : result);
+        } else {
+          finish(true);
+        }
+      });
+      // Form submit (Enter inside inputs)
+      const form = dialog.querySelector("form");
+      if (form) {
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          if (typeof dialog.__onSubmit === "function") {
+            const result = await dialog.__onSubmit(dialog);
+            if (result !== false) finish(result === undefined ? true : result);
+          } else {
+            finish(true);
+          }
+        });
+      }
+      // Focus first input/textarea
+      setTimeout(() => {
+        const focusable = dialog.querySelector("input:not([type=hidden]):not([disabled]), textarea:not([disabled]), select:not([disabled])");
+        if (focusable) { try { focusable.focus(); } catch (_) {} }
+        else dialog.querySelector(".modal-submit")?.focus();
+      }, 0);
+      return dialog;
     });
   }
   async function showAssetDetail(symbol) {
@@ -348,7 +543,7 @@
     }
   }
   function prepareReport(reportId) { const record = state.history.find((item) => item.report_id === reportId) || {}; resetRunState(); state.archived = true; state.reportId = reportId; state.runRecord = { request: { ticker: record.ticker || t("history.title"), analysis_date: record.analysis_date || "", asset_type: record.asset_type || "", research_depth: record.research_depth || "", provider: record.provider, quick_model: record.quick_model, deep_model: record.deep_model, output_language: record.output_language } }; $("cancel-run").hidden = true; switchView("report"); setConnection("ready"); }
-  function renderRoute(route) { if (route.view === "report") { prepareReport(route.reportId); loadReport(route.reportId, { route: false }); return; } if (route.view === "asset" && route.symbol) { showAssetDetail(route.symbol); return; } if (route.view === "setup") showSetup(); else if (route.view === "analysis") showAnalysis(); else if (route.view === "active") showActive(); else if (route.view === "scheduled") showScheduled(); else if (route.view === "scheduled-history") showScheduledHistory(); else if (route.view === "library") showLibrary(); else if (route.view === "settings") showSettings(); }
+  function renderRoute(route) { if (route.view === "report") { prepareReport(route.reportId); loadReport(route.reportId, { route: false }); return; } if (route.view === "asset" && route.symbol) { showAssetDetail(route.symbol); return; } if (route.view === "setup") showSetup(); else if (route.view === "analysis") showAnalysis(); else if (route.view === "active") showActive(); else if (route.view === "scheduled") showScheduled(); else if (route.view === "scheduled-history") showScheduledHistory(); else if (route.view === "library") showLibrary(); else if (route.view === "settings") showSettings(); else if (route.view === "alerts") showAlerts(); else if (route.view === "notes") showNotes(); }
   function navigate(view, options = {}) { setRoute(view, options); renderRoute({ view, reportId: options.reportId, symbol: options.symbol }); }
   function applyRoute(pathname, { replaceUnknown = true } = {}) { const route = routeForPath(pathname); if (!route) { if (replaceUnknown) window.history.replaceState({ view: "setup" }, "", ROUTES.setup); renderRoute({ view: "setup" }); return; } renderRoute(route); }
   function renderRunHeader(record) { const request = record.request || {}; $("run-title").textContent = t("run.briefingTitle", { ticker: request.ticker || t("report.decisionReport") }); const asset = request.asset_type === "crypto" ? t("assets.crypto") : request.asset_type === "stock" ? t("assets.stock") : request.asset_type || ""; $("run-subtitle").textContent = [request.analysis_date, asset, request.research_depth ? `${t("form.researchDepth")} ${request.research_depth}` : ""].filter(Boolean).join(" · "); }
@@ -544,6 +739,155 @@
             const html = `<article class="watchlist-row"><div class="watchlist-asset"><span class="symbol">${escapeHtml(item.symbol)}</span><span class="asset-meta">${escapeHtml(identity.name)} · ${escapeHtml(identity.exchange)}</span><span class="asset-type">${escapeHtml(t(item.asset_type === "crypto" ? "assets.crypto" : "assets.stock"))}</span></div><div class="watchlist-quote"><div class="quote-value"><span class="quote-number">${price} ${currency}</span>${change}</div><span class="quote-meta">${quoteMeta}</span></div><div class="watchlist-analysis">${dateMarkup}${signalChip}</div><div class="watchlist-actions"><button type="button" class="text-button watchlist-analyze" data-analyze-symbol="${escapeHtml(item.symbol)}" data-analyze-asset="${escapeHtml(item.asset_type)}">${escapeHtml(t("actions.startAnalysis"))}</button>${reportAction}<button type="button" class="icon-button" data-remove-watchlist="${escapeHtml(item.id)}" data-version="${escapeHtml(state.watchlist.version)}" aria-label="${escapeHtml(`${t("actions.remove")} ${item.symbol}`)}" title="${escapeHtml(t("actions.remove"))}">×</button></div></article>`; return { symbol: item.symbol, html }; }); list.innerHTML = rows.map(r => r.html).join(""); bindReportLinks(list); list.querySelectorAll("[data-analyze-symbol]").forEach((button) => button.addEventListener("click", () => { $("ticker").value = button.dataset.analyzeSymbol; $("asset-type").value = button.dataset.analyzeAsset; toggleCryptoAnalyst(); navigate("analysis"); $("analysis-form").scrollIntoView({ behavior: "smooth", block: "start" }); })); list.querySelectorAll("[data-remove-watchlist]").forEach((button) => button.addEventListener("click", async (event) => { event.preventDefault(); event.stopPropagation(); const row = button.closest(".watchlist-row"); if (!row) return; const symbol = row.querySelector(".symbol")?.textContent || ""; const confirmed = await openConfirmModal({ title: t("modal.confirmRemoveTitle"), message: t("watchlist.confirmRemove", { value: symbol }), confirmText: t("actions.confirmRemove"), cancelText: t("actions.cancel"), danger: true }); if (!confirmed) return; button.disabled = true; try { await api(`/api/watchlist/items/${encodeURIComponent(button.dataset.removeWatchlist)}?version=${encodeURIComponent(button.dataset.version)}`, { method: "DELETE" }); await loadWatchlist(); } catch (error) { $("watchlist-error").textContent = localizeError(error.message); button.disabled = false; } })); list.querySelectorAll(".watchlist-row").forEach((row) => row.addEventListener("click", (event) => { if (event.target.closest(".watchlist-actions, .watchlist-chart")) return; const symbol = row.querySelector(".symbol")?.textContent || ""; if (symbol) navigate("asset", { symbol }); }));
  }
   async function loadWatchlist({ quotesOnly = false, signal = null } = {}) { const list = $("watchlist-list"); if (list) list.setAttribute("aria-busy", "true"); let lastFetchTriggers = []; try { $("watchlist-error").textContent = ""; let items = state.watchlist.items; if (!quotesOnly) { const response = await api("/api/watchlist", { signal }); state.watchlist.version = response.watchlist?.version || 1; items = response.items || []; } if (!items.length) { renderWatchlist(items, {}); return { items, quotes: {} }; } const grouped = items.reduce((result, item) => { const key = item.asset_type || "stock"; (result[key] ||= []).push(item.symbol); return result; }, {}); const quotes = { ...state.watchlist.quotes }; await Promise.all(Object.entries(grouped).map(async ([assetType, symbols]) => { const response = ta("TradingAgentsQuotes")?.fetch ? await ta("TradingAgentsQuotes").fetch(symbols, assetType) : await api(`/api/quotes?symbols=${encodeURIComponent(symbols.join(","))}&asset_type=${encodeURIComponent(assetType)}`, { signal }); if (response && response.alert_triggers && response.alert_triggers.length) { lastFetchTriggers = lastFetchTriggers.concat(response.alert_triggers); } (response.items || []).forEach((item) => { quotes[item.symbol] = item; }); })); renderWatchlist(items, quotes); return { items, quotes, triggers: lastFetchTriggers }; } catch (error) { if (error?.name !== "AbortError") { if (!state.watchlist.items.length && list) list.innerHTML = `<p class="muted">${escapeHtml(t("watchlist.unavailable"))}</p>`; $("watchlist-error").textContent = localizeError(error.message); } throw error; } finally { if (list) list.setAttribute("aria-busy", "false"); } }
+    // ---------- Watchlist symbol fuzzy autocomplete ----------
+  function fuzzyMatchScore(query, target) {
+    if (!query || !target) return 0;
+    const q = String(query).toLowerCase().trim();
+    const t = String(target).toLowerCase();
+    if (!q) return 0;
+    if (t === q) return 1000;
+    if (t.startsWith(q)) return 500;
+    if (t.includes(q)) return 200;
+    let qi = 0;
+    for (let i = 0; i < t.length && qi < q.length; i++) {
+      if (t[i] === q[qi]) qi++;
+    }
+    return qi === q.length ? 50 : 0;
+  }
+  function buildWatchlistSuggestions(query) {
+    const items = state.watchlist.items || [];
+    if (!query || !query.trim()) return [];
+    const q = query.trim().toLowerCase();
+    const scored = [];
+    items.forEach(function (item) {
+      const quote = state.watchlist.quotes[item.symbol] || {};
+      const id = i18n.assetIdentity(quote);
+      const symScore = fuzzyMatchScore(q, item.symbol);
+      const nameScore = fuzzyMatchScore(q, id.name);
+      const exScore = fuzzyMatchScore(q, id.exchange);
+      const best = Math.max(symScore, nameScore, exScore);
+      if (best > 0) {
+        scored.push({ item: item, quote: quote, identity: id, score: best + symScore * 0.1 });
+      }
+    });
+    scored.sort(function (a, b) { return b.score - a.score; });
+    return scored.slice(0, 8);
+  }
+  function renderSuggestList(query) {
+    const list = $("watchlist-symbol-suggest");
+    const input = $("watchlist-symbol");
+    if (!list || !input) return;
+    const matches = buildWatchlistSuggestions(query);
+    if (!matches.length) {
+      list.innerHTML = '<li class="suggest-empty">' + escapeHtml(t("watchlist.noMatch") || "未找到匹配项") + "</li>";
+      list.hidden = false;
+      input.setAttribute("aria-expanded", "true");
+      return;
+    }
+    const q = (query || "").trim();
+    const escQ = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    function highlight(text) {
+      if (!text) return "";
+      if (!q) return escapeHtml(text);
+      const re = new RegExp("(" + escQ + ")", "ig");
+      return escapeHtml(text).replace(re, "<mark>$1</mark>");
+    }
+    try {
+    list.innerHTML = matches.map(function (m, idx) {
+      const name = m.identity.name || m.item.symbol;
+      const exchange = m.identity.exchange || "";
+      const typeLabel = m.item.asset_type === "crypto" ? t("assets.crypto") : t("assets.stock");
+      return '<li class="suggest-item' + (idx === 0 ? " is-active" : "") + '" role="option" data-suggest-symbol="' + escapeHtml(m.item.symbol) + '" data-suggest-asset-type="' + escapeHtml(m.item.asset_type) + '" data-suggest-idx="' + idx + '">' +
+        '<span class="suggest-symbol">' + highlight(m.item.symbol) + '</span>' +
+        '<span class="suggest-name">' + highlight(name) + (exchange ? " · " + escapeHtml(exchange) : "") + '</span>' +
+        '<span class="suggest-type">' + escapeHtml(typeLabel) + '</span>' +
+        '</li>';
+    }).join("");
+    } catch (e) { console.error("[ac] render error", e); list.innerHTML = '<li class="suggest-empty">渲染错误: ' + e.message + '</li>'; }
+    list.hidden = false;
+    input.setAttribute("aria-expanded", "true");
+    state.watchlist.suggestActive = 0;
+    bindSuggestItems();
+  }
+  function closeSuggestList() {
+    const list = $("watchlist-symbol-suggest");
+    const input = $("watchlist-symbol");
+    if (list) list.hidden = true;
+    if (input) input.setAttribute("aria-expanded", "false");
+    state.watchlist.suggestActive = -1;
+  }
+  function setSuggestActive(idx) {
+    const list = $("watchlist-symbol-suggest");
+    if (!list) return;
+    const items = list.querySelectorAll(".suggest-item");
+    items.forEach(function (el, i) {
+      el.classList.toggle("is-active", i === idx);
+      if (i === idx) el.scrollIntoView({ block: "nearest" });
+    });
+    state.watchlist.suggestActive = idx;
+  }
+  function pickSuggestion(symbol, assetType) {
+    const input = $("watchlist-symbol");
+    const sel = $("watchlist-asset-type");
+    if (!input) return;
+    input.value = symbol;
+    if (sel && assetType) sel.value = assetType;
+    closeSuggestList();
+    input.focus();
+  }
+  function bindSuggestItems() {
+    const list = $("watchlist-symbol-suggest");
+    if (!list) return;
+    list.querySelectorAll(".suggest-item").forEach(function (el) {
+      el.addEventListener("mousedown", function (event) {
+        event.preventDefault();
+        pickSuggestion(el.dataset.suggestSymbol, el.dataset.suggestAssetType);
+      });
+      el.addEventListener("mouseenter", function () {
+        const idx = Number(el.dataset.suggestIdx);
+        if (!Number.isNaN(idx)) setSuggestActive(idx);
+      });
+    });
+  }
+  function initWatchlistAutocomplete() {
+    const input = $("watchlist-symbol");
+    if (!input) return;
+    input.addEventListener("input", function () {
+      const q = input.value.trim();
+      if (!q) { closeSuggestList(); return; }
+      renderSuggestList(q);
+    });
+    input.addEventListener("focus", function () {
+      const q = input.value.trim();
+      if (q) renderSuggestList(q);
+    });
+    input.addEventListener("blur", function () {
+      setTimeout(closeSuggestList, 120);
+    });
+    input.addEventListener("keydown", function (event) {
+      const list = $("watchlist-symbol-suggest");
+      if (!list || list.hidden) return;
+      const items = list.querySelectorAll(".suggest-item");
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        const next = Math.min((state.watchlist.suggestActive || 0) + 1, items.length - 1);
+        if (items[next]) setSuggestActive(next);
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        const prev = Math.max((state.watchlist.suggestActive || 0) - 1, 0);
+        if (items[prev]) setSuggestActive(prev);
+      } else if (event.key === "Enter") {
+        if (state.watchlist.suggestActive >= 0 && items[state.watchlist.suggestActive]) {
+          event.preventDefault();
+          const el = items[state.watchlist.suggestActive];
+          pickSuggestion(el.dataset.suggestSymbol, el.dataset.suggestAssetType);
+        }
+      } else if (event.key === "Escape") {
+        closeSuggestList();
+      }
+    });
+  }
+
   async function addWatchlistItem(event) { event.preventDefault(); const symbol = $("watchlist-symbol").value.trim(); if (!symbol) { $("watchlist-error").textContent = t("watchlist.symbolRequired"); return; } try { await api("/api/watchlist/items", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ symbol, asset_type: $("watchlist-asset-type").value }) }); $("watchlist-symbol").value = ""; await loadWatchlist(); } catch (error) { $("watchlist-error").textContent = localizeError(error.message); } }
   function renderLibrary() { const list = $("library-list"); const records = state.library.items; $("library-total").textContent = t("library.total", { count: state.library.total }); $("library-prev").disabled = state.library.page <= 1; $("library-next").disabled = !state.library.hasNext; if (!records.length) { list.innerHTML = `<p class="muted">${escapeHtml(state.library.total ? t("library.noMatches") : t("history.empty"))}</p>`; return; } list.innerHTML = records.map((record) => historyItem(record, true)).join(""); bindReportLinks(list); }
   async function loadLibraryPage() { const requestSeq = ++state.library.requestSeq; const params = new URLSearchParams({ page: String(state.library.page), page_size: String(state.library.pageSize), sort: state.filters.sort === "oldest" ? "generated_at_asc" : state.filters.sort === "ticker" ? "ticker_asc" : "generated_at_desc" }); if (state.filters.search.trim()) params.set("query", state.filters.search.trim()); if (state.filters.asset) params.set("asset_type", state.filters.asset); if (state.filters.status) params.set("status", state.filters.status); try { const response = await api(`/api/history?${params.toString()}`); if (requestSeq !== state.library.requestSeq) return; const items = response.items || response; state.library.items = Array.isArray(items) ? items : []; state.library.page = Number(response.page || state.library.page); state.library.pageSize = Number(response.page_size || state.library.pageSize); state.library.total = Number(response.total ?? state.library.items.length); state.library.hasNext = Boolean(response.has_next); renderLibrary(); } catch (_) { if (requestSeq !== state.library.requestSeq) return; state.library.items = []; state.library.total = 0; state.library.hasNext = false; renderLibrary(); } refreshLibraryQuotes(); }
@@ -622,11 +966,13 @@ function initSidebarCollapse() {
 document.addEventListener("click", (event) => { const retryBtn = event.target.closest("[data-retry-run]"); if (retryBtn) { event.preventDefault(); retryRun(retryBtn.dataset.retryRun); } });  $("cancel-run").addEventListener("click", async () => { if (!state.runId) return; try { await api(`/api/runs/${encodeURIComponent(state.runId)}/cancel`, { method: "POST" }); } catch (error) { terminalRun("failed", error.message); } }); $("back-history").addEventListener("click", () => navigate(state.archived ? "library" : "active")); $("report-back-library").addEventListener("click", () => navigate("library")); $("new-analysis").addEventListener("click", () => navigate("analysis")); $("active-new-analysis").addEventListener("click", () => navigate("analysis")); $("library-new-analysis").addEventListener("click", () => navigate("analysis")); const resetLibraryPage = () => { state.library.page = 1; loadLibraryPage(); }; $("library-search").addEventListener("input", (event) => { state.filters.search = event.target.value; resetLibraryPage(); }); $("library-asset-filter").addEventListener("change", (event) => { state.filters.asset = event.target.value; resetLibraryPage(); }); $("library-status-filter").addEventListener("change", (event) => { state.filters.status = event.target.value; resetLibraryPage(); }); $("library-sort").addEventListener("change", (event) => { state.filters.sort = event.target.value; resetLibraryPage(); }); $("library-prev").addEventListener("click", () => { if (state.library.page > 1) { state.library.page -= 1; loadLibraryPage(); } }); $("library-next").addEventListener("click", () => { if (state.library.hasNext) { state.library.page += 1; loadLibraryPage(); } }); form.addEventListener("submit", submitRun);
   $("refresh-quotes").addEventListener("click", () => quoteRefreshController?.refresh()); 
   try { const saved = localStorage.getItem("ta:watchlist:sort"); if (saved && ["change_desc", "change_asc", "symbol", "manual"].includes(saved)) { state.watchlist.sort = saved; } } catch (_) {} const sortSelect = $("watchlist-sort"); if (sortSelect) sortSelect.value = state.watchlist.sort; $("watchlist-form").addEventListener("submit", addWatchlistItem); $("watchlist-asset-type").addEventListener("change", updateTickerHint); if (sortSelect) sortSelect.addEventListener("change", (event) => { state.watchlist.sort = event.target.value; try { localStorage.setItem("ta:watchlist:sort", state.watchlist.sort); } catch (_) {} renderWatchlist(state.watchlist.items, state.watchlist.quotes); });
+  initWatchlistAutocomplete();
+  closeSuggestList();
   document.querySelectorAll(".nav-primary a").forEach((link) => link.addEventListener("click", (event) => {
     const view = link.dataset.view;
     if (!view) return;
     event.preventDefault();
-    if (["setup", "analysis", "active", "scheduled", "library", "settings"].includes(view)) navigate(view);
+    if (["setup", "analysis", "active", "scheduled", "library", "settings", "alerts", "notes"].includes(view)) navigate(view);
   }));
   window.addEventListener("popstate", () => applyRoute(window.location.pathname));
   function startQuoteRefresh() { quoteRefreshController?.stop(); try { const C = ta("QuoteRefreshController"); if (typeof C === "function") { quoteRefreshController = new C({ timeoutMs: 4000, backoff: [QUOTE_REFRESH_MS, 10000, 20000, 40000, 60000], fetcher: async (signal) => { const result = await loadWatchlist({ quotesOnly: true, signal }); if (result && result.triggers && ta("TradingAgentsAlerts")?.handleQuoteTriggers) { ta("TradingAgentsAlerts").handleQuoteTriggers(result.triggers); } return result; }, onData: () => {}, onError: () => {} }); } } catch (_) {} quoteRefreshController.setVisible(!document.hidden); }
@@ -646,6 +992,6 @@ try { restoreActiveRun(); } catch (_) {}
     ta("TradingAgentsAlerts").refreshEvents();
     ta("TradingAgentsAlerts").startPolling(60000);
   }
-  try { window.TradingAgentsApp = { navigate, setRoute, applyRoute }; } catch (_) {}
-  try { if (typeof __TA_MODULES__ !== "undefined") __TA_MODULES__.TradingAgentsApp = { navigate, setRoute, applyRoute }; } catch (_) {}
+  try { window.TradingAgentsApp = { navigate, setRoute, applyRoute, openFormModal, openConfirmModal }; } catch (_) {}
+  try { if (typeof __TA_MODULES__ !== "undefined") __TA_MODULES__.TradingAgentsApp = { navigate, setRoute, applyRoute, openFormModal, openConfirmModal }; } catch (_) {}
 })();

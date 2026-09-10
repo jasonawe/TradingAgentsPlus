@@ -17,7 +17,7 @@
         }
       })();
     </script>
-    <link rel="stylesheet" href="/static/styles.css?v=20260906-styles-2" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260910-styles-1" />
   </head>
   <body>
     <div class="app-shell">
@@ -29,6 +29,8 @@
           <a href="/active" data-view="active"><svg class="icon" aria-hidden="true"><use href="#i-active"/></svg><span class="nav-label" data-i18n="nav.active">进行中</span></a>
           <a href="/scheduled" data-view="scheduled"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg><span class="nav-label" data-i18n="nav.scheduled">定时任务</span></a>
           <a href="/reports" data-view="library"><svg class="icon" aria-hidden="true"><use href="#i-reports"/></svg><span class="nav-label" data-i18n="nav.reports">报告库</span></a>
+          <a href="/alerts" data-view="alerts"><svg class="icon" aria-hidden="true"><use href="#i-alerts"/></svg><span class="nav-label" data-i18n="nav.alerts">告警管理</span></a>
+          <a href="/notes" data-view="notes"><svg class="icon" aria-hidden="true"><use href="#i-notes"/></svg><span class="nav-label" data-i18n="nav.notes">笔记</span></a>
           <a href="/settings" data-view="settings"><svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg><span class="nav-label" data-i18n="nav.settings">设置诊断</span></a>
         </nav>
         <div class="sidebar-cta">
@@ -81,7 +83,7 @@
         <section id="watchlist-panel" class="watchlist-panel" aria-labelledby="watchlist-title">
           <div class="section-heading"><h2 id="watchlist-title" data-i18n="watchlist.marketTitle">资产行情</h2><span class="refresh-hint" data-i18n="watchlist.refreshHint">每 5 秒自动刷新</span><label class="field watchlist-sort-field"><span data-i18n="watchlist.sortLabel">排序</span><select id="watchlist-sort"><option value="change_desc" data-i18n="watchlist.sort.changeDesc">涨幅高 → 低</option><option value="change_asc" data-i18n="watchlist.sort.changeAsc">涨幅低 → 高</option><option value="symbol" data-i18n="watchlist.sort.symbol">代码 A → Z</option><option value="manual" data-i18n="watchlist.sort.manual">自定义顺序</option></select></label><button id="refresh-quotes" class="button button-secondary" type="button" data-i18n="actions.refreshQuotes">刷新行情</button></div>
           <form id="watchlist-form" class="watchlist-form">
-            <label class="field"><span data-i18n="watchlist.addSymbol">添加标的</span><input id="watchlist-symbol" autocomplete="off" data-i18n-placeholder="form.tickerPlaceholder" placeholder="例如 AAPL 或 BTC-USD" maxlength="32" /><span id="watchlist-ticker-hint" class="field-hint" data-i18n-html="form.tickerHint.stock">A 股加 <code>.SS</code>（沪）或 <code>.SZ</code>（深），港股加 <code>.HK</code>，美股直接写代码（如 <code>AAPL</code>）。</span></label>
+            <label class="field"><span data-i18n="watchlist.addSymbol">添加标的</span><div class="watchlist-symbol-wrap"><input id="watchlist-symbol" class="watchlist-symbol-input" autocomplete="off" data-i18n-placeholder="form.tickerPlaceholder" placeholder="例如 AAPL 或 BTC-USD" maxlength="32" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="watchlist-symbol-suggest" aria-haspopup="listbox" /><ul id="watchlist-symbol-suggest" class="watchlist-symbol-suggest" role="listbox" hidden></ul></div><span id="watchlist-ticker-hint" class="field-hint" data-i18n-html="form.tickerHint.stock">A 股加 <code>.SS</code>（沪）或 <code>.SZ</code>（深），港股加 <code>.HK</code>，美股直接写代码（如 <code>AAPL</code>）。</span></label>
             <label class="field"><span data-i18n="watchlist.type">类型</span><select id="watchlist-asset-type"><option value="stock" data-i18n="assets.stock">股票</option><option value="crypto" data-i18n="assets.crypto">加密货币</option></select></label>
             <button class="button button-secondary" type="submit" data-i18n="actions.addWatchlist">加入关注</button>
           </form>
@@ -115,7 +117,66 @@
         <div id="library-list" class="library-list"><p class="muted" data-i18n="history.loading"></p></div>
         <nav class="library-pagination" aria-label="报告分页"><span id="library-total" class="muted">共 0 份报告</span><div><button id="library-prev" class="button button-secondary" type="button" data-i18n="actions.previous">上一页</button><button id="library-next" class="button button-secondary" type="button" data-i18n="actions.next">下一页</button></div></nav>
       </section>
-      <section id="settings-view" class="view" aria-labelledby="settings-title" hidden><h1 id="settings-title" class="visually-hidden" data-i18n="settings.title">数据与模型设置</h1><div class="settings-grid"><section class="settings-card"><h2 data-i18n="settings.analysisConfig">分析配置</h2><dl id="settings-fields" class="settings-fields"><div><dt data-i18n="settings.loading">加载中</dt><dd data-i18n="settings.loadingFields">正在读取设置……</dd></div></dl></section><section class="settings-card"><h2 data-i18n="settings.marketProviders">行情来源</h2><div id="quote-strategy-selector" class="quote-strategy-selector" hidden><fieldset><legend data-i18n="settings.quoteStrategyLabel">行情策略</legend><div id="quote-strategy-options" class="quote-strategy-options" role="radiogroup" aria-label="行情策略"></div><p id="quote-strategy-status" class="muted" role="status" aria-live="polite"></p></fieldset></div><div id="provider-status-list" class="provider-status-list"><p class="muted" data-i18n="settings.loadingProviders">正在读取行情来源……</p></div></section></div></section>
+      <section id="settings-view" class="view" aria-labelledby="settings-title" hidden><h1 id="settings-title" class="visually-hidden" data-i18n="settings.title">数据与模型设置</h1><div class="settings-grid"><section class="settings-card"><h2 data-i18n="settings.analysisConfig">分析配置</h2><dl id="settings-fields" class="settings-fields"><div><dt data-i18n="settings.loading">加载中</dt><dd data-i18n="settings.loadingFields">正在读取设置……</dd></div></dl></section><section class="settings-card">
+        <h2 data-i18n="settings.notifier.title">告警通知</h2>
+        <p class="muted" data-i18n="settings.notifier.lede">通过 PushPlus 把告警事件推送到微信(扫码登录 pushplus.plus 即可获得 token)。</p>
+        <div class="notifier-form">
+          <fieldset class="notifier-channel">
+            <legend data-i18n="settings.notifier.enabledLabel">PushPlus 微信通知</legend>
+            <label class="notifier-toggle">
+              <input type="checkbox" id="notifier-pushplus-enabled">
+              <span data-i18n="settings.notifier.enabledLabel">启用通知</span>
+            </label>
+            <label class="notifier-token">
+              <span data-i18n="settings.notifier.tokenLabel">PushPlus Token</span>
+              <input type="text" id="notifier-pushplus-token" autocomplete="off" placeholder="" data-i18n-placeholder="settings.notifier.tokenPlaceholder">
+              <span id="notifier-pushplus-token-status" class="muted"></span>
+            </label>
+            <div class="notifier-actions">
+              <button type="button" id="notifier-save-pushplus" class="button button-primary" data-i18n="settings.notifier.save">保存通知配置</button>
+              <button type="button" id="notifier-test-pushplus" class="button button-secondary" data-i18n="settings.notifier.testPushplus">测试 PushPlus</button>
+            </div>
+          </fieldset>
+          <fieldset class="notifier-channel">
+            <legend data-i18n="settings.notifier.feishuLabel">飞书群机器人</legend>
+            <p class="muted" data-i18n="settings.notifier.feishuHint">在飞书群 → 设置 → 群机器人 添加机器人后复制 webhook</p>
+            <label class="notifier-toggle">
+              <input type="checkbox" id="notifier-feishu-enabled">
+              <span data-i18n="settings.notifier.enabledLabel">启用通知</span>
+            </label>
+            <label class="notifier-token">
+              <span data-i18n="settings.notifier.feishuWebhookLabel">飞书 Webhook URL</span>
+              <input type="text" id="notifier-feishu-webhook" autocomplete="off" placeholder="" data-i18n-placeholder="settings.notifier.feishuWebhookPlaceholder">
+              <span id="notifier-feishu-webhook-status" class="muted"></span>
+            </label>
+            <div class="notifier-actions">
+              <button type="button" id="notifier-save-feishu" class="button button-primary" data-i18n="settings.notifier.save">保存通知配置</button>
+              <button type="button" id="notifier-test-feishu" class="button button-secondary" data-i18n="settings.notifier.testFeishu">测试飞书</button>
+            </div>
+          </fieldset>
+          <fieldset class="notifier-channel">
+            <legend data-i18n="settings.notifier.monitorLabel">后台监控</legend>
+            <p class="muted" data-i18n="settings.notifier.monitorHint">开启后服务端会按设定的间隔自动评估所有启用的告警,不依赖浏览器。</p>
+            <label class="notifier-toggle">
+              <input type="checkbox" id="notifier-monitor-enabled">
+              <span data-i18n="settings.notifier.monitorEnabledLabel">启用后台监控</span>
+            </label>
+            <label class="notifier-token">
+              <span data-i18n="settings.notifier.monitorIntervalLabel">评估间隔(秒)</span>
+              <input type="number" min="15" max="600" step="1" id="notifier-monitor-interval" placeholder="60">
+              <span id="notifier-monitor-status" class="muted"></span>
+            </label>
+            <div class="notifier-actions">
+              <button type="button" id="notifier-save-monitor" class="button button-primary" data-i18n="settings.notifier.save">保存通知配置</button>
+              <button type="button" id="notifier-monitor-run-now" class="button button-secondary" data-i18n="settings.notifier.monitorRunNow">立即执行一次</button>
+            </div>
+          </fieldset>
+          <div class="notifier-actions notifier-actions-global">
+            <span id="notifier-status" class="muted" role="status" aria-live="polite"></span>
+          </div>
+        </div>
+      </section>
+      <section class="settings-card"><h2 data-i18n="settings.marketProviders">行情来源</h2><div id="quote-strategy-selector" class="quote-strategy-selector" hidden><fieldset><legend data-i18n="settings.quoteStrategyLabel">行情策略</legend><div id="quote-strategy-options" class="quote-strategy-options" role="radiogroup" aria-label="行情策略"></div><p id="quote-strategy-status" class="muted" role="status" aria-live="polite"></p></fieldset></div><div id="provider-status-list" class="provider-status-list"><p class="muted" data-i18n="settings.loadingProviders">正在读取行情来源……</p></div></section></div></section>
       <section id="active-view" class="view" aria-labelledby="active-title" hidden>
         <h1 id="active-title" class="visually-hidden" data-i18n="active.title">进行中的分析任务</h1>
         <div id="active-empty" class="empty-state" hidden><strong data-i18n="active.emptyTitle">当前没有进行中的分析任务</strong><p data-i18n="active.emptyBody">开始一次分析后，任务进度会显示在这里。</p><button id="active-new-analysis" class="button button-primary" type="button" data-i18n="actions.newAnalysis">新建分析</button></div>
@@ -296,6 +357,36 @@
           <div id="asset-alerts-list" class="alerts-list" aria-live="polite"><p class="muted" data-i18n="alerts.emptyShort">暂无告警</p></div>
         </section>
       </section>
+      <section id="alerts-view" class="view" aria-labelledby="alerts-title" hidden>
+        <h1 id="alerts-title" class="visually-hidden" data-i18n="alerts.title">告警管理</h1>
+        <header class="view-heading">
+          <div>
+            <p class="kicker" data-i18n="alerts.kicker">价格与量化告警</p>
+            <h2 data-i18n="alerts.allTitle">全部告警</h2>
+            <p class="muted" data-i18n="alerts.allLede">跨所有资产统一查看、启用/停用、编辑或删除告警。</p>
+          </div>
+          <div class="view-heading-actions">
+            <label class="muted"><input type="checkbox" id="alerts-show-disabled"> <span data-i18n="alerts.showDisabled">显示已停用</span></label>
+            <button type="button" class="button button-primary" id="alerts-new-button" data-i18n="alerts.add">新建告警</button>
+          </div>
+        </header>
+        <div id="alerts-all-list" class="alerts-all-list"><p class="muted" data-i18n="alerts.loading">加载中…</p></div>
+      </section>
+      <section id="notes-view" class="view" aria-labelledby="notes-title" hidden>
+        <h1 id="notes-title" class="visually-hidden" data-i18n="notes.title">笔记</h1>
+        <header class="view-heading">
+          <div>
+            <p class="kicker" data-i18n="notes.kicker">我的笔记</p>
+            <h2 data-i18n="notes.allTitle">全部笔记</h2>
+            <p class="muted" data-i18n="notes.allLede">跨所有资产统一查看、编辑或删除笔记。</p>
+          </div>
+          <div class="view-heading-actions">
+            <label class="muted"><input type="search" id="notes-search" placeholder="搜索笔记内容…" data-i18n-placeholder="notes.searchPlaceholder"></label>
+            <button type="button" class="button button-primary" id="notes-new-button" data-i18n="notes.add">新建笔记</button>
+          </div>
+        </header>
+        <div id="notes-all-list" class="notes-all-list"><p class="muted" data-i18n="notes.loading">加载中…</p></div>
+      </section>
       <section id="report-view" class="view" aria-labelledby="report-title" hidden>
         <section id="report-panel" class="report-panel"><div class="report-heading"><div><h2 id="report-title" data-i18n="report.decisionReport">决策报告</h2><dl id="report-meta" class="report-meta"></dl></div><div class="report-actions"><button id="report-back-library" class="button button-secondary" type="button" data-i18n="actions.backReports">返回报告库</button><button id="download-report" class="button button-secondary" type="button" data-i18n="actions.downloadMarkdown">下载 Markdown</button><button id="new-analysis" class="button button-primary" type="button"><span data-i18n="actions.newAnalysis">新建分析</span> <span aria-hidden="true">&#8594;</span></button></div></div><section id="executive-summary" class="executive-summary" hidden><div class="summary-heading"><p class="kicker" data-i18n="report.executiveSummary">综合研判</p><span class="summary-badge" data-i18n="report.deepModelSummary">深度模型综合</span></div><div id="executive-summary-content" class="summary-content"></div></section><details id="detail-report" class="detail-report"><summary data-i18n="report.showDetails">展开详细智能体报告</summary><div id="report-content" class="report-content"></div></details>
         <section class="report-notes-panel">
@@ -319,16 +410,16 @@
       // 因此即使 window 被冻结也能成功创建全局对象,作为模块注册表的 fallback。
       var __TA_MODULES__ = {};
     </script>
-    <script src="/static/i18n.js?v=20260906-i18n-4" defer></script>
-    <script src="/static/rating-labels.js?v=20260907-rating-labels-1" defer></script>
-    <script src="/static/kline-chart.js?v=20260907-kline-chart-1" defer></script>
-    <script src="/static/quote-refresh.js?v=20260907-quote-refresh-1" defer></script>
-    <script src="/static/quote-cache.js?v=20260907-quote-cache-1" defer></script>
-    <script src="/static/scheduled.js?v=20260907-scheduled-1" defer></script>
-    <script src="/static/scheduled-history.js?v=20260907-scheduled-history-1" defer></script>
-    <script src="/static/notes.js?v=20260907-notes-3" defer></script>
-    <script src="/static/alerts.js?v=20260907-alerts-9" defer></script>
-    <script src="/static/app.js?v=20260907-app-11" defer></script>
+    <script src="/static/i18n.js?v=20260909-i18n-11" defer></script>
+    <script src="/static/rating-labels.js?v=20260909-rating-labels-1" defer></script>
+    <script src="/static/kline-chart.js?v=20260909-kline-chart-1" defer></script>
+    <script src="/static/quote-refresh.js?v=20260909-quote-refresh-1" defer></script>
+    <script src="/static/quote-cache.js?v=20260909-quote-cache-1" defer></script>
+    <script src="/static/scheduled.js?v=20260909-scheduled-3" defer></script>
+    <script src="/static/scheduled-history.js?v=20260909-scheduled-history-1" defer></script>
+    <script src="/static/notes.js?v=20260910-notes-4" defer></script>
+    <script src="/static/alerts.js?v=20260910-alerts-4" defer></script>
+    <script src="/static/app.js?v=20260909-app-12" defer></script>
     <svg width="0" height="0" style="position:absolute" aria-hidden="true">
       <defs>
         <symbol id="i-watchlist" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -364,6 +455,17 @@
         <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
           <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+        </symbol>
+        <symbol id="i-alerts" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          <circle cx="18" cy="5" r="3" fill="currentColor" stroke="none"/>
+        </symbol>
+        <symbol id="i-notes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4z"/>
+          <line x1="8" y1="9" x2="14" y2="9"/>
+          <line x1="8" y1="13" x2="14" y2="13"/>
+          <line x1="8" y1="17" x2="11" y2="17"/>
         </symbol>
         <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8"/>
