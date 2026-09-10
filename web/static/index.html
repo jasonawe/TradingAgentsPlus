@@ -330,7 +330,19 @@
           </dl>
         </section>
         <section class="asset-detail-panel">
-          <div class="panel-heading"><span class="kicker" data-i18n="asset.kLineChart">K 线走势</span><div id="asset-kline-intervals" class="kline-intervals" role="group" aria-label="K 线区间"><button type="button" class="kline-interval is-active" data-asset-kline-days="30">1M</button><button type="button" class="kline-interval" data-asset-kline-days="90">3M</button><button type="button" class="kline-interval" data-asset-kline-days="180">6M</button><button type="button" class="kline-interval" data-asset-kline-days="365">1Y</button></div></div>
+          <div class="panel-heading"><span class="kicker" data-i18n="asset.kLineChart">K 线走势</span><div class="kline-period-bar">
+            <div id="asset-kline-periods" class="kline-intervals" role="group" aria-label="K 线周期">
+              <button type="button" class="kline-interval is-active" data-asset-kline-period="1d">1d</button>
+              <button type="button" class="kline-interval" data-asset-kline-period="1w">1w</button>
+              <button type="button" class="kline-interval" data-asset-kline-period="1M">1M</button>
+            </div>
+            <div id="asset-kline-intervals" class="kline-intervals" role="group" aria-label="K 线范围">
+              <button type="button" class="kline-interval is-active" data-asset-kline-days="30">1M</button>
+              <button type="button" class="kline-interval" data-asset-kline-days="90">3M</button>
+              <button type="button" class="kline-interval" data-asset-kline-days="180">6M</button>
+              <button type="button" class="kline-interval" data-asset-kline-days="365">1Y</button>
+            </div>
+          </div></div>
           <div id="asset-kline-chart" class="asset-kline-chart" aria-live="polite"></div>
           <p id="asset-kline-status" class="muted"></p>
         </section>
@@ -413,13 +425,14 @@
     <script src="/static/i18n.js?v=20260909-i18n-11" defer></script>
     <script src="/static/rating-labels.js?v=20260909-rating-labels-1" defer></script>
     <script src="/static/kline-chart.js?v=20260909-kline-chart-1" defer></script>
+    <script src="/static/lightweight-kline.js?v=20260910-lightweight-kline-2" defer></script>
     <script src="/static/quote-refresh.js?v=20260909-quote-refresh-1" defer></script>
     <script src="/static/quote-cache.js?v=20260909-quote-cache-1" defer></script>
     <script src="/static/scheduled.js?v=20260909-scheduled-3" defer></script>
     <script src="/static/scheduled-history.js?v=20260909-scheduled-history-1" defer></script>
     <script src="/static/notes.js?v=20260910-notes-5" defer></script>
     <script src="/static/alerts.js?v=20260910-alerts-5" defer></script>
-    <script src="/static/app.js?v=20260910-app-13" defer></script>
+    <script src="/static/app.js?v=20260910-app-14" defer></script>
     <svg width="0" height="0" style="position:absolute" aria-hidden="true">
       <defs>
         <symbol id="i-watchlist" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
