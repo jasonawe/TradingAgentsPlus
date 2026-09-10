@@ -333,7 +333,13 @@ class QuoteService:
         data.pop("payload_json", None)
         return QuoteSnapshot(**data)
 
-    def get_quote(self, symbol: str, asset_type: str = "stock") -> QuoteSnapshot:
+    def get_quote(
+        self,
+        symbol: str,
+        asset_type: str = "stock",
+        *,
+        force_refresh: bool = False,
+    ) -> QuoteSnapshot:
         cached = self._cached(symbol, asset_type)
         now = self.clock().astimezone(timezone.utc)
         if cached:
@@ -342,8 +348,16 @@ class QuoteService:
         # not the provider's as_of — for delayed/EOD data the quote timestamp
         # is the trading day, so an as_of-based check would always miss and
         # refetch on every request.
+        # ``force_refresh`` lets the background prewarmer pull fresh data on
+        # its own cadence (e.g. 5s) while the frontend still serves hot cache
+        # within the TTL window.
         cache_age = self._cache_age(cached, now) if cached else None
-        if cached and cache_age is not None and cache_age <= self.ttl_seconds:
+        if (
+            not force_refresh
+            and cached
+            and cache_age is not None
+            and cache_age <= self.ttl_seconds
+        ):
             cached.cache_status = "hit"
             cached.provider_status = "ready"
             return cached
@@ -386,7 +400,13 @@ class QuoteService:
             return None
         return max(0, int((now - quote.fetched_at).total_seconds()))
 
-    def get_quotes(self, symbols: list[str], asset_type: str = "stock") -> BulkQuoteResponse:
+    def get_quotes(
+        self,
+        symbols: list[str],
+        asset_type: str = "stock",
+        *,
+        force_refresh: bool = False,
+    ) -> BulkQuoteResponse:
         if len(symbols) > self.MAX_SYMBOLS:
             raise ValueError("maximum 50 symbols")
         # Pre-allocate so order matches the input ``symbols`` regardless of which upstream
@@ -397,7 +417,7 @@ class QuoteService:
         def fetch_one(idx: int, symbol: str) -> None:
             normalized = str(symbol).upper()
             try:
-                snapshot = self.get_quote(symbol, asset_type)
+                snapshot = self.get_quote(symbol, asset_type, force_refresh=force_refresh)
                 items[idx] = QuoteItem(symbol=normalized, quote=snapshot)
                 return
             except ProviderError as exc:

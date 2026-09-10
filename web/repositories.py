@@ -409,8 +409,10 @@ class SettingsRepository:
         SCHEDULER_MAX_CONCURRENT_RUNS: "3",
         "scheduled.default_overrides.enabled": "false",
         "prewarmer.enabled": "true",
-        "prewarmer.interval_seconds": "30",
+        "prewarmer.interval_seconds": "5",
         "prewarmer.bootstrap_on_startup": "true",
+        "quote_ttl_seconds": "60",
+        "quote_strategy_id": "default-akshare",  # akshare first: no eastmoney geo-block timeout penalty
     }
     SCHEDULER_OVERRIDES_ENABLED = "scheduled.default_overrides.enabled"
     SCHEDULER_OVERRIDES_PROVIDER = "scheduled.default_overrides.provider"

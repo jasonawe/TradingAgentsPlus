@@ -15,8 +15,8 @@ from typing import Any
 
 LOGGER = logging.getLogger(__name__)
 
-DEFAULT_INTERVAL = 30  # seconds; aligned with default quote_ttl_seconds (60s)
-MIN_INTERVAL = 10
+DEFAULT_INTERVAL = 5   # seconds; user-tuned to keep cache fresh without thrashing
+MIN_INTERVAL = 5        # floor — too short hits upstream rate limits / adds no real freshness
 MAX_INTERVAL = 300
 
 
@@ -54,8 +54,10 @@ class QuotePrewarmer:
         self._thread: threading.Thread | None = None
         self._stop_event = threading.Event()
         self._lock = threading.Lock()
+        self._sweep_in_progress = threading.Lock()  # skip tick if previous sweep still running
         self._last_run_at: float | None = None
         self._last_run_summary: dict[str, Any] = {}
+        self._last_skipped: int = 0  # monotonic counter of skipped ticks
         self._enabled = True
         self._interval = DEFAULT_INTERVAL
         self._bootstrap_on_startup = True
@@ -132,6 +134,26 @@ class QuotePrewarmer:
             self._stop_event.wait(timeout=interval)
 
     def _sweep(self) -> dict[str, Any]:
+        # Non-blocking guard: if a previous sweep is still in flight, drop this
+        # tick to avoid piling up upstream requests. The next loop iteration
+        # will try again, so effective cadence self-throttles to ~upstream
+        # fetch latency when providers are slow.
+        if not self._sweep_in_progress.acquire(blocking=False):
+            with self._lock:
+                self._last_skipped += 1
+            LOGGER.debug("quote prewarmer: previous sweep still running, skipping tick")
+            return {
+                "symbols_seen": 0,
+                "evaluated": 0,
+                "errors": {},
+                "skipped": True,
+            }
+        try:
+            return self._sweep_locked()
+        finally:
+            self._sweep_in_progress.release()
+
+    def _sweep_locked(self) -> dict[str, Any]:
         watchlist = self._safe_list_watchlist()
         alerts = self._safe_list_alerts()
 
@@ -157,6 +179,12 @@ class QuotePrewarmer:
         for asset_type in sorted(buckets):
             symbols = sorted(buckets[asset_type])
             try:
+                # No force_refresh: the prewarmer's job is to keep the cache
+                # warm. ``get_quote`` returns the cached snapshot whenever it is
+                # still within TTL (60s); only when the cache has actually
+                # expired does it trigger an upstream fetch. This keeps
+                # upstream load bounded to one refresh per TTL window per
+                # symbol regardless of how often we tick (5s here).
                 bulk = self._quote_service.get_quotes(symbols, asset_type)
             except Exception as exc:
                 LOGGER.warning("get_quotes failed for %s (%d symbols): %s", asset_type, len(symbols), exc)
