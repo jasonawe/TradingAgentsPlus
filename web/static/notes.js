@@ -313,23 +313,16 @@
         return;
       }
     });
+    // In-modal save is now driven by openFormModal's ``onSubmit`` callback,
+    // so we only need to handle forms that live directly inside ``rootEl``
+    // (legacy inline path). Modal forms go through the dialog's submit
+    // listener attached at open time.
     rootEl.addEventListener("submit", function (event) {
       const form = event.target.closest(".note-form");
       if (!form || !rootEl.contains(form)) return;
       event.preventDefault();
       handleNoteSubmit(form, rootEl);
     });
-    // Modal form submit (form lives outside rootEl). Wire once per process.
-    if (!document.__notesModalSubmitBound) {
-      document.__notesModalSubmitBound = true;
-      document.addEventListener("submit", function (event) {
-        const form = event.target.closest && event.target.closest(".note-form");
-        if (!form) return;
-        if (rootEl && rootEl.contains(form)) return; // handled by delegated above
-        event.preventDefault();
-        handleNoteSubmit(form, null);
-      });
-    }
   }
 
   async function showForm(rootEl, existing) {
@@ -345,8 +338,34 @@
       submitText: t("notes.save"),
       cancelText: t("notes.cancel"),
       width: "wide",
-      icon: "&#128221;"
+      icon: "&#128221;",
+      // onSubmit: read the form fields out of the modal DOM and do the
+      // POST/PATCH. Returning ``false`` keeps the modal open on validation
+      // failure so the user can correct the input.
+      onSubmit: async (dialog) => {
+        const form = dialog.querySelector(".note-form");
+        if (!form) return true;
+        const textarea = form.querySelector(".note-form-textarea");
+        const body = textarea ? textarea.value.trim() : "";
+        if (!body) {
+          showFormError(form, t("notes.errors.emptyBody"));
+          return false;
+        }
+        const id = form.dataset.noteId || null;
+        const symInput = form.querySelector('input[name="symbol"]');
+        const atInput = form.querySelector('select[name="asset_type"]');
+        const symbol = (symInput && symInput.value.trim())
+          || form.getAttribute("data-form-symbol") || "";
+        const assetType = (atInput && atInput.value)
+          || form.getAttribute("data-form-asset-type") || "stock";
+        const saveResult = await submitNoteWith(symbol, assetType, id, body);
+        if (saveResult === true) return true;
+        showFormError(form, saveResult);
+        return false;
+      }
     });
+    // result === null → cancelled; otherwise the modal already closed after
+    // a successful save. Reload either way so the list reflects any change.
     if (rootEl.id === "notes-all-list") {
       await loadAll(rootEl);
     } else {

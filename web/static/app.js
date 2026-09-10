@@ -258,7 +258,7 @@
   // Generic form modal. `bodyHtml` is the inner content (typically a <form>),
   // `onSubmit(dialog)` runs when the user clicks the submit button. Returning
   // a falsy value keeps the modal open; returning truthy closes it.
-  function openFormModal({ title, bodyHtml, submitText, cancelText, width, icon }) {
+  function openFormModal({ title, bodyHtml, submitText, cancelText, width, icon, onSubmit }) {
     return new Promise((resolve) => {
       const root = $("modal-root");
       if (!root) { resolve(null); return; }
@@ -269,6 +269,13 @@
       dialog.className = "modal-dialog" + (width === "wide" ? " modal-dialog-wide" : "");
       dialog.setAttribute("role", "dialog");
       dialog.setAttribute("aria-modal", "true");
+      // Caller passes an async ``onSubmit(dialog)``. Returning ``false`` keeps
+      // the modal open (e.g. validation failed); any other value (or
+      // undefined) closes it. If no ``onSubmit`` is provided, the modal still
+      // closes on submit but no work is done — for legacy callers that wire
+      // their own submit handler via ``dialog.__onSubmit`` or a delegated
+      // ``submit`` listener on ``document``.
+      if (typeof onSubmit === "function") dialog.__onSubmit = onSubmit;
       dialog.innerHTML = `
         <div class="modal-header">
           <h3 class="modal-title">${icon ? '<span class="modal-title-icon" aria-hidden="true">' + icon + "</span>" : ""}${escapeHtml(title)}</h3>

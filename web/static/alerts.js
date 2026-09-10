@@ -240,24 +240,15 @@
         return;
       }
     });
+    // Modal form submit is driven by openFormModal's ``onSubmit`` callback;
+    // we only handle forms that live directly inside ``rootEl`` (legacy
+    // inline path). Modal forms go through the dialog's submit listener.
     rootEl.addEventListener("submit", function (event) {
       const form = event.target.closest(".alert-form");
       if (!form || !rootEl.contains(form)) return;
       event.preventDefault();
       submitForm(rootEl, form);
     });
-    // Modal form submit (form lives outside rootEl). Wire once per process.
-    if (!document.__alertsModalSubmitBound) {
-      document.__alertsModalSubmitBound = true;
-      document.addEventListener("submit", function (event) {
-        const form = event.target.closest && event.target.closest(".alert-form");
-        if (!form) return;
-        // Only handle forms NOT already inside rootEl (handled by delegated above)
-        if (rootEl && rootEl.contains(form)) return;
-        event.preventDefault();
-        submitForm(null, form);
-      });
-    }
     rootEl.addEventListener("change", function (event) {
       if (event.target.matches('.alert-form select[name="kind"]')) {
         const form = event.target.closest(".alert-form");
@@ -287,10 +278,17 @@
       submitText: t("alerts.save"),
       cancelText: t("alerts.cancel"),
       width: "wide",
-      icon: "&#128276;"
+      icon: "&#128276;",
+      // onSubmit: delegate to the existing submitFormModal which already
+      // POSTs/PATCHes and handles inline error rendering. Returning ``false``
+      // keeps the modal open on validation failure / API error.
+      onSubmit: async (dialog) => {
+        const form = dialog.querySelector(".alert-form");
+        if (!form) return true;
+        return await submitFormModal(form);
+      }
     });
     // result === null means cancelled; anything else (true) means saved.
-    // We rely on submitFormModal having POSTed/PATCHed; just reload list.
     if (rootEl.id === "alerts-all-list") {
       await loadAll(rootEl);
     } else {
