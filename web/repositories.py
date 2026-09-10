@@ -178,6 +178,26 @@ class NoteRepository:
     def __init__(self, store: SQLiteStore) -> None:
         self.store = store
 
+    def list_all(
+        self,
+        *,
+        include_deleted: bool = False,
+        limit: int | None = None,
+        offset: int = 0,
+    ) -> tuple[list[dict[str, Any]], int]:
+        """Return (notes, total_count) across symbols, newest first."""
+        where = "" if include_deleted else "WHERE deleted_at IS NULL "
+        with self.store.connection() as conn:
+            total = conn.execute(f"SELECT COUNT(*) AS c FROM notes {where}").fetchone()["c"]
+            sql = (
+                "SELECT * FROM notes "
+                + where
+                + "ORDER BY created_at DESC, id DESC"
+                + (f" LIMIT {int(limit)} OFFSET {int(offset)}" if limit else "")
+            )
+            rows = conn.execute(sql).fetchall()
+        return [_row(row) for row in rows], int(total)
+
     def list_for(
         self,
         symbol: str,
@@ -416,6 +436,12 @@ class SettingsRepository:
         "run_heartbeat_timeout_seconds",
         SCHEDULER_ENABLED,
         SCHEDULER_MAX_CONCURRENT_RUNS,
+        "notifier.pushplus_enabled",
+        "notifier.pushplus_token",
+        "notifier.feishu_enabled",
+        "notifier.feishu_webhook",
+        "notifier.monitor_enabled",
+        "notifier.monitor_interval_seconds",
     } | SCHEDULER_OVERRIDES_KEYS)
     def __init__(self, store: SQLiteStore) -> None:
         self.store = store
@@ -1615,12 +1641,16 @@ class AlertRepository:
             ).fetchall()
         return [self._row_to_alert(row) for row in rows]
 
-    def list_all(self) -> list[dict[str, Any]]:
+    def list_all(self, *, limit: int | None = None, offset: int = 0) -> tuple[list[dict[str, Any]], int]:
+        """Return (alerts, total_count) across symbols."""
         with self.store.connection() as conn:
-            rows = conn.execute(
+            total = conn.execute("SELECT COUNT(*) AS c FROM alerts WHERE deleted_at IS NULL").fetchone()["c"]
+            sql = (
                 "SELECT * FROM alerts WHERE deleted_at IS NULL ORDER BY symbol,kind,created_at"
-            ).fetchall()
-        return [self._row_to_alert(row) for row in rows]
+                + (f" LIMIT {int(limit)} OFFSET {int(offset)}" if limit else "")
+            )
+            rows = conn.execute(sql).fetchall()
+        return [self._row_to_alert(row) for row in rows], int(total)
 
     def get(self, alert_id: str) -> dict[str, Any]:
         with self.store.connection() as conn:

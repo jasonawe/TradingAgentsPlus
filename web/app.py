@@ -38,7 +38,13 @@ from .market_data import ProviderRouter, QuoteService
 from .market_models import ProviderError
 from .models import AnalysisRequest, EventEnvelope, RunRecord
 from .providers import AKShareProvider, AlphaVantageProvider, EastMoneyProvider, YFinanceProvider
+import logging
+
+LOGGER = logging.getLogger(__name__)
+
 from .alert_engine import AlertEngine
+from .notifier import Notifier
+from .alert_monitor import AlertMonitor
 from .repositories import (
     AlertRepository,
     AnalysisRunRepository,
@@ -275,9 +281,15 @@ def create_app(
             active_history.retry_outbox(limit=50)
             retry_thread.start()
             scheduler_service.start()
+            alert_monitor = getattr(app.state, "alert_monitor", None)
+            if alert_monitor is not None:
+                alert_monitor.start()
             yield
         finally:
             scheduler_service.shutdown()
+            monitor = getattr(app.state, "alert_monitor", None)
+            if monitor is not None:
+                monitor.stop()
             report_index_stop.set()
             if retry_thread.is_alive():
                 retry_thread.join(timeout=5.0)
@@ -302,6 +314,14 @@ def create_app(
         config=active_config,
     )
     app.state.alert_engine = AlertEngine(app.state.repositories["alerts"])
+    app.state.notifier = Notifier(settings_repo=app.state.repositories["settings"])
+    app.state.alert_monitor = AlertMonitor(
+        settings_repo=app.state.repositories["settings"],
+        alerts_repo=app.state.repositories["alerts"],
+        quote_service=app.state.market_service,
+        alert_engine=app.state.alert_engine,
+        notifier=app.state.notifier,
+    )
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(_request: Request, _exc: RequestValidationError) -> JSONResponse:
@@ -330,6 +350,8 @@ def create_app(
     @app.get("/scheduled", response_class=HTMLResponse, include_in_schema=False)
     @app.get("/scheduled/history", response_class=HTMLResponse, include_in_schema=False)
     @app.get("/settings", response_class=HTMLResponse, include_in_schema=False)
+    @app.get("/alerts", response_class=HTMLResponse, include_in_schema=False)
+    @app.get("/notes", response_class=HTMLResponse, include_in_schema=False)
     def index() -> Response:
         return _console_entry()
 
@@ -422,17 +444,24 @@ def create_app(
 
     @app.get("/api/notes")
     def list_notes(
-        symbol: str = Query(...),
+        symbol: str | None = Query(None),
         asset_type: str = Query("stock"),
+        limit: int = Query(50, ge=1, le=200),
+        offset: int = Query(0, ge=0),
     ) -> dict[str, Any]:
-        canonical = normalize_ticker_symbol(symbol)
-        if not canonical or not is_valid_ticker_input(canonical):
-            raise _error(422, "笔记参数无效")
-        if asset_type not in {"stock", "crypto"}:
-            raise _error(422, "资产类型无效")
+        """List notes. Pass ?symbol=X for one asset; omit symbol for all notes."""
         repo = app.state.repositories["notes"]
-        items = repo.list_for(canonical, asset_type)
-        return {"items": items}
+        if symbol:
+            canonical = normalize_ticker_symbol(symbol)
+            if not canonical or not is_valid_ticker_input(canonical):
+                raise _error(422, "笔记参数无效")
+            if asset_type not in {"stock", "crypto"}:
+                raise _error(422, "资产类型无效")
+            items = repo.list_for(canonical, asset_type)
+            total = len(items)
+        else:
+            items, total = repo.list_all(limit=limit, offset=offset)
+        return {"items": items, "total": total, "limit": limit, "offset": offset}
 
     @app.post("/api/notes", status_code=201)
     def create_note(payload: dict[str, Any]) -> dict[str, Any]:
@@ -518,6 +547,23 @@ def create_app(
     def _triggers_to_payload(engine: AlertEngine, symbol: str, asset_type: str, quote: dict[str, Any]) -> list[dict[str, Any]]:
         raw_triggers = engine.evaluate_quote(symbol, asset_type, quote)
         events = engine.record_triggers(raw_triggers)
+        notifier = getattr(app.state, "notifier", None)
+        for trigger, event in zip(raw_triggers, events):
+            if notifier is not None and event:
+                try:
+                    notifier.notify_trigger(
+                        {
+                            "alert_id": trigger.alert_id,
+                            "symbol": trigger.symbol,
+                            "asset_type": trigger.asset_type,
+                            "kind": trigger.kind,
+                            "message": trigger.message,
+                            "snapshot": trigger.snapshot,
+                        },
+                        event,
+                    )
+                except Exception:
+                    LOGGER.exception("notifier dispatch failed")
         return [
             {
                 "alert_id": trigger.alert_id,
@@ -532,13 +578,19 @@ def create_app(
         ]
 
     @app.get("/api/alerts")
-    def list_alerts(symbol: str | None = Query(None), asset_type: str | None = Query(None)) -> dict[str, Any]:
+    def list_alerts(
+        symbol: str | None = Query(None),
+        asset_type: str | None = Query(None),
+        limit: int = Query(50, ge=1, le=200),
+        offset: int = Query(0, ge=0),
+    ) -> dict[str, Any]:
         repo = app.state.repositories["alerts"]
         if symbol:
             items = repo.list_for_symbol(symbol, asset_type or "stock")
+            total = len(items)
         else:
-            items = repo.list_all()
-        return {"items": items}
+            items, total = repo.list_all(limit=limit, offset=offset)
+        return {"items": items, "total": total, "limit": limit, "offset": offset}
 
     @app.post("/api/alerts", status_code=201)
     def create_alert(payload: dict[str, Any]) -> dict[str, Any]:
@@ -698,6 +750,19 @@ def create_app(
         source = "env" if os.getenv("TRADINGAGENTS_OUTPUT_LANGUAGE") else (settings_repo.get("output_language") or {}).get("source", "default")
         fields["output_language"] = {"value": defaults["output_language"], "source": source}
         fields["effective_output_language"] = fields["output_language"]
+        notifier = getattr(app.state, "notifier", None)
+        notifier_cfg = notifier.config() if notifier else None
+        fields["notifier_pushplus_enabled"] = {"value": "true" if (notifier_cfg and notifier_cfg.pushplus_enabled) else "false", "source": "sqlite"}
+        token_value = (notifier_cfg.pushplus_token if notifier_cfg else "") or ""
+        fields["notifier_pushplus_token_set"] = {"value": "true" if token_value else "false", "source": "sqlite"}
+        fields["notifier_feishu_enabled"] = {"value": "true" if (notifier_cfg and notifier_cfg.feishu_enabled) else "false", "source": "sqlite"}
+        webhook_value = (notifier_cfg.feishu_webhook if notifier_cfg else "") or ""
+        fields["notifier_feishu_webhook_set"] = {"value": "true" if webhook_value else "false", "source": "sqlite"}
+        monitor_obj = getattr(app.state, "alert_monitor", None)
+        monitor_status = monitor_obj.status() if monitor_obj else {}
+        fields["notifier_monitor_enabled"] = {"value": "true" if monitor_status.get("enabled") else "false", "source": "sqlite"}
+        fields["notifier_monitor_interval_seconds"] = {"value": str(monitor_status.get("interval_seconds") or 60), "source": "sqlite"}
+        fields["notifier_monitor_running"] = {"value": "true" if monitor_status.get("running") else "false", "source": "sqlite"}
         return {"schema_version": 1, "fields": fields, "strategies": [{"id": k, "providers": v["providers"], "available": next((s["available"] for s in catalog["strategies"] if s["id"] == k), False)} for k, v in QUOTE_STRATEGIES.items()], "provider_health": {item["provider"]: item for item in provider_health_repo.list()}}
 
     @app.patch("/api/settings/quote-strategy")
@@ -715,6 +780,103 @@ def create_app(
             },
             "fields": {key: catalog[key] for key in ("quote_strategy_id", "quote_provider_chain", "quote_ttl_seconds")},
         }
+
+    @app.patch("/api/settings/notifier")
+    def update_notifier(payload: dict[str, Any]) -> dict[str, Any]:
+        """Save notifier channel config (pushplus token / feishu webhook / monitor)."""
+        data = payload or {}
+        # Support both per-channel and unified payload
+        # Per-channel: {"channel": "pushplus"|"feishu", "enabled": bool, "token"|"webhook": str}
+        channel = data.get("channel")
+        if channel == "pushplus":
+            if "enabled" in data:
+                enabled = str(data.get("enabled")).strip().lower() in ("1", "true", "yes", "on")
+                settings_repo.set("notifier.pushplus_enabled", "true" if enabled else "false")
+            if "token" in data:
+                token = str(data.get("token") or "").strip()
+                if token and len(token) > 256:
+                    raise _error(status.HTTP_400_BAD_REQUEST, "token 过长")
+                settings_repo.set("notifier.pushplus_token", token)
+        elif channel == "feishu":
+            if "enabled" in data:
+                enabled = str(data.get("enabled")).strip().lower() in ("1", "true", "yes", "on")
+                settings_repo.set("notifier.feishu_enabled", "true" if enabled else "false")
+            if "webhook" in data:
+                webhook = str(data.get("webhook") or "").strip()
+                if webhook and not webhook.startswith(("http://", "https://")):
+                    raise _error(status.HTTP_400_BAD_REQUEST, "webhook 必须是 http(s) URL")
+                if webhook and len(webhook) > 512:
+                    raise _error(status.HTTP_400_BAD_REQUEST, "webhook 过长")
+                settings_repo.set("notifier.feishu_webhook", webhook)
+        elif channel == "monitor":
+            if "enabled" in data:
+                enabled = str(data.get("enabled")).strip().lower() in ("1", "true", "yes", "on")
+                settings_repo.set("notifier.monitor_enabled", "true" if enabled else "false")
+            if "interval_seconds" in data:
+                try:
+                    secs = int(data.get("interval_seconds"))
+                    secs = max(15, min(600, secs))
+                except (TypeError, ValueError):
+                    raise _error(status.HTTP_400_BAD_REQUEST, "interval_seconds 必须是 15-600 的整数")
+                settings_repo.set("notifier.monitor_interval_seconds", str(secs))
+        else:
+            # Legacy payload (pushplus only, kept for backward compatibility)
+            enabled_raw = data.get("enabled")
+            token_raw = data.get("token")
+            if enabled_raw is not None:
+                enabled = str(enabled_raw).strip().lower() in ("1", "true", "yes", "on")
+                settings_repo.set("notifier.pushplus_enabled", "true" if enabled else "false")
+            if token_raw is not None:
+                token = str(token_raw).strip()
+                if token and len(token) > 256:
+                    raise _error(status.HTTP_400_BAD_REQUEST, "token 过长")
+                settings_repo.set("notifier.pushplus_token", token)
+        notifier = getattr(app.state, "notifier", None)
+        cfg = notifier.config() if notifier else None
+        monitor = getattr(app.state, "alert_monitor", None)
+        if monitor is not None:
+            monitor.refresh_config()
+        monitor_status = monitor.status() if monitor is not None else {}
+        return {
+            "pushplus_enabled": bool(cfg.pushplus_enabled) if cfg else False,
+            "pushplus_token_set": bool(cfg.pushplus_token) if cfg else False,
+            "feishu_enabled": bool(cfg.feishu_enabled) if cfg else False,
+            "feishu_webhook_set": bool(cfg.feishu_webhook) if cfg else False,
+            "monitor_enabled": bool(monitor_status.get("enabled")) if monitor_status else False,
+            "monitor_interval_seconds": int(monitor_status.get("interval_seconds") or 60),
+            "monitor_running": bool(monitor_status.get("running")),
+        }
+
+    @app.post("/api/notifier/monitor/run")
+    def trigger_monitor_sweep() -> dict[str, Any]:
+        """Trigger one alert-monitor sweep right now (useful for manual testing)."""
+        monitor = getattr(app.state, "alert_monitor", None)
+        if monitor is None:
+            raise _error(status.HTTP_503_SERVICE_UNAVAILABLE, "monitor not ready")
+        summary = monitor.run_once()
+        return summary
+
+    @app.get("/api/notifier/monitor/status")
+    def monitor_status() -> dict[str, Any]:
+        monitor = getattr(app.state, "alert_monitor", None)
+        if monitor is None:
+            raise _error(status.HTTP_503_SERVICE_UNAVAILABLE, "monitor not ready")
+        return monitor.status()
+
+    @app.post("/api/notifier/test")
+    def send_notifier_test(channel: str | None = Query(None)) -> dict[str, Any]:
+        """Send a test notification. Optional ?channel=pushplus|feishu to test one."""
+        notifier = getattr(app.state, "notifier", None)
+        if notifier is None:
+            raise _error(status.HTTP_503_SERVICE_UNAVAILABLE, "notifier not ready")
+        result = notifier.send_test(channel)
+        if result.get("ok"):
+            return result
+        # Build informative error message
+        errs = []
+        for ch, r in (result.get("channels") or {}).items():
+            errs.append(f"{ch}: {r.get('error') or r.get('msg') or 'unknown'}")
+        raise _error(status.HTTP_400_BAD_REQUEST, "; ".join(errs) or result.get("error") or "推送失败")
 
     @app.get("/api/scheduled/jobs")
     def list_scheduled_jobs() -> dict[str, Any]:

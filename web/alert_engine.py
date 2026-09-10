@@ -266,7 +266,23 @@ def _metric_value(metric: str, price: float, quote: dict[str, Any]) -> float | N
 
 def _quote_meta(quote: dict[str, Any]) -> dict[str, Any]:
     meta: dict[str, Any] = {}
-    for key in ("currency", "source", "as_of", "fetched_at", "freshness", "market_status"):
+    for key in (
+        "currency",
+        "source",
+        "as_of",
+        "fetched_at",
+        "freshness",
+        "market_status",
+        "exchange",
+        "asset_name",
+        "asset_name_zh",
+        "exchange_name_zh",
+        "canonical_symbol",
+        "previous_close",
+        "change",
+        "change_percent",
+        "volume",
+    ):
         value = quote.get(key)
         if value is not None:
             meta[key] = value
