@@ -13,6 +13,9 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Annotated, Any
 
+from langchain_core.messages import AIMessage
+from langchain_core.runnables import Runnable
+
 from fastapi import FastAPI, Header, HTTPException, Query, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response, StreamingResponse
@@ -1392,6 +1395,127 @@ def create_app(
             content=content,
             media_type="text/markdown",
             headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+
+    # ═══════════════════════════════════════════════════
+    # Stage C — Agent Chat (Day 2: 4 endpoints)
+    # ═══════════════════════════════════════════════════
+
+    def _stage_c_data_dir() -> Path:
+        """Stage C agent 数据目录 ~/.tradingagents/"""
+        return Path.home() / ".tradingagents"
+
+    def _stage_c_llm():
+        """构造 Stage C chat 用的 LLM。
+
+        - STAGE_C_MOCK_LLM=1 → mock LLM(免 API key)
+        - 否则从 active_config 读 quick_model/provider 构造 OpenAIClient
+        - 失败时 fallback 到 mock
+        """
+        import os
+
+        class _MockLLM(Runnable):
+            def invoke(self, input, config=None, **kwargs):
+                return AIMessage(content="[mock] Stage C fake answer")
+
+            def bind_tools(self, tools):
+                return self
+
+        if os.environ.get("STAGE_C_MOCK_LLM") == "1":
+            LOGGER.info("Stage C: using mock LLM (STAGE_C_MOCK_LLM=1)")
+            return _MockLLM()
+
+        try:
+            from tradingagents.llm_clients.openai_client import OpenAIClient
+            mc = resolve_model_config(active_config, None, None, None)
+            llm = OpenAIClient(
+                model=mc["quick_model"], provider=mc["provider"],
+            ).get_llm()
+            LOGGER.info("Stage C: using %s/%s", mc["provider"], mc["quick_model"])
+            return llm
+        except Exception as e:
+            LOGGER.warning("Stage C: real LLM init failed (%s), fallback to mock", e)
+            return _MockLLM()
+
+    @app.post(
+        "/api/agent/sessions", status_code=status.HTTP_201_CREATED,
+    )
+    def create_agent_session() -> dict[str, Any]:
+        """创建新的 chat session,返回 session_id。"""
+        import uuid
+        sid = f"s_{uuid.uuid4().hex[:16]}"
+        return {
+            "session_id": sid,
+            "created_at": datetime.utcnow().isoformat() + "Z",
+        }
+
+    @app.get("/api/agent/sessions")
+    def list_agent_sessions() -> list[dict[str, Any]]:
+        """列出所有 L1 短期对话 sessions。"""
+        from tradingagents.agents.general.memory import list_session_ids
+        sids = list_session_ids(_stage_c_data_dir())
+        return [{"session_id": sid, "last_active": None} for sid in sids]
+
+    @app.get("/api/agent/sessions/{session_id}")
+    def get_agent_session(session_id: str) -> dict[str, Any]:
+        """读 session 的对话历史(L1 LangGraph state)。"""
+        from tradingagents.agents.general.orchestrator import (
+            build_agent, get_session_history,
+        )
+        llm = _stage_c_llm()
+        agent, conn = build_agent(
+            llm=llm, data_dir=_stage_c_data_dir(), session_id=session_id,
+        )
+        try:
+            history = get_session_history(agent, session_id)
+            return {"session_id": session_id, "history": history}
+        finally:
+            conn.close()
+
+    @app.post("/api/agent/chat/stream")
+    def agent_chat_stream(
+        request: Request, body: dict[str, Any],
+    ) -> StreamingResponse:
+        """SSE 流式 chat endpoint — Stage C 主入口。"""
+        from tradingagents.agents.general.orchestrator import (
+            build_agent, stream_chat,
+        )
+        session_id = body.get("session_id")
+        user_message = body.get("user_message")
+        if not session_id or not user_message:
+            raise _error(
+                status.HTTP_400_BAD_REQUEST,
+                "session_id 和 user_message 必填",
+            )
+
+        llm = _stage_c_llm()
+        agent, conn = build_agent(
+            llm=llm, data_dir=_stage_c_data_dir(), session_id=session_id,
+        )
+
+        def stream():
+            try:
+                for event_type, payload in stream_chat(
+                    agent, session_id, user_message,
+                ):
+                    if _request_disconnected(request):
+                        return
+                    envelope = {"event": event_type, "payload": payload}
+                    yield (
+                        f"event: {event_type}\n"
+                        f"data: {json.dumps(envelope, ensure_ascii=False, separators=(',', ':'))}\n\n"
+                    )
+                yield "event: done\ndata: {}\n\n"
+            finally:
+                conn.close()
+
+        return StreamingResponse(
+            stream(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",
+            },
         )
 
     return app
