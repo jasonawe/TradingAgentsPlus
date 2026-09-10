@@ -51,7 +51,7 @@ def get_quote(
 ) -> str:
     """获取单个 symbol 的实时报价。
 
-    返回字段:price / change / change_pct / volume / open / high / low / currency / source / fetched_at
+    返回字段:price / change / change_percent / volume / open / high / low / currency / source / fetched_at
     """
     try:
         from web.market_data import QuoteService
@@ -69,7 +69,7 @@ def get_quote(
             f"symbol: {snap.symbol}\n"
             f"price: {snap.price}\n"
             f"change: {snap.change}\n"
-            f"change_pct: {snap.change_pct:.4f}\n"
+            f"change_percent: {snap.change_percent:.4f}\n"
             f"volume: {snap.volume}\n"
             f"open: {snap.open}\n"
             f"high: {snap.high}\n"
@@ -93,7 +93,7 @@ def get_quotes_batch(
 ) -> str:
     """批量查询报价(最多 20 个)。
 
-    返回 markdown 表格,包含 symbol / price / change_pct / volume / source。
+    返回 markdown 表格,包含 symbol / price / change_percent / volume / source。
     """
     sym_list = [s.strip() for s in symbols.split(",") if s.strip()]
     if not sym_list:
@@ -106,22 +106,26 @@ def get_quotes_batch(
         from tradingagents.default_config import DEFAULT_CONFIG
 
         service = QuoteService(DEFAULT_CONFIG)
-        quotes = service.get_quotes(sym_list, asset_type)
+        bulk = service.get_quotes(sym_list, asset_type)  # BulkQuoteResponse
+        quotes = bulk.items  # list[QuoteItem]
 
         if not quotes:
             return "NO_DATA: 所有 symbol 均未获取到报价"
 
+        prefix = (
+            f"⚠️ 部分 symbol 获取失败 ({len(sym_list) - len(quotes)}/{len(sym_list)})\n\n"
+            if bulk.partial else ""
+        )
         lines = [
-            "| symbol | price | change_pct | volume | source |",
+            "| symbol | price | change_percent | volume | source |",
             "|---|---|---|---|---|",
         ]
         for q in quotes:
+            cp = f"{q.change_percent:.4f}" if q.change_percent is not None else "N/A"
             lines.append(
-                f"| {q.symbol} | {q.price} | "
-                f"{q.change_pct:.4f if hasattr(q, 'change_pct') else 0:.4f}% | "
-                f"{q.volume} | {q.source} |"
+                f"| {q.symbol} | {q.price} | {cp}% | {q.volume} | {q.source} |"
             )
-        return "\n".join(lines)
+        return prefix + "\n".join(lines)
     except Exception as e:
         return f"ERROR: get_quotes_batch failed - {type(e).__name__}: {e}"
 
@@ -142,20 +146,32 @@ def get_history(
     返回:最新 30 行 CSV + MA20/RSI14 摘要。
     """
     try:
-        # B3 优先;fallback 到 stockstats_utils
+        # B3 优先(B3 fetch_daily_candles 的 period 只接 1d/1w/1M);
+        # 非日线 interval 走 fallback
         try:
             from web.bar_generator import fetch_daily_candles
 
-            # period → count(days)
+            # period 参数(用户输入如 1y/3mo) → count(days)
             count_map = {
                 "1mo": 22, "3mo": 65, "6mo": 130,
                 "1y": 252, "2y": 504, "5y": 1260,
             }
             count = count_map.get(period, 252)
-            df = fetch_daily_candles(symbol, count=count, period=interval)
-            source = "web/bar_generator (B3)"
+
+            # B3 限制:fetch_daily_candles 只支持日/周/月;其他 interval 走 fallback
+            if interval in ("1d", "1w", "1M"):
+                df = fetch_daily_candles(symbol, count=count, period=interval)
+                source = f"web/bar_generator (B3, {interval})"
+            else:
+                # 非日线 interval 走 stockstats_utils
+                today = datetime.utcnow().strftime("%Y-%m-%d")
+                df = load_ohlcv(symbol, today).tail(count)
+                source = (
+                    f"stockstats_utils (interval={interval} 不支持多周期,"
+                    f"取最近 {count} 日)"
+                )
         except Exception:
-            # fallback
+            # 整体 fallback
             today = datetime.utcnow().strftime("%Y-%m-%d")
             df = load_ohlcv(symbol, today)
             source = "stockstats_utils (fallback)"
