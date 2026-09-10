@@ -349,6 +349,13 @@ def create_app(
         settings=settings_repo,
         config=active_config,
     )
+    # Stage C: 注入 market_service 让 get_quote / get_quotes_batch tool 能用
+    try:
+        from tradingagents.agents.general.tools_bridge import set_quote_service
+        set_quote_service(app.state.market_service)
+        LOGGER.info("Stage C: QuoteService injected for quote tools")
+    except ImportError:
+        pass
     app.state.alert_engine = AlertEngine(app.state.repositories["alerts"])
     app.state.notifier = Notifier(settings_repo=app.state.repositories["settings"])
     app.state.alert_monitor = AlertMonitor(
@@ -1611,7 +1618,8 @@ def create_app(
                     result_str = f"ERROR: tool {tool_name!r} not found"
                 else:
                     try:
-                        invoke_args = {**tool_args, "session_id": session_id}
+                        # 注入 LangGraph config(工具需要 config 来提取 session_id)
+                        invoke_args = {**tool_args, "config": config}
                         result_str = tool_obj.invoke(invoke_args)
                     except Exception as e:
                         result_str = (

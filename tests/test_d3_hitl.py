@@ -44,23 +44,23 @@ print("  ✓ 写工具识别正确")
 print("\n[B] tools_bridge HITL gate:")
 # 1) 未批准 → AWAITING_CONFIRMATION
 revoke_session("s_t1")
-result = create_note.invoke({"session_id": "s_t1", "symbol": "600036.SS", "body_md": "test"})
+result = create_note.run({"symbol": "600036.SS", "body_md": "test"}, config={"configurable": {"thread_id": "s_t1"}})
 assert "AWAITING_CONFIRMATION" in result
 print("  ✓ 未批准时返回 AWAITING_CONFIRMATION")
 
 # 2) grant + retry → 真实执行
 grant_approval("s_t1", "create_note", {"symbol": "600036.SS", "body_md": "test", "asset_type": "stock"})
-result2 = create_note.invoke({"session_id": "s_t1", "symbol": "600036.SS", "body_md": "test"})
+result2 = create_note.run({"symbol": "600036.SS", "body_md": "test"}, config={"configurable": {"thread_id": "s_t1"}})
 assert "NOTE_CREATED" in result2
 print(f"  ✓ 批准后真实执行: {result2[:60]}...")
 
 # 3) 单次 approval 消费
 assert consume_approval("s_t1", "create_note", {"symbol": "600036.SS", "body_md": "test", "asset_type": "stock"}) is None
 # 重新调用应该再次 AWAITING_CONFIRMATION
-result3 = create_note.invoke({"session_id": "s_t1", "symbol": "600036.SS", "body_md": "test"})
+result3 = create_note.run({"symbol": "600036.SS", "body_md": "test"}, config={"configurable": {"thread_id": "s_t1"}})
 # 这里因为 args 加了 asset_type=stock,所以 key 仍然一样,会再次执行
 # 但 consume 后应该清空,所以再调一次需要新 approval
-result4 = create_note.invoke({"session_id": "s_t1", "symbol": "600036.SS", "body_md": "different"})
+result4 = create_note.run({"symbol": "600036.SS", "body_md": "different"}, config={"configurable": {"thread_id": "s_t1"}})
 assert "AWAITING_CONFIRMATION" in result4, f"expected AWAIT got: {result4[:80]}"
 print("  ✓ 不同 args 不会复用 approval")
 

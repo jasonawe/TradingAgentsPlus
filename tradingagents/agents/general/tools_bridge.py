@@ -22,7 +22,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Annotated, Any
 
-from langchain_core.tools import tool
+from langchain_core.tools import tool, InjectedToolArg
+from langchain_core.runnables import RunnableConfig
+from typing import Annotated
 
 from tradingagents.agents.general.approval import (
     consume_approval,
@@ -63,6 +65,31 @@ def _get_repo(name: str) -> Any:
             )
         return _repos[name]
 
+
+# ════════════════════════════════════════════════════════
+# QuoteService 注入(由 web/app.py 启动时调用)
+# ════════════════════════════════════════════════════════
+
+_quote_service: Any = None
+
+
+def set_quote_service(service: Any) -> None:
+    """注入 web.app.state.market_service,get_quote / get_quotes_batch 才能用。
+
+    QuoteService 需要 (router, repository, ...) 多个参数,工具里手动构造太脆弱,
+    所以直接复用 web app 已经构造好的实例。
+    """
+    global _quote_service
+    _quote_service = service
+
+
+def _get_quote_service() -> Any:
+    if _quote_service is None:
+        raise RuntimeError(
+            "QuoteService 未注入 — 调用 set_quote_service() 先注入。"
+        )
+    return _quote_service
+
 # 复用 B1 的 alpha tools(已经实现好)
 from tradingagents.agents.utils.alpha_factors_tools import (
     compute_alpha_factors,
@@ -100,12 +127,7 @@ def get_quote(
     返回字段:price / change / change_percent / volume / open / high / low / currency / source / fetched_at
     """
     try:
-        from web.market_data import QuoteService
-        from web.config import resolve_model_config
-        from tradingagents.default_config import DEFAULT_CONFIG
-
-        # 简化的 service 初始化(实际可能需要 settings)
-        service = QuoteService(DEFAULT_CONFIG)
+        service = _get_quote_service()
         snap = service.get_quote(symbol, asset_type)
         if snap is None:
             return f"NO_DATA: 未能获取 {symbol!r} 的报价"
@@ -171,10 +193,7 @@ def get_quotes_batch(
         return f"ERROR: 批量最多 20 个 symbol,当前 {len(sym_list)} 个"
 
     try:
-        from web.market_data import QuoteService
-        from tradingagents.default_config import DEFAULT_CONFIG
-
-        service = QuoteService(DEFAULT_CONFIG)
+        service = _get_quote_service()
         bulk = service.get_quotes(sym_list, asset_type)  # BulkQuoteResponse
         quotes = bulk.items  # list[QuoteItem]
 
@@ -319,6 +338,16 @@ def get_fundamentals(
 # Helper: 检查 approval + 包装写工具
 # ════════════════════════════════════════════════════════
 
+def _resolve_session_id(config: Any) -> str:
+    """从 LangGraph RunnableConfig 提取 session_id(thread_id)。"""
+    try:
+        return config["configurable"]["thread_id"]
+    except (KeyError, TypeError) as e:
+        raise RuntimeError(
+            f"无法从 config 提取 session_id: {type(e).__name__}: {e}"
+        ) from e
+
+
 def _check_write_approval(
     *,
     session_id: str,
@@ -416,10 +445,10 @@ def list_watchlist() -> str:
 
 @tool
 def create_note(
-    session_id: Annotated[str, "chat session ID,前端自动注入,LLM 不要自己猜"],
     symbol: Annotated[str, "ticker 如 600036.SS"],
     body_md: Annotated[str, "笔记 markdown 内容"],
     asset_type: Annotated[str, "stock / crypto,默认 stock"] = "stock",
+    config: Annotated[RunnableConfig, InjectedToolArg()] = None,
 ) -> str:
     """为某资产创建笔记(需用户确认)。
 
@@ -428,6 +457,7 @@ def create_note(
       - "AWAITING_CONFIRMATION: {...}" 需要用户在前端确认
       - "ERROR: ..." 失败
     """
+    session_id = _resolve_session_id(config)
     args = {"symbol": symbol, "body_md": body_md, "asset_type": asset_type}
     gate = _check_write_approval(
         session_id=session_id, tool_name="create_note", tool_args=args,
@@ -451,11 +481,12 @@ def create_note(
 
 @tool
 def update_note(
-    session_id: Annotated[str, "chat session ID"],
     note_id: Annotated[str, "笔记 ID,如 note-abc123..."],
     body_md: Annotated[str, "新内容(markdown)"],
+    config: Annotated[RunnableConfig, InjectedToolArg()] = None,
 ) -> str:
     """修改现有笔记(需确认)。"""
+    session_id = _resolve_session_id(config)
     args = {"note_id": note_id, "body_md": body_md}
     gate = _check_write_approval(
         session_id=session_id, tool_name="update_note", tool_args=args,
@@ -478,10 +509,11 @@ def update_note(
 
 @tool
 def delete_note(
-    session_id: Annotated[str, "chat session ID"],
     note_id: Annotated[str, "笔记 ID"],
+    config: Annotated[RunnableConfig, InjectedToolArg()] = None,
 ) -> str:
     """软删除笔记(需确认)。"""
+    session_id = _resolve_session_id(config)
     args = {"note_id": note_id}
     gate = _check_write_approval(
         session_id=session_id, tool_name="delete_note", tool_args=args,
@@ -501,17 +533,18 @@ def delete_note(
 
 @tool
 def create_alert(
-    session_id: Annotated[str, "chat session ID"],
     symbol: Annotated[str, "ticker 如 600036.SS"],
     kind: Annotated[str, "告警类型: price_above / price_below / change_pct / volume_spike 等"],
     params: Annotated[dict, "告警参数,如 {'threshold': 50.0}"],
     asset_type: Annotated[str, "stock / crypto,默认 stock"] = "stock",
     cooldown_seconds: Annotated[int, "触发冷却时间(秒),默认 3600"] = 3600,
+    config: Annotated[RunnableConfig, InjectedToolArg()] = None,
 ) -> str:
     """创建价格 / 量化告警(需确认)。
 
     触发时通过飞书 / PushPlus webhook 通知。
     """
+    session_id = _resolve_session_id(config)
     args = {
         "symbol": symbol,
         "kind": kind,
@@ -547,13 +580,14 @@ def create_alert(
 
 @tool
 def update_alert(
-    session_id: Annotated[str, "chat session ID"],
     alert_id: Annotated[str, "告警 ID,如 alert-abc123..."],
     enabled: Annotated[bool | None, "是否启用,None 表示不变"] = None,
     params: Annotated[dict | None, "新 params,None 表示不变"] = None,
     cooldown_seconds: Annotated[int | None, "新冷却时间,None 表示不变"] = None,
+    config: Annotated[RunnableConfig, InjectedToolArg()] = None,
 ) -> str:
     """修改告警的启用状态 / 阈值 / 冷却(需确认)。"""
+    session_id = _resolve_session_id(config)
     args = {
         "alert_id": alert_id,
         "enabled": enabled,
@@ -585,10 +619,11 @@ def update_alert(
 
 @tool
 def delete_alert(
-    session_id: Annotated[str, "chat session ID"],
     alert_id: Annotated[str, "告警 ID"],
+    config: Annotated[RunnableConfig, InjectedToolArg()] = None,
 ) -> str:
     """删除告警(软删除,需确认)。"""
+    session_id = _resolve_session_id(config)
     args = {"alert_id": alert_id}
     gate = _check_write_approval(
         session_id=session_id, tool_name="delete_alert", tool_args=args,
@@ -608,14 +643,15 @@ def delete_alert(
 
 @tool
 def update_preference(
-    session_id: Annotated[str, "chat session ID"],
     key: Annotated[str, "偏好 key,如 default_provider / default_model"],
     value: Annotated[str, "偏好 value(JSON 序列化的 str)"],
+    config: Annotated[RunnableConfig, InjectedToolArg()] = None,
 ) -> str:
     """修改用户偏好(影响后续 agent 行为,需确认)。
 
     value 必须是 JSON 序列化的字符串,如 '"akshare"' 或 '["a","b"]'。
     """
+    session_id = _resolve_session_id(config)
     args = {"key": key, "value": value}
     gate = _check_write_approval(
         session_id=session_id, tool_name="update_preference", tool_args=args,
