@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradingAgentsPlus — 量化研究 (B1) + 通用 Agent (Stage C) 原型</title>
+<style>
+/* ============ Token 系统(复用现有) ============ */
+:root {
+  --bg: #0f1115;
+  --bg-elevated: #181c25;
+  --bg-card: #1f2430;
+  --border: #2a3142;
+  --border-strong: #3a4255;
+  --text: #e6e9ef;
+  --text-muted: #9ba3b5;
+  --text-dim: #6b7280;
+  --accent: #4f9eff;
+  --accent-hover: #6bb1ff;
+  --green: #10b981;
+  --green-bg: rgba(16, 185, 129, 0.12);
+  --red: #ef4444;
+  --red-bg: rgba(239, 68, 68, 0.12);
+  --yellow: #f59e0b;
+  --yellow-bg: rgba(245, 158, 11, 0.12);
+  --purple: #a78bfa;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.25);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,0.35);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ============ 顶部 Tab 切换 ============ */
+.tab-bar {
+  display: flex;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.tab-bar .brand {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 14px 0;
+  margin-right: 32px;
+  color: var(--accent);
+}
+.tab-bar button {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 14px 20px;
+  cursor: pointer;
+  font-size: 14px;
+  border-bottom: 2px solid transparent;
+  transition: all .15s;
+}
+.tab-bar button:hover { color: var(--text); }
+.tab-bar button.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+/* ============ B1: 资产详情 + 因子 tab ============ */
+.page-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.asset-header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+.asset-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+}
+.asset-header .symbol {
+  color: var(--text-muted);
+  font-size: 14px;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+}
+.asset-header .price {
+  font-size: 28px;
+  font-weight: 700;
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+.asset-header .change.up { color: var(--green); font-size: 14px; }
+.asset-header .change.down { color: var(--red); font-size: 14px; }
+
+.subnav {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+.subnav button {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  border-bottom: 2px solid transparent;
+}
+.subnav button.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.section-heading {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin: 24px 0 12px;
+}
+
+/* 因子快照卡片 */
+.factor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 32px;
+}
+.factor-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+.factor-card .name {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+}
+.factor-card .value {
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.factor-card .signal {
+  font-size: 11px;
+  margin-top: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+}
+.signal.up { background: var(--green-bg); color: var(--green); }
+.signal.down { background: var(--red-bg); color: var(--red); }
+.signal.neutral { background: var(--yellow-bg); color: var(--yellow); }
+
+/* 评估表 */
+.eval-table {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border-collapse: collapse;
+}
+.eval-table th, .eval-table td {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.eval-table th {
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.eval-table td.num {
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, monospace;
+}
+.eval-table tr:last-child td { border-bottom: none; }
+.ic-bar {
+  display: inline-block;
+  height: 6px;
+  background: var(--accent);
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+.ic-bar.weak { background: var(--text-dim); }
+.ic-bar.mid { background: var(--yellow); }
+.ic-bar.strong { background: var(--green); }
+
+/* 因子研究全表 */
+.research-table { font-size: 13px; }
+
+/* ============ Stage C: 抽屉 ============ */
+.mock-page {
+  display: flex;
+  height: calc(100vh - 51px);
+  background: var(--bg);
+}
+.mock-main {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+}
+.mock-main h2 {
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+.mock-main p {
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+/* 抽屉本体 */
+.drawer {
+  width: 420px;
+  background: var(--bg-elevated);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border-left: 1px solid var(--border);
+  box-shadow: -4px 0 24px rgba(0,0,0,0.3);
+}
+.drawer-header {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  gap: 8px;
+}
+.drawer-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  flex: 1;
+}
+.drawer-header .icon-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.drawer-header .icon-btn:hover { background: var(--bg-card); color: var(--text); }
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.msg {
+  display: flex;
+  flex-direction: column;
+  max-width: 90%;
+}
+.msg.user { align-self: flex-end; }
+.msg.assistant { align-self: flex-start; }
+
+.bubble {
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+.bubble.user {
+  background: var(--accent);
+  color: white;
+  border-bottom-right-radius: 2px;
+}
+.bubble.assistant {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 2px;
+}
+.bubble pre {
+  background: rgba(0,0,0,0.25);
+  padding: 8px;
+  border-radius: 4px;
+  margin: 6px 0;
+  font-size: 12px;
+  overflow-x: auto;
+}
+.bubble code {
+  background: rgba(0,0,0,0.25);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-family: ui-monospace, monospace;
+}
+.bubble .highlight-num { color: var(--yellow); font-weight: 600; }
+.bubble .highlight-up { color: var(--green); font-weight: 600; }
+.bubble .highlight-down { color: var(--red); font-weight: 600; }
+
+/* 工具调用卡片 */
+.tool-card {
+  background: rgba(79, 158, 255, 0.08);
+  border: 1px solid rgba(79, 158, 255, 0.25);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  font-size: 12px;
+  margin-top: 4px;
+}
+.tool-card .head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.tool-card .head .icon {
+  width: 16px; height: 16px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 10px;
+}
+.tool-card .kv { display: flex; gap: 8px; color: var(--text-muted); margin-bottom: 2px; }
+.tool-card .kv .k { font-family: ui-monospace, monospace; min-width: 70px; }
+.tool-card .kv .v { font-family: ui-monospace, monospace; color: var(--text); }
+.tool-card .duration {
+  margin-top: 6px;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+/* 输入区 */
+.input-area {
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  gap: 8px;
+  background: var(--bg-elevated);
+}
+.input-area textarea {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  color: var(--text);
+  resize: none;
+  font-family: inherit;
+  font-size: 14px;
+  height: 44px;
+  outline: none;
+}
+.input-area textarea:focus { border-color: var(--accent); }
+.input-area button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0 18px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.input-area button:hover { background: var(--accent-hover); }
+
+.preferences-bar {
+  padding: 8px 16px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.preferences-bar .chip {
+  background: var(--bg-card);
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+/* 收起态 */
+.drawer.collapsed { width: 56px; }
+.drawer.collapsed .drawer-content { display: none; }
+.drawer.collapsed .drawer-collapsed-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 20px;
+  cursor: pointer;
+}
+.drawer-collapsed-btn { display: none; }
+
+/* Mock 主视图内容 */
+.mock-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.mock-card h4 { font-size: 13px; margin-bottom: 8px; color: var(--text-muted); }
+.mock-card .quote-row {
+  display: flex;
+  gap: 24px;
+  align-items: baseline;
+  margin-top: 8px;
+}
+.mock-card .quote-row .price { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.mock-card .quote-row .delta.up { color: var(--green); }
+.mock-card .quote-row .delta.down { color: var(--red); }
+
+/* 因子研究页布局 */
+.research-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.research-header h2 { font-size: 20px; }
+.research-header .btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.research-header .btn.secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.cat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+.cat-card h4 {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+.cat-card .count {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.cat-card .desc { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+.cat-card .tag-list { display: flex; flex-wrap: wrap; gap: 4px; }
+.cat-card .tag {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: ui-monospace, monospace;
+  color: var(--text-muted);
+}
+
+</style>
+</head>
+<body>
+
+<div class="tab-bar">
+  <div class="brand">TradingAgentsPlus</div>
+  <button data-page="alpha-page" class="active" onclick="switchPage('alpha-page', this)">📊 因子研究 (B1)</button>
+  <button data-page="asset-page" onclick="switchPage('asset-page', this)">🏦 资产详情 + 因子 tab</button>
+  <button data-page="agent-page" onclick="switchPage('agent-page', this)">💬 通用 Agent 抽屉 (Stage C)</button>
+</div>
+
+<!-- ============ Page 1: 因子研究首页 ============ -->
+<div id="alpha-page" class="page-container" style="display: block;">
+  <div class="research-header">
+    <h2>Alpha158 因子研究</h2>
+    <div>
+      <button class="btn secondary">📁 导出研究</button>
+      <button class="btn">+ 新建因子研究</button>
+    </div>
+  </div>
+
+  <div class="section-heading">因子库</div>
+  <div class="cat-grid">
+    <div class="cat-card">
+      <h4>Momentum 动量</h4>
+      <div class="count">14</div>
+      <div class="desc">价格变化率、相对强弱指标、MACD 类</div>
+      <div class="tag-list">
+        <span class="tag">roc_1</span>
+        <span class="tag">roc_5</span>
+        <span class="tag">roc_10</span>
+        <span class="tag">roc_20</span>
+        <span class="tag">roc_60</span>
+        <span class="tag">momentum_5</span>
+        <span class="tag">rsi_6</span>
+        <span class="tag">rsi_14</span>
+        <span class="tag">rsi_24</span>
+        <span class="tag">macd</span>
+        <span class="tag">macd_signal</span>
+        <span class="tag">macd_hist</span>
+      </div>
+    </div>
+    <div class="cat-card">
+      <h4>Volatility 波动率</h4>
+      <div class="count">7</div>
+      <div class="desc">ATR、波动幅度、布林带</div>
+      <div class="tag-list">
+        <span class="tag">atr_14</span>
+        <span class="tag">std_5</span>
+        <span class="tag">std_10</span>
+        <span class="tag">std_20</span>
+        <span class="tag">histvol_20</span>
+        <span class="tag">histvol_60</span>
+        <span class="tag">boll_pct_b</span>
+      </div>
+    </div>
+    <div class="cat-card">
+      <h4>Volume-Price 量价</h4>
+      <div class="count">6</div>
+      <div class="desc">OBV、VWAP、量比</div>
+      <div class="tag-list">
+        <span class="tag">obv</span>
+        <span class="tag">vpt</span>
+        <span class="tag">pvt</span>
+        <span class="tag">vwap_5</span>
+        <span class="tag">vwap_20</span>
+        <span class="tag">volume_ratio_5</span>
+      </div>
+    </div>
+    <div class="cat-card">
+      <h4>Trend 趋势</h4>
+      <div class="count">4</div>
+      <div class="desc">ADX、CCI、Aroon</div>
+      <div class="tag-list">
+        <span class="tag">adx_14</span>
+        <span class="tag">cci_20</span>
+        <span class="tag">aroon_up_25</span>
+        <span class="tag">aroon_down_25</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-heading">跨标的因子 IC 排行 · forward 5d · 样本 248</div>
+  <table class="eval-table research-table">
+    <thead>
+      <tr>
+        <th>因子</th>
+        <th>类别</th>
+        <th>Pearson IC</th>
+        <th>Rank IC</th>
+        <th>IC 正向比率</th>
+        <th>IR</th>
+        <th>解读</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>roc_5</code></td>
+        <td>momentum</td>
+        <td class="num"><span class="ic-bar strong" style="width: 52px;"></span>0.0521</td>
+        <td class="num">0.0483</td>
+        <td class="num">0.61</td>
+        <td class="num">0.41</td>
+        <td><span class="signal up">中等预测</span></td>
+      </tr>
+      <tr>
+        <td><code>rsi_14</code></td>
+        <td>momentum</td>
+        <td class="num"><span class="ic-bar mid" style="width: 34px;"></span>0.0342</td>
+        <td class="num">0.0287</td>
+        <td class="num">0.58</td>
+        <td class="num">0.27</td>
+        <td><span class="signal neutral">弱预测</span></td>
+      </tr>
+      <tr>
+        <td><code>macd_hist</code></td>
+        <td>momentum</td>
+        <td class="num"><span class="ic-bar mid" style="width: 18px;"></span>0.0182</td>
+        <td class="num">0.0124</td>
+        <td class="num">0.52</td>
+        <td class="num">0.15</td>
+        <td><span class="signal neutral">弱预测</span></td>
+      </tr>
+      <tr>
+        <td><code>obv</code></td>
+        <td>volume_price</td>
+        <td class="num"><span class="ic-bar mid" style="width: 24px;"></span>0.0245</td>
+        <td class="num">0.0201</td>
+        <td class="num">0.55</td>
+        <td class="num">0.19</td>
+        <td><span class="signal neutral">弱预测</span></td>
+      </tr>
+      <tr>
+        <td><code>atr_14</code></td>
+        <td>volatility</td>
+        <td class="num"><span class="ic-bar weak" style="width: 6px;"></span>0.0061</td>
+        <td class="num">0.0098</td>
+        <td class="num">0.49</td>
+        <td class="num">0.05</td>
+        <td><span class="signal down">无预测力</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============ Page 2: 资产详情 + 因子 tab ============ -->
+<div id="asset-page" class="page-container" style="display: none;">
+  <div class="asset-header">
+    <h1>招商银行</h1>
+    <span class="symbol">600036.SS · SHH</span>
+    <div class="price">38.45<span class="change up"> +0.46 (+1.2%)</span></div>
+  </div>
+
+  <div class="subnav">
+    <button>概览</button>
+    <button>财务</button>
+    <button>笔记</button>
+    <button>告警</button>
+    <button class="active">📊 因子</button>
+    <button>分析历史</button>
+  </div>
+
+  <div class="section-heading">最新因子快照 · 2026-09-10</div>
+  <div class="factor-grid">
+    <div class="factor-card">
+      <div class="name">RSI(14)</div>
+      <div class="value">67.2</div>
+      <div class="signal up">偏强</div>
+    </div>
+    <div class="factor-card">
+      <div class="name">MACD</div>
+      <div class="value">+0.152</div>
+      <div class="signal up">多头</div>
+    </div>
+    <div class="factor-card">
+      <div class="name">ROC(5)</div>
+      <div class="value">+2.45%</div>
+      <div class="signal up">↑</div>
+    </div>
+    <div class="factor-card">
+      <div class="name">OBV</div>
+      <div class="value">1.23B</div>
+      <div class="signal up">资金流入</div>
+    </div>
+    <div class="factor-card">
+      <div class="name">ATR(14)</div>
+      <div class="value">0.84</div>
+      <div class="signal neutral">正常波动</div>
+    </div>
+    <div class="factor-card">
+      <div class="name">BOLL %b</div>
+      <div class="value">0.62</div>
+      <div class="signal up">上轨</div>
+    </div>
+  </div>
+
+  <div class="section-heading">预测能力评估 · forward 5d · 样本 248</div>
+  <table class="eval-table">
+    <thead>
+      <tr>
+        <th>因子</th>
+        <th>类别</th>
+        <th>Pearson IC</th>
+        <th>Rank IC</th>
+        <th>IC std</th>
+        <th>IC 正向比率</th>
+        <th>IR</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>rsi_14</code></td>
+        <td>momentum</td>
+        <td class="num">0.0342</td>
+        <td class="num">0.0287</td>
+        <td class="num">0.1245</td>
+        <td class="num">0.58</td>
+        <td class="num">0.27</td>
+      </tr>
+      <tr>
+        <td><code>macd_hist</code></td>
+        <td>momentum</td>
+        <td class="num">0.0182</td>
+        <td class="num">0.0124</td>
+        <td class="num">0.1340</td>
+        <td class="num">0.52</td>
+        <td class="num">0.15</td>
+      </tr>
+      <tr>
+        <td><code>obv</code></td>
+        <td>volume_price</td>
+        <td class="num">0.0245</td>
+        <td class="num">0.0201</td>
+        <td class="num">0.1180</td>
+        <td class="num">0.55</td>
+        <td class="num">0.19</td>
+      </tr>
+      <tr>
+        <td><code>atr_14</code></td>
+        <td>volatility</td>
+        <td class="num">-0.0061</td>
+        <td class="num">-0.0098</td>
+        <td class="num">0.1210</td>
+        <td class="num">0.49</td>
+        <td class="num">-0.05</td>
+      </tr>
+      <tr>
+        <td><code>vwap_20</code></td>
+        <td>volume_price</td>
+        <td class="num">0.0298</td>
+        <td class="num">0.0264</td>
+        <td class="num">0.1102</td>
+        <td class="num">0.56</td>
+        <td class="num">0.27</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="section-heading">解读</div>
+  <p style="color: var(--text-muted); margin-bottom: 8px;">
+    <strong style="color: var(--text);">RSI(14) 当前 67.2</strong> 接近超买区间,
+    但过去 248 个交易日中 RSI 对未来 5 日收益有弱预测能力(IC=0.034)。
+  </p>
+  <p style="color: var(--text-muted); margin-bottom: 8px;">
+    <strong style="color: var(--text);">OBV 1.23B</strong> 显示资金近期净流入,
+    对未来 5 日收益预测 IC=0.024,正向占比 55%。
+  </p>
+  <p style="color: var(--text-dim); font-size: 12px;">
+    <em>注: IC 评估基于历史回测,实际预测能力可能受市场环境变化影响。</em>
+  </p>
+</div>
+
+<!-- ============ Page 3: 通用 Agent 抽屉 ============ -->
+<div id="agent-page" class="mock-page" style="display: none;">
+  <div class="mock-main">
+    <h2>Watchlist 我的关注</h2>
+    <p style="color: var(--text-muted);">右侧抽屉是「通用理财助手」原型,常驻可关闭。</p>
+    <div class="mock-card">
+      <h4>📈 招商银行 (600036.SS)</h4>
+      <div class="quote-row">
+        <span class="price">38.45</span>
+        <span class="delta up">+0.46 (+1.2%)</span>
+      </div>
+    </div>
+    <div class="mock-card">
+      <h4>📈 江淮汽车 (600418.SS)</h4>
+      <div class="quote-row">
+        <span class="price">29.18</span>
+        <span class="delta down">-0.32 (-1.08%)</span>
+      </div>
+    </div>
+    <div class="mock-card">
+      <h4>📈 三一重工 (600031.SS)</h4>
+      <div class="quote-row">
+        <span class="price">18.92</span>
+        <span class="delta up">+0.15 (+0.80%)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 抽屉本体 -->
+  <div class="drawer">
+    <div class="drawer-header">
+      <h3>通用理财助手</h3>
+      <button class="icon-btn" title="设置">⚙</button>
+      <button class="icon-btn" title="清空">🗑</button>
+      <button class="icon-btn" title="关闭">✕</button>
+    </div>
+
+    <div class="messages">
+      <!-- 用户提问 -->
+      <div class="msg user">
+        <div class="bubble user">帮我看 600036 现在能不能加仓?顺便跟 600000 比一下</div>
+      </div>
+
+      <!-- 工具调用 1 -->
+      <div class="msg assistant">
+        <div class="tool-card">
+          <div class="head"><span class="icon">⚡</span> tool: <code>compute_alpha_factors</code></div>
+          <div class="kv"><span class="k">symbol</span><span class="v">600036.SS</span></div>
+          <div class="kv"><span class="k">factors</span><span class="v">rsi_14, macd_hist, obv, roc_20</span></div>
+          <div class="kv"><span class="k">curr_date</span><span class="v">2026-09-10</span></div>
+          <div class="duration">⏱ 247ms · 结果: rsi_14=67.2, macd_hist=+0.04, obv=1.23B</div>
+        </div>
+      </div>
+
+      <!-- 工具调用 2 -->
+      <div class="msg assistant">
+        <div class="tool-card">
+          <div class="head"><span class="icon">⚡</span> tool: <code>compute_alpha_factors</code></div>
+          <div class="kv"><span class="k">symbol</span><span class="v">600000.SS</span></div>
+          <div class="kv"><span class="k">factors</span><span class="v">rsi_14, macd_hist, obv, roc_20</span></div>
+          <div class="kv"><span class="k">curr_date</span><span class="v">2026-09-10</span></div>
+          <div class="duration">⏱ 251ms · 结果: rsi_14=58.4, macd_hist=-0.02, obv=890M</div>
+        </div>
+      </div>
+
+      <!-- 工具调用 3: 风险评估 -->
+      <div class="msg assistant">
+        <div class="tool-card">
+          <div class="head"><span class="icon">⚡</span> tool: <code>get_quote</code></div>
+          <div class="kv"><span class="k">symbols</span><span class="v">600036.SS, 600000.SS</span></div>
+          <div class="duration">⏱ 23ms · 结果: 600036=38.45, 600000=8.92</div>
+        </div>
+      </div>
+
+      <!-- 助手综合回答 -->
+      <div class="msg assistant">
+        <div class="bubble assistant">
+          综合判断(招商银行 <code>600036.SS</code>):
+          <ul style="margin: 8px 0 0 20px;">
+            <li>RSI(14)=<span class="highlight-num">67.2</span>,接近超买但未到</li>
+            <li>MACD 柱 <span class="highlight-up">+0.04</span>,多头持续</li>
+            <li>OBV <span class="highlight-up">1.23B</span>,资金净流入</li>
+            <li>ROC(20)=<span class="highlight-num">+5.2%</span>,中期趋势向上</li>
+          </ul>
+          <p style="margin-top: 8px;">
+            对比浦发银行(<code>600000.SS</code>):RSI 58.4 偏中性,MACD 柱已转负,
+            招商银行 <strong style="color: var(--green);">技术面更强</strong>。
+          </p>
+          <p style="margin-top: 8px;">
+            ⚠️ <strong style="color: var(--yellow);">建议</strong>:
+            若已有持仓可继续持有,加仓建议等 RSI 回落至 50-60 区间。
+          </p>
+        </div>
+      </div>
+
+      <!-- 用户追问 -->
+      <div class="msg user">
+        <div class="bubble user">给 600036 设个 8% 涨幅提醒</div>
+      </div>
+
+      <!-- 工具调用 4 -->
+      <div class="msg assistant">
+        <div class="tool-card">
+          <div class="head"><span class="icon">⚡</span> tool: <code>create_alert</code></div>
+          <div class="kv"><span class="k">symbol</span><span class="v">600036.SS</span></div>
+          <div class="kv"><span class="k">rule</span><span class="v">change_pct ≥ 8%</span></div>
+          <div class="duration">⏱ 89ms · ✅ 告警已创建(id: alert-7f3a)</div>
+        </div>
+      </div>
+
+      <!-- 助手确认 -->
+      <div class="msg assistant">
+        <div class="bubble assistant">
+          ✅ 已为 <code>600036.SS</code> 创建涨幅提醒:
+          当日内涨幅 ≥ <strong style="color: var(--yellow);">8%</strong> 时触发,
+          通过飞书机器人通知。<br>
+          <span style="color: var(--text-muted); font-size: 12px;">告警 ID: alert-7f3a</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <textarea placeholder="问问理财相关的问题..."></textarea>
+      <button>发送</button>
+    </div>
+
+    <div class="preferences-bar">
+      <span class="chip">🏷 行业: 银行 · 消费</span>
+      <span class="chip">⚖ 风险: 稳健</span>
+      <span class="chip">🕐 周期: 中长线</span>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchPage(pageId, btn) {
+  document.querySelectorAll('[id$="-page"]').forEach(el => el.style.display = 'none');
+  document.getElementById(pageId).style.display = pageId === 'agent-page' ? 'flex' : 'block';
+  document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+
+</body>
+</html>
