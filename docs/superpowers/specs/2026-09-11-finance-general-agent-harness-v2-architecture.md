@@ -281,6 +281,8 @@ stateDiagram-v2
 
 ---
 
+**N100 fix,2026-09-11**:本 spec 3 个图,目前 `docs/superpowers/specs/diagrams/` 只有 2 个 PNG 对应(overview + data_layer),**图 2 Tier 2 StateGraph 没对应 PNG**。Day 12 渲染时补上 stategraph PNG。
+
 ## 图 3 — Data Layer(Provider ABC + DataResponse 统一容器)
 
 ```mermaid

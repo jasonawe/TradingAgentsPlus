@@ -33,7 +33,7 @@
 
 ### 1.2 v2 实施时遇到的 4 个新问题
 
-**问题 1:9 个文件 2892 行,边界模糊**
+**问题 1:10 个文件 2892 行,边界模糊**(**N102 fix,2026-09-11**:实际 `ls` 显示 `general/` 下 10 个文件:`__init__.py` + `approval.py` + `audit.py` + `guardrails.py` + `mcp_server.py` + `memory.py` + `orchestrator.py` + `prompts.py` + `routing.py` + `tools_bridge.py`,其中 9 个模块 + 1 个空 `__init__.py`)
 
 当前 `tradingagents/agents/general/` 包含:
 - `orchestrator.py` (383 行)— 主图 + StateGraph
@@ -111,7 +111,7 @@
 
 ## 3. 目录结构(半独立方案)
 
-**重要**(N46/N47 fix,2026-09-11):本节描述的是 **P2-P7 实施后目标结构**,非当前状态。当前  只有 P1 骨架(15 个  +  +  共 134 行);§3 中所有  /  /  /  等文件是 P2-P7 待建目标。
+**重要**(N46/N47/N98 fix,2026-09-11):本节描述的是 **P2-P7 实施后目标结构**,非当前状态。当前实际 `agent_harness/` 下只有 **17 个文件**(大部分空 `__init__.py` 占位),**只有 2 个非空文件**:`harness.py` + `config/schema.py`(P1 骨架,共 134 行)。§3 中所有 `core/` / `tools/` / `agents/` / `workflow/` / `plugins/` / `observability/` / `mcp/` 等子目录的文件都是 P2-P7 待建目标。
 
 
 
