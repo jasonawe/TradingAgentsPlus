@@ -38,7 +38,7 @@
 
 **问题 B:Tool 层没强 schema**
 
-`tools_bridge.py` 21 个 LangChain `@tool` 函数,入参是 `BaseModel` 但**没有 server-side validate**。LLM 可以传任意 dict,出错了静默。
+`tools_bridge.py` 21 个 LangChain `@tool` 函数,入参是 `Annotated[str, "..."]` 描述符(**N96 fix,2026-09-11**:实际不是 BaseModel,是 LangChain Annotated 描述符),**没有 server-side validate**。LLM 可以传任意 dict,出错了静默。
 
 **问题 C:`run_trading_agents_analysis` 不该走 chat loop**
 
@@ -117,7 +117,8 @@ Tier 3: Full Workflow (multi-agent DAG)
 | 子模式 | 行为 | LLM 调用 | 适用场景 |
 |---|---|---|---|
 | **Tier 1a** raw emit | regex → tool.invoke() → emit 数据 → 前端渲染结构化卡片 | 0 | 简单数据查询(价格/历史/因子) |
-| **Tier 1b** template 合成 | regex → tool.invoke() → Jinja2 模板拼文字回答 → emit | 0 | 数据 + 简短文字说明(如"RSI 67 偏高") |
+| **Tier 1b** template 合成 | regex → tool.invoke() → Jinja2 模板拼文字回答 → emit | 0 | 数据 + 简短文字说明(如"RSI 67 偏高")  
+**N101 fix,2026-09-11**:Tier 1b 是 P1 实施目标,当前代码无 Jinja2 依赖。P1 实施时新增 `core/template.py`(Jinja2 模板引擎),默认 Tier 1a raw emit,Tier 1b 由 query 关键词("说明"/"解释")触发 |
 
 默认 Tier 1a,UI 渲染结构化数据卡片(更精确);Tier 1b 由 query 关键词("说明"/"解释")触发。两者都 0 LLM。
 
@@ -130,6 +131,12 @@ Tier 3: Full Workflow (multi-agent DAG)
 - Tier 3 → 调现有 `run_trading_agents_analysis` workflow
 
 ### D2. Tool 重构 — Pydantic Schema + Unified DataResponse
+
+**当前实施状态**(**N97 fix,2026-09-11**):v1 已实施 + merge main(v0.7.0 tag);v2 P1-P4 **未开始**。4 个核心组件待实施:
+- `data/responses.py`(D2 DataResponse)— ❶ 不存在
+- `data/providers/base.py`(D2 Provider ABC)— ❷ 不存在
+- `core/stategraph.py`(D5 StateGraph 主图)— ❸ 不存在
+- `verification/*.py`(D6 Verification L1/L2/L3)— ❹ 不存在
 
 **借鉴**:OpenBB OBBject + Provider ABC + WrenAI sqlglot 校验
 

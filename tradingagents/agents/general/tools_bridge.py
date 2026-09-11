@@ -1,4 +1,4 @@
-"""Stage C Agent 可用 tools 集合 — 15 个 LangChain @tool。
+"""Stage C Agent 可用 tools 集合 — 21 个 LangChain @tool(N99 fix,2026-09-11,实际 ALL_TOOLS 21 个,原 docstring "15" 过时)。
 
 按 O7 选项 2 设计 + Day 3 加 7 个写工具(HITL):
 - Alpha158 × 3: list_alpha_factors / compute_alpha_factors / evaluate_alpha(直接复用 B1)
