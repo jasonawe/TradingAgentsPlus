@@ -98,7 +98,9 @@ Tier 3: Full Workflow (multi-agent DAG)
 |---|---|---|---|
 | keyword 命中"价格/多少钱/报价/quote/RSI/换手" + ticker 抽取成功 | **Tier 1** | regex → tool.invoke() → emit raw data | 0 次 |
 | keyword 命中"估值/对比/分析" + ticker 抽取成功 | **Tier 2** | LLM plan → server 执行 → LLM synthesize | 1-2 次 |
-| keyword 命中"深度/综合/详细" + LLM 推理需要 | **Tier 2/3** | LLM plan → server 执行 / 多 agent DAG | 1-15 次 |
+| keyword 命中"深度/综合/详细" + ticker 数量 = 1 + LLM 推理需要 | **Tier 2** | LLM plan → server 执行 → LLM synthesize | 1-2 次 |
+| keyword 命中"深度/综合/详细" + ticker 数量 > 1(对比/批量) + LLM 推理需要 | **Tier 3** | 多 agent DAG 并行(Workflow runner) | 5-15 次 |
+| keyword 命中"价格/多少钱" 但 ticker 抽取失败(用户没说标的) | **Tier 1 → 降级 Tier 2** | regex miss → fallback 到 LLM 反问 ticker | 1 次(反问) |
 | 写操作(create_*/update_*/delete_*) | 强制 HITL | ConfirmNode yield → 等用户 confirm → execute | 0-1 次 |
 
 **Fallback 路径**(某 tier 失败时):Tier 1 失败 → Tier 2 / Tier 2 失败 → Tier 3 / 全部失败 → 返回错误 + 提示用户换 query。
@@ -146,7 +148,7 @@ def get_quote(symbol: str, asset_type: str = "stock") -> dict:
 # After (Pydantic schema + DataResponse)
 class QuoteArgs(BaseModel):
     symbol: str = Field(..., description="ticker code, e.g. 600036.SS")
-    asset_type: str = Field("stock", regex="^(stock|etf|index|crypto)$")
+    asset_type: str = Field("stock", pattern="^(stock|etf|index|crypto)$")
 
 class QuoteResult(DataResponse):
     results: QuoteData  # nested Pydantic
@@ -201,7 +203,7 @@ def get_quote(symbol: str, asset_type: str = "stock") -> dict:
   - Layer 1-2:各 200 tokens
   - Layer 3 tool schemas:动态剪枝,上限 800 tokens
   - Layer 4-5:各 300 tokens
-  - Layer 6:动态,最近 5 轮对话全量
+  - Layer 6:**≤1500 tokens 上限**(N5 fix,2026-09-11)。最近 5 轮对话全量,超过则先 summarize 最老 1-2 轮再 trim。**单层超 1500 → 立即触发 summarize,不能等总预算超 4K**
   - Layer 7:200 tokens
   - Layer 8:仅当其他层不够时启用,上限 500 tokens
 - **Trim 触发**:total > 4K 时,从 Layer 8 往上 trim,直到 < 4K

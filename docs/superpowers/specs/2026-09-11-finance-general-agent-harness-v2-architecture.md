@@ -289,7 +289,7 @@ flowchart LR
     end
 
     subgraph SCHEMA["Pydantic Schema 校验"]
-        S1["class QuoteArgs(BaseModel)<br/>symbol: str<br/>asset_type: str (regex)"]
+        S1["class QuoteArgs(BaseModel)<br/>symbol: str<br/>asset_type: str (pattern)"]
         S2["class HistoryArgs(BaseModel)<br/>symbol: str<br/>start: date<br/>end: date<br/>interval: str"]
         S3["class FundArgs(BaseModel)<br/>symbol: str<br/>fields: list[str]"]
     end

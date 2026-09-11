@@ -245,7 +245,7 @@ tests/
 |---|---|---|---|---|
 | **PlannerAgent** | JSON plan 生成 | (无 tool,纯推理) | 1 次 | Tier 2/3 入口 |
 | **VerifierAgent** | L3 LLM-judge | (无 tool) | 0-1 次 | Tier 2/3 验证 |
-| **DataAgent** ⭐ 合并 | 行情 + 基本面(**不含** get_history) | `get_quote / get_quotes_batch / get_fundamentals` | 0 次(可纯 server-side) | Tier 3 数据子任务 / Tier 1 短路径 |
+| **DataAgent** ⭐ 合并 | 行情 + 基本面(**不含** get_history) | `get_quote / get_quotes_batch / get_fundamentals` | 0 次(可纯 server-side) | Tier 3 数据子任务(N2 fix,Tier 1 短路径**不**经过 DataAgent) |
 
 **DataAgent 边界澄清**(C1 fix,2026-09-11):
 - DataAgent **不包含** `get_history` — `get_history` 是 AlphaAgent 的前置工具
@@ -259,7 +259,7 @@ tests/
 - 行情和基本面查询通常是连续动作("查价 → 看基本面")
 - 合并后一个 agent 内部可共享 LLM context(查完价后基本面的 query 可用同一 context)
 - Tier 3 DAG 节点数从 4 个降到 3 个(DAG 更简洁)
-- 新增 Tier 1 短路径(DataAgent 可零 LLM 完成 80% query)
+- 新增 Tier 1 短路径(`core/short_circuit.py` 直接 `PROVIDERS.get_quote`,**不**经过 DataAgent;DataAgent 只用于 Tier 3)
 
 **说明**:
 - QuoteAgent / FundamentalsAgent / AlphaAgent / NewsAgent 是 Tier 3 DAG 的并行节点
@@ -659,7 +659,7 @@ class QuantPlugin(Plugin):
 class Harness:
     """Harness 主类 — 组装所有组件,提供统一入口。
 
-    **Init order**(C2 fix,2026-09-11,严格按此顺序):
+    **Init order**(C2 fix + N4 fix,2026-09-11):
     1. config (HarnessConfig.from_env)
     2. tool_registry (ToolRegistry)
     3. agent_registry (AgentRegistry)
@@ -671,8 +671,14 @@ class Harness:
     9. context_priority (ContextPriority)
     10. retry_policy + circuit_breaker
     11. tier_router (TierRouter)
-    12. orchestrator (Orchestrator,依赖 2-11)
-    13. plugin_registry (PluginRegistry,最后注册所有 plugin)
+    12. **plugin_registry** (PluginRegistry,注册框架 plugin + 暂存 builtin plugin 引用)
+    13. **orchestrator** (Orchestrator,依赖 2-12,**用 lazy binding 引用 plugin-aware registry**)
+
+    **Lazy binding 策略**(N4 fix,2026-09-11):
+    - Orchestrator 构造时**不**立即调用 `plugin_registry.install_all()`,只保存引用
+    - 第一次 `stream_chat()` 调用时才 `plugin_registry.install_all()` 并 refresh internal caches(plan_capabilities / tool list)
+    - 这样后续 plugin install 不会让 Orchestrator 拿到 stale 列表
+    - 测试:`tests/test_harness_plugin_late_install.py` 验证 "构造 harness 后再 install 新 plugin,orchestrator 能看到新 tool"
     """
 
     def __init__(self, config: HarnessConfig | None = None):
@@ -1021,6 +1027,19 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 - 业务 agent(`quant/market/news` 等)
 
 ---
+
+## 14. Next Steps
+
+**总工期估算(N3 fix,2026-09-11)**:
+- v2 spec P0-P4 = **约 3.5 天**
+- v3 spec P1-P7 = **约 3.5 天**
+- 30% 迁移 buffer = **约 1 天**
+- **总计 ~8 天**
+
+**前置依赖**:
+- ✅ v3 P1(骨架)2026-09-11 已完成
+- ✅ v2 P0(本 spec 同时完成)= 已 Approved
+- ❌ v2 P1(Tier 1 short circuit)= 未开始,必须先于 v3 P3
 
 ## 14. Next Steps
 
