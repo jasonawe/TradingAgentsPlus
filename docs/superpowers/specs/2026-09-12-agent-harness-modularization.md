@@ -10,11 +10,11 @@
 
 ## 0. TL;DR
 
-**v2 spec 解决了"harness 怎么改"的问题(D1-D6)。本 spec 解决"harness 该放哪、怎么组织"的问题**(O14=B 5 个 agent + O15=A 3 个 plugin) — 把当前散落在 `tradingagents/agents/general/`(2892 行,9 个文件)的 harness 逻辑抽到独立的 `tradingagents/agent_harness/` 子包,**半独立方案**,新旧并行 3-5 天落地。
+**v2 spec 解决了"harness 怎么改"的问题(D1-D6)。本 spec 解决"harness 该放哪、怎么组织"的问题**(O14=B 6 个 agent + O15=A 3 个 plugin) — 把当前散落在 `tradingagents/agents/general/`(2892 行,9 个文件)的 harness 逻辑抽到独立的 `tradingagents/agent_harness/` 子包,**半独立方案**,新旧并行 3-5 天落地。
 
 **核心答案 3 句话(O14=B, O15=A 拍板)**:
 1. **harness 是独立子包** — `tradingagents/agent_harness/`,跟业务 agent(quant/market/news)解耦
-2. **5 个真实 sub-agent**(合并 QuoteAgent+FundamentalsAgent 为 DataAgent)— PlannerAgent / VerifierAgent / DataAgent / AlphaAgent / NewsAgent / SynthesizerAgent;其他都是 tool 组合
+2. **6 个真实 sub-agent**(合并 QuoteAgent+FundamentalsAgent 为 DataAgent)— PlannerAgent / VerifierAgent / DataAgent / AlphaAgent / NewsAgent / SynthesizerAgent;其他都是 tool 组合
 3. **3 个内置 plugin**(Quant/News/Alert)+ Tool/Plugin Registry 借鉴 OpenBB `entry_points`
 
 ---
@@ -69,7 +69,7 @@
 |---|---|---|
 | G1 | 抽到 `tradingagents/agent_harness/` 独立子包 | `from tradingagents.agent_harness import Harness` 可用 |
 | G2 | 旧 `tradingagents/agents/general/` 路径兼容(3-5 天过渡期) | 现有 9+ 测试套件全不破 |
-| G3 | 定义 7 个 sub-agent + 1 个 orchestrator 的标准接口 | `BaseAgent` ABC + 7 个实现 |
+| G3 | 定义 6 个 sub-agent + 1 个 orchestrator 的标准接口 | `BaseAgent` ABC + 6 个实现 |
 | G4 | 实现 Tool Registry + Plugin 机制 | 加新 tool 不改 harness 核心代码 |
 | G5 | 高可用 10 项全部落地 | Health check / circuit breaker / failover 全工作 |
 | G6 | 高效 10 项全部落地 | Tier 1 短路径 + 并行 invoke + cache 全工作 |
@@ -167,7 +167,7 @@ tradingagents/
 │   │   ├── l2_preferences.py            user_preferences
 │   │   └── l3_references.py             agent_references
 │   │
-│   ├── agents/                          Sub-agent 定义(Tier 3) — O14=B 拍板 5 个
+│   ├── agents/                          Sub-agent 定义(Tier 3) — O14=B 拍板 6 个
 │   │   ├── __init__.py
 │   │   ├── base.py                      BaseAgent ABC + AgentInput/AgentResult
 │   │   ├── registry.py                  AgentRegistry
@@ -235,11 +235,11 @@ tests/
 
 ---
 
-## 4. 子 Agent 划分(5 个真实 sub-agent)
+## 4. 子 Agent 划分(6 个真实 sub-agent)
 
 **关键原则**:LLM agent 是贵资源,大部分场景是 tool 组合,只有真正需要 LLM 推理的才用 agent。
 
-### 4.1 5 个 sub-agent 详细定义
+### 4.1 6 个 sub-agent 详细定义
 
 | Sub-agent | 角色 | 工具集 | LLM 调用 | 何时启用 |
 |---|---|---|---|---|
@@ -262,7 +262,7 @@ tests/
 - 新增 Tier 1 短路径(`core/short_circuit.py` 直接 `PROVIDERS.get_quote`,**不**经过 DataAgent;DataAgent 只用于 Tier 3)
 
 **说明**:
-- QuoteAgent / FundamentalsAgent / AlphaAgent / NewsAgent 是 Tier 3 DAG 的并行节点
+- **DataAgent / AlphaAgent / NewsAgent 是 Tier 3 DAG 的并行节点**(QuoteAgent+FundamentalsAgent 已合并为 DataAgent,见 §4.1 表 + §3 directory)
 - PlannerAgent / VerifierAgent / SynthesizerAgent 是 Tier 2/3 的控制流节点
 - **不是每个业务域都要 agent** — 例如 schedule / preference update 直接走 tool,不开 agent
 
@@ -672,13 +672,15 @@ class Harness:
     10. retry_policy + circuit_breaker
     11. tier_router (TierRouter)
     12. **plugin_registry** (PluginRegistry,注册框架 plugin + 暂存 builtin plugin 引用)
-    13. **orchestrator** (Orchestrator,依赖 2-12,**用 lazy binding 引用 plugin-aware registry**)
+    13. **orchestrator** (Orchestrator,依赖 2-12,**用 shared registry 引用 + dynamic queries**)
 
-    **Lazy binding 策略**(N4 fix,2026-09-11):
-    - Orchestrator 构造时**不**立即调用 `plugin_registry.install_all()`,只保存引用
-    - 第一次 `stream_chat()` 调用时才 `plugin_registry.install_all()` 并 refresh internal caches(plan_capabilities / tool list)
-    - 这样后续 plugin install 不会让 Orchestrator 拿到 stale 列表
+    **Shared registry + dynamic queries 策略**(N4/N15 fix,2026-09-11):
+    - Orchestrator 构造函数**只接受** `tool_registry` / `agent_registry` / `llm_factory` / `context_priority` / `retry_policy` / `circuit_breaker` / `audit`,**不**接受 `plugin_registry` 参数
+    - Harness 持有 `tool_registry` 和 `agent_registry` 引用(同一对象),plugin install 时调用 `tool_registry.add()` / `agent_registry.register()` 改的就是这个 dict
+    - Orchestrator 在 `stream_chat()` 时调用 `self.tool_registry.get(name)` / `self.agent_registry.list()` 是**动态查询**,不是 lazy binding
+    - 这样后续 plugin install 后,Orchestrator 立即看到新 tool/agent(无需 refresh cache)
     - 测试:`tests/test_harness_plugin_late_install.py` 验证 "构造 harness 后再 install 新 plugin,orchestrator 能看到新 tool"
+    - **命名澄清**:本架构采用 "shared mutable registry + runtime query" 模式,**不**是 plugin 系统的 "lazy binding"(lazy binding 通常指 binding 推迟到首次使用时,本架构 binding 是 eager 但 query 是 lazy 的)
     """
 
     def __init__(self, config: HarnessConfig | None = None):
@@ -802,11 +804,9 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 
 ## 7. 高扩展性 + 高可用 + 高效(精简版)
 
-### 7.1 高扩展性(8 项)— D4 由 v2 spec P4 实施
-
-**注意**:D4 8 层 Context Priority 由 **v2 spec P4** 负责实施(2026-09-13),本 spec v3 不实施。本 spec §7.1 仅列 D4 设计描述,实施时引用 v2 spec。
-
 ### 7.1 高扩展性(8 项)
+
+**注**:D4 8 层 Context Priority 实施见 v2 spec P4,本表只列模块级扩展性设计(不重复 D4)。
 
 | # | 设计 | 实现位置 |
 |---|---|---|
@@ -866,7 +866,7 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 | D1-D6 设计决策 | ✅ 不变 |
 | 实施 Roadmap P0-P4 | ✅ 替换为更详细的 P1-P7(见 §9) |
 | File Manifest(v2 写了 14 个文件) | ✅ 扩展到 50+ 文件(本 spec §3) |
-| 7 个 sub-agent 表(本 spec §4) | ✅ 新增 — v2 没具体化 sub-agent |
+| 6 个 sub-agent 表(本 spec §4) | ✅ 新增 — v2 没具体化 sub-agent |
 | Tool / Plugin 系统(本 spec §5) | ✅ 新增 — v2 只说 Pydantic 化 |
 | Harness 主类(本 spec §6) | ✅ 新增 — v2 没组装入口 |
 | 高扩展 / 高可用 / 高效 | ✅ 不变(v2 写过,本 spec §7 精简版) |
@@ -877,7 +877,7 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 
 **重要**:v3 spec 的 P1-P7 与 v2 spec 的 P0-P4 是**独立编号**,不是同一时间轴。
 - v2 spec P0 = 设计拍板 / P1 = Tier 1 short circuit / P2 = StateGraph 5 节点 / P3 = verification / P4 = Context Priority
-- v3 spec P1 = 创建骨架(已完成 2026-09-11)/ P2 = Provider ABC + DataResponse / P3 = Tool Pydantic 化 / P4 = Orchestrator 实现 / P5 = 5 个 sub-agent / P6 = Plugin 系统 / P7 = Observability
+- v3 spec P1 = 创建骨架(已完成 2026-09-11)/ P2 = Provider ABC + DataResponse / P3 = Tool Pydantic 化 / P4 = Orchestrator 实现 / P5 = 6 个 sub-agent / P6 = Plugin 系统 / P7 = Observability
 - **依赖关系**:v3 P1 必须先于 v2 P1(因为 v2 P1 实施时已经引用 v3 的 ToolRegistry)
 - **总时间** ≈ v2 P0-P4 (3-4 天) + v3 P2-P7 (3-4 天) + 30% 迁移成本 = **总计 ~7-10 天**(不是 v3 spec 原写的 3-4 天)
 
@@ -903,7 +903,7 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 **未覆盖**(留 Day 15+):#4 Pre-fetch / #9 Pre-fetch,这两个留 Phase 3 后期或后续 spec 实施。
 | **P3** | 0.5 天 | `tools/base.py` + `ToolRegistry` + `tools/builtin/` 迁移 6 个核心 read tool(get_quote / get_history / ...) | 旧 9+ 测试套件全不破 + 加新 tool 不改核心代码 demo |
 | **P4** | 1 天 | `core/orchestrator.py`(Tier 2 StateGraph 5 节点)+ `core/tier.py`(D1 三档路由)+ `core/short_circuit.py`(Tier 1 强执行) | 5 节点 plan-execute-verify-synthesize 测试 + 浏览器实测 80% query <3s |
-| **P5** | 0.5 天 | `agents/` 5 个 sub-agent + `AgentRegistry` + `agents/base.py` | BaseAgent 测试 + AgentRegistry 测试 |
+| **P5** | 1 天 | `agents/` 6 个 sub-agent + `AgentRegistry` + `agents/base.py` | BaseAgent 测试 + 6 个 agent 实现测试 + AgentRegistry 测试 |
 | **P6** | 0.5 天 | `plugins/base.py` + `PluginRegistry` + 3 个内置 plugin(Quant/News/Alert)+ entry_points 自动发现 demo | 加第三方 plugin 测试(可手写一个本地 plugin 验证) |
 | **P7** | 0.5 天 | `observability/health.py` + `circuit_breaker` + `provider_failover` + health check endpoint + 飞书告警 webhook | 手工 kill 一个 provider,观察 failover 行为 + health check 返回正确状态 |
 
@@ -946,10 +946,10 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 | # | Risk / Question | Mitigation / 待你拍板 |
 |---|---|---|
 | R1 | 旧代码 re-export 阶段容易出循环 import | **具体对策**(M5 fix,2026-09-11):<br>- **新代码 → 旧代码**:`TYPE_CHECKING` guard + `if TYPE_CHECKING: from ... import ...`<br>- **旧代码 → 新代码**:`__getattr__` lazy 加载(`__getattr__` 在模块级)<br>- **plugin → 旧代码**:`importlib.import_module` deferred(在 plugin install 时才 import)<br>- **测试验证**:`tests/test_harness_no_circular_import.py` 用 `importlib.import_module` 验证所有路径无循环 |
-| R2 | 7 个 sub-agent 拆分可能粒度太细 | QuoteAgent 可考虑 merge 进 FundamentalsAgent(都数据查询),但保留更灵活 |
+| R2 | 7 个 agent 拆分粒度太细(早期 v1 草案) | **已通过 O14=B 拍板**:当前为 **6 个 sub-agent**(Quote+Fundamentals 合并为 DataAgent),更聚焦,实现快 1 天 |
 | R3 | Plugin entry_points 第三方生态短 | 内置 plugin 覆盖 80% 用例,第三方 plugin 留接口 |
 | R4 | ToolRegistry 的 decorator + entry_points 双注册可能冲突 | 注册时去重,后注册抛错 |
-| O14 | **7 个 sub-agent 划分**:太细 / 合适 / 太少? | **待你拍板**(下面) |
+| O14 | **sub-agent 划分粒度**:太细 / 合适 / 太少? | ✅ **已拍板**(下面) |
 | O15 | **plugin 内置粒度**:Quant/News/Alert 3 个 / 还是更细? | **待你拍板**(下面) |
 | O16 | **Day 1-4 立刻开干 vs 再 refine spec** | **待你拍板**(下面) |
 
@@ -957,7 +957,7 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 
 | # | 决策 | 选项 | 我推荐 |
 |---|---|---|---|
-| **O14** ✅ | 5 个 sub-agent 划分(合并 Quote+Fundamentals 为 DataAgent) | A 7 个 / **B 5 个** ✅ / C 9 个 | **B**(更聚焦,实现快 1 天) |
+| **O14** ✅ | 6 个 sub-agent 划分(合并 Quote+Fundamentals 为 DataAgent) | A 8 个 / **B 6 个** ✅ / C 10 个 | **B**(更聚焦,实现快 1 天) |
 | **O15** ✅ | 3 个内置 plugin(Quant/News/Alert)| **A 3 个** ✅ / B 5 个 / C 1 个 | **A**(清晰,MCP 独立更好) |
 | **O16** ✅ | 立即开干 vs 再 refine | **A 立即开干 Day 1-4** ✅ / B 再 refine spec 1-2 天 | **A**(spec 已够细,O14/O15 已拍板) |
 
@@ -980,7 +980,7 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 
 - [ ] `from tradingagents.agent_harness import Harness` 可用
 - [ ] 旧 9+ 测试套件全不破(灰度迁移)
-- [ ] 5 个 sub-agent(DataAgent 合并 QuoteAgent+FundamentalsAgent)全部实现 + 测试
+- [ ] 6 个 sub-agent(DataAgent 合并 QuoteAgent+FundamentalsAgent)全部实现 + 测试
 - [ ] ToolRegistry + PluginRegistry + entry_points 验证通过
 - [ ] Tier 1 短路径 10 个高频 query 端到端测试全过
 - [ ] StateGraph 5 节点 plan-first retry verification 测试全过
@@ -1002,7 +1002,7 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 - `tradingagents/agent_harness/data/` — 数据层 8 个文件
 - `tradingagents/agent_harness/tools/` — Tool 框架 5 个文件
 - `tradingagents/agent_harness/memory/` — 分层记忆 4 个文件
-- `tradingagents/agent_harness/agents/` — Sub-agent 7 个文件(O14=B 合并)
+- `tradingagents/agent_harness/agents/` — Sub-agent 8 个文件(O14=B 合并,6 个 agent + base.py + registry.py)
   - `base.py` / `registry.py` / `planner.py` / `synthesizer.py` / `verifier.py` / `data_agent.py` / `alpha_agent.py` / `news_agent.py`
 - `tradingagents/agent_harness/tools/`(M6 fix,按 §3 目录扁平化分组)
   - 框架:`base.py` / `registry.py` / `schema.py` / `permission.py`

@@ -82,8 +82,9 @@ Tier 1: Direct Tool (server-side, 无 LLM)
 Tier 2: Plan + Execute (LLM plan + server execute)
   适用:"分析 600036 估值合理性" / "对比 600036 跟 600000"
   路径:LLM 给 JSON plan → server 按 plan 顺序/并行调 tool → synthesize
-  LLM 调用:1-2 次(plan + synthesize)
-  延迟:3-8s
+  LLM 调用:**2-3 次**(plan + synthesize;启用 L3 verification 时 +1 次 LLM-judge,默认关 — N16 fix,2026-09-11)
+  延迟:5-10s(N17 fix,2026-09-11,与架构文档 §3 fig 2 example 对齐)
+  token:**500-1200**(plan 看到 4 个 tool schema ≈800 + synthesize ≈400 — N21 fix,2026-09-11)
 
 Tier 3: Full Workflow (multi-agent DAG)
   适用:"深度分析 600036 全维度" / "批量回测 ETF 动量"
@@ -97,8 +98,8 @@ Tier 3: Full Workflow (multi-agent DAG)
 | 触发条件 | Tier | 路径 | LLM 调用 |
 |---|---|---|---|
 | keyword 命中"价格/多少钱/报价/quote/RSI/换手" + ticker 抽取成功 | **Tier 1** | regex → tool.invoke() → emit raw data | 0 次 |
-| keyword 命中"估值/对比/分析" + ticker 抽取成功 | **Tier 2** | LLM plan → server 执行 → LLM synthesize | 1-2 次 |
-| keyword 命中"深度/综合/详细" + ticker 数量 = 1 + LLM 推理需要 | **Tier 2** | LLM plan → server 执行 → LLM synthesize | 1-2 次 |
+| keyword 命中"估值/对比/分析" + ticker 抽取成功 | **Tier 2** | LLM plan → server 执行 → LLM synthesize | **2-3 次**(L3 默认关) |
+| keyword 命中"深度/综合/详细" + ticker 数量 = 1 + LLM 推理需要 | **Tier 2** | LLM plan → server 执行 → LLM synthesize | **2-3 次**(L3 默认关) |
 | keyword 命中"深度/综合/详细" + ticker 数量 > 1(对比/批量) + LLM 推理需要 | **Tier 3** | 多 agent DAG 并行(Workflow runner) | 5-15 次 |
 | keyword 命中"价格/多少钱" 但 ticker 抽取失败(用户没说标的) | **Tier 1 → 降级 Tier 2** | regex miss → fallback 到 LLM 反问 ticker | 1 次(反问) |
 | 写操作(create_*/update_*/delete_*) | 强制 HITL | ConfirmNode yield → 等用户 confirm → execute | 0-1 次 |
@@ -215,7 +216,7 @@ def get_quote(symbol: str, asset_type: str = "stock") -> dict:
 - `stream_chat` 入口根据优先级拼装 context,而不是 LLM 自由从 system prompt 提取
 - 每层有显式注入规则(注入多少 token / 哪些字段 / 何时 trim)
 
-### D5. StateGraph 5 节点(Tier 2 主图)
+### D5. StateGraph 主图 5 节点(Tier 2 主图)— 实施时另有 12+ sub-state
 
 **借鉴**:LangChain DeepAgents TodoMiddleware + Anthropic Claude Code plan-first
 
@@ -225,6 +226,13 @@ PlanNode → ExecuteNode → ObserveNode → VerifyNode → SynthesizeNode
     ↑          ↓                              ↓
     └──────── retry (max 3 + backoff) ────────┘
 ```
+
+**注**(N20 fix,2026-09-11):上面是**主图 5 节点**(plan/execute/observe/verify/synthesize)。实施时 fig 2 实际有 17+ state,包括以下 sub-state:
+- **验证子图**:CheckToolCall(L1) / CheckResult(L2) / CheckAnswer(L3) / AutoBump(tool_call=0 触发)/ RetryExecute / BackToPlan
+- **HITL 子图**:ConfirmNode(写操作)/ CheckWriteOp / WaitUser(等用户 approve)/ ExecuteWrite
+- **Emitter 子图**:EmitFinal(SSE final event)
+
+"5 节点" 是营销命名,实施者必须按 fig 2 的 17+ state 全量实现,不能漏 sub-state。
 
 **节点职责**:
 
@@ -291,7 +299,7 @@ llm_answer: {llm_answer}
 | D2 Tool Pydantic + DataResponse | **OpenBB OBBject + Provider ABC** | FinRobot schema prompt |
 | D3 Workflow 独立 | **OpenBB Quantly playbooks** | Anthropic Claude Code sub-agent |
 | D4 Context Priority | **OpenBB 8 层优先级** | WrenAI schema_items |
-| D5 StateGraph 5 节点 | **LangChain DeepAgents TodoMiddleware** + Anthropic Claude Code plan | FinMem observation/thinking |
+| D5 StateGraph 主图 5 节点(实施时 17+ sub-state) | **LangChain DeepAgents TodoMiddleware** + Anthropic Claude Code plan | FinMem observation/thinking |
 | D6 Verification | **Anthropic Claude Code LLM-judge** + Codex CLI sandbox | WrenAI sqlglot AST |
 
 **核心 takeaway(贯穿 D1-D6)**:从 Anthropic / DeepAgents 学到的两条铁律
@@ -307,7 +315,7 @@ llm_answer: {llm_answer}
 | **P0** | 半天 | 本 doc review + 用户拍板 | 用户确认 D1-D6 | Day 11d |
 | **P1** | **4-5h**(M1 fix) | **Tier 1 Direct Tool** + **Provider ABC** + **DataResponse** | 10 个高频 query 端到端测试 + TestClient | Day 12 |
 **P1 回归测试**:全套 9+ tests/test_d*.py 不破(M4 fix) |
-| **P2** | 6-8h | **StateGraph 5 节点** + **Context Priority** + **Verification L1+L2** | plan-first + retry + verification 测试 + 浏览器实测 | Day 13 |
+| **P2** | 6-8h | **StateGraph 主图 5 节点(17+ sub-state)** + **Context Priority** + **Verification L1+L2** | plan-first + retry + verification 测试 + 浏览器实测 | Day 13 |
 | **P3** | 半天 | **Workflow 独立** + **Verification L3**(LLM-judge) | `run_trading_agents_analysis` 单独跑通 | Day 14 |
 | **P4** | 半天 | 文档 + README 更新 + commit/push/merge | 文档齐全 + merge main | Day 14 收尾 |
 
@@ -354,7 +362,7 @@ llm_answer: {llm_answer}
 ## 7. Success Criteria
 
 - [ ] Tier 1 短路径 10 个高频 query 端到端测试全过
-- [ ] StateGraph 5 节点 plan-first retry verification 测试全过
+- [ ] StateGraph 主图 5 节点 + 17+ sub-state plan-first retry verification 测试全过
 - [ ] 现有 9+ 测试套件全不破(向后兼容)
 - [ ] 实测 "600036 现在多少钱" 延迟 <3s,token=0,bubble 显示真实价格
 - [ ] 实测 "分析 600036 估值合理性" plan 可见,user 可看到进度
@@ -391,7 +399,7 @@ llm_answer: {llm_answer}
 - `verification/answer_judge.py` — L3 LLM-judge
 - `agent/tier.py` — D1 三档 execution 路由
 - `agent/short_circuit.py` — Tier 1 server-side 直调
-- `agent/stategraph.py` — D5 5 节点 StateGraph
+- `agent/stategraph.py` — D5 StateGraph 主图 5 节点(17+ sub-state)
 - `tests/test_d12_provider_abc.py`
 - `tests/test_d12_tier1_short_circuit.py`
 - `tests/test_d13_stategraph.py`
