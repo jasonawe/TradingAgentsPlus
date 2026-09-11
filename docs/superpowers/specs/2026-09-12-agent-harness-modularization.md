@@ -15,7 +15,7 @@
 **核心答案 3 句话(O14=B, O15=A 拍板)**:
 1. **harness 是独立子包** — `tradingagents/agent_harness/`,跟业务 agent(quant/market/news)解耦
 2. **6 个真实 sub-agent**(合并 QuoteAgent+FundamentalsAgent 为 DataAgent)— PlannerAgent / VerifierAgent / DataAgent / AlphaAgent / NewsAgent / SynthesizerAgent;其他都是 tool 组合
-3. **3 个内置 plugin**(Quant/News/Alert)+ Tool/Plugin Registry 借鉴 OpenBB `entry_points`
+3. **3 个内置 plugin**(Quant/News/Alert)+ Tool/Plugin Registry 借鉴 **PyPA entry_points 机制**(OpenBB/Quantly 生态最佳实践,N58 fix,2026-09-11)
 
 ---
 
@@ -471,7 +471,7 @@ class ToolContext:
     trace_id: str | None = None
 ```
 
-### 5.3 ToolRegistry(借鉴 OpenBB entry_points)
+### 5.3 ToolRegistry(借鉴 PyPA entry_points 机制,OpenBB/Quantly 生态最佳实践)
 
 ```python
 class ToolRegistry:
@@ -568,7 +568,7 @@ async def get_quote(args: QuoteArgs) -> QuoteResult:
     )
 ```
 
-### 5.4 Plugin 系统(借鉴 OpenBB entry_points)
+### 5.4 Plugin 系统(借鉴 PyPA entry_points 机制,OpenBB/Quantly 生态最佳实践)
 
 ```python
 class Plugin(ABC):
