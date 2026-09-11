@@ -17,7 +17,8 @@
         }
       })();
     </script>
-    <link rel="stylesheet" href="/static/styles.css?v=20260910-styles-1" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260910-styles-3" />
+    <link rel="stylesheet" href="/static/agent.css?v=20260910-agent-1" />
   </head>
   <body>
     <div class="app-shell">
@@ -31,6 +32,7 @@
           <a href="/reports" data-view="library"><svg class="icon" aria-hidden="true"><use href="#i-reports"/></svg><span class="nav-label" data-i18n="nav.reports">报告库</span></a>
           <a href="/alerts" data-view="alerts"><svg class="icon" aria-hidden="true"><use href="#i-alerts"/></svg><span class="nav-label" data-i18n="nav.alerts">告警管理</span></a>
           <a href="/notes" data-view="notes"><svg class="icon" aria-hidden="true"><use href="#i-notes"/></svg><span class="nav-label" data-i18n="nav.notes">笔记</span></a>
+          <a href="/agent-audit" data-view="agent-audit"><svg class="icon" aria-hidden="true"><use href="#i-alerts"/></svg><span class="nav-label" data-i18n="nav.agentAudit">Agent 审计</span></a>
           <a href="/settings" data-view="settings"><svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg><span class="nav-label" data-i18n="nav.settings">设置诊断</span></a>
         </nav>
         <div class="sidebar-cta">
@@ -60,12 +62,31 @@
                 <span id="alerts-bell-badge" class="alerts-bell-badge" hidden></span>
               </button>
             </div>
+            <div class="agent-entry-wrapper">
+              <button type="button" id="agent-entry-btn" class="agent-entry-btn" aria-label="AI Agent" title="AI Agent(理财通用助手)">
+                💬
+              </button>
+            </div>
             <aside id="alerts-drawer" class="alerts-drawer" hidden>
               <header class="alerts-drawer-header">
                 <h3 data-i18n="alerts.eventsTitle">触发历史</h3>
                 <button type="button" id="alerts-ack-all" class="text-button" data-i18n="alerts.markAllRead">全部已读</button>
               </header>
               <div id="alerts-events-list" class="alerts-events-list" aria-live="polite"></div>
+            </aside>
+            <aside id="agent-drawer" class="agent-drawer" hidden>
+              <header class="agent-drawer-header">
+                <h3>💬 AI Agent</h3>
+                <div class="agent-drawer-actions">
+                  <button type="button" id="agent-clear-btn" title="清空对话">🔄</button>
+                  <button type="button" id="agent-close-btn" title="关闭">✕</button>
+                </div>
+              </header>
+              <div id="agent-messages" class="agent-messages" aria-live="polite"></div>
+              <div class="agent-input-area">
+                <textarea id="agent-input" placeholder="问我行情 / 因子 / 告警..." rows="1"></textarea>
+                <button type="button" id="agent-send-btn">发送</button>
+              </div>
             </aside>
             <button type="button" id="theme-toggle" class="theme-toggle" aria-label="切换主题" title="切换主题">
               <svg id="theme-icon-light" width="18" height="18" aria-hidden="true"><use href="#i-moon"/></svg>
@@ -399,6 +420,35 @@
         </header>
         <div id="notes-all-list" class="notes-all-list"><p class="muted" data-i18n="notes.loading">加载中…</p></div>
       </section>
+      <section id="agent-audit-view" class="view" aria-labelledby="agent-audit-title" hidden>
+        <h1 id="agent-audit-title" class="visually-hidden">Agent 审计</h1>
+        <header class="view-heading">
+          <div>
+            <p class="kicker">Agent 审计日志</p>
+            <h2>Stage C 写操作审计</h2>
+            <p class="muted">通用 Agent 所有写操作的审计记录(告警 / 笔记 / 偏好等)。支持状态过滤与翻页。</p>
+          </div>
+          <div class="view-heading-actions">
+            <select id="agent-audit-status-filter">
+              <option value="">全部状态</option>
+              <option value="pending">待确认</option>
+              <option value="confirmed">已确认</option>
+              <option value="rejected">已拒绝</option>
+              <option value="executed">已执行</option>
+              <option value="failed">失败</option>
+            </select>
+            <button type="button" class="button button-secondary" id="agent-audit-refresh">刷新</button>
+          </div>
+        </header>
+        <div id="agent-audit-list" class="agent-audit-list">
+          <p class="muted">加载中…</p>
+        </div>
+        <div class="view-pagination">
+          <button type="button" class="button button-secondary" id="agent-audit-prev" disabled>上一页</button>
+          <span id="agent-audit-page-info">第 1 页</span>
+          <button type="button" class="button button-secondary" id="agent-audit-next" disabled>下一页</button>
+        </div>
+      </section>
       <section id="report-view" class="view" aria-labelledby="report-title" hidden>
         <section id="report-panel" class="report-panel"><div class="report-heading"><div><h2 id="report-title" data-i18n="report.decisionReport">决策报告</h2><dl id="report-meta" class="report-meta"></dl></div><div class="report-actions"><button id="report-back-library" class="button button-secondary" type="button" data-i18n="actions.backReports">返回报告库</button><button id="download-report" class="button button-secondary" type="button" data-i18n="actions.downloadMarkdown">下载 Markdown</button><button id="new-analysis" class="button button-primary" type="button"><span data-i18n="actions.newAnalysis">新建分析</span> <span aria-hidden="true">&#8594;</span></button></div></div><section id="executive-summary" class="executive-summary" hidden><div class="summary-heading"><p class="kicker" data-i18n="report.executiveSummary">综合研判</p><span class="summary-badge" data-i18n="report.deepModelSummary">深度模型综合</span></div><div id="executive-summary-content" class="summary-content"></div></section><details id="detail-report" class="detail-report"><summary data-i18n="report.showDetails">展开详细智能体报告</summary><div id="report-content" class="report-content"></div></details>
         <section class="report-notes-panel">
@@ -422,7 +472,7 @@
       // 因此即使 window 被冻结也能成功创建全局对象,作为模块注册表的 fallback。
       var __TA_MODULES__ = {};
     </script>
-    <script src="/static/i18n.js?v=20260909-i18n-11" defer></script>
+    <script src="/static/i18n.js?v=20260910-i18n-1" defer></script>
     <script src="/static/rating-labels.js?v=20260909-rating-labels-1" defer></script>
     <script src="/static/kline-chart.js?v=20260909-kline-chart-1" defer></script>
     <script src="/static/lightweight-kline.js?v=20260910-lightweight-kline-2" defer></script>
@@ -432,7 +482,8 @@
     <script src="/static/scheduled-history.js?v=20260909-scheduled-history-1" defer></script>
     <script src="/static/notes.js?v=20260910-notes-5" defer></script>
     <script src="/static/alerts.js?v=20260910-alerts-5" defer></script>
-    <script src="/static/app.js?v=20260910-app-14" defer></script>
+    <script src="/static/app.js?v=20260910-app-19" defer></script>
+    <script src="/static/agent.js?v=20260910-agent-2" defer></script>
     <svg width="0" height="0" style="position:absolute" aria-hidden="true">
       <defs>
         <symbol id="i-watchlist" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

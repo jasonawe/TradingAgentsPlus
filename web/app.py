@@ -13,6 +13,9 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Annotated, Any
 
+from langchain_core.messages import AIMessage
+from langchain_core.runnables import Runnable
+
 from fastapi import FastAPI, Header, HTTPException, Query, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response, StreamingResponse
@@ -253,6 +256,17 @@ def create_app(
         "provider_health": provider_health_repo,
         "artifacts": artifact_repository,
     }
+
+    # Stage C: 把 notes / alerts repo 注入 tools_bridge,write tools 才能用
+    try:
+        from tradingagents.agents.general.tools_bridge import set_repositories
+        set_repositories({
+            "notes": repositories["notes"],
+            "alerts": repositories["alerts"],
+        })
+        LOGGER.info("Stage C: repositories injected for write tools")
+    except ImportError:
+        pass
     if runner is None:
         active_runner = WebRunRunner(
             active_manager,
@@ -335,6 +349,13 @@ def create_app(
         settings=settings_repo,
         config=active_config,
     )
+    # Stage C: 注入 market_service 让 get_quote / get_quotes_batch tool 能用
+    try:
+        from tradingagents.agents.general.tools_bridge import set_quote_service
+        set_quote_service(app.state.market_service)
+        LOGGER.info("Stage C: QuoteService injected for quote tools")
+    except ImportError:
+        pass
     app.state.alert_engine = AlertEngine(app.state.repositories["alerts"])
     app.state.notifier = Notifier(settings_repo=app.state.repositories["settings"])
     app.state.alert_monitor = AlertMonitor(
@@ -380,6 +401,7 @@ def create_app(
     @app.get("/settings", response_class=HTMLResponse, include_in_schema=False)
     @app.get("/alerts", response_class=HTMLResponse, include_in_schema=False)
     @app.get("/notes", response_class=HTMLResponse, include_in_schema=False)
+    @app.get("/agent-audit", response_class=HTMLResponse, include_in_schema=False)
     def index() -> Response:
         return _console_entry()
 
@@ -1393,6 +1415,356 @@ def create_app(
             media_type="text/markdown",
             headers={"Content-Disposition": f'attachment; filename="{filename}"'},
         )
+
+    # ═══════════════════════════════════════════════════
+    # Stage C — Agent Chat (Day 2: 4 endpoints)
+    # ═══════════════════════════════════════════════════
+
+    def _stage_c_data_dir() -> Path:
+        """Stage C agent 数据目录 ~/.tradingagents/"""
+        return Path.home() / ".tradingagents"
+
+    def _stage_c_llm():
+        """构造 Stage C chat 用的 LLM。
+
+        - STAGE_C_MOCK_LLM=1 → mock LLM(免 API key)
+        - 否则从 active_config 读 quick_model/provider 构造 OpenAIClient
+        - 失败时 fallback 到 mock
+        """
+        import os
+
+        class _MockLLM(Runnable):
+            def invoke(self, input, config=None, **kwargs):
+                return AIMessage(content="[mock] Stage C fake answer")
+
+            def bind_tools(self, tools):
+                return self
+
+        if os.environ.get("STAGE_C_MOCK_LLM") == "1":
+            LOGGER.info("Stage C: using mock LLM (STAGE_C_MOCK_LLM=1)")
+            return _MockLLM()
+
+        try:
+            from tradingagents.llm_clients.openai_client import OpenAIClient
+            mc = resolve_model_config(active_config, None, None, None)
+            llm = OpenAIClient(
+                model=mc["quick_model"], provider=mc["provider"],
+            ).get_llm()
+            LOGGER.info("Stage C: using %s/%s", mc["provider"], mc["quick_model"])
+            return llm
+        except Exception as e:
+            LOGGER.warning("Stage C: real LLM init failed (%s), fallback to mock", e)
+            return _MockLLM()
+
+    @app.post(
+        "/api/agent/sessions", status_code=status.HTTP_201_CREATED,
+    )
+    def create_agent_session() -> dict[str, Any]:
+        """创建新的 chat session,返回 session_id。"""
+        import uuid
+        sid = f"s_{uuid.uuid4().hex[:16]}"
+        return {
+            "session_id": sid,
+            "created_at": datetime.utcnow().isoformat() + "Z",
+        }
+
+    @app.get("/api/agent/sessions")
+    def list_agent_sessions() -> list[dict[str, Any]]:
+        """列出所有 L1 短期对话 sessions。"""
+        from tradingagents.agents.general.memory import list_session_ids
+        sids = list_session_ids(_stage_c_data_dir())
+        return [{"session_id": sid, "last_active": None} for sid in sids]
+
+    @app.get("/api/agent/sessions/{session_id}")
+    def get_agent_session(session_id: str) -> dict[str, Any]:
+        """读 session 的对话历史(L1 LangGraph state)。"""
+        from tradingagents.agents.general.orchestrator import (
+            build_agent, get_session_history,
+        )
+        llm = _stage_c_llm()
+        agent, conn = build_agent(
+            llm=llm, data_dir=_stage_c_data_dir(), session_id=session_id,
+        )
+        try:
+            history = get_session_history(agent, session_id)
+            return {"session_id": session_id, "history": history}
+        finally:
+            conn.close()
+
+    @app.post("/api/agent/chat/stream")
+    def agent_chat_stream(
+        request: Request, body: dict[str, Any],
+    ) -> StreamingResponse:
+        """SSE 流式 chat endpoint — Stage C 主入口。"""
+        from tradingagents.agents.general.orchestrator import (
+            build_agent, stream_chat,
+        )
+        session_id = body.get("session_id")
+        user_message = body.get("user_message")
+        if not session_id or not user_message:
+            raise _error(
+                status.HTTP_400_BAD_REQUEST,
+                "session_id 和 user_message 必填",
+            )
+
+        llm = _stage_c_llm()
+        agent, conn = build_agent(
+            llm=llm, data_dir=_stage_c_data_dir(), session_id=session_id,
+        )
+
+        def stream():
+            try:
+                for event_type, payload in stream_chat(
+                    agent, session_id, user_message,
+                ):
+                    if _request_disconnected(request):
+                        return
+                    envelope = {"event": event_type, "payload": payload}
+                    yield (
+                        f"event: {event_type}\n"
+                        f"data: {json.dumps(envelope, ensure_ascii=False, separators=(',', ':'))}\n\n"
+                    )
+                yield "event: done\ndata: {}\n\n"
+            finally:
+                conn.close()
+
+        return StreamingResponse(
+            stream(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",
+            },
+        )
+
+    # ═══════════════════════════════════════════════════
+    # Stage C Day 3: HITL confirm + audit log endpoints
+    # ═══════════════════════════════════════════════════
+
+    @app.post("/api/agent/sessions/{session_id}/confirm")
+    def confirm_agent_write(
+        session_id: str,
+        request: Request,
+        body: dict[str, Any],
+    ) -> StreamingResponse:
+        """HITL: 处理用户对写操作的确认/拒绝决策。
+
+        Body:
+          {
+            "audit_id": int,
+            "tool_name": str,       # 用于 grant_approval
+            "tool_args": dict,       # 用于 grant_approval
+            "approve": bool,         # True=确认,False=拒绝
+            "user_message": str,     # 用于 resume 时 replay
+          }
+
+        Returns: SSE stream(继续 agent 调用,执行已批准的 tool)
+        """
+        from tradingagents.agents.general.approval import grant_approval
+        from tradingagents.agents.general.audit import update_write_status
+        from tradingagents.agents.general.orchestrator import (
+            build_agent, stream_chat,
+        )
+
+        audit_id = body.get("audit_id")
+        tool_name = body.get("tool_name")
+        tool_args = body.get("tool_args") or {}
+        approve = bool(body.get("approve", False))
+        user_message = body.get("user_message", "")
+
+        if not tool_name or not user_message:
+            raise _error(
+                status.HTTP_400_BAD_REQUEST,
+                "tool_name + user_message 必填",
+            )
+
+        # 1. 更新 audit log 状态
+        try:
+            status_value = "confirmed" if approve else "rejected"
+            update_write_status(
+                None, audit_id, status=status_value, confirmed_by="user",
+            )
+        except Exception as e:
+            LOGGER.warning("Stage C: audit update failed: %s", e)
+
+        # 2. grant approval(只有 approve=true 才需要)
+        if approve:
+            grant_approval(session_id, tool_name, tool_args)
+
+        llm = _stage_c_llm()
+        agent, conn = build_agent(
+            llm=llm, data_dir=_stage_c_data_dir(), session_id=session_id,
+        )
+
+        # 3. 状态注入 + 真实执行(避免无限循环)
+        # 思路:不要让 agent 从头跑(那会再调同一个 tool → 又 AWAITING_CONFIRMATION)
+        # 而是手动:
+        #   - approved → 手动执行 tool → inject ToolMessage(content=真实结果)
+        #   - rejected → inject ToolMessage(content="user rejected ...")
+        # 然后 agent.stream(None, config) 从当前 state resume
+        from langchain_core.messages import ToolMessage
+        from tradingagents.agents.general.orchestrator import session_thread_id
+        from tradingagents.agents.general.tools_bridge import ALL_TOOLS
+
+        config = {"configurable": {"thread_id": session_thread_id(session_id)}}
+        tool_call_id = body.get("tool_call_id") or f"call-{audit_id}"
+        inject_msg = None
+        try:
+            if approve:
+                tool_obj = next(
+                    (t for t in ALL_TOOLS if t.name == tool_name), None,
+                )
+                if tool_obj is None:
+                    result_str = f"ERROR: tool {tool_name!r} not found"
+                else:
+                    try:
+                        # 注入 LangGraph config(工具需要 config 来提取 session_id)
+                        invoke_args = {**tool_args, "config": config}
+                        result_str = tool_obj.invoke(invoke_args)
+                    except Exception as e:
+                        result_str = (
+                            f"ERROR: tool execution failed - "
+                            f"{type(e).__name__}: {e}"
+                        )
+                inject_msg = ToolMessage(
+                    content=result_str, tool_call_id=tool_call_id,
+                )
+            else:
+                inject_msg = ToolMessage(
+                    content=(
+                        f"用户拒绝了你的 {tool_name} 操作 "
+                        f"(参数:{json.dumps(tool_args, ensure_ascii=False)})。"
+                        f"此操作未被执行。请告知用户决定,不要再调用同一个 tool。"
+                    ),
+                    tool_call_id=tool_call_id,
+                )
+            if inject_msg is not None:
+                agent.update_state(config, {"messages": [inject_msg]})
+        except Exception as e:
+            LOGGER.warning("Stage C: failed to inject state: %s", e)
+
+        def stream():
+            try:
+                # 先 emit audit_decision(让前端知道决策被记录了)
+                yield (
+                    f"event: audit_decision\n"
+                    f"data: {json.dumps({'audit_id': audit_id, 'approved': approve, 'tool_name': tool_name}, ensure_ascii=False)}\n\n"
+                )
+                # resume: 用 update_state 后的 state 继续(传 {} 让 graph 重新跑 LLM)
+                from langchain_core.messages import (
+                    AIMessage, SystemMessage,
+                )
+                for chunk in agent.stream(
+                    {}, config=config, stream_mode="updates",
+                ):
+                    if _request_disconnected(request):
+                        return
+                    if not isinstance(chunk, dict):
+                        continue
+                    # updates mode: chunk = {node_name: state_updates}
+                    for _node, state_updates in chunk.items():
+                        if not isinstance(state_updates, dict):
+                            continue
+                        for msg_chunk in state_updates.get("messages", []) or []:
+                            if isinstance(msg_chunk, AIMessage):
+                                content = (
+                                    msg_chunk.content
+                                    if isinstance(msg_chunk.content, str)
+                                    else str(msg_chunk.content)
+                                )
+                                if content:
+                                    envelope = {
+                                        "event": "reasoning",
+                                        "payload": {"content": content},
+                                    }
+                                    yield (
+                                        f"event: reasoning\n"
+                                        f"data: {json.dumps(envelope, ensure_ascii=False, separators=(',', ':'))}\n\n"
+                                    )
+                            elif isinstance(msg_chunk, ToolMessage):
+                                content = (
+                                    msg_chunk.content
+                                    if isinstance(msg_chunk.content, str)
+                                    else str(msg_chunk.content)
+                                )
+                                # 再次检测 AWAITING_CONFIRMATION(LLM 可能还想再调写工具)
+                                if isinstance(content, str) and content.startswith("AWAITING_CONFIRMATION:"):
+                                    try:
+                                        payload = json.loads(content.split(":", 1)[1].strip())
+                                    except (json.JSONDecodeError, IndexError):
+                                        payload = {"raw": content}
+                                    envelope = {
+                                        "event": "confirm_request",
+                                        "payload": {
+                                            "tool_call_id": msg_chunk.tool_call_id,
+                                            "tool_name": payload.get("tool_name"),
+                                            "tool_args": payload.get("tool_args", {}),
+                                            "impact": payload.get("impact"),
+                                            "audit_id": payload.get("audit_id"),
+                                        },
+                                    }
+                                    yield (
+                                        f"event: confirm_request\n"
+                                        f"data: {json.dumps(envelope, ensure_ascii=False, separators=(',', ':'))}\n\n"
+                                    )
+                                    return  # 暂停,等下一次 confirm
+                                envelope = {
+                                    "event": "tool_result",
+                                    "payload": {
+                                        "tool_call_id": msg_chunk.tool_call_id,
+                                        "name": getattr(
+                                            msg_chunk, "name", None,
+                                        ) or "(tool)",
+                                        "content": content,
+                                    },
+                                }
+                                yield (
+                                    f"event: tool_result\n"
+                                    f"data: {json.dumps(envelope, ensure_ascii=False, separators=(',', ':'))}\n\n"
+                                )
+                            elif isinstance(msg_chunk, SystemMessage):
+                                pass
+                        yield "event: done\ndata: {}\n\n"
+            finally:
+                conn.close()
+
+        return StreamingResponse(
+            stream(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",
+            },
+        )
+
+    @app.get("/api/agent/audit")
+    def list_audit_log(
+        session_id: str | None = Query(None),
+        status: str | None = Query(None),
+        limit: int = Query(100, ge=1, le=500),
+    ) -> dict[str, Any]:
+        """读 Stage C 写操作 audit log(管理 UI 用)。"""
+        from tradingagents.agents.general.audit import list_writes
+        items = list_writes(
+            session_id=session_id, status=status, limit=limit,
+        )
+        return {"items": items, "total": len(items), "limit": limit}
+
+    @app.post("/api/agent/audit/{audit_id}/status")
+    def update_audit_status(
+        audit_id: int, body: dict[str, Any],
+    ) -> dict[str, Any]:
+        """手动更新 audit log 状态(管理 UI 用)。"""
+        from tradingagents.agents.general.audit import update_write_status
+        new_status = body.get("status")
+        if not new_status:
+            raise _error(422, "status 必填")
+        ok = update_write_status(
+            None, audit_id, status=new_status,
+            confirmed_by=body.get("confirmed_by"),
+            error=body.get("error"),
+        )
+        return {"ok": ok, "audit_id": audit_id, "status": new_status}
 
     return app
 

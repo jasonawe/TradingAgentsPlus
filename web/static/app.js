@@ -27,7 +27,7 @@
   }
   const ACTIVE_RUN_STATUSES = new Set(["queued", "running", "publishing"]);
   const $ = (id) => document.getElementById(id);
-  const setupView = $("setup-view"), analysisView = $("analysis-view"), activeView = $("active-view"), scheduledView = $("scheduled-view"), scheduledHistoryView = $("scheduled-history-view"), reportView = $("report-view"), libraryView = $("library-view"), settingsView = $("settings-view"), assetView = $("asset-detail-view"), alertsView = $("alerts-view"), notesView = $("notes-view"), form = $("analysis-form");
+  const setupView = $("setup-view"), analysisView = $("analysis-view"), activeView = $("active-view"), scheduledView = $("scheduled-view"), scheduledHistoryView = $("scheduled-history-view"), reportView = $("report-view"), libraryView = $("library-view"), settingsView = $("settings-view"), assetView = $("asset-detail-view"), alertsView = $("alerts-view"), notesView = $("notes-view"), agentAuditView = $("agent-audit-view"), form = $("analysis-form");
   function t(key, vars = {}) { return i18n.t(key, vars); }
   function translateDynamic(value) { return t(AGENT_KEYS[value] || PHASE_NAME_KEYS[value] || DYNAMIC_KEYS[value] || value); }
   function languageLabel(value) { return i18n.label("language", value, value); }
@@ -44,12 +44,12 @@
   function startElapsed(startedAt) { state.startedAt = startedAt || new Date().toISOString(); clearInterval(state.elapsedTimer); $("elapsed-time").textContent = formatElapsed(state.startedAt); state.elapsedTimer = setInterval(() => { if (state.startedAt) $("elapsed-time").textContent = formatElapsed(state.startedAt); }, 1000); }
   function stopElapsed() { clearInterval(state.elapsedTimer); state.elapsedTimer = null; }
   function resetRunState() { stopElapsed(); state.lastSeq = 0; state.seen = new Set(); state.reportId = null; state.runRecord = null; state.startedAt = null; state.phases = PHASE_KEYS.map((key) => ({ key, status: "pending" })); $("activity-feed").innerHTML = ""; $("terminal-panel").hidden = true; $("report-panel").hidden = true; $("run-grid").hidden = false; $("progress-bar").style.width = "0%"; $("progress-label").textContent = "0%"; $("event-count").textContent = t("run.events", { count: 0 }); $("elapsed-time").textContent = t("run.elapsed", { time: "00:00" }); renderPhases(); }
-  const ROUTES = { setup: "/", analysis: "/analysis", active: "/active", scheduled: "/scheduled", "scheduled-history": "/scheduled/history", library: "/reports", settings: "/settings", alerts: "/alerts", notes: "/notes" };
+  const ROUTES = { setup: "/", analysis: "/analysis", active: "/active", scheduled: "/scheduled", "scheduled-history": "/scheduled/history", library: "/reports", settings: "/settings", alerts: "/alerts", notes: "/notes", "agent-audit": "/agent-audit" };
   function normalizePath(pathname) { const value = String(pathname || "/").replace(/\/+$/, ""); return value || "/"; }
   function routePath(view, { reportId = null, symbol = null } = {}) { if (view === "report" && reportId) return `/reports/${encodeURIComponent(reportId)}`; if (view === "asset" && symbol) return `/assets/${encodeURIComponent(symbol)}`; if (view === "scheduled-history") return ROUTES["scheduled-history"]; return ROUTES[view] || ROUTES.setup; }
   function routeForPath(pathname) { const path = normalizePath(pathname); if (path === "/") return { view: "setup" }; for (const [view, route] of Object.entries(ROUTES)) if (view !== "setup" && path === route) return { view }; if (path.startsWith("/reports/")) { const reportId = decodeURIComponent(path.slice("/reports/".length)); return reportId ? { view: "report", reportId } : { view: "library" }; } if (path.startsWith("/assets/")) { const symbol = decodeURIComponent(path.slice("/assets/".length)); return symbol ? { view: "asset", symbol } : { view: "setup" }; } if (path === "/scheduled/history") return { view: "scheduled-history" }; return null; }
   function setRoute(view, { reportId = null, symbol = null, replace = false } = {}) { const path = routePath(view, { reportId, symbol }); if (normalizePath(window.location.pathname) === normalizePath(path)) return; const method = replace ? "replaceState" : "pushState"; window.history[method]({ view, reportId, symbol }, "", path); }
-  function switchView(view) { setupView.hidden = view !== "setup"; analysisView.hidden = view !== "analysis"; activeView.hidden = !["active", "run"].includes(view); scheduledView.hidden = view !== "scheduled"; scheduledHistoryView.hidden = view !== "scheduled-history"; reportView.hidden = view !== "report"; libraryView.hidden = view !== "library"; settingsView.hidden = view !== "settings"; assetView.hidden = view !== "asset"; alertsView.hidden = view !== "alerts"; notesView.hidden = view !== "notes"; const activeNav = view === "report" ? "library" : view === "asset" ? "setup" : view === "scheduled-history" ? "scheduled" : view; document.querySelectorAll(".nav-primary a").forEach((link) => link.classList.toggle("is-active", link.dataset.view === activeNav)); updateTopbar(view); ta("TradingAgentsScheduled")?.setActive(view === "scheduled"); ta("TradingAgentsScheduledHistory")?.setActive(view === "scheduled-history"); }
+  function switchView(view) { setupView.hidden = view !== "setup"; analysisView.hidden = view !== "analysis"; activeView.hidden = !["active", "run"].includes(view); scheduledView.hidden = view !== "scheduled"; scheduledHistoryView.hidden = view !== "scheduled-history"; reportView.hidden = view !== "report"; libraryView.hidden = view !== "library"; settingsView.hidden = view !== "settings"; assetView.hidden = view !== "asset"; alertsView.hidden = view !== "alerts"; notesView.hidden = view !== "notes"; agentAuditView.hidden = view !== "agent-audit"; const activeNav = view === "report" ? "library" : view === "asset" ? "setup" : view === "scheduled-history" ? "scheduled" : view; document.querySelectorAll(".nav-primary a").forEach((link) => link.classList.toggle("is-active", link.dataset.view === activeNav)); updateTopbar(view); ta("TradingAgentsScheduled")?.setActive(view === "scheduled"); ta("TradingAgentsScheduledHistory")?.setActive(view === "scheduled-history"); }
   function showSetup() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("setup"); setConnection("ready"); loadWatchlist(); }
   function showAnalysis() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("analysis"); setConnection("ready"); }
   async function showActive() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("active"); setConnection("ready"); $("active-empty").hidden = true; $("run-header").hidden = true; $("run-grid").hidden = true; $("terminal-panel").hidden = true; try { const runs = (await api("/api/runs/active")).runs || []; const active = pickActiveRun(runs); if (active && ACTIVE_RUN_STATUSES.has(active.status)) { state.runId = active.run_id; resetRunState(); showRun(active); connectEvents(); } else { $("active-empty").hidden = false; } } catch (_) { $("active-empty").hidden = false; } }
@@ -59,6 +59,7 @@
   async function showSettings() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("settings"); setConnection("ready"); try { const [settings, providers] = await Promise.all([api("/api/settings"), api("/api/providers/market-data")]); const fields = settings.fields || {}; $("settings-fields").innerHTML = Object.entries(fields).map(([key, value]) => `<div><dt>${escapeHtml(t(`settings.${key}`))}</dt><dd>${escapeHtml(typeof value === "object" ? `${i18n.displayValue(value.value)}（${t("settings.source", { value: i18n.displayValue(value.source, t("settings.unknownSource")) })}）` : i18n.displayValue(value))}</dd></div>`).join(""); $("provider-status-list").innerHTML = (providers.providers || []).map((item) => `<div class="provider-status"><strong>${escapeHtml(item.label || item.id)}</strong><span class="status-chip ${item.status}">${escapeHtml(i18n.label("provider_status", item.status))}</span></div>`).join("") || `<p class="muted">${escapeHtml(t("settings.noProviders"))}</p>`; renderQuoteStrategySelector(settings); renderNotifierConfig(settings); } catch (_) { $("settings-fields").innerHTML = `<p class="muted">${escapeHtml(t("settings.unavailable"))}</p>`; } }
   function showAlerts() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("alerts"); setConnection("ready"); if (ta("TradingAgentsAlerts")?.mountAll) ta("TradingAgentsAlerts").mountAll($("alerts-all-list")); }
   function showNotes() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("notes"); setConnection("ready"); if (ta("TradingAgentsNotes")?.mountAll) ta("TradingAgentsNotes").mountAll($("notes-all-list")); }
+  function showAgentAudit() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("agent-audit"); setConnection("ready"); loadAgentAuditPage(); }
 
   function bindChannelForm(channel, fields, refs, status) {
     const { enabledEl, secretEl, secretStatus, saveBtn, testBtn, secretSetKey } = refs;
@@ -579,7 +580,7 @@
     }
   }
   function prepareReport(reportId) { const record = state.history.find((item) => item.report_id === reportId) || {}; resetRunState(); state.archived = true; state.reportId = reportId; state.runRecord = { request: { ticker: record.ticker || t("history.title"), analysis_date: record.analysis_date || "", asset_type: record.asset_type || "", research_depth: record.research_depth || "", provider: record.provider, quick_model: record.quick_model, deep_model: record.deep_model, output_language: record.output_language } }; $("cancel-run").hidden = true; switchView("report"); setConnection("ready"); }
-  function renderRoute(route) { if (route.view === "report") { prepareReport(route.reportId); loadReport(route.reportId, { route: false }); return; } if (route.view === "asset" && route.symbol) { showAssetDetail(route.symbol); return; } if (route.view === "setup") showSetup(); else if (route.view === "analysis") showAnalysis(); else if (route.view === "active") showActive(); else if (route.view === "scheduled") showScheduled(); else if (route.view === "scheduled-history") showScheduledHistory(); else if (route.view === "library") showLibrary(); else if (route.view === "settings") showSettings(); else if (route.view === "alerts") showAlerts(); else if (route.view === "notes") showNotes(); }
+  function renderRoute(route) { if (route.view === "report") { prepareReport(route.reportId); loadReport(route.reportId, { route: false }); return; } if (route.view === "asset" && route.symbol) { showAssetDetail(route.symbol); return; } if (route.view === "setup") showSetup(); else if (route.view === "analysis") showAnalysis(); else if (route.view === "active") showActive(); else if (route.view === "scheduled") showScheduled(); else if (route.view === "scheduled-history") showScheduledHistory(); else if (route.view === "library") showLibrary(); else if (route.view === "settings") showSettings(); else if (route.view === "alerts") showAlerts(); else if (route.view === "notes") showNotes(); else if (route.view === "agent-audit") showAgentAudit(); }
   function navigate(view, options = {}) { setRoute(view, options); renderRoute({ view, reportId: options.reportId, symbol: options.symbol }); }
   function applyRoute(pathname, { replaceUnknown = true } = {}) { const route = routeForPath(pathname); if (!route) { if (replaceUnknown) window.history.replaceState({ view: "setup" }, "", ROUTES.setup); renderRoute({ view: "setup" }); return; } renderRoute(route); }
   function renderRunHeader(record) { const request = record.request || {}; $("run-title").textContent = t("run.briefingTitle", { ticker: request.ticker || t("report.decisionReport") }); const asset = request.asset_type === "crypto" ? t("assets.crypto") : request.asset_type === "stock" ? t("assets.stock") : request.asset_type || ""; $("run-subtitle").textContent = [request.analysis_date, asset, request.research_depth ? `${t("form.researchDepth")} ${request.research_depth}` : ""].filter(Boolean).join(" · "); }
@@ -946,6 +947,9 @@
       "scheduled-history": { crumb: "nav.scheduled", title: "scheduler.history.title" },
       library: { crumb: "nav.reports", title: "library.title" },
       settings: { crumb: "nav.settings", title: "settings.title" },
+      alerts: { crumb: "nav.alerts", title: "alerts.title" },
+      notes: { crumb: "nav.notes", title: "notes.title" },
+      "agent-audit": { crumb: "nav.agentAudit", title: "agentAudit.title" },
     };
     const entry = map[view] || map.setup;
     titleNode.textContent = t(entry.title);
@@ -999,7 +1003,99 @@ function initSidebarCollapse() {
     });
   }
 
-document.addEventListener("click", (event) => { const retryBtn = event.target.closest("[data-retry-run]"); if (retryBtn) { event.preventDefault(); retryRun(retryBtn.dataset.retryRun); } });  $("cancel-run").addEventListener("click", async () => { if (!state.runId) return; try { await api(`/api/runs/${encodeURIComponent(state.runId)}/cancel`, { method: "POST" }); } catch (error) { terminalRun("failed", error.message); } }); $("back-history").addEventListener("click", () => navigate(state.archived ? "library" : "active")); $("report-back-library").addEventListener("click", () => navigate("library")); $("new-analysis").addEventListener("click", () => navigate("analysis")); $("active-new-analysis").addEventListener("click", () => navigate("analysis")); $("library-new-analysis").addEventListener("click", () => navigate("analysis")); const resetLibraryPage = () => { state.library.page = 1; loadLibraryPage(); }; $("library-search").addEventListener("input", (event) => { state.filters.search = event.target.value; resetLibraryPage(); }); $("library-asset-filter").addEventListener("change", (event) => { state.filters.asset = event.target.value; resetLibraryPage(); }); $("library-status-filter").addEventListener("change", (event) => { state.filters.status = event.target.value; resetLibraryPage(); }); $("library-sort").addEventListener("change", (event) => { state.filters.sort = event.target.value; resetLibraryPage(); }); $("library-prev").addEventListener("click", () => { if (state.library.page > 1) { state.library.page -= 1; loadLibraryPage(); } }); $("library-next").addEventListener("click", () => { if (state.library.hasNext) { state.library.page += 1; loadLibraryPage(); } }); form.addEventListener("submit", submitRun);
+document.addEventListener("click", (event) => { const retryBtn = event.target.closest("[data-retry-run]"); if (retryBtn) { event.preventDefault(); retryRun(retryBtn.dataset.retryRun); } });
+
+  // ─────────────────────────────────────────────────────
+  // Agent Audit page(Stage C Day 3)
+  // ─────────────────────────────────────────────────────
+
+  state.agentAudit = {
+    page: 1,
+    limit: 20,
+    status: "",
+    total: 0,
+    loading: false,
+  };
+
+  async function loadAgentAuditPage() {
+    const container = $("agent-audit-list");
+    const pageInfo = $("agent-audit-page-info");
+    const prevBtn = $("agent-audit-prev");
+    const nextBtn = $("agent-audit-next");
+    if (!container) return;
+
+    state.agentAudit.loading = true;
+    container.innerHTML = '<p class="muted">加载中…</p>';
+
+    try {
+      const params = new URLSearchParams({
+        limit: String(state.agentAudit.limit),
+        offset: String((state.agentAudit.page - 1) * state.agentAudit.limit),
+      });
+      if (state.agentAudit.status) {
+        params.set("status", state.agentAudit.status);
+      }
+      const resp = await api(`/api/agent/audit?${params}`);
+      const items = resp.items || [];
+      state.agentAudit.total = resp.total || 0;
+
+      if (items.length === 0) {
+        container.innerHTML = '<p class="muted">暂无 audit 记录</p>';
+      } else {
+        const rows = items.map((it) => {
+          const args = JSON.stringify(it.tool_args || {}, null, 0);
+          const statusClass = `audit-status-${it.status || "pending"}`;
+          return `
+            <article class="agent-audit-row" data-audit-id="${it.id}">
+              <header class="agent-audit-row-header">
+                <span class="agent-audit-id">#${it.id}</span>
+                <span class="agent-audit-tool">${escapeHtml(it.tool_name || "")}</span>
+                <span class="agent-audit-status ${statusClass}">${escapeHtml(it.status || "pending")}</span>
+                <span class="agent-audit-time">${escapeHtml(it.created_at || "")}</span>
+              </header>
+              <pre class="agent-audit-args">${escapeHtml(args.slice(0, 400))}${args.length > 400 ? "..." : ""}</pre>
+              <footer class="agent-audit-row-footer">
+                <span class="agent-audit-session">session: ${escapeHtml(it.session_id || "(none)")}</span>
+                <span class="agent-audit-confirmed-by">${it.confirmed_by ? `confirmed_by: ${escapeHtml(it.confirmed_by)}` : ""}</span>
+              </footer>
+            </article>
+          `;
+        }).join("");
+        container.innerHTML = `<div class="agent-audit-rows">${rows}</div>`;
+      }
+
+      const totalPages = Math.max(1, Math.ceil(state.agentAudit.total / state.agentAudit.limit));
+      pageInfo.textContent = `第 ${state.agentAudit.page} / ${totalPages} 页 · 共 ${state.agentAudit.total} 条`;
+      prevBtn.disabled = state.agentAudit.page <= 1;
+      nextBtn.disabled = state.agentAudit.page >= totalPages;
+    } catch (err) {
+      container.innerHTML = `<p class="muted">加载失败: ${escapeHtml(err.message || String(err))}</p>`;
+    } finally {
+      state.agentAudit.loading = false;
+    }
+  }
+
+  function bindAgentAuditEvents() {
+    const refresh = $("agent-audit-refresh");
+    if (refresh) refresh.addEventListener("click", () => { state.agentAudit.page = 1; loadAgentAuditPage(); });
+    const statusFilter = $("agent-audit-status-filter");
+    if (statusFilter) statusFilter.addEventListener("change", (e) => {
+      state.agentAudit.status = e.target.value;
+      state.agentAudit.page = 1;
+      loadAgentAuditPage();
+    });
+    const prevBtn = $("agent-audit-prev");
+    if (prevBtn) prevBtn.addEventListener("click", () => {
+      if (state.agentAudit.page > 1) { state.agentAudit.page -= 1; loadAgentAuditPage(); }
+    });
+    const nextBtn = $("agent-audit-next");
+    if (nextBtn) nextBtn.addEventListener("click", () => {
+      const totalPages = Math.max(1, Math.ceil(state.agentAudit.total / state.agentAudit.limit));
+      if (state.agentAudit.page < totalPages) { state.agentAudit.page += 1; loadAgentAuditPage(); }
+    });
+  }
+
+  try { bindAgentAuditEvents(); } catch (_) {}  $("cancel-run").addEventListener("click", async () => { if (!state.runId) return; try { await api(`/api/runs/${encodeURIComponent(state.runId)}/cancel`, { method: "POST" }); } catch (error) { terminalRun("failed", error.message); } }); $("back-history").addEventListener("click", () => navigate(state.archived ? "library" : "active")); $("report-back-library").addEventListener("click", () => navigate("library")); $("new-analysis").addEventListener("click", () => navigate("analysis")); $("active-new-analysis").addEventListener("click", () => navigate("analysis")); $("library-new-analysis").addEventListener("click", () => navigate("analysis")); const resetLibraryPage = () => { state.library.page = 1; loadLibraryPage(); }; $("library-search").addEventListener("input", (event) => { state.filters.search = event.target.value; resetLibraryPage(); }); $("library-asset-filter").addEventListener("change", (event) => { state.filters.asset = event.target.value; resetLibraryPage(); }); $("library-status-filter").addEventListener("change", (event) => { state.filters.status = event.target.value; resetLibraryPage(); }); $("library-sort").addEventListener("change", (event) => { state.filters.sort = event.target.value; resetLibraryPage(); }); $("library-prev").addEventListener("click", () => { if (state.library.page > 1) { state.library.page -= 1; loadLibraryPage(); } }); $("library-next").addEventListener("click", () => { if (state.library.hasNext) { state.library.page += 1; loadLibraryPage(); } }); form.addEventListener("submit", submitRun);
   $("refresh-quotes").addEventListener("click", () => quoteRefreshController?.refresh()); 
   try { const saved = localStorage.getItem("ta:watchlist:sort"); if (saved && ["change_desc", "change_asc", "symbol", "manual"].includes(saved)) { state.watchlist.sort = saved; } } catch (_) {} const sortSelect = $("watchlist-sort"); if (sortSelect) sortSelect.value = state.watchlist.sort; $("watchlist-form").addEventListener("submit", addWatchlistItem); $("watchlist-asset-type").addEventListener("change", updateTickerHint); if (sortSelect) sortSelect.addEventListener("change", (event) => { state.watchlist.sort = event.target.value; try { localStorage.setItem("ta:watchlist:sort", state.watchlist.sort); } catch (_) {} renderWatchlist(state.watchlist.items, state.watchlist.quotes); });
   initWatchlistAutocomplete();
@@ -1008,7 +1104,7 @@ document.addEventListener("click", (event) => { const retryBtn = event.target.cl
     const view = link.dataset.view;
     if (!view) return;
     event.preventDefault();
-    if (["setup", "analysis", "active", "scheduled", "library", "settings", "alerts", "notes"].includes(view)) navigate(view);
+    if (["setup", "analysis", "active", "scheduled", "library", "settings", "alerts", "notes", "agent-audit"].includes(view)) navigate(view);
   }));
   window.addEventListener("popstate", () => applyRoute(window.location.pathname));
   function startQuoteRefresh() { quoteRefreshController?.stop(); try { const C = ta("QuoteRefreshController"); if (typeof C === "function") { quoteRefreshController = new C({ timeoutMs: 4000, backoff: [QUOTE_REFRESH_MS, 10000, 20000, 40000, 60000], fetcher: async (signal) => { const result = await loadWatchlist({ quotesOnly: true, signal }); if (result && result.triggers && ta("TradingAgentsAlerts")?.handleQuoteTriggers) { ta("TradingAgentsAlerts").handleQuoteTriggers(result.triggers); } return result; }, onData: () => {}, onError: () => {} }); } } catch (_) {} quoteRefreshController.setVisible(!document.hidden); }
@@ -1027,6 +1123,9 @@ try { restoreActiveRun(); } catch (_) {}
     ta("TradingAgentsAlerts").bindDrawer();
     ta("TradingAgentsAlerts").refreshEvents();
     ta("TradingAgentsAlerts").startPolling(60000);
+  }
+  if (ta("TradingAgentsAgentChat")?.init) {
+    try { ta("TradingAgentsAgentChat").init(); } catch (err) { console.warn("[AgentChat] init failed", err); }
   }
   try { window.TradingAgentsApp = { navigate, setRoute, applyRoute, openFormModal, openConfirmModal }; } catch (_) {}
   try { if (typeof __TA_MODULES__ !== "undefined") __TA_MODULES__.TradingAgentsApp = { navigate, setRoute, applyRoute, openFormModal, openConfirmModal }; } catch (_) {}
