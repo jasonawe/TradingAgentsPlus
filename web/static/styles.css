@@ -1026,3 +1026,74 @@ table.data .num { font-family: var(--mono); font-weight: 600; text-align: right;
   color: var(--text-secondary);
   font-family: ui-monospace, monospace;
 }
+
+
+/* ─────────────────────────────────────────────────────
+   Day 11 — Sidebar AI 助手入口(Drawer 触发)
+   ───────────────────────────────────────────────────── */
+
+.nav-primary-ai {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  margin: 0 0.5rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent-soft, #eef2ff) 0%, var(--accent-softer, #f5f3ff) 100%);
+  color: var(--accent-strong, #4f46e5);
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  width: calc(100% - 1rem);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+
+.nav-primary-ai:hover {
+  background: linear-gradient(135deg, var(--accent, #6366f1) 0%, var(--accent-strong, #4f46e5) 100%);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+
+.nav-primary-ai:active {
+  transform: translateY(0);
+}
+
+.nav-primary-ai .icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.nav-primary-ai .nav-label {
+  font-weight: 600;
+  font-size: 0.95em;
+  flex: 1;
+}
+
+.nav-primary-ai .nav-ai-badge {
+  font-size: 1.1em;
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.3));
+}
+
+.sidebar.is-collapsed .nav-primary-ai {
+  padding: 0.6rem;
+  justify-content: center;
+}
+
+.sidebar.is-collapsed .nav-primary-ai .nav-label,
+.sidebar.is-collapsed .nav-primary-ai .nav-ai-badge {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .nav-primary-ai {
+    background: linear-gradient(135deg, #312e81 0%, #4c1d95 100%);
+    color: #c7d2fe;
+  }
+  .nav-primary-ai:hover {
+    background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+    color: white;
+  }
+}

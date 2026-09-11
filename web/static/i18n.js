@@ -21,6 +21,7 @@
     "nav.alerts": "告警管理",
     "nav.notes": "笔记",
     "nav.agentAudit": "Agent 审计",
+    "nav.aiAgent": "AI 助手",
     "watchlist.kicker": "资产关注",
     "watchlist.title": "我的关注",
     "watchlist.subtitle": "集中查看关注资产的最新行情，以及最近一次分析摘要。",
