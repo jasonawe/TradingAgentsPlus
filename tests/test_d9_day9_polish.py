@@ -141,11 +141,15 @@ def test_agent_css_has_reasoning_styles():
 
 
 def test_index_html_bumped_agent_assets():
+    """Day 9 引入:agent.js + agent.css 必须有 cache-bust 版本号(具体数字可以递增)。"""
     src = (ROOT / "web/static/index.html").read_text()
-    # Day 9 bump
-    assert "agent.js?v=20260911-agent-2" in src, "agent.js cache-bust not bumped to Day 9"
-    assert "agent.css?v=20260911-agent-1" in src, "agent.css cache-bust not bumped to Day 9"
-    print(f"  ✓ index.html has Day 9 cache-bust versions")
+    import re
+    # 接受 Day 9 起的所有版本号(20260911-agent-N)
+    agent_js_match = re.search(r"agent\.js\?v=20260911-agent-\d+", src)
+    agent_css_match = re.search(r"agent\.css\?v=20260911-agent-\d+", src)
+    assert agent_js_match, "agent.js cache-bust missing (expected 20260911-agent-N)"
+    assert agent_css_match, "agent.css cache-bust missing (expected 20260911-agent-N)"
+    print(f"  ✓ index.html has Day 9+ cache-bust: agent.js / agent.css")
 
 
 # ─────────────────────────────────────────────────────
