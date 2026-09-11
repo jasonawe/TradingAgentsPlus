@@ -46,6 +46,53 @@ SYSTEM_PROMPT_BASE = """你是 TradingAgents 理财通用 Agent,帮助用户做�
 # 渲染函数
 # ════════════════════════════════════════════════════════
 
+# ════════════════════════════════════════════════════════
+# Day 10: Tool Priority — 高频 tool 优先展示给 LLM
+# (低频 tool 描述被截断时,高频 tool 还能完整保留)
+# ════════════════════════════════════════════════════════
+
+# 数值越大越靠前。优先级 > 0 的 tool 永远完整展示。
+_TOOL_PRIORITY: dict[str, int] = {
+    # Tier 1:核心数据查询(LLM 最常用)
+    "get_quote": 100,
+    "get_quotes_batch": 95,
+    "get_history": 90,
+    "get_fundamentals": 85,
+    # Tier 2:主动分析入口(对话升级时必调)
+    "run_trading_agents_analysis": 80,
+    "get_analysis_status": 75,
+    "list_reports": 70,
+    "get_news": 65,
+    # Tier 3:量化因子
+    "list_alpha_factors": 60,
+    "compute_alpha_factors": 55,
+    "evaluate_alpha": 50,
+    # Tier 4:写操作(HITL,需要用户确认)
+    "create_note": 40,
+    "create_alert": 40,
+    "update_note": 35,
+    "update_alert": 35,
+    "delete_note": 30,
+    "delete_alert": 30,
+    "update_preference": 30,
+    # Tier 5:辅助
+    "list_watchlist": 25,
+    "list_scheduled_tasks": 20,
+    "run_scheduled_task": 18,
+}
+
+
+def _sort_tools_by_priority(tools: Iterable[Any]) -> list[Any]:
+    """按 _TOOL_PRIORITY 降序排,未列出的放最后(保持原顺序)。"""
+    tools_list = list(tools)
+
+    def _key(t: Any) -> tuple[int, int]:
+        name = getattr(t, "name", str(t))
+        return (-_TOOL_PRIORITY.get(name, 0), tools_list.index(t))
+
+    return sorted(tools_list, key=_key)
+
+
 def _format_tool_descriptions(
     tools: Iterable[Any],
     *,
@@ -62,8 +109,10 @@ def _format_tool_descriptions(
     Returns:
         markdown bullet list,超出总上限时追加"(还有 N 个工具...)"标记
     """
+    # Day 10: 先按 priority 排序(高频 tool 优先展示给 LLM)
+    sorted_tools = _sort_tools_by_priority(tools)
     lines = []
-    for t in tools:
+    for t in sorted_tools:
         name = getattr(t, "name", str(t))
         desc = getattr(t, "description", "") or ""
         if len(desc) > max_per_tool_chars:
