@@ -171,7 +171,8 @@ def get_quote(symbol: str, asset_type: str = "stock") -> dict:
 
 ### D3. Workflow 独立 — `run_trading_agents_analysis` 走独立 orchestrator
 
-**借鉴**:OpenBB Quantly playbooks + Anthropic Claude Code sub-agent dispatch
+**借鉴思路**:OpenBB 生态合作伙伴 Quantly(通过 MCP 接入 OpenBB Workspace)的 playbooks 概念 + Anthropic Claude Code sub-agent dispatch
+**N54 fix,2026-09-11**:Quantly 不是 OpenBB 的子仓库,是 OpenBB 生态合作伙伴(https://openbb.co/blog/bringing-multi-step-research-workflows-into-openbb/),spec 加注来源链路。
 
 **现状问题**:`run_trading_agents_analysis` 在 `tools_bridge.py` 里被当 `@tool` 注册,LLM 调它后走的是 LangGraph 默认 sub-graph,但没有显式 workflow 编排。
 
@@ -186,7 +187,8 @@ def get_quote(symbol: str, asset_type: str = "stock") -> dict:
 
 ### D4. Explicit Context Priority
 
-**借鉴**:OpenBB 8 层 context priority
+**借鉴思路**:OpenBB 数据分层管理(WrenAI schema_items 类似思路)。**8 层具体设计为本项目自定义**
+**N55 fix,2026-09-11**:OpenBB 官方文档与 deep dive(`docs/superpowers/research/2026-09-10-openbb-deep-dive.md`)均未公开『8 层』标准层级定义。这 8 层是 spec 作者基于 OpenBB 数据分层思路 + WrenAI schema_items + 通用 context engineering 实践的设计,需在 v3 标为『本项目自定义』。
 
 ```
 1. Explicit widgets (用户在 UI 选中的 ticker / 时间范围)
@@ -210,6 +212,7 @@ def get_quote(symbol: str, asset_type: str = "stock") -> dict:
   - Layer 7:200 tokens
   - Layer 8:仅当其他层不够时启用,上限 500 tokens
 - **Trim 触发**:total > 4K 时,从 Layer 8 往上 trim,直到 < 4K
+- **N57 fix,2026-09-11**:4K total 分配(各层 200/200/800/300/300/1500/200/500)是设计初稿,Layer 6 (conversation) 占 1500 (37.5%) **未经真实 token 数据校准**。P4 收尾阶段应基于真实 LLM 调用 token 统计重新校准,可能调整各层比例。
 
 **实施时机**:v2 spec P4 (2026-09-13)。
 
@@ -221,6 +224,7 @@ def get_quote(symbol: str, asset_type: str = "stock") -> dict:
 ### D5. StateGraph 主图 5 节点(Tier 2 主图)— 实施时另有 12+ sub-state
 
 **借鉴**:LangChain DeepAgents TodoMiddleware + Anthropic Claude Code plan-first
+**N56 fix,2026-09-11**:LangChain DeepAgents 在 5 项目 deep dive(`docs/superpowers/research/2026-09-10-*.md`)中**未单独调研**,TodoMiddleware 的具体 API(`TodoMiddleware` / `TodoListMiddleware` / 其他)需要 P2 实施前补一个 mini-deep-dive 确认。
 
 **新 StateGraph**:
 ```
@@ -299,8 +303,8 @@ llm_answer: {llm_answer}
 |---|---|---|
 | D1 三档 Execution | OpenBB MCP-first + WrenAI guided/direct | FinMem 单/多 agent |
 | D2 Tool Pydantic + DataResponse | **OpenBB OBBject + Provider ABC** | FinRobot schema prompt |
-| D3 Workflow 独立 | **OpenBB Quantly playbooks** | Anthropic Claude Code sub-agent |
-| D4 Context Priority | **OpenBB 8 层优先级** | WrenAI schema_items |
+| D3 Workflow 独立 | **OpenBB 生态 Quantly(通过 MCP 接入)的 playbooks**(N54 fix) | Anthropic Claude Code sub-agent |
+| D4 Context Priority | **OpenBB 数据分层 + WrenAI schema_items 思路**(8 层为本项目自定义,N55 fix) | WrenAI schema_items |
 | D5 StateGraph 主图 5 节点(实施时 17+ sub-state) | **LangChain DeepAgents TodoMiddleware** + Anthropic Claude Code plan | FinMem observation/thinking |
 | D6 Verification | **Anthropic Claude Code LLM-judge** + Codex CLI sandbox | WrenAI sqlglot AST |
 
