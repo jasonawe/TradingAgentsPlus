@@ -142,7 +142,7 @@ flowchart TB
     %% Cross-cutting 关联
     ContextPriority -.injects.-> PlanNode
     ContextPriority -.injects.-> SynthNode
-    Verification -.wraps.-> ExecuteNode  # 注意:v2 §D5 VerifyNode 是主图独立 node,这里 wraps 指 L1 hook 在 tool_invoke 前后跑
+    Verification -.wraps.-> ExecuteNode  %% 注意:v2 §D5 VerifyNode 是主图独立 node,这里 wraps 指 L1 hook 在 tool_invoke 前后跑
     Retry -.wraps.-> Verification
 
     %% LLM
@@ -151,7 +151,7 @@ flowchart TB
     WorkflowRunner -.uses.-> Provider1
     ShortCircuit -.zero.-> LLM1
     PlanNode -.1x.-> Provider2
-    SynthNode -.1x.-> Provider2  # 默认 plan + synthesize = 2 次;L3 开启时 +1 次
+    SynthNode -.1x.-> Provider2  %% 默认 plan + synthesize = 2 次;L3 开启时 +1 次
     WorkflowRunner -.5-15x.-> Provider3
 
     %% Styling

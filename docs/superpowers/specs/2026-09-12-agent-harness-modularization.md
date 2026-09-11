@@ -28,7 +28,7 @@
 - D2 Tool Pydantic 化 + Unified DataResponse
 - D3 Workflow 独立(留 Day 15+)
 - D4 8 层 Context Priority
-- D5 StateGraph 5 节点(plan→execute→observe→verify→synthesize)
+- D5 StateGraph 主图 5 节点(17+ sub-state,N20 fix,plan→execute→observe→verify→synthesize)
 - D6 三层 Verification
 
 ### 1.2 v2 实施时遇到的 4 个新问题
@@ -117,7 +117,7 @@ tradingagents/
 │   │
 │   ├── core/                            编排核心(原 orchestrator.py / routing.py 拆开)
 │   │   ├── __init__.py
-│   │   ├── orchestrator.py              Tier 2 StateGraph 5 节点 (D5)
+│   │   ├── orchestrator.py              Tier 2 StateGraph 主图 5 节点(17+ sub-state,N20 fix,D5)
 │   │   ├── tier.py                      Tier 路由 (D1) + classify_tier()
 │   │   ├── context.py                   ContextPriority 8 层注入 (D4)
 │   │   ├── verification.py              三层 verification (D6)
@@ -155,7 +155,7 @@ tradingagents/
 │   │   ├── builtin_history.py           get_history
 │   │   ├── builtin_fundamentals.py      get_fundamentals
 │   │   ├── builtin_news.py              get_news
-│   │   ├── builtin_alpha.py             compute_alpha_factors + evaluate_alpha
+│   │   ├── builtin_alpha.py             list_alpha_factors + compute_alpha_factors + evaluate_alpha(N33 fix,3 个 alpha158 tool)
 │   │   ├── write_alert.py               create/update/delete_alert(HITL)
 │   │   ├── write_note.py                create/update/delete_note(HITL)
 │   │   └── write_scheduled.py           create/update/delete_scheduled_task(HITL)
@@ -190,7 +190,7 @@ tradingagents/
 │   │   ├── registry.py                  PluginRegistry + entry_points 发现
 │   │   └── builtin/                     内置 3 个 plugin
 │   │       ├── __init__.py
-│   │       ├── quant.py                 [Plugin 1] Alpha158 + AlphaAgent + compute_alpha_factors
+│   │       ├── quant.py                 [Plugin 1] Alpha158 + AlphaAgent + list_alpha_factors + compute_alpha_factors + evaluate_alpha
 │   │       ├── news.py                  [Plugin 2] NewsAgent + get_news + sentiment
 │   │       └── alert.py                 [Plugin 3] AlertTool (write) + NoteTool (write)
 │   │
@@ -251,7 +251,7 @@ tests/
 - DataAgent **不包含** `get_history` — `get_history` 是 AlphaAgent 的前置工具
 - Tier 1 短路径**不**经过 DataAgent(直接 `PROVIDERS.get_quote(args)`)
 - 如果未来 get_history 在 Tier 1 短路径也用得着,再单独抽 `HistoryAgent`(不在本 spec 范围)|
-| **AlphaAgent** | 量化因子 | `compute_alpha_factors / evaluate_alpha` | 1 次(解释因子) | Tier 3 量化子任务 |
+| **AlphaAgent** | 量化因子 | `list_alpha_factors / compute_alpha_factors / evaluate_alpha`(N33 fix,2026-09-11,3 个 alpha158 tool) | 1 次(解释因子) | Tier 3 量化子任务 |
 | **NewsAgent** | 新闻舆情 | `get_news` | 1 次(sentiment 总结) | Tier 3 新闻子任务 |
 | **SynthesizerAgent** | 回答合成 | (基于已 verified 数据) | 1 次 | Tier 2/3 结尾 |
 
@@ -409,7 +409,7 @@ plan = await PlannerAgent().plan(
 │ Layer 1: Read Tools(server-side 友好,无 LLM 也能调)     │
 │   - get_quote / get_quotes_batch                        │
 │   - get_history / get_fundamentals / get_news           │
-│   - compute_alpha_factors / evaluate_alpha              │
+│   - list_alpha_factors / compute_alpha_factors / evaluate_alpha(N33 fix,3 个 alpha158 tool)│
 │   - list_watchlist / list_scheduled_tasks               │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -593,6 +593,20 @@ class Plugin(ABC):
         """plugin 配置 schema(可选)。"""
         return None
 
+    @abstractmethod
+    def install(self, harness: "Harness") -> None:
+        """plugin 安装入口(N31 fix,2026-09-11)。
+
+        实现要点:
+        - 遍历 self.tools() → harness.tool_registry.add(t)
+        - 遍历 self.agents() → harness.agent_registry.register(a)
+        - 调 self.prompts() 覆盖 harness 内 prompt(可选)
+        - 注册 self.config_schema()(可选,经 HarnessConfig 校验)
+
+        由 PluginRegistry.register(p) 统一调 p.install(self.harness)。
+        """
+        ...
+
 
 class PluginRegistry:
     """Plugin 注册表 + entry_points 自动发现。"""
@@ -661,7 +675,7 @@ class QuantPlugin(Plugin):
 class Harness:
     """Harness 主类 — 组装所有组件,提供统一入口。
 
-    **Init order**(C2 fix + N4/N15 fix,2026-09-11):
+    **Init order**(N4/N15 fix,N36 fix 删 C2 误标 — C2 是 §11.2 MCP server 那个,跟 init order 无关,2026-09-11):
     1. config (HarnessConfig.from_env)
     2. tool_registry (ToolRegistry)
     3. agent_registry (AgentRegistry)
@@ -678,7 +692,7 @@ class Harness:
 
     **Shared registry + dynamic queries 策略**(N4/N15 fix,2026-09-11):
     - Orchestrator 构造函数**只接受** `tool_registry` / `agent_registry` / `llm_factory` / `context_priority` / `retry_policy` / `circuit_breaker` / `audit`,**不**接受 `plugin_registry` 参数
-    - Harness 持有 `tool_registry` 和 `agent_registry` 引用(同一对象),plugin install 时调用 `tool_registry.add()` / `agent_registry.register()` 改的就是这个 dict
+    - Harness 持有 `tool_registry` 和 `agent_registry` 引用(同一对象)。**实际调用链路**(N38 fix):`PluginRegistry.register(p) → p.install(harness) → harness.tool_registry.add(t) / harness.agent_registry.register(a)`(Plugin 自身在 install 里遍历 self.tools()/agents() 调 registry,N31 fix 加的 install() 抽象方法保证链路完整)
     - Orchestrator 在 `stream_chat()` 时调用 `self.tool_registry.get(name)` / `self.agent_registry.list()` 是**动态查询**,不是 lazy binding
     - 这样后续 plugin install 后,Orchestrator 立即看到新 tool/agent(无需 refresh cache)
     - 测试:`tests/test_harness_plugin_late_install.py` 验证 "构造 harness 后再 install 新 plugin,orchestrator 能看到新 tool"
@@ -878,10 +892,10 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 ## 9. 实施 Roadmap(7 个 Phase,3-5 天)— 与 v2 spec 编号对齐说明
 
 **重要**:v3 spec 的 P1-P7 与 v2 spec 的 P0-P4 是**独立编号**,不是同一时间轴。
-- v2 spec P0 = 设计拍板 / P1 = Tier 1 short circuit / P2 = StateGraph 5 节点 / P3 = verification / P4 = Context Priority
+- v2 spec P0 = 设计拍板 / P1 = Tier 1 short circuit / P2 = StateGraph 主图 5 节点(17+ sub-state) / P3 = verification / P4 = Context Priority
 - v3 spec P1 = 创建骨架(已完成 2026-09-11)/ P2 = Provider ABC + DataResponse / P3 = Tool Pydantic 化 / P4 = Orchestrator 实现 / P5 = 6 个 sub-agent / P6 = Plugin 系统 / P7 = Observability
 - **依赖关系**:v3 P1 必须先于 v2 P1(因为 v2 P1 实施时已经引用 v3 的 ToolRegistry)
-- **总时间** ≈ v2 P0-P4 (3-4 天) + v3 P2-P7 (3-4 天) + 30% 迁移成本 = **总计 ~7-10 天**(不是 v3 spec 原写的 3-4 天)
+- **总时间** ≈ v2 P0-P4 (3.5 天) + v3 P1-P7 (4.5 天) + 1 天 buffer = **总计 ~9 天**(V1/N37 fix:§9 Phase 表 sum = 4.5d,与 §14 总工期对齐)
 
 ---
 
@@ -895,7 +909,7 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 | **P6** | 0.5 天 | `plugins/base.py` + `PluginRegistry` + 3 个内置 plugin(Quant/News/Alert)+ entry_points 自动发现 demo | 加第三方 plugin 测试(可手写一个本地 plugin 验证) |
 | **P7** | 0.5 天 | `observability/health.py` + `circuit_breaker` + `provider_failover` + health check endpoint + 飞书告警 webhook | 手工 kill 一个 provider,观察 failover 行为 + health check 返回正确状态 |
 
-**总计 3-4 天**,预留 1 天 buffer 给测试和文档。
+**v3 spec P1-P7 总和 = 4.5 天**(P1=0.5 + P2=0.5 + P3=0.5 + P4=1.0 + P5=1.0 + P6=0.5 + P7=0.5;P1 已完成 2026-09-11,剩 P2-P7 = 4.0 天),预留 1 天 buffer 给测试和文档。
 
 ### 9.1 P1-P7 ↔ §7 高扩展/可用/高效 28 项映射(M1 fix,2026-09-11)
 
@@ -955,7 +969,7 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 | O15 | **plugin 内置粒度**:Quant/News/Alert 3 个 / 还是更细? | ✅ **已拍板**(§11.1 O15=A 3 个) |
 | O16 | **Day 1-4 立刻开干 vs 再 refine spec** | ✅ **已拍板**(§11.1 O16=A 立即开干) |
 
-### 11.1 待你拍板的 3 个决策
+### 11.1 已拍板的 3 个决策(N23 + N34 fix,2026-09-11)
 
 | # | 决策 | 选项 | 我推荐 |
 |---|---|---|---|
@@ -1031,11 +1045,11 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 
 ## 14. Next Steps
 
-**总工期估算(N3 fix,2026-09-11)**:
+**总工期估算(N3 fix + V1/N37 修订,2026-09-11)**:
 - v2 spec P0-P4 = **约 3.5 天**
-- v3 spec P1-P7 = **约 3.5 天**
-- 30% 迁移 buffer = **约 1 天**
-- **总计 ~8 天**
+- v3 spec P1-P7 = **约 4.5 天**(P1-P7 完整 = P1 0.5d + P2-P7 4.0d,§9 Phase 表 sum)
+- 1 天 buffer = **约 1 天**
+- **总计 ~9 天**(v2 3.5 + v3 4.5 + buffer 1)
 
 **前置依赖**:
 - ✅ v3 P1(骨架)2026-09-11 已完成
