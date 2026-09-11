@@ -41,7 +41,7 @@ flowchart TB
         ObserveNode["Observe<br/>(汇总 tool_result)"]
         VerifyNode["Verify<br/>(tool_call + tool_result 检查)"]
         SynthNode["Synthesize<br/>(LLM 生成回答)"]
-        LLM2(("LLM<br/>调用 1-2 次"))
+        LLM2(("LLM<br/>调用 2-3 次<br/>(L3 默认关)"))
     end
 
     subgraph TIER3["🎯 Tier 3: Full Workflow (multi-agent)"]
@@ -142,7 +142,7 @@ flowchart TB
     %% Cross-cutting 关联
     ContextPriority -.injects.-> PlanNode
     ContextPriority -.injects.-> SynthNode
-    Verification -.wraps.-> ExecuteNode
+    Verification -.wraps.-> ExecuteNode  # 注意:v2 §D5 VerifyNode 是主图独立 node,这里 wraps 指 L1 hook 在 tool_invoke 前后跑
     Retry -.wraps.-> Verification
 
     %% LLM
@@ -151,7 +151,7 @@ flowchart TB
     WorkflowRunner -.uses.-> Provider1
     ShortCircuit -.zero.-> LLM1
     PlanNode -.1x.-> Provider2
-    SynthNode -.1x.-> Provider2
+    SynthNode -.1x.-> Provider2  # 默认 plan + synthesize = 2 次;L3 开启时 +1 次
     WorkflowRunner -.5-15x.-> Provider3
 
     %% Styling
@@ -447,7 +447,7 @@ User: "分析 600036 估值合理性"
   ↓
 [Drawer UI] 显示 plan 进度 + 各 tool card + 最终回答
 
-总耗时:5-10s,token:500-1000 (plan+synthesize)
+总耗时:5-10s,token:500-1200 (plan+synthesize,N21 fix,与 v2 §D1 对齐)
 ```
 
 ---

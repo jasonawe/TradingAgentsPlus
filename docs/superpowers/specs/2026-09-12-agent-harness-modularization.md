@@ -647,9 +647,11 @@ class QuantPlugin(Plugin):
 
 ### 5.5 完整目录 vs plugin 化迁移路径
 
-**Phase 1**:`tools/builtin/` 直接放 tool 代码(类似 FastAPI 的 router pattern)
-**Phase 2**:每个 `builtin/` 子目录变成 `plugins/builtin/` 子模块,用 `Plugin` 类包装
-**Phase 3**:第三方 plugin 通过 `pip install tradingagents-plugin-xxx` 安装,自动被发现
+**Plugin 迁移阶段 1**(本 spec P3 实施):`tools/builtin/` 直接放 tool 代码(类似 FastAPI 的 router pattern)
+**Plugin 迁移阶段 2**(本 spec P6 实施):每个 `builtin/` 子目录变成 `plugins/builtin/` 子模块,用 `Plugin` 类包装
+**Plugin 迁移阶段 3**(Day 15+ 后续 spec):第三方 plugin 通过 `pip install tradingagents-plugin-xxx` 安装,自动被发现
+
+**注**:本节的 "阶段 1/2/3" 是 plugin 迁移路径,**不**是 §9 实施路线图的 P1-P7(那是代码实施阶段)。
 
 ---
 
@@ -659,7 +661,7 @@ class QuantPlugin(Plugin):
 class Harness:
     """Harness 主类 — 组装所有组件,提供统一入口。
 
-    **Init order**(C2 fix + N4 fix,2026-09-11):
+    **Init order**(C2 fix + N4/N15 fix,2026-09-11):
     1. config (HarnessConfig.from_env)
     2. tool_registry (ToolRegistry)
     3. agent_registry (AgentRegistry)
@@ -888,26 +890,27 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 | **P1** | 0.5 天 | 创建 `agent_harness/` 目录骨架 + `__init__.py` + `Harness` 主类 + 旧 `general/` 代码 re-export | `from tradingagents.agent_harness import Harness` 可用,旧测试不破 |
 | **P2** | 0.5 天 | `data/providers/base.py` + `yfinance/eastmoney/akshare` 3 个 provider + `PROVIDERS` registry + `DataResponse` | 切换 provider 测试 + 旧 quote/fundamentals 测试不破 |
 
-### 9.1 P1-P7 ↔ §7 高扩展/可用/高效 28 项映射(M1 fix,2026-09-11)
-
-| Phase | 实施 §7.1 高扩展(8 项) | 实施 §7.2 高可用(10 项) | 实施 §7.3 高效(10 项) |
-|---|---|---|---|
-| **P1** ✅ | (无) | (无) | (无,纯骨架) |
-| **P2** | #2 Tool adapter | (无) | #8 Connection pooling |
-| **P3** | #1 Plugin 注册 / #5 Config / #6 Hook(预留) | #9 Graceful degradation | #1 Tier 1 短路径 / #5 Streaming |
-| **P4** | #3 Provider 抽象 / #4 Agent factory / #7 Prompt 覆盖 / #8 Permission | #4 Timeout / #7 State 持久化 | #2 并行 invoke / #6 Plan 复用 |
-| **P5** | (P5 是 agents,不算高扩展) | (无) | (无) |
-| **P6** | (核心就是 plugin 完整化) | (无) | #7 Lazy plugin load |
-| **P7** | (无) | #1 降级 / #2 Failover / #3 Retry / #5 Rate limit / #6 Circuit breaker / #8 Health check / #10 Audit | #10 Tier 3 DAG 并行 |
-
-**未覆盖**(留 Day 15+):#4 Pre-fetch / #9 Pre-fetch,这两个留 Phase 3 后期或后续 spec 实施。
 | **P3** | 0.5 天 | `tools/base.py` + `ToolRegistry` + `tools/builtin/` 迁移 6 个核心 read tool(get_quote / get_history / ...) | 旧 9+ 测试套件全不破 + 加新 tool 不改核心代码 demo |
-| **P4** | 1 天 | `core/orchestrator.py`(Tier 2 StateGraph 5 节点)+ `core/tier.py`(D1 三档路由)+ `core/short_circuit.py`(Tier 1 强执行) | 5 节点 plan-execute-verify-synthesize 测试 + 浏览器实测 80% query <3s |
+| **P4** | 1 天 | `core/orchestrator.py`(Tier 2 StateGraph 主图 5 节点(17+ sub-state,N20 fix))+ `core/tier.py`(D1 三档路由)+ `core/short_circuit.py`(Tier 1 强执行) | 主图 5 节点 + 17+ sub-state plan-first retry verification 测试 + 浏览器实测 80% query <3s |
 | **P5** | 1 天 | `agents/` 6 个 sub-agent + `AgentRegistry` + `agents/base.py` | BaseAgent 测试 + 6 个 agent 实现测试 + AgentRegistry 测试 |
 | **P6** | 0.5 天 | `plugins/base.py` + `PluginRegistry` + 3 个内置 plugin(Quant/News/Alert)+ entry_points 自动发现 demo | 加第三方 plugin 测试(可手写一个本地 plugin 验证) |
 | **P7** | 0.5 天 | `observability/health.py` + `circuit_breaker` + `provider_failover` + health check endpoint + 飞书告警 webhook | 手工 kill 一个 provider,观察 failover 行为 + health check 返回正确状态 |
 
 **总计 3-4 天**,预留 1 天 buffer 给测试和文档。
+
+### 9.1 P1-P7 ↔ §7 高扩展/可用/高效 28 项映射(M1 fix,2026-09-11)
+
+| Phase | 实施 §7.1 高扩展(8 项) | 实施 §7.2 高可用(10 项) | 实施 §7.3 高效(10 项) |
+|---|---|---|---|
+| **P1** ✅ | (无,纯骨架) | (无) | (无) |
+| **P2** | #2 Tool adapter | (无) | #8 Connection pooling |
+| **P3** | #1 Plugin 注册 / #5 Config / #6 Hook(预留) | #9 Graceful degradation | (无 — Tier 1 short circuit 在 P4) |
+| **P4** | #3 Provider 抽象 / #4 Agent factory / #7 Prompt 覆盖 / #8 Permission | #4 Timeout / #7 State 持久化 | #1 Tier 1 短路径 / #2 并行 invoke / #5 Streaming / #6 Plan 复用 |
+| **P5** | (P5 是 agents,不算高扩展) | (无) | (无) |
+| **P6** | (核心就是 plugin 完整化) | (无) | #7 Lazy plugin load |
+| **P7** | (无) | #1 降级 / #2 Failover / #3 Retry / #5 Rate limit / #6 Circuit breaker / #8 Health check / #10 Audit | #10 Tier 3 DAG 并行 |
+
+**未覆盖**(留 Day 15+):§7.3 #4 Pre-fetch / #9 Pre-fetch,这两个留后续 spec 实施。
 
 ### 兼容性策略
 
@@ -950,8 +953,8 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 | R3 | Plugin entry_points 第三方生态短 | 内置 plugin 覆盖 80% 用例,第三方 plugin 留接口 |
 | R4 | ToolRegistry 的 decorator + entry_points 双注册可能冲突 | 注册时去重,后注册抛错 |
 | O14 | **sub-agent 划分粒度**:太细 / 合适 / 太少? | ✅ **已拍板**(下面) |
-| O15 | **plugin 内置粒度**:Quant/News/Alert 3 个 / 还是更细? | **待你拍板**(下面) |
-| O16 | **Day 1-4 立刻开干 vs 再 refine spec** | **待你拍板**(下面) |
+| O15 | **plugin 内置粒度**:Quant/News/Alert 3 个 / 还是更细? | ✅ **已拍板**(§11.1 O15=A 3 个) |
+| O16 | **Day 1-4 立刻开干 vs 再 refine spec** | ✅ **已拍板**(§11.1 O16=A 立即开干) |
 
 ### 11.1 待你拍板的 3 个决策
 
@@ -983,7 +986,7 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 - [ ] 6 个 sub-agent(DataAgent 合并 QuoteAgent+FundamentalsAgent)全部实现 + 测试
 - [ ] ToolRegistry + PluginRegistry + entry_points 验证通过
 - [ ] Tier 1 短路径 10 个高频 query 端到端测试全过
-- [ ] StateGraph 5 节点 plan-first retry verification 测试全过
+- [ ] StateGraph 主图 5 节点(17+ sub-state,N20 fix)plan-first retry verification 测试全过
 - [ ] Health check endpoint 返回所有 provider/tool/agent 状态
 - [ ] Circuit breaker 手工 kill 一个 provider 后自动 failover
 - [ ] 加新 tool 不改 harness 核心代码(Plugin 机制验证)
@@ -1000,14 +1003,13 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 - `tradingagents/agent_harness/core/` — 编排核心 6 个文件
 - `tradingagents/agent_harness/llm/` — LLM 适配 4 个文件
 - `tradingagents/agent_harness/data/` — 数据层 8 个文件
-- `tradingagents/agent_harness/tools/` — Tool 框架 5 个文件
 - `tradingagents/agent_harness/memory/` — 分层记忆 4 个文件
 - `tradingagents/agent_harness/agents/` — Sub-agent 8 个文件(O14=B 合并,6 个 agent + base.py + registry.py)
   - `base.py` / `registry.py` / `planner.py` / `synthesizer.py` / `verifier.py` / `data_agent.py` / `alpha_agent.py` / `news_agent.py`
-- `tradingagents/agent_harness/tools/`(M6 fix,按 §3 目录扁平化分组)
-  - 框架:`base.py` / `registry.py` / `schema.py` / `permission.py`
-  - 内置 read tool:`builtin_quote.py` / `builtin_history.py` / `builtin_fundamentals.py` / `builtin_news.py` / `builtin_alpha.py`
-  - 写 tool(HITL):`write_alert.py` / `write_note.py` / `write_scheduled.py`
+- `tradingagents/agent_harness/tools/` — Tool 框架 8 个文件(M6 fix,按 §3 目录扁平化分组)
+  - 框架 4 个:`base.py` / `registry.py` / `schema.py` / `permission.py`
+  - 内置 read tool 5 个:`builtin_quote.py` / `builtin_history.py` / `builtin_fundamentals.py` / `builtin_news.py` / `builtin_alpha.py`
+  - 写 tool(HITL)3 个:`write_alert.py` / `write_note.py` / `write_scheduled.py`
 - `tradingagents/agent_harness/workflow/` — Tier 3 DAG(留 Day 15+)
 - `tradingagents/agent_harness/plugins/` — Plugin 系统 5 个文件
 - `tradingagents/agent_harness/observability/` — 可观测 4 个文件
@@ -1041,15 +1043,18 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 - ✅ v2 P0(本 spec 同时完成)= 已 Approved
 - ❌ v2 P1(Tier 1 short circuit)= 未开始,必须先于 v3 P3
 
-## 14. Next Steps
+**已拍板决策**(§11.1):
+- ✅ O14 = B 6 个 sub-agent
+- ✅ O15 = A 3 个 plugin(Quant/News/Alert)
+- ✅ O16 = A 立即开干
 
-1. ⏸️ **等你拍板 O14 / O15 / O16**
-2. ✅ P1: 创建 `agent_harness/` 骨架 + Harness 主类(0.5 天)
-3. ✅ P2-P3: data + tools 迁移(1 天)
-4. ✅ P4: orchestrator + tier 路由(1 天)
-5. ✅ P5-P6: agents + plugins(1 天)
-6. ✅ P7: observability + health check(0.5 天)
-7. ✅ commit/push/merge main + tag v0.7.1
+**Phase 实施清单**:
+1. ✅ P1: 创建 `agent_harness/` 骨架 + Harness 主类(0.5 天)— 2026-09-11 已完成
+2. ⏸️ P2-P3: data + tools 迁移(1 天)
+3. ⏸️ P4: orchestrator + tier 路由(1 天)
+4. ⏸️ P5-P6: agents + plugins(1 天)
+5. ⏸️ P7: observability + health check(0.5 天)
+6. ⏸️ commit/push/merge main + tag v0.7.1
 
 ---
 

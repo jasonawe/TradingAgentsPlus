@@ -343,7 +343,7 @@ llm_answer: {llm_answer}
 |---|---|---|
 | **R1** | Pydantic 化改造量大(21 个 tool) | 先迁移 5 个核心 tool,其余渐进 |
 | **R2** | StateGraph 重构会破坏现有测试 | P2 单独 PR,失败可回滚到 v1 |
-| **R3** | LLM-judge 增加 token 成本 | L3 只在 tool_result > 4 个 时触发 |
+| **R3** | LLM-judge 增加 token 成本 | **L3 默认关闭**(§D6 O13 拍板),UI 加 toggle;仅当 tool_result > 4 个 且用户主动开启时才启用(否则 0 额外 token)。参考 §D6 完整设计。 |
 | **R4** | 用户可能不喜欢 plan 可见 UI | 默认折叠,用户主动展开 |
 | **O11** | **D1-D6 6 个决策哪些做 / 优先级** | **待你拍板**(下面) |
 | **O12** | **D3 Workflow 独立**:要不要在 v2 范围 | 复杂度高,可能留 Day 15 |
