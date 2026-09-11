@@ -129,12 +129,18 @@ def set_preference(
 
 
 def list_preferences(db_path: Path) -> dict[str, Any]:
-    """读所有偏好,返回 {key: value} dict。"""
+    """读所有偏好,返回 {key: value} dict。
+
+    表不存在时(测试 / 新环境还没跑 migration)返回空 dict 而不是抛错。
+    """
     conn = sqlite3.connect(str(db_path))
     try:
-        rows = conn.execute(
-            "SELECT key, value, source FROM user_preferences ORDER BY key"
-        ).fetchall()
+        try:
+            rows = conn.execute(
+                "SELECT key, value, source FROM user_preferences ORDER BY key"
+            ).fetchall()
+        except sqlite3.OperationalError:
+            return {}
         result: dict[str, Any] = {}
         for key, value, source in rows:
             try:

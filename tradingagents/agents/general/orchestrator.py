@@ -21,10 +21,16 @@ from langgraph.prebuilt import create_react_agent
 
 from tradingagents.agents.general.memory import (
     agent_memory_db_path,
+    agent_session_db_path,
     get_session_checkpointer,
     list_preferences,
 )
 from tradingagents.agents.general.prompts import render_system_prompt
+from tradingagents.agents.general.routing import (
+    RouteResult,
+    classify_intent,
+    render_intent_hint,
+)
 from tradingagents.agents.general.tools_bridge import ALL_TOOLS
 
 
@@ -85,10 +91,26 @@ def build_agent(
     checkpointer = SqliteSaver(conn)
     checkpointer.setup()
 
+    # Day 8 #1+#2: 把 system prompt 包成 callable,读 config 里 _intent_hint
+    # 注入当前轮意图(QUERY/ACTION/ANALYSIS/CHAT),强化 LLM 的 tool 引导。
+    # stream_chat 每次会调 classify_intent() 算出 hint,通过 configurable 传进来。
+    def _prompt_with_intent(state: Any) -> str:
+        # LangGraph 的 create_react_agent 把 state 传 callable;我们从 state.config 里读
+        # 因为 create_react_agent 在每次 invoke 时会把 RunnableConfig 存到 state。
+        config = None
+        if isinstance(state, dict):
+            config = state.get("config")
+        hint = ""
+        if isinstance(config, dict):
+            configurable = config.get("configurable") or {}
+            if isinstance(configurable, dict):
+                hint = configurable.get("_intent_hint", "")
+        return system_prompt + (("\n\n" + hint) if hint else "")
+
     agent = create_react_agent(
         llm,
         ALL_TOOLS,
-        prompt=system_prompt,
+        prompt=_prompt_with_intent,
         checkpointer=checkpointer,
     )
 
@@ -124,7 +146,17 @@ def stream_chat(
     Yields:
         (event_type: str, payload: dict)
     """
-    config = {"configurable": {"thread_id": session_thread_id(session_id)}}
+    # Day 8 #1+#2: 进 ReAct 前先 classify_intent,把 intent hint 注入 config。
+    # Day 8 #3: 加 recursion_limit=8,防止 LLM 卡死循环。
+    route = classify_intent(user_message, llm=None)  # 关键词命中足够,无需 LLM
+    intent_hint = render_intent_hint(route)
+    config = {
+        "configurable": {
+            "thread_id": session_thread_id(session_id),
+            "_intent_hint": intent_hint,
+        },
+        "recursion_limit": 8,
+    }
     inputs = {"messages": [HumanMessage(content=user_message)]}
 
     try:
