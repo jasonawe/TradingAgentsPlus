@@ -31,7 +31,10 @@ from tradingagents.agents.general.routing import (
     classify_intent,
     render_intent_hint,
 )
+import logging
+
 from tradingagents.agents.general.tools_bridge import ALL_TOOLS
+from tradingagents.agents.general.memory import store_reference as _store_reference
 
 
 # ════════════════════════════════════════════════════════
@@ -159,14 +162,46 @@ def stream_chat(
     }
     inputs = {"messages": [HumanMessage(content=user_message)]}
 
+    # Day 9 #8: L3 reference 用 agent_references 表(同 web_runs.sqlite3)
+    from pathlib import Path as _Path
+    from tradingagents.agents.general.memory import agent_memory_db_path as _agent_db_path
+    db_path = _agent_db_path(_Path("~/.tradingagents").expanduser())
+
     try:
+        # Day 9 #8: L3 自动写引用 — 记下最后 tool_call,tool_result 后 store_reference。
+        last_tool_call: dict | None = None
+
         # stream_mode="messages" 只 yield 新增的 message token/块,
         # 比 "values" 更高效(SSE 流式友好,不去重不发完整 state)
         for chunk in agent.stream(inputs, config=config, stream_mode="messages"):
             # chunk 是 (message_chunk, metadata) tuple
             if isinstance(chunk, tuple) and len(chunk) >= 1:
                 msg_chunk = chunk[0]
+                # 记住最后 tool_call 的 name/args(给 tool_result 后用)
+                if isinstance(msg_chunk, AIMessage) and getattr(msg_chunk, "tool_calls", None):
+                    tc = msg_chunk.tool_calls[-1]
+                    last_tool_call = {
+                        "name": tc.get("name"),
+                        "args": tc.get("args", {}),
+                    }
                 for event_type, payload in _emit_message(msg_chunk):
+                    # Day 9 #8: tool_result 后异步写 L3 reference(失败不阻塞流)
+                    if event_type == "tool_result" and last_tool_call:
+                        try:
+                            ref_id = _store_reference(
+                                db_path,
+                                session_id=session_id,
+                                nl_query=user_message,
+                                tool_name=last_tool_call["name"] or "(unknown)",
+                                tool_args=last_tool_call["args"],
+                                tool_result={
+                                    "content": str(payload.get("content", ""))[:1000]
+                                },
+                                tags=[route.intent.value] if route else None,
+                            )
+                            payload["ref_id"] = ref_id
+                        except Exception as e:  # noqa: BLE001
+                            LOGGER.warning("L3 store_reference failed: %s", e)
                     yield (event_type, payload)
                     # HITL: 写操作需要确认 → yield confirm_request 后立即停止
                     # generator,让前端弹 confirm dialog
@@ -183,6 +218,9 @@ def stream_chat(
 
     except Exception as e:
         yield ("error", {"error": f"{type(e).__name__}: {e}"})
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 def _emit_message(msg: Any) -> Generator[tuple[str, dict[str, Any]], None, None]:
