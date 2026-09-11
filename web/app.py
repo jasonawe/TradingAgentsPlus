@@ -356,6 +356,28 @@ def create_app(
         LOGGER.info("Stage C: QuoteService injected for quote tools")
     except ImportError:
         pass
+    # Day 7: 注入 ActiveRunner / Scheduler / News / ReportHistory 让 6 个新 tool 能用
+    try:
+        from tradingagents.agents.general.tools_bridge import (
+            set_active_runner, set_scheduler_service, set_news_provider,
+            set_report_history,
+        )
+        set_active_runner(active_manager)
+        set_scheduler_service(scheduler_service)
+        # News provider 用 alpha_vantage_news.get_news(已知存在)
+        from tradingagents.dataflows import alpha_vantage_news as _news_mod
+        set_news_provider(_news_mod.get_news)
+        # ReportHistory 用 web.history.ReportHistory(results_dir=...)
+        # 注:不能局部 from-import ReportHistory(触发 UnboundLocalError 因为函数内 line 221 也用了 ReportHistory)
+        # 用 module attribute 引用:web.history.ReportHistory
+        results_dir = active_config.get("results_dir") if active_config else None
+        import web.history as _web_history
+        set_report_history(_web_history.ReportHistory(results_dir=results_dir))
+        LOGGER.info("Stage C Day 7: runner + scheduler + news + report history injected")
+    except ImportError as e:
+        LOGGER.warning("Stage C Day 7 imports skipped: %s", e)
+    except Exception as e:
+        LOGGER.warning("Stage C Day 7 injection failed: %s", e)
     app.state.alert_engine = AlertEngine(app.state.repositories["alerts"])
     app.state.notifier = Notifier(settings_repo=app.state.repositories["settings"])
     app.state.alert_monitor = AlertMonitor(

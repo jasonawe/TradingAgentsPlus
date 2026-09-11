@@ -90,6 +90,66 @@ def _get_quote_service() -> Any:
         )
     return _quote_service
 
+
+# ════════════════════════════════════════════════════════
+# Day 7 — ActiveRunner / Scheduler / News / ReportRepo 注入
+# 让 LLM agent 能调度 TradingAgentsPlus 的核心能力
+# ════════════════════════════════════════════════════════
+
+_active_runner: Any = None
+_scheduler_service: Any = None
+_news_provider: Any = None
+_report_history: Any = None
+
+
+def set_active_runner(runner: Any) -> None:
+    """注入 RunManager 实例,run_trading_agents_analysis + get_analysis_status 用。"""
+    global _active_runner
+    _active_runner = runner
+
+
+def set_scheduler_service(svc: Any) -> None:
+    """注入 ScheduledAnalysisService 实例,list_scheduled_tasks + run_scheduled_task 用。"""
+    global _scheduler_service
+    _scheduler_service = svc
+
+
+def set_news_provider(provider: Any) -> None:
+    """注入 news provider / function,get_news 用。
+    provider 可以是 callable(ticker, start_date, end_date) 或 module。"""
+    global _news_provider
+    _news_provider = provider
+
+
+def set_report_history(history: Any) -> None:
+    """注入 ReportHistory 实例,list_reports 用。"""
+    global _report_history
+    _report_history = history
+
+
+def _get_active_runner() -> Any:
+    if _active_runner is None:
+        raise RuntimeError("RunManager 未注入 — 调用 set_active_runner() 先注入。")
+    return _active_runner
+
+
+def _get_scheduler_service() -> Any:
+    if _scheduler_service is None:
+        raise RuntimeError("Scheduler 未注入 — 调用 set_scheduler_service() 先注入。")
+    return _scheduler_service
+
+
+def _get_news_provider() -> Any:
+    if _news_provider is None:
+        raise RuntimeError("News provider 未注入 — 调用 set_news_provider() 先注入。")
+    return _news_provider
+
+
+def _get_report_history() -> Any:
+    if _report_history is None:
+        raise RuntimeError("ReportHistory 未注入 — 调用 set_report_history() 先注入。")
+    return _report_history
+
 # 复用 B1 的 alpha tools(已经实现好)
 from tradingagents.agents.utils.alpha_factors_tools import (
     compute_alpha_factors,
@@ -678,6 +738,166 @@ def update_preference(
 # ALL_TOOLS — LangGraph ReAct agent 直接用
 # ════════════════════════════════════════════════════════
 
+# ─────────────────────────────────────────────────────
+# Day 7 — 6 个新 tool,对接 TradingAgentsPlus 核心能力
+# ─────────────────────────────────────────────────────
+
+@tool
+def run_trading_agents_analysis(
+    symbol: Annotated[str, "ticker 如 600036.SS"],
+    trade_date: Annotated[str, "YYYY-MM-DD;空 = 今天"] = "",
+    asset_type: Annotated[str, "stock / crypto"] = "stock",
+    research_depth: Annotated[int, "1 / 3 / 5 轮辩论深度"] = 1,
+) -> str:
+    """启动 TradingAgents 主图跑完整 pipeline(基本面/市场/新闻/辩论/风险管理)。
+
+    同步返回 run_id + 初始状态,不阻塞等结果。
+    想查进度用 get_analysis_status(run_id),完成后看 list_reports(symbol=...)。
+
+    返回示例: {"status": "started", "run_id": "run-abc123", "symbol": "600036.SS", ...}
+    """
+    from datetime import date as _date
+    from web.models import AnalysisRequest, AssetType, AnalystType
+    runner = _get_active_runner()
+    try:
+        if trade_date:
+            target = _date.fromisoformat(trade_date)
+        else:
+            target = _date.today()
+    except ValueError:
+        return f"ERROR: trade_date {trade_date!r} 必须是 YYYY-MM-DD"
+    try:
+        atype = AssetType(asset_type)
+    except ValueError:
+        return f"ERROR: asset_type {asset_type!r} 必须是 stock / crypto"
+    if research_depth not in (1, 3, 5):
+        research_depth = 1
+    try:
+        req = AnalysisRequest(
+            ticker=symbol,
+            analysis_date=target,
+            asset_type=atype,
+            analysts=[AnalystType.MARKET, AnalystType.FUNDAMENTALS],
+            research_depth=research_depth,
+        )
+        record = runner.start_run(req)
+        run_id = getattr(record, "run_id", None) or getattr(record, "id", None)
+        return json.dumps(
+            {
+                "status": "started",
+                "run_id": run_id,
+                "symbol": symbol,
+                "trade_date": target.isoformat(),
+                "research_depth": research_depth,
+                "hint": "调 get_analysis_status(run_id) 查进度,完成后用 list_reports 拿报告",
+            },
+            ensure_ascii=False,
+        )
+    except Exception as e:
+        return f"ERROR: run_trading_agents_analysis - {type(e).__name__}: {e}"
+
+
+@tool
+def get_analysis_status(run_id: Annotated[str, "run ID,run_trading_agents_analysis 返回"]) -> str:
+    """查 run 当前状态(pending / running / completed / failed)+ 进度。"""
+    runner = _get_active_runner()
+    try:
+        record = runner.get_run(run_id)
+        return json.dumps(
+            {
+                "run_id": run_id,
+                "status": getattr(record, "status", "unknown"),
+                "ticker": getattr(getattr(record, "request", None), "ticker", None),
+                "queued_at": str(getattr(record, "queued_at", None)),
+                "started_at": str(getattr(record, "started_at", None)),
+                "finished_at": str(getattr(record, "finished_at", None)),
+                "error": getattr(record, "error", None),
+                "hint": "status=completed 后调 list_reports 拿报告;status=failed 看 error 字段",
+            },
+            ensure_ascii=False,
+            default=str,
+        )
+    except Exception as e:
+        return f"ERROR: get_analysis_status - {type(e).__name__}: {e}"
+
+
+@tool
+def get_news(
+    symbol: Annotated[str, "ticker 如 600036.SS"],
+    days: Annotated[int, "查最近 N 天的新闻,默认 7"] = 7,
+    asset_type: Annotated[str, "stock / crypto"] = "stock",
+) -> str:
+    """拿某资产的新闻(最近 N 天)。返回标题/来源/时间/摘要/sentiment 评分。"""
+    from datetime import date as _date, timedelta as _td
+    provider = _get_news_provider()
+    end = _date.today()
+    start = end - _td(days=max(1, min(days, 30)))
+    try:
+        # provider 可能是 callable / object.get_news / module.get_news
+        if callable(provider):
+            result = provider(symbol, start.isoformat(), end.isoformat())
+        elif hasattr(provider, "get_news"):
+            result = provider.get_news(symbol, start.isoformat(), end.isoformat())
+        elif hasattr(provider, "get_stock_news"):
+            result = provider.get_stock_news(symbol, start.isoformat(), end.isoformat())
+        else:
+            return "ERROR: news provider 接口未识别(需要 callable / .get_news / .get_stock_news)"
+        if isinstance(result, str):
+            text = result
+        else:
+            text = json.dumps(result, ensure_ascii=False, default=str)
+        # 截断(避免 LLM context 爆掉)
+        if len(text) > 4000:
+            text = text[:4000] + "..."
+        return text or "(no news)"
+    except Exception as e:
+        return f"ERROR: get_news - {type(e).__name__}: {e}"
+
+
+@tool
+def list_scheduled_tasks() -> str:
+    """列出所有定时分析任务(每条包含 id / symbol / cron / 上次/下次运行时间 / enabled)。"""
+    svc = _get_scheduler_service()
+    try:
+        result = svc.list_jobs()
+        return json.dumps(result, ensure_ascii=False, default=str) or "(no scheduled tasks)"
+    except Exception as e:
+        return f"ERROR: list_scheduled_tasks - {type(e).__name__}: {e}"
+
+
+@tool
+def run_scheduled_task(job_id: Annotated[str, "list_scheduled_tasks 返回的 job id"]) -> str:
+    """立即触发一个定时任务(不等 cron)。返回触发状态 + run_id(如有)。"""
+    svc = _get_scheduler_service()
+    try:
+        result = svc.run_now(job_id)
+        return json.dumps(result, ensure_ascii=False, default=str)
+    except Exception as e:
+        return f"ERROR: run_scheduled_task - {type(e).__name__}: {e}"
+
+
+@tool
+def list_reports(
+    symbol: Annotated[str, "ticker 过滤,空 = 全部"] = "",
+    limit: Annotated[int, "最多返回几条,默认 20"] = 20,
+) -> str:
+    """列出历史分析报告(symbol 可选过滤)。返回 [{report_id, ticker, status, started_at, ...}]。"""
+    history = _get_report_history()
+    try:
+        records = history.list_reports()
+        if symbol:
+            target = symbol.strip().upper()
+            records = [r for r in records if str(r.get("ticker", "")).upper() == target]
+        records = records[: max(1, min(limit, 200))]
+        return json.dumps(records, ensure_ascii=False, default=str)
+    except Exception as e:
+        return f"ERROR: list_reports - {type(e).__name__}: {e}"
+
+
+# 写 tool 列表 — 之前由 create_note / update_note / delete_note / create_alert /
+# update_alert / delete_alert / update_preference 构成。
+# 现在 ALL_TOOLS 已经包含读 + alpha + 写 + Day 7 共 21 个。
+
 ALL_TOOLS = [
     # Alpha158 × 3(B1 复用)
     list_alpha_factors,
@@ -697,6 +917,13 @@ ALL_TOOLS = [
     update_alert,
     delete_alert,
     update_preference,
+    # Day 7 — 6 个新 tool 对接 TradingAgentsPlus 核心能力
+    run_trading_agents_analysis,
+    get_analysis_status,
+    get_news,
+    list_scheduled_tasks,
+    run_scheduled_task,
+    list_reports,
 ]
 
 
@@ -715,4 +942,15 @@ __all__ = [
     "update_alert",
     "delete_alert",
     "update_preference",
+    # Day 7
+    "run_trading_agents_analysis",
+    "get_analysis_status",
+    "get_news",
+    "list_scheduled_tasks",
+    "run_scheduled_task",
+    "list_reports",
+    "set_active_runner",
+    "set_scheduler_service",
+    "set_news_provider",
+    "set_report_history",
 ]
