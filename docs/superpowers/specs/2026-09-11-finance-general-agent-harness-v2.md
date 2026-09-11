@@ -102,9 +102,15 @@ Tier 3: Full Workflow (multi-agent DAG)
 | keyword 命中"深度/综合/详细" + ticker 数量 = 1 + LLM 推理需要 | **Tier 2** | LLM plan → server 执行 → LLM synthesize | **2-3 次**(L3 默认关) |
 | keyword 命中"深度/综合/详细" + ticker 数量 > 1(对比/批量) + LLM 推理需要 | **Tier 3** | 多 agent DAG 并行(Workflow runner) | 5-15 次 |
 | keyword 命中"价格/多少钱" 但 ticker 抽取失败(用户没说标的) | **Tier 1 → 降级 Tier 2** | regex miss → fallback 到 LLM 反问 ticker | 1 次(反问) |
-| 写操作(create_*/update_*/delete_*) | 强制 HITL | ConfirmNode yield → 等用户 confirm → execute | 0-1 次 |
+| 写操作(create_*/update_*/delete_*) | 强制 HITL | ConfirmNode yield → 等用户 confirm → execute | **0 次**(等待用户响应不计 LLM 调用) |  
+**N87 fix,2026-09-11**:旧版「0-1 次」描述不准 — ConfirmNode 本身 0 LLM,等用户响应时间是用户行为时间,不算 LLM 调用。
 
-**Fallback 路径**(某 tier 失败时):Tier 1 失败 → Tier 2 / Tier 2 失败 → Tier 3 / 全部失败 → 返回错误 + 提示用户换 query。
+**Fallback 路径**(某 tier 失败时):Tier 1 失败 → Tier 2 / Tier 2 失败 → Tier 3 / 全部失败 → 返回错误 + 提示用户换 query。  
+**N90 fix,2026-09-11**:`Tier 1 失败` 定义明确:
+- **tool.invoke() 抛异常**(网络/数据错) → 升级 Tier 2 LLM 兜底
+- **DataResponse.warnings 非空** → 直接 emit warnings 给用户(不升级,user 自己判断)
+- **regex miss**(ticker 抽取失败) → **不**算 Tier 1 失败,直接降级 Tier 2 反问 ticker
+- **写操作**(PermissionType.WRITE) → 强制走 ConfirmNode,**不**进 Tier 1 short circuit
 
 **Tier 1 子模式**(M2 fix,2026-09-11):
 
@@ -130,7 +136,7 @@ Tier 3: Full Workflow (multi-agent DAG)
 **改动**:
 - 新建 `data/providers/base.py`:定义 `Provider` ABC(统一 `get_quote / get_history / get_fundamentals` 接口)
 - 新建 `data/providers/registry.py`:`PROVIDERS = {"yfinance": ..., "eastmoney": ..., "akshare": ..., "alpha_vantage": ...}`(N40 fix,2026-09-11,实际 4 个 provider)
-- 新建 `data/responses.py`:统一 `DataResponse(BaseModel)` 含 `results / provider / fetched_at / warnings / chart`
+- 新建 `data/responses.py`:统一 `DataResponse(BaseModel)` 含 `results / provider / fetched_at / warnings / chart`(**N93 fix**:chart 字段默认 None,server-side 不渲染。client-side 渲染用 DataResponse.results 字段;未来如需 server-side 渲染,扩展为 `chart: ChartData | None` 含 type/payload)
 - 改造 `tools_bridge.py`:每个 tool 入参改 Pydantic schema + server-side validate
 
 **Pydantic 版本**:v2 (`from pydantic import BaseModel, Field`),如果项目还在 v1 先升级。
@@ -244,7 +250,7 @@ PlanNode → ExecuteNode → ObserveNode → VerifyNode → SynthesizeNode
 
 | Node | 职责 | LLM 调用 | 实现 |
 |---|---|---|---|
-| **PlanNode** | LLM 给 JSON plan `[{"step": 1, "action": "tool_name", "args": {...}}]` | 1 次 | JSON parser 强校验 |
+| **PlanNode** | LLM 给 JSON plan `[{"step": 1, "action": "tool_name", "args": {...}}]` | 1 次 | **pydantic.ValidationError + model_validator 强校验**(**N92 fix**) |
 | **ExecuteNode** | server 按 plan 顺序调 tool(`asyncio.gather` 并行) | 0 次 | Pydantic validate + invoke |
 | **ObserveNode** | 汇总 tool_result,生成 intermediate state | 0 次 | server logic |
 | **VerifyNode** | tool_call=0 → auto-bump LLM "请说明为什么不调 tool";tool_result 错误 → auto-retry | 0-1 次 | server logic + 必要时调 LLM |
@@ -260,13 +266,14 @@ PlanNode → ExecuteNode → ObserveNode → VerifyNode → SynthesizeNode
 | 层 | 检查 | 失败时 |
 |---|---|---|
 | **L1 tool_call** | tool_call 数量 > 0;args 符合 schema | auto-bump LLM 重生成 |
-| **L2 tool_result** | 数据结构符合 schema;关键字段非空;数据新鲜度 < TTL | auto-retry(指数 backoff,max 3) |
+| **L2 tool_result** | 数据结构符合 schema;关键字段非空;数据新鲜度 < TTL | auto-retry(指数 backoff,max 3) |  
+**N88 fix,2026-09-11**:TTL 默认值 = ToolSchema.cache_ttl_seconds(每个 tool 单独配置)。例:get_quote 60s / get_history 3600s / get_fundamentals 86400s / get_news 1800s。Verification 时调 tool 的 cache_ttl_seconds 判定新鲜度(每个 tool 一个 TTL,不全局统一)。
 | **L3 answer** | LLM-judge 评估 groundedness("回答是否基于 tool_result") | score < 0.7 → back to PlanNode |
 
 **实现**:
 - `verification/tool_call.py` — L1
 - `verification/tool_result.py` — L2
-- `verification/answer_judge.py` — L3(用同一个 LLM 做 judge)
+- `verification/answer_judge.py` — L3(**不**用主任务 LLM 做 judge,见 N89 fix)
 
 **L3 LLM-judge schema**(C5 fix,2026-09-11):
 
@@ -287,8 +294,11 @@ llm_answer: {llm_answer}
 输出 JSON: { "score": 0.0-1.0, "issues": [...], "suggestion": "...", "reasoning": "..." }
 ```
 
+**LLM-judge 模型选型**(**N89 fix,2026-09-11**):judge **不**用主任务 LLM(minimax-cn 不爱调 tool,做 judge 风险高 — judge 自己也是 LLM,会幻觉)。judge 强制用**强模型**(GPT-4o / Claude Sonnet / Claude Opus),在 `HarnessConfig.judge_model` 配置。L3 启用时 judge 模型 token 单独计费(不上 LLM cache)。
+
 **0.7 阈值依据**(经验值,需 pilot 校准):
 - 类似系统内部数据,0.7 是 grounded vs hallucinated 常见分界点
+- **N94 fix,2026-09-11**:0.7 阈值参考 Anthropic Claude Code 的 LLM-judge groundedness 评分标准(general purpose assistant grounded > 0.7 视为可信),OpenAI Evals 类似阈值也在 0.65-0.75 范围
 - Pilot 校准:P3 后跑 10-20 个 query,人工标 ground-truth,微调
 
 **L3 默认关闭,UI 加 toggle**(O13 拍板):
@@ -415,7 +425,8 @@ llm_answer: {llm_answer}
 - `tools_bridge.py` — Pydantic 化(D2 渐进迁移,先 5 个核心)
 - `orchestrator.py` — 接入 tier routing + 新 StateGraph
 - `prompts.py` — 新增 PlanPrompt / VerifyPrompt / SynthesizePrompt
-- `routing.py` — 升级 classify_intent → classify_tier(返回 tier + intent)
+- `routing.py` — 扩展 classify_intent 增加 tier 维度(N44 fix — **不**新增 classify_tier 函数,扩展 RouteResult 加 tier 字段)
+  **N83 fix,2026-09-11**:与 §D1 N44 fix 统一(避免双入口)。File Manifest line 418 旧版写「升级 classify_intent → classify_tier」是误导。实际实施时只扩展 classify_intent,加 tier 字段。
 
 **不变**:
 - `mcp_server.py` / `memory.py` / `audit.py` / `approval.py` / Drawer UI
