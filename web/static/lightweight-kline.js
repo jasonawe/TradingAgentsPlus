@@ -93,19 +93,19 @@
                    (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
     // dispose old chart if any
-    const old = chartInstances.get(container);
+    const old = chartInstances.get(chartEl);
     if (old) {
       old.remove();
-      chartInstances.delete(container);
+      chartInstances.delete(chartEl);
     }
 
-    container.innerHTML = "";
-    const chartEl = document.createElement("div");
-    chartEl.style.width = "100%";
-    chartEl.style.height = "400px";
-    container.appendChild(chartEl);
+    chartEl.innerHTML = "";
+    const innerChartEl = document.createElement("div");
+    innerChartEl.style.width = "100%";
+    innerChartEl.style.height = "400px";
+    chartEl.appendChild(innerChartEl);
 
-    const chart = lib.createChart(chartEl, {
+    const chart = lib.createChart(innerChartEl, {
       layout: {
         background: { type: lib.ColorType.Solid, color: "transparent" },
         textColor: isDark ? "#e6e9ef" : "#1f2430",
@@ -167,7 +167,7 @@
     }
 
     chart.timeScale().fitContent();
-    chartInstances.set(container, chart);
+    chartInstances.set(chartEl, chart);
   }
 
   async function initKlinePanels() {
