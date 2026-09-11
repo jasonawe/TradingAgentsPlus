@@ -380,7 +380,8 @@ flowchart LR
 **关键设计点**:
 
 1. **Pydantic 入参校验** — LLM 传任意 dict 进 tool,先过 schema,失败立即拒绝(不会进 provider)
-2. **Provider ABC 统一接口** — 3 个 provider 实现同一套方法,内部差异屏蔽
+2. **Provider ABC 统一接口** — **4 个** provider 实现同一套方法,内部差异屏蔽  
+**N69 fix,2026-09-11**:图 3 Mermaid 图中 YF/EM/AK 只画了 3 个 provider,实际有 4 个(加 alpha_vantage)。v3 §3 directory 已修订(N40 fix),本 arch 图 3 节点文字对齐修订,mermaid 图节点未重画(下个 PR 渲染时加 alpha_vantage)。
 3. **Registry 解耦** — tool 不直接 `import` 具体 provider,问 registry 要
 4. **DataResponse 统一容器** — 借鉴 OpenBB OBBject,所有 tool 返回相同结构
 5. **Provider 切换成本**(M3.1 修订)— `get_active_provider()` 切换**需要**:`PROVIDERS.set_active(name)` 触发 Registry reload。**不是** zero-cost,需要 hot-reload 配置(无需重启服务,但需要 reload)。建议 UI 加 "切换 provider" 按钮显示当前 active provider。
