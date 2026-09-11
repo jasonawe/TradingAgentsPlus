@@ -197,8 +197,8 @@ tradingagents/
 │   │   ├── registry.py                  PluginRegistry + entry_points 发现
 │   │   └── builtin/                     内置 3 个 plugin
 │   │       ├── __init__.py
-│   │       ├── quant.py                 [Plugin 1] Alpha158 + AlphaAgent + list_alpha_factors + compute_alpha_factors + evaluate_alpha
-│   │       ├── news.py                  [Plugin 2] NewsAgent + get_news + sentiment
+│   │       ├── quant.py                 [Plugin 1] Alpha158 + AlphaAgent(引用)+ list_alpha_factors + compute_alpha_factors + evaluate_alpha(**N63 fix**:AlphaAgent 实现在 agents/alpha_agent.py,Plugin 仅注册)
+│   │       ├── news.py                  [Plugin 2] NewsAgent(引用)+ get_news + sentiment(**N63 fix**:NewsAgent 实现在 agents/news_agent.py)
 │   │       └── alert.py                 [Plugin 3] AlertTool (write) + NoteTool (write)
 │   │
 │   ├── observability/                   可观测性(高可用关键)
@@ -534,7 +534,12 @@ class ToolRegistry:
         return [self._tools[n] for n in self._permission_index[perm]]
 
     def discover_entry_points(self, group: str = "agent_harness.tools") -> None:
-        """从 entry_points 自动发现第三方 tool。"""
+        """从 entry_points 自动发现第三方 tool。
+
+        **N66 fix,2026-09-11**:此方法当前**不**被 Harness 自动调用(§6 Harness.__init__ 只调
+        `plugin_registry.discover_entry_points()`)。保留为可选 API,供需要直接注册第三方 tool
+        的场景使用(不通过 plugin)。Day 15+ 看是否启用自动调用。
+        """
         try:
             import importlib.metadata as md
             eps = md.entry_points(group=group)
@@ -648,6 +653,9 @@ class PluginRegistry:
             plugin.install(self.harness)
 
 
+# N63 fix,2026-09-11:AlphaAgent / NewsAgent 的**实现**在 `agents/alpha_agent.py` / `agents/news_agent.py`,
+# Plugin.agents() 方法只**返回引用**(避免双位置实现冲突)。Plugin 本身只提供 tool + prompt override。
+
 # 使用示例
 class QuantPlugin(Plugin):
     name = "quant"
@@ -736,13 +744,41 @@ class Harness:
             audit=self.audit,
         )
 
+        # agent 注册(N64 fix,2026-09-11)
+        self._install_builtin_agents()
+
         # plugin 注册
         self.plugin_registry = PluginRegistry(self)
         self.plugin_registry.discover_entry_points()
         self._install_builtin_plugins()
 
+    def _install_builtin_agents(self) -> None:
+        """安装 6 个 builtin agent(N64 fix,2026-09-11)。
+
+        **关键澄清**:Agent 是 core 实现,直接 register 到 agent_registry,**不**通过 plugin。
+        Plugin.agents() 方法只返回 agent **引用**(见 §5.4 N63 fix),用于第三方扩展。
+
+        实施顺序:
+        1. Control-flow agents (Planner/Verifier/Synthesizer)
+        2. Domain agents (DataAgent ⭐ 合并 Quote+Fundamentals / AlphaAgent / NewsAgent)
+        """
+        from .agents import (
+            PlannerAgent, VerifierAgent, SynthesizerAgent,
+            DataAgent, AlphaAgent, NewsAgent,
+        )
+        self.agent_registry.register(PlannerAgent())
+        self.agent_registry.register(VerifierAgent())
+        self.agent_registry.register(SynthesizerAgent())
+        self.agent_registry.register(DataAgent())
+        self.agent_registry.register(AlphaAgent())
+        self.agent_registry.register(NewsAgent())
+
     def _install_builtin_plugins(self) -> None:
-        """安装内置 plugin。"""
+        """安装内置 plugin(只提供 tool + prompt override,不提供新 agent 实现)。
+
+        **N64 fix,2026-09-11**:QuantPlugin/NewsPlugin/AlertPlugin **不**注册新 agent
+        (只 tool + prompt);6 个 builtin agent 由 `_install_builtin_agents()` 单独注册。
+        """
         from .plugins.builtin import QuantPlugin, NewsPlugin, AlertPlugin
         self.plugin_registry.register(QuantPlugin())
         self.plugin_registry.register(NewsPlugin())
@@ -866,7 +902,7 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 | 3 | LLM result cache | `llm/cache.py`(key=prompt+model+temp, TTL 5min) |
 | 4 | Tool result cache | `data/cache.py`(key=provider+endpoint+params) |
 | 5 | Streaming SSE | `web/routes/agent.py` 已有,只需改 import |
-| 6 | Plan 复用 | `core/plan_template.py`(类似 query 用同一 plan) |
+| 6 | Plan 复用 | `core/plan_template.py`(**N65 fix**:复用条件 — user_message 完全相同忽略空格/标点 + plan 模板在 cache 中存在 + 复用时间窗 ≤ 5 分钟,否则重新生成) |
 | 7 | Lazy plugin load | `plugins/registry.py` support `load_on_demand=True` |
 | 8 | Connection pooling | `data/providers/base.py` aiohttp.ClientSession 复用 |
 | 9 | Pre-fetch | `core/prefetch.py`(预测下一步) |
@@ -901,7 +937,7 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 **重要**:v3 spec 的 P1-P7 与 v2 spec 的 P0-P4 是**独立编号**,不是同一时间轴。
 - v2 spec P0 = 设计拍板 / P1 = Tier 1 short circuit / P2 = StateGraph 主图 5 节点(17+ sub-state) / P3 = verification / P4 = Context Priority
 - v3 spec P1 = 创建骨架(已完成 2026-09-11)/ P2 = Provider ABC + DataResponse / P3 = Tool Pydantic 化 / P4 = Orchestrator 实现 / P5 = 6 个 sub-agent / P6 = Plugin 系统 / P7 = Observability
-- **依赖关系**:v3 P1 必须先于 v2 P1(因为 v2 P1 实施时已经引用 v3 的 ToolRegistry)
+- **依赖关系**:**v3 P1(骨架,已完成)→ v3 P2(Provider ABC + DataResponse)→ v3 P3(Tool Pydantic 化 + ToolRegistry)→ v2 P1(Tier 1 short circuit)**。v2 P1 实施时已依赖 v3 P3 的 ToolRegistry(不是 v3 P1),所以 v3 P3 必须先于 v2 P1。**N60 fix,2026-09-11**:§14 line 1096 旧版写『v2 P1 必须先于 v3 P3』与此矛盾,以本节为准。
 - **总时间** ≈ v2 P0-P4 (3.5 天) + v3 P1-P7 (4.5 天) + 1 天 buffer = **总计 ~9 天**(V1/N37 fix:§9 Phase 表 sum = 4.5d,与 §14 总工期对齐)
 
 ---
@@ -909,11 +945,12 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 | Phase | 时间 | 内容 | 验证 |
 |---|---|---|---|
 | **P1** | 0.5 天 | 创建 `agent_harness/` 目录骨架 + `__init__.py` + `Harness` 主类 + 旧 `general/` 代码 re-export | `from tradingagents.agent_harness import Harness` 可用,旧测试不破 |
-| **P2** | 0.5 天 | `data/providers/base.py` + `yfinance/eastmoney/akshare` 3 个 provider + `PROVIDERS` registry + `DataResponse` | 切换 provider 测试 + 旧 quote/fundamentals 测试不破 |
+| **P2** | 0.5 天 | `data/providers/base.py` + `yfinance/eastmoney/akshare/alpha_vantage` **4 个** provider(**N59 fix**) + `PROVIDERS` registry + `DataResponse` + **`data/cache.py`**(provider result cache,SQLite,key=provider+endpoint+params,TTL 60s,**N62 fix**) | 切换 provider 测试 + 旧 quote/fundamentals 测试不破 + cache 命中测试 |
 | **P3** | 0.5 天 | `tools/base.py` + `ToolRegistry` + `tools/builtin/` 迁移 6 个核心 read tool(get_quote / get_history / ...) | 旧 9+ 测试套件全不破 + 加新 tool 不改核心代码 demo |
 | **P4** | 1 天 | `core/orchestrator.py`(Tier 2 StateGraph 主图 5 节点(17+ sub-state,N20 fix))+ `core/tier.py`(D1 三档路由)+ `core/short_circuit.py`(Tier 1 强执行) | 主图 5 节点 + 17+ sub-state plan-first retry verification 测试 + 浏览器实测 80% query <3s |
 | **P5** | 1 天 | `agents/` 6 个 sub-agent + `AgentRegistry` + `agents/base.py` | BaseAgent 测试 + 6 个 agent 实现测试 + AgentRegistry 测试 |
-| **P6** | 0.5 天 | `plugins/base.py` + `PluginRegistry` + 3 个内置 plugin(Quant/News/Alert)+ entry_points 自动发现 demo | 加第三方 plugin 测试(可手写一个本地 plugin 验证) |
+| **P6** | 0.5 天 | `plugins/base.py` + `PluginRegistry` + 3 个内置 plugin(Quant/News/Alert)+ entry_points 自动发现 demo | 加第三方 plugin 测试(可手写一个本地 plugin 验证)  
+**N67 fix,2026-09-11**:§7.3 #7 Lazy plugin load **不**在 P6 实施,留 Day 15+(P6 只做 entry_points + 3 个 builtin plugin + registry,0.5 天装不下 lazy load) |
 | **P7** | 0.5 天 | `observability/health.py` + `circuit_breaker` + `provider_failover` + health check endpoint + 飞书告警 webhook | 手工 kill 一个 provider,观察 failover 行为 + health check 返回正确状态 |
 
 **v3 spec P1-P7 总和 = 4.5 天**(P1=0.5 + P2=0.5 + P3=0.5 + P4=1.0 + P5=1.0 + P6=0.5 + P7=0.5;P1 已完成 2026-09-11,剩 P2-P7 = 4.0 天),预留 1 天 buffer 给测试和文档。
@@ -930,7 +967,11 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 | **P6** | (核心就是 plugin 完整化) | (无) | #7 Lazy plugin load |
 | **P7** | (无) | #1 降级 / #2 Failover / #3 Retry / #5 Rate limit / #6 Circuit breaker / #8 Health check / #10 Audit | #10 Tier 3 DAG 并行 |
 
-**未覆盖**(留 Day 15+):§7.3 #4 Pre-fetch / #9 Pre-fetch,这两个留后续 spec 实施。
+**N61 fix,2026-09-11**:原文「§7.3 #4 Pre-fetch」是 typo,实际 #4 = **Tool result cache**,#9 = Pre-fetch。
+
+**修正后的实施映射**:
+- §7.3 #4 Tool result cache → **P2 实施**(必加,N62 fix,见上 P2 行)
+- §7.3 #9 Pre-fetch → 留 Day 15+
 
 ### 兼容性策略
 
@@ -1053,6 +1094,7 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
     - `write_note.py` — create_note / update_note / delete_note
     - `write_scheduled.py` — create_scheduled_task / update_scheduled_task / delete_scheduled_task
     - `write_preference.py` — update_preference(实际 guardrails.py WRITE_TOOLS set 含 10 个函数:3+3+3+1)
+      **N68 fix,2026-09-11**:update_preference **不**走 HITL(非破坏性操作,user 改自己设置)。PermissionType 加 hitel_required 字段,P3 实施时给 write_preference.py 显式 `hitel_required=False`。其他 9 个 write tool 保持 `hitel_required=True`。
 - `tradingagents/agent_harness/workflow/` — Tier 3 DAG(留 Day 15+)
 - `tradingagents/agent_harness/plugins/` — Plugin 系统 5 个文件
 - `tradingagents/agent_harness/observability/` — 可观测 4 个文件
@@ -1093,7 +1135,8 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 **前置依赖**:
 - ✅ v3 P1(骨架)2026-09-11 已完成
 - ✅ v2 P0(本 spec 同时完成)= 已 Approved
-- ❌ v2 P1(Tier 1 short circuit)= 未开始,必须先于 v3 P3
+- ❌ v2 P1(Tier 1 short circuit)= 未开始,必须**晚于** v3 P3(v2 P1 依赖 v3 P3 的 ToolRegistry)
+**N60 fix,2026-09-11**:与 §9 line 904 旧版矛盾已统一,正确顺序:v3 P1(✅)→ v3 P2 → v3 P3 → v2 P1 → v3 P4 → v3 P5 → v3 P6 → v3 P7
 
 **已拍板决策**(§11.1):
 - ✅ O14 = B 6 个 sub-agent
