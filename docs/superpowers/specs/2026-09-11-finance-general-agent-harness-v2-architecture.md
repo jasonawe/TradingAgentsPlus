@@ -35,7 +35,7 @@ flowchart TB
         LLM1(("LLM<br/>调用 0 次"))
     end
 
-    subgraph TIER2["🧠 Tier 2: StateGraph 5 节点"]
+    subgraph TIER2["🧠 Tier 2: StateGraph 主图 5 节点 (17+ sub-state)"]
         PlanNode["Plan<br/>(LLM 给 JSON plan)"]
         ExecuteNode["Execute<br/>(server 并行 invoke)"]
         ObserveNode["Observe<br/>(汇总 tool_result)"]

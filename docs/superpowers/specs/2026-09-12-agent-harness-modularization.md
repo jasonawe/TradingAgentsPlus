@@ -889,7 +889,6 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 |---|---|---|---|
 | **P1** | 0.5 天 | 创建 `agent_harness/` 目录骨架 + `__init__.py` + `Harness` 主类 + 旧 `general/` 代码 re-export | `from tradingagents.agent_harness import Harness` 可用,旧测试不破 |
 | **P2** | 0.5 天 | `data/providers/base.py` + `yfinance/eastmoney/akshare` 3 个 provider + `PROVIDERS` registry + `DataResponse` | 切换 provider 测试 + 旧 quote/fundamentals 测试不破 |
-
 | **P3** | 0.5 天 | `tools/base.py` + `ToolRegistry` + `tools/builtin/` 迁移 6 个核心 read tool(get_quote / get_history / ...) | 旧 9+ 测试套件全不破 + 加新 tool 不改核心代码 demo |
 | **P4** | 1 天 | `core/orchestrator.py`(Tier 2 StateGraph 主图 5 节点(17+ sub-state,N20 fix))+ `core/tier.py`(D1 三档路由)+ `core/short_circuit.py`(Tier 1 强执行) | 主图 5 节点 + 17+ sub-state plan-first retry verification 测试 + 浏览器实测 80% query <3s |
 | **P5** | 1 天 | `agents/` 6 个 sub-agent + `AgentRegistry` + `agents/base.py` | BaseAgent 测试 + 6 个 agent 实现测试 + AgentRegistry 测试 |
