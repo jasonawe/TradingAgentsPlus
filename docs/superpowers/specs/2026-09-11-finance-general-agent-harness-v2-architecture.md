@@ -58,10 +58,11 @@ flowchart TB
 
     %% ============ Data Layer ============
     subgraph DATA["💾 Data Layer (Provider ABC + DataResponse)"]
-        ProviderRegistry["PROVIDERS = {<br/>'yfinance': ...,<br/>'eastmoney': ...,<br/>'akshare': ...<br/>}"]
+        ProviderRegistry["PROVIDERS = {<br/>'yfinance': ...,<br/>'eastmoney': ...,<br/>'akshare': ...,<br/>'alpha_vantage': ...<br/>}"]  %% N40 fix,2026-09-11,实际 4 个
         YFinance["yfinance<br/>Provider"]
         EastMoney["EastMoney<br/>Provider"]
         AkShare["AKShare<br/>Provider"]
+        AlphaVantage["AlphaVantage<br/>Provider"]  %% N40 fix,2026-09-11
     end
 
     %% ============ External ============
@@ -69,6 +70,7 @@ flowchart TB
         YFAPI["yfinance API"]
         EMAPI["EastMoney API"]
         AKAPI["AKShare API"]
+        AVAPI["AlphaVantage API"]  %% N40 fix,2026-09-11
     end
 
     %% ============ Cross-cutting ============
@@ -128,9 +130,11 @@ flowchart TB
     ProviderRegistry --> YFinance
     ProviderRegistry --> EastMoney
     ProviderRegistry --> AkShare
+    ProviderRegistry --> AlphaVantage
     YFinance --> YFAPI
     EastMoney --> EMAPI
     AkShare --> AKAPI
+    AlphaVantage --> AVAPI
 
     ReadTools -.DataResponse.-> ShortCircuit
     ReadTools -.DataResponse.-> SynthNode
@@ -167,7 +171,7 @@ flowchart TB
     class PlanNode,ExecuteNode,ObserveNode,VerifyNode,SynthNode,LLM2 tier2
     class WorkflowRunner,LLM3 tier3
     class ContextPriority,Verification,Retry,HITL cross
-    class ProviderRegistry,YFinance,EastMoney,AkShare,YFAPI,EMAPI,AKAPI data
+    class ProviderRegistry,YFinance,EastMoney,AkShare,AlphaVantage,YFAPI,EMAPI,AKAPI,AVAPI data
     class L1,L2,L3 mem
     class OpenAI,Provider1,Provider2,Provider3 llm
 ```
