@@ -118,6 +118,8 @@ Tier 3: Full Workflow (multi-agent DAG)
 **落地**:
 - `stream_chat` 入口加 **tier classification**(N44 fix,2026-09-11):当前 routing.py 已有 `fast_route() / classify_intent() / render_intent_hint()`(返回 RouteResult(Intent, confidence, reason));P1 实施时**扩展** `classify_intent` 增加 tier 维度(Tier 1/2/3),**不**新增 `classify_tier` 函数(避免双入口)。修改路径: 加 tier 字段 → `orchestrator.py:stream_chat` 根据 tier 选择 Tier 1 short_circuit / Tier 2 StateGraph / Tier 3 workflow
 - Tier 1 → server-side 直接调 tool + emit 完整事件链 + 跳过 LangGraph
+
+**ticker 抽取说明**(N53 fix,2026-09-11):§D1 路由表中的 "ticker 抽取成功/failed" 由 `routing.py:fast_route()` 内部 inline 处理(使用 LangChain `tool_call` 的 args.symbol 或 regex `\b[A-Z]{1,5}(\.[A-Z]{2})?\b`),**没有**独立 `extract_ticker()` 函数。P1 实施时**不**新增 ticker extractor 函数,直接复用 fast_route 内部的 ticker 解析逻辑(从 fast_route 返回 RouteResult 加 ticker 字段)。
 - Tier 2 → 进新的 StateGraph(见 D5)
 - Tier 3 → 调现有 `run_trading_agents_analysis` workflow
 

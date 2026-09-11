@@ -201,7 +201,7 @@ web/static/
 web/
 ├── app.py                             [MOD] 加 /agent 路由 + SSE 事件流
 └── routes/
-    └── agent.py                       [NEW] /api/agent/chat, /api/agent/history
+    └── agent.py                       [NEW] /api/agent/chat/stream, /api/agent/history  # N49 fix,2026-09-11,实测 web/app.py:1547
 
 tests/
 ├── test_general_orchestrator.py      [NEW] routing logic 测试
@@ -217,7 +217,7 @@ docs/superpowers/specs/
 ```
 User: "帮我看 600036 现在能不能加仓"
     ↓
-[Web UI 抽屉] → POST /api/agent/chat
+[Web UI 抽屉] → POST /api/agent/chat/stream  # N49 fix,2026-09-11
     ↓
 Orchestrator (ReAct Agent)
     ↓ parse intent
@@ -325,7 +325,7 @@ if __name__ == "__main__":
 
 ## Interface Contract
 
-### API 1: `POST /api/agent/chat`
+### API 1: `POST /api/agent/chat/stream`  # N49 fix,2026-09-11,实测路由路径
 
 ```python
 Request:

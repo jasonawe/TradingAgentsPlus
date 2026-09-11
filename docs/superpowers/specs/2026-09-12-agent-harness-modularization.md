@@ -989,7 +989,7 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 
 **MCP server 实施状态**(对齐 v1/v2 spec 描述):
 
-- **已完成**(2026-09-08 Day 5)— `tradingagents/agents/general/mcp_server.py`(289 行,暴露 **18 tools** — N42 fix,2026-09-11;实测 `tools_bridge.py` 中 `grep -c "^@tool"` = 18:get_quote / get_quotes_batch / get_history / get_fundamentals / list_watchlist / create_note / update_note / delete_note / create_alert / update_alert / delete_alert / update_preference / run_trading_agents_analysis / get_analysis_status / get_news / list_scheduled_tasks / run_scheduled_task / list_reports)
+- **已完成**(2026-09-08 Day 5)— `tradingagents/agents/general/mcp_server.py`(289 行,暴露 **21 tools** — N50 fix 撤回 N42,2026-09-11;实测 `tools_bridge.py:901 ALL_TOOLS` 长度 = 21 = **18 `@tool` 装饰函数 + 3 个 alpha imports**(`list_alpha_factors` / `compute_alpha_factors` / `evaluate_alpha` 从 `tradingagents/agents/utils/alpha_factors_tools.py`):list_alpha_factors / compute_alpha_factors / evaluate_alpha / get_quote / get_quotes_batch / get_history / get_fundamentals / list_watchlist / create_note / update_note / delete_note / create_alert / update_alert / delete_alert / update_preference / run_trading_agents_analysis / get_analysis_status / get_news / list_scheduled_tasks / run_scheduled_task / list_reports
 - **v1 spec** O7 原本说"alpha + 5 core"范围(实际 Day 5 实施时扩到 15 tools)
 - **v3 迁移策略**:MCP server 从 `tradingagents/agents/general/mcp_server.py` 迁移到 `tradingagents/agent_harness/mcp/server.py`
   - **不是** hardcoded 15 tools,而是**自动从 ToolRegistry 暴露所有 read tool**(write tool 需要 permission scope)
@@ -1000,6 +1000,23 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 ---
 
 ## 12. Success Criteria
+
+**重要**(N51 fix,2026-09-11):本节 12 项 criteria 是**实施完成定义**,**不是当前测试覆盖**。当前 P1 阶段只有 1 个对应 test 文件(`tests/test_p1_harness_skeleton.py`,6 个 smoke test 验证骨架)。P2-P7 实施时**必须同步创建对应 test 文件**,验收时所有 test 通过才标记 ✅。下表给出每个 criterion 的对应 test 文件路径(目标):
+
+| Success Criterion | 对应 Test 文件(目标) | Phase |
+|---|---|---|
+| Harness 可 import | `tests/test_harness_import.py`(已含在 P1) | P1 ✅ |
+| 旧 9+ 测试套件全不破 | `tests/test_backward_compat.py`(每 Phase 跑一遍) | P2-P7 |
+| 6 个 sub-agent 全实现 + 测试 | `tests/test_agents/{planner,verifier,data,alpha,news,synthesizer}.py` | P5 |
+| ToolRegistry + PluginRegistry + entry_points | `tests/test_harness_registry.py` + `tests/test_plugin_entry_points.py` | P3+P6 |
+| Tier 1 短路径 10 个高频 query E2E | `tests/test_tier1_short_circuit.py`(10 query) | P2(v2 spec) |
+| StateGraph 主图 5 节点(17+ sub-state)plan-first retry verify | `tests/test_stategraph_5node.py` + `tests/test_stategraph_substates.py` | P4(v2 spec) |
+| Health check endpoint | `tests/test_harness_health_endpoint.py` | P7 |
+| Circuit breaker + provider failover | `tests/test_circuit_breaker.py` + `tests/test_provider_failover.py` | P7 |
+| 加新 tool 不改 harness 核心 | `tests/test_plugin_add_tool.py` | P6 |
+| 实测 "600036 现在多少钱" 延迟 <3s | `tests/test_latency_budget.py`(perf benchmark) | P4 |
+| merge 后打 v0.7.1 tag | (git 操作) | Day 14 |
+| 文档齐全 | (docs/ 目录检查) | 持续 |
 
 - [ ] `from tradingagents.agent_harness import Harness` 可用
 - [ ] 旧 9+ 测试套件全不破(灰度迁移)

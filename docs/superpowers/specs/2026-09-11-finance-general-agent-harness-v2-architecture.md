@@ -17,7 +17,7 @@ flowchart TB
 
     %% ============ API Layer ============
     subgraph API["🌐 API Layer (web/routes/agent.py)"]
-        ChatAPI["POST /api/agent/chat<br/>(SSE 流式)"]
+        ChatAPI["POST /api/agent/chat/stream<br/>(SSE 流式)"]  %% N49 fix,2026-09-11,实测 web/app.py:1547
         HistoryAPI["GET /api/agent/history"]
         PrefsAPI["POST /api/agent/preferences"]
     end
@@ -403,7 +403,7 @@ flowchart LR
 ```
 User: "600036 现在多少钱?"
   ↓
-[API Layer] /api/agent/chat
+[API Layer] /api/agent/chat/stream  %% N49 fix,2026-09-11
   ↓
 [Tier Classifier] fast_route() → Tier 1 (regex hit "多少钱")  # **M4.1 修订:Tier 1 不走 StateGraph**
   ↓
