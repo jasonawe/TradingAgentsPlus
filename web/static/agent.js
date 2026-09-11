@@ -12,6 +12,9 @@
     sessionId: null,
     busy: false,
     currentAssistantMsg: null,
+    // Day 9: 当前累积的 reasoning 折叠面板(下一个 tool_call / done 触发时收尾)
+    currentReasoningEl: null,
+    currentReasoningContent: "",
     // 当前 pending 的写操作 confirm(等用户决定)
     pendingConfirm: null,
     // 上一次 user_message(用于 confirm 时 replay)
@@ -160,6 +163,58 @@
     return el;
   }
 
+  // ─────────────────────────────────────────────────────
+  // Day 9 — Reasoning Trace 折叠面板
+  // ─────────────────────────────────────────────────────
+
+  function appendReasoningTrace(content) {
+    // 折叠面板 reasoning trace:summary "🤔 AI 推理过程",默认展开让用户看到 AI 在思考。
+    // 下一个 tool_call / done 触发时由 finalizeReasoningTrace() 收起。
+    const el = document.createElement("details");
+    el.className = "agent-message is-reasoning";
+    el.open = true;
+    const summary = document.createElement("summary");
+    summary.className = "agent-reasoning-summary";
+    summary.textContent = "🤔 AI 推理过程(实时)";
+    const body = document.createElement("div");
+    body.className = "agent-reasoning-body";
+    body.textContent = content;
+    el.appendChild(summary);
+    el.appendChild(body);
+    state.messagesEl.appendChild(el);
+    state.currentReasoningEl = el;
+    state.currentReasoningContent = content;
+    scrollToBottom();
+    return el;
+  }
+
+  function appendReasoningDelta(delta) {
+    // 增量更新 reasoning 折叠面板(类似 streaming assistant bubble)
+    if (!state.currentReasoningEl) {
+      appendReasoningTrace(delta);
+      return;
+    }
+    state.currentReasoningContent += delta;
+    const body = state.currentReasoningEl.querySelector(".agent-reasoning-body");
+    if (body) body.textContent = state.currentReasoningContent;
+    scrollToBottom();
+  }
+
+  function finalizeReasoningTrace() {
+    // 收起 reasoning 折叠面板,清空 current 状态。
+    // 内容太短(< 5 字符,通常是空的或只有 markup)直接移除避免噪音。
+    if (!state.currentReasoningEl) return;
+    if (state.currentReasoningContent.trim().length < 5) {
+      state.currentReasoningEl.remove();
+    } else {
+      state.currentReasoningEl.open = false;
+      const summary = state.currentReasoningEl.querySelector(".agent-reasoning-summary");
+      if (summary) summary.textContent = "🤔 AI 推理过程(点击展开)";
+    }
+    state.currentReasoningEl = null;
+    state.currentReasoningContent = "";
+  }
+
   function appendStreamingMessage(role) {
     const el = document.createElement("div");
     el.className = `agent-message is-${role} is-loading`;
@@ -306,10 +361,15 @@
 
     if (eventType === "reasoning") {
       const content = data.payload?.content || "";
+      // Day 9: reasoning 走折叠面板,不再 inline 到 assistant bubble。
+      appendReasoningDelta(content);
+      // 也累积到 streaming assistant(向后兼容 / final 答案拼起来)
       assistant.content += content;
       assistant.bubble.textContent = assistant.content;
       scrollToBottom();
     } else if (eventType === "tool_call") {
+      // 第一个 tool_call 时收起前面累积的 reasoning trace
+      finalizeReasoningTrace();
       const name = data.payload?.name || "(tool)";
       const args = data.payload?.args || {};
       appendToolCall(name, args);
@@ -334,6 +394,8 @@
         state.pendingConfirm = null;
       }
     } else if (eventType === "done") {
+      // Day 9: 流结束收尾 reasoning + 移除 streaming 状态
+      finalizeReasoningTrace();
       assistant.el.classList.remove("is-loading");
       state.currentAssistantMsg = null;
       if (state.pendingConfirm) {

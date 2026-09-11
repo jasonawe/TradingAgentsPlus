@@ -357,3 +357,86 @@
   font-family: ui-monospace, monospace;
   margin: 4px 0;
 }
+
+
+/* ─────────────────────────────────────────────────────
+   Day 9 — Reasoning Trace 折叠面板
+   默认展开(实时看 AI 思考),流结束后收起变成 "点击展开"
+   ───────────────────────────────────────────────────── */
+
+.agent-message.is-reasoning {
+  margin: 0.5rem 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+.agent-message.is-reasoning details {
+  background: var(--bg-elevated, #f6f7f9);
+  border: 1px solid var(--border-color, #e0e2e8);
+  border-radius: 6px;
+  padding: 0;
+  font-size: 0.85em;
+  transition: background 0.15s ease;
+}
+
+.agent-message.is-reasoning details[open] {
+  background: var(--bg-reasoning-open, #f0f4ff);
+}
+
+.agent-reasoning-summary {
+  cursor: pointer;
+  padding: 0.4rem 0.75rem;
+  color: var(--text-muted, #6a737d);
+  font-weight: 500;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.agent-reasoning-summary::-webkit-details-marker {
+  display: none;
+}
+
+.agent-reasoning-summary::before {
+  content: "▸";
+  display: inline-block;
+  transition: transform 0.15s ease;
+  font-size: 0.7em;
+  color: var(--text-muted, #6a737d);
+}
+
+details[open] .agent-reasoning-summary::before {
+  transform: rotate(90deg);
+}
+
+.agent-reasoning-body {
+  padding: 0.5rem 0.75rem 0.75rem 1.5rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-secondary, #4a5560);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85em;
+  line-height: 1.5;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+/* Dark mode 适配 */
+@media (prefers-color-scheme: dark) {
+  .agent-message.is-reasoning details {
+    background: var(--bg-elevated-dark, #1f2937);
+    border-color: var(--border-color-dark, #374151);
+  }
+  .agent-message.is-reasoning details[open] {
+    background: var(--bg-reasoning-open-dark, #1e293b);
+  }
+  .agent-reasoning-summary {
+    color: var(--text-muted-dark, #9ca3af);
+  }
+  .agent-reasoning-body {
+    color: var(--text-secondary-dark, #cbd5e0);
+  }
+}

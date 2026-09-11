@@ -186,6 +186,35 @@ def _cursor(last_event_id: str | None, after_seq: int | None) -> int:
         return 0
 
 
+def _setup_langsmith_tracing() -> None:
+    """Day 9 #11: LangSmith 接入 — 只在用户主动设 LANGCHAIN_API_KEY 时启用 trace。
+
+    LangChain 0.1+ 自动读以下 env vars 启用 LangSmith trace:
+      - LANGCHAIN_TRACING_V2=true
+      - LANGCHAIN_API_KEY=<key>
+      - LANGCHAIN_PROJECT=<project>
+      - LANGCHAIN_ENDPOINT(可选,默认 https://api.smith.langchain.com)
+
+    我们只 setdefault,不覆盖用户已有设置。
+    """
+    api_key = os.environ.get("LANGCHAIN_API_KEY", "").strip()
+    if not api_key:
+        LOGGER.info("LangSmith tracing disabled (set LANGCHAIN_API_KEY to enable)")
+        return
+    os.environ.setdefault("LANGCHAIN_TRACING_V2", "true")
+    os.environ.setdefault("LANGCHAIN_PROJECT", "TradingAgentsPlus")
+    try:
+        from langsmith import Client
+        Client(api_key=api_key).list_projects(limit=1)
+        LOGGER.info(
+            "LangSmith tracing enabled (project=%s, endpoint=%s)",
+            os.environ.get("LANGCHAIN_PROJECT"),
+            os.environ.get("LANGCHAIN_ENDPOINT", "https://api.smith.langchain.com"),
+        )
+    except Exception as e:  # noqa: BLE001
+        LOGGER.warning("LangSmith reachable check failed (tracing may still work): %s", e)
+
+
 def create_app(
     *,
     manager: RunManager | None = None,
@@ -194,6 +223,8 @@ def create_app(
     history: ReportHistory | None = None,
 ) -> FastAPI:
     """Build an isolated application instance suitable for local use or tests."""
+    # Day 9 #11: LangSmith trace — 必须在 create_llm_client 之前调
+    _setup_langsmith_tracing()
 
     active_config = copy.deepcopy(config if config is not None else DEFAULT_CONFIG)
     run_db_path = active_config.get("web_runs_db") or (Path(active_config.get("results_dir") or ".") / "web_runs.sqlite3")
