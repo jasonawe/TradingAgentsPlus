@@ -366,11 +366,11 @@
 
     if (eventType === "reasoning") {
       const content = data.payload?.content || "";
-      // Day 9: reasoning 走折叠面板,不再 inline 到 assistant bubble。
+      // Day 11c: reasoning 只走折叠面板(AI 思考过程)。
+      // 不再 inline 到 assistant bubble,因为 reasoning-only 模型(如 MiniMax)
+      // 全部 content 都在 reasoning 流,inline 会让 bubble 显示思考过程而不是
+      // 最终答案,且会和折叠面板内容重复。
       appendReasoningDelta(content);
-      // 也累积到 streaming assistant(向后兼容 / final 答案拼起来)
-      assistant.content += content;
-      assistant.bubble.textContent = assistant.content;
       scrollToBottom();
     } else if (eventType === "tool_call") {
       // 第一个 tool_call 时收起前面累积的 reasoning trace
@@ -399,6 +399,19 @@
         state.pendingConfirm = null;
       }
     } else if (eventType === "done") {
+      // Day 11c: 收尾时,如果 bubble 还是空的,说明 reasoning 流就是 LLM 的"完整输出"。
+      // (reasoning-only 模型 / 或者 LLM 决定不调 tool 直接给答案)
+      // 从折叠面板取尾部内容(最后 1500 字符)作为最终答案塞进 bubble。
+      const tail = (state.currentReasoningContent || "").trim();
+      if (assistant.bubble && !assistant.bubble.textContent.trim() && tail) {
+        const MAX_TAIL = 1500;
+        assistant.bubble.textContent =
+          tail.length > MAX_TAIL
+            ? `…(已截断,见上方思考过程)
+
+${tail.slice(-MAX_TAIL)}`
+            : tail;
+      }
       // Day 9: 流结束收尾 reasoning + 移除 streaming 状态
       finalizeReasoningTrace();
       assistant.el.classList.remove("is-loading");

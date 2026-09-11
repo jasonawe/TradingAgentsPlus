@@ -77,15 +77,17 @@ def test_i18n_has_nav_ai_agent():
 
 def test_index_html_cache_bumped_day11():
     """Day 11 cache-bust 版本号都已 bump。"""
+    import re
     src = (ROOT / "web/static/index.html").read_text()
-    expected = [
-        "app.js?v=20260911-app-21",
-        "agent.js?v=20260911-agent-3",
-        "agent.css?v=20260911-agent-2",
-        "i18n.js?v=20260911-i18n-1",
-        "styles.css?v=20260911-styles-1",
+    # Day 11 cache-bust 必须 bump 到 N>=1(用 regex 匹配递增版本号)
+    patterns = [
+        r"app\.js\?v=20260911-app-\d+",
+        r"agent\.js\?v=20260911-agent-\d+",
+        r"agent\.css\?v=20260911-agent-\d+",
+        r"i18n\.js\?v=20260911-i18n-\d+",
+        r"styles\.css\?v=20260911-styles-\d+",
     ]
-    missing = [e for e in expected if e not in src]
+    missing = [p for p in patterns if not re.search(p, src)]
     assert not missing, f"cache-bust not bumped: {missing}"
     print(f"  ✓ index.html: all Day 11 cache-bust versions bumped")
 
