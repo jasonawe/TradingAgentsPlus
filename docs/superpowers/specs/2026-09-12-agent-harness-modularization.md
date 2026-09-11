@@ -701,7 +701,7 @@ class Harness:
     8. health (HealthChecker)
     9. context_priority (ContextPriority)
     10. retry_policy + circuit_breaker
-    11. tier_router (TierRouter)
+    11. **routing 升级**(fast_route 加 tier 维度,**N44 fix — 不新增 classify_tier**,N95 fix,2026-09-11,与 v2 §D1 统一)
     12. **plugin_registry** (PluginRegistry,注册框架 plugin + 暂存 builtin plugin 引用)
     13. **orchestrator** (Orchestrator,依赖 2-12,**用 shared registry 引用 + dynamic queries**)
 

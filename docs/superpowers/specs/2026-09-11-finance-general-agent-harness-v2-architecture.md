@@ -25,8 +25,7 @@ flowchart TB
     %% ============ Routing Layer ============
     subgraph ROUTING["🚦 Tier Classifier (agent/tier.py)"]
         FastRoute["fast_route()<br/>关键词 regex<br/>(零 LLM)"]
-        ClassifyIntent["classify_intent()<br/>LLM fallback"]
-        TierRouter{"classify_tier()<br/>返回 Tier 1/2/3"}
+        ClassifyIntent["classify_intent()<br/>+ tier 维度<br/>(N44 fix,不新增 classify_tier)"]
     end
 
     %% ============ Three Execution Tiers ============
@@ -75,7 +74,7 @@ flowchart TB
 
     %% ============ Cross-cutting ============
     subgraph CROSS["🔁 横切关注点 (cross-cutting)"]
-        ContextPriority["Context Priority 8 层<br/>1.Explicit widgets<br/>2.Skills<br/>3.MCP tools<br/>4.Files<br/>5.Dashboard<br/>6.Conversation L1<br/>7.Global prefs L2<br/>8.Web search L3"]
+        ContextPriority["Context Priority 8 层<br/>(本项目自定义,N91 fix + N55 fix)<br/>1.Explicit widgets<br/>2.Skills<br/>3.MCP tools<br/>4.Files<br/>5.Dashboard<br/>6.Conversation L1<br/>7.Global prefs L2<br/>8.Web search L3"]
         Verification["Verification 三层<br/>L1 tool_call=0 → auto-bump<br/>L2 tool_result 错误 → auto-retry<br/>L3 answer 幻觉 → back to plan"]
         Retry["Retry 策略<br/>max 3 + 指数 backoff<br/>+ dead_letter"]
         HITL["HITL Confirm<br/>写操作需用户 confirm<br/>(state machine,<br/>非字符串 marker)"]
@@ -183,7 +182,7 @@ flowchart TB
 - **Context / Verification / Retry / HITL 是横切关注点** — 用虚线箭头表示,跨 tier 都生效
 
 **图 1 修订记录**(2026-09-11 self-review):
-- **C1.1 修订**:`classify_tier()` diamond 节点的决策依据 = **(keyword 命中 → Tier 1) / (keyword + LLM 命中 → Tier 2) / (LLM 推理需要 → Tier 2/3)**。决策表见 v2 spec §2 D1 "Tier 路由规则表"。
+- **C1.1 修订**(N84 fix,2026-09-11):decision 依据内嵌在 `classify_intent()`(扩展加 tier 维度,N44 fix),**不**新增 classify_tier 函数。决策 = **(keyword 命中 → Tier 1) / (keyword + LLM 命中 → Tier 2) / (LLM 推理需要 → Tier 2/3)**。决策表见 v2 spec §2 D1 "Tier 路由规则表"。
 - **M1.2 修订**:Tier 1 → LLM1 "zero" 边应删除(Tier 1 零 LLM),图上仍画了是误标。
 - **M1.3 修订**:Tier 1 节点加 "⚡ zero LLM" 内部标签
 - **M1.1 修订**:cross-cutting 虚线 "wraps/injects" 具体实现:
@@ -464,14 +463,14 @@ User: "分析 600036 估值合理性"
 | 主循环 | `create_react_agent` 单 ReAct | 3 档 execution + Tier 2 显式 5 节点 |
 | Routing | 关键词 + LLM hint 注入 | Tier classifier(命中后强执行) |
 | Tool 校验 | LangChain `@tool` 弱校验 | Pydantic schema 强校验 |
-| Provider 抽象 | 3 个 provider 各写各的 | Provider ABC + Registry + 切换零成本 |
+| Provider 抽象 | **4 个** provider 各写各的(N85 fix,2026-09-11,N40 fix 后) | Provider ABC + Registry + 切换零成本 |
 | 数据返回 | 裸 dict | DataResponse 统一容器 |
 | Plan | 无 | StateGraph PlanNode 显式 JSON |
 | Verify | 无 | 三层 verification + auto-retry |
 | HITL | 字符串 AWAITING_CONFIRMATION | 显式 ConfirmNode state machine |
 | Context 注入 | LLM 自由从 system prompt 提取 | 8 层优先级显式注入 |
 | Memory | L1/L2/L3 已实现 ✅ | 不变 ✅ |
-| MCP server | 15 tools 已暴露 ✅ | 不变 ✅ |
+| MCP server | **7 tools** 已暴露 ✅(N86 fix,2026-09-11,实测 mcp_server.py 暴露数) | 不变 ✅ |
 | Drawer UI | 已实现 ✅ | 不变 ✅ |
 
 **核心变化**:从"LLM 主导的 ReAct loop"升级为"harness 主导 + LLM 协调算法"。
