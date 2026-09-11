@@ -1095,11 +1095,38 @@ document.addEventListener("click", (event) => { const retryBtn = event.target.cl
     });
   }
 
-  try { bindAgentAuditEvents(); } catch (_) {}  $("cancel-run").addEventListener("click", async () => { if (!state.runId) return; try { await api(`/api/runs/${encodeURIComponent(state.runId)}/cancel`, { method: "POST" }); } catch (error) { terminalRun("failed", error.message); } }); $("back-history").addEventListener("click", () => navigate(state.archived ? "library" : "active")); $("report-back-library").addEventListener("click", () => navigate("library")); $("new-analysis").addEventListener("click", () => navigate("analysis")); $("active-new-analysis").addEventListener("click", () => navigate("analysis")); $("library-new-analysis").addEventListener("click", () => navigate("analysis")); const resetLibraryPage = () => { state.library.page = 1; loadLibraryPage(); }; $("library-search").addEventListener("input", (event) => { state.filters.search = event.target.value; resetLibraryPage(); }); $("library-asset-filter").addEventListener("change", (event) => { state.filters.asset = event.target.value; resetLibraryPage(); }); $("library-status-filter").addEventListener("change", (event) => { state.filters.status = event.target.value; resetLibraryPage(); }); $("library-sort").addEventListener("change", (event) => { state.filters.sort = event.target.value; resetLibraryPage(); }); $("library-prev").addEventListener("click", () => { if (state.library.page > 1) { state.library.page -= 1; loadLibraryPage(); } }); $("library-next").addEventListener("click", () => { if (state.library.hasNext) { state.library.page += 1; loadLibraryPage(); } }); form.addEventListener("submit", submitRun);
-  $("refresh-quotes").addEventListener("click", () => quoteRefreshController?.refresh()); 
-  try { const saved = localStorage.getItem("ta:watchlist:sort"); if (saved && ["change_desc", "change_asc", "symbol", "manual"].includes(saved)) { state.watchlist.sort = saved; } } catch (_) {} const sortSelect = $("watchlist-sort"); if (sortSelect) sortSelect.value = state.watchlist.sort; $("watchlist-form").addEventListener("submit", addWatchlistItem); $("watchlist-asset-type").addEventListener("change", updateTickerHint); if (sortSelect) sortSelect.addEventListener("change", (event) => { state.watchlist.sort = event.target.value; try { localStorage.setItem("ta:watchlist:sort", state.watchlist.sort); } catch (_) {} renderWatchlist(state.watchlist.items, state.watchlist.quotes); });
-  initWatchlistAutocomplete();
-  closeSuggestList();
+  // ── Phase A: 先初始化 AgentChat(Drawer + click listener)
+  // 关键修复:这一段必须在 line 1098 那段之前调用,否则后面 throw 会跳过 init。
+  try { ta("TradingAgentsAgentChat")?.init?.(); } catch (err) { console.warn("[AgentChat] init failed", err); }
+
+  // ── Phase B: 现有 main-page 事件绑定 — 整段包 try/catch,任何 element 缺失不阻断后续 init
+  try { bindAgentAuditEvents(); } catch (_) {}
+  try {
+    const safeBind = (id, evt, fn) => { const el = $(id); if (el) el.addEventListener(evt, fn); };
+    safeBind("cancel-run", "click", async () => { if (!state.runId) return; try { await api(`/api/runs/${encodeURIComponent(state.runId)}/cancel`, { method: "POST" }); } catch (error) { terminalRun("failed", error.message); } });
+    safeBind("back-history", "click", () => navigate(state.archived ? "library" : "active"));
+    safeBind("report-back-library", "click", () => navigate("library"));
+    safeBind("new-analysis", "click", () => navigate("analysis"));
+    safeBind("active-new-analysis", "click", () => navigate("analysis"));
+    safeBind("library-new-analysis", "click", () => navigate("analysis"));
+    const resetLibraryPage = () => { state.library.page = 1; loadLibraryPage(); };
+    safeBind("library-search", "input", (event) => { state.filters.search = event.target.value; resetLibraryPage(); });
+    safeBind("library-asset-filter", "change", (event) => { state.filters.asset = event.target.value; resetLibraryPage(); });
+    safeBind("library-status-filter", "change", (event) => { state.filters.status = event.target.value; resetLibraryPage(); });
+    safeBind("library-sort", "change", (event) => { state.filters.sort = event.target.value; resetLibraryPage(); });
+    safeBind("library-prev", "click", () => { if (state.library.page > 1) { state.library.page -= 1; loadLibraryPage(); } });
+    safeBind("library-next", "click", () => { if (state.library.hasNext) { state.library.page += 1; loadLibraryPage(); } });
+    safeBind("analysis-form", "submit", submitRun);
+    safeBind("refresh-quotes", "click", () => quoteRefreshController?.refresh());
+    safeBind("watchlist-form", "submit", addWatchlistItem);
+    safeBind("watchlist-asset-type", "change", updateTickerHint);
+  } catch (err) { console.warn("[init] Phase B element bindings:", err); }
+
+  try { const saved = localStorage.getItem("ta:watchlist:sort"); if (saved && ["change_desc", "change_asc", "symbol", "manual"].includes(saved)) { state.watchlist.sort = saved; } } catch (_) {}
+  const sortSelect = $("watchlist-sort"); if (sortSelect) sortSelect.value = state.watchlist.sort;
+  if (sortSelect) sortSelect.addEventListener("change", (event) => { state.watchlist.sort = event.target.value; try { localStorage.setItem("ta:watchlist:sort", state.watchlist.sort); } catch (_) {} renderWatchlist(state.watchlist.items, state.watchlist.quotes); });
+  try { initWatchlistAutocomplete(); } catch (err) { console.warn("[init] initWatchlistAutocomplete:", err); }
+  try { closeSuggestList(); } catch (_) {}
   document.querySelectorAll(".nav-primary a").forEach((link) => link.addEventListener("click", (event) => {
     const view = link.dataset.view;
     if (!view) return;
@@ -1124,9 +1151,7 @@ try { restoreActiveRun(); } catch (_) {}
     ta("TradingAgentsAlerts").refreshEvents();
     ta("TradingAgentsAlerts").startPolling(60000);
   }
-  if (ta("TradingAgentsAgentChat")?.init) {
-    try { ta("TradingAgentsAgentChat").init(); } catch (err) { console.warn("[AgentChat] init failed", err); }
-  }
+  // AgentChat.init() 已在 Phase A 提前调用,这里不再重复
   try { window.TradingAgentsApp = { navigate, setRoute, applyRoute, openFormModal, openConfirmModal }; } catch (_) {}
   try { if (typeof __TA_MODULES__ !== "undefined") __TA_MODULES__.TradingAgentsApp = { navigate, setRoute, applyRoute, openFormModal, openConfirmModal }; } catch (_) {}
 })();
