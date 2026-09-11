@@ -48,6 +48,8 @@
 
 加 D1-D6 实施后会再膨胀 ~50%。
 
+**Provider 实际列表**(N40 fix,2026-09-11):实际  有 **4 个**(yfinance_provider.py / eastmoney_provider.py / akshare_provider.py / **alpha_vantage_provider.py**),v2 §D2 / v3 §3 / arch fig 1+3 之前漏列 alpha_vantage。本 spec 后续 §3 / §5.1 / arch doc 已修订对齐。
+
 **问题 2:跟业务 agent 边界不清**
 
 `tradingagents/agents/` 下既有 `general/`(harness)又有未来的 quant/market/news agent。职责混在一起。
@@ -109,6 +111,10 @@
 
 ## 3. 目录结构(半独立方案)
 
+**重要**(N46/N47 fix,2026-09-11):本节描述的是 **P2-P7 实施后目标结构**,非当前状态。当前  只有 P1 骨架(15 个  +  +  共 134 行);§3 中所有  /  /  /  等文件是 P2-P7 待建目标。
+
+
+
 ```
 tradingagents/
 ├── agent_harness/                       [NEW] 独立 harness 子包
@@ -139,6 +145,7 @@ tradingagents/
 │   │   │   ├── yfinance_provider.py
 │   │   │   ├── eastmoney_provider.py
 │   │   │   ├── akshare_provider.py
+│   │   ├── alpha_vantage_provider.py  # N40 fix,2026-09-11;实际 web/providers/ 有 4 个 provider(spec 漏 1 个)
 │   │   │   └── registry.py              PROVIDERS dict + get_active_provider()
 │   │   ├── responses.py                 DataResponse / QuoteData / HistoryData
 │   │   ├── cache.py                     provider result cache(SQLite)
@@ -982,7 +989,7 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 
 **MCP server 实施状态**(对齐 v1/v2 spec 描述):
 
-- **已完成**(2026-09-08 Day 5)— `tradingagents/agents/general/mcp_server.py`(289 行,暴露 15 tools)
+- **已完成**(2026-09-08 Day 5)— `tradingagents/agents/general/mcp_server.py`(289 行,暴露 **18 tools** — N42 fix,2026-09-11;实测 `tools_bridge.py` 中 `grep -c "^@tool"` = 18:get_quote / get_quotes_batch / get_history / get_fundamentals / list_watchlist / create_note / update_note / delete_note / create_alert / update_alert / delete_alert / update_preference / run_trading_agents_analysis / get_analysis_status / get_news / list_scheduled_tasks / run_scheduled_task / list_reports)
 - **v1 spec** O7 原本说"alpha + 5 core"范围(实际 Day 5 实施时扩到 15 tools)
 - **v3 迁移策略**:MCP server 从 `tradingagents/agents/general/mcp_server.py` 迁移到 `tradingagents/agent_harness/mcp/server.py`
   - **不是** hardcoded 15 tools,而是**自动从 ToolRegistry 暴露所有 read tool**(write tool 需要 permission scope)
@@ -1011,6 +1018,8 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 
 ## 13. File Manifest
 
+**重要**(N46 fix,2026-09-11):本节列出的 50+ 文件是 **P2-P7 实施后目标文件清单**,非当前状态。当前  实际只有 P1 骨架 15 个  +  + (134 行)。 /  /  /  等都是 P2-P7 待建文件。
+
 **新建**(50+ 文件):
 - `tradingagents/agent_harness/{__init__.py, harness.py}` — 主入口
 - `tradingagents/agent_harness/core/` — 编排核心 6 个文件
@@ -1022,7 +1031,11 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 - `tradingagents/agent_harness/tools/` — Tool 框架 8 个文件(M6 fix,按 §3 目录扁平化分组)
   - 框架 4 个:`base.py` / `registry.py` / `schema.py` / `permission.py`
   - 内置 read tool 5 个:`builtin_quote.py` / `builtin_history.py` / `builtin_fundamentals.py` / `builtin_news.py` / `builtin_alpha.py`
-  - 写 tool(HITL)3 个:`write_alert.py` / `write_note.py` / `write_scheduled.py`
+  - 写 tool(HITL)4 个文件(N43 fix,2026-09-11):
+    - `write_alert.py` — create_alert / update_alert / delete_alert
+    - `write_note.py` — create_note / update_note / delete_note
+    - `write_scheduled.py` — create_scheduled_task / update_scheduled_task / delete_scheduled_task
+    - `write_preference.py` — update_preference(实际 guardrails.py WRITE_TOOLS set 含 10 个函数:3+3+3+1)
 - `tradingagents/agent_harness/workflow/` — Tier 3 DAG(留 Day 15+)
 - `tradingagents/agent_harness/plugins/` — Plugin 系统 5 个文件
 - `tradingagents/agent_harness/observability/` — 可观测 4 个文件
@@ -1030,6 +1043,15 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 - `tradingagents/agent_harness/mcp/` — MCP server 1 个文件
 - `web/routes/harness_health.py` — health check endpoint
 - `tests/test_harness_*.py` — 全套测试
+
+**测试运行环境 note**(N45 fix,2026-09-11):`tests/test_p1_harness_skeleton.py` 需要 conda 环境 `tradingagents` + `pytest` 安装。当前裸 `python3 -m pytest` 会报 `ModuleNotFoundError: No module named pytest`。运行命令:
+
+```bash
+/opt/homebrew/anaconda3/envs/tradingagents/bin/pip install pytest
+/opt/homebrew/anaconda3/envs/tradingagents/bin/python3 -m pytest tests/test_p1_harness_skeleton.py -v
+```
+
+或在 `tradingagents` 环境下 `pip install -e .` + `pytest tests/` 验证全套测试。
 
 **改造**:
 - `web/app.py` — 改 import 路径

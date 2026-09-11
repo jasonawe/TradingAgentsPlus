@@ -116,7 +116,7 @@ Tier 3: Full Workflow (multi-agent DAG)
 默认 Tier 1a,UI 渲染结构化数据卡片(更精确);Tier 1b 由 query 关键词("说明"/"解释")触发。两者都 0 LLM。
 
 **落地**:
-- `stream_chat` 入口加 `classify_tier()`(用 fast_route + 简单 LLM 路由)
+- `stream_chat` 入口加 **tier classification**(N44 fix,2026-09-11):当前 routing.py 已有 `fast_route() / classify_intent() / render_intent_hint()`(返回 RouteResult(Intent, confidence, reason));P1 实施时**扩展** `classify_intent` 增加 tier 维度(Tier 1/2/3),**不**新增 `classify_tier` 函数(避免双入口)。修改路径: 加 tier 字段 → `orchestrator.py:stream_chat` 根据 tier 选择 Tier 1 short_circuit / Tier 2 StateGraph / Tier 3 workflow
 - Tier 1 → server-side 直接调 tool + emit 完整事件链 + 跳过 LangGraph
 - Tier 2 → 进新的 StateGraph(见 D5)
 - Tier 3 → 调现有 `run_trading_agents_analysis` workflow
@@ -127,7 +127,7 @@ Tier 3: Full Workflow (multi-agent DAG)
 
 **改动**:
 - 新建 `data/providers/base.py`:定义 `Provider` ABC(统一 `get_quote / get_history / get_fundamentals` 接口)
-- 新建 `data/providers/registry.py`:`PROVIDERS = {"yfinance": ..., "eastmoney": ..., "akshare": ...}`
+- 新建 `data/providers/registry.py`:`PROVIDERS = {"yfinance": ..., "eastmoney": ..., "akshare": ..., "alpha_vantage": ...}`(N40 fix,2026-09-11,实际 4 个 provider)
 - 新建 `data/responses.py`:统一 `DataResponse(BaseModel)` 含 `results / provider / fetched_at / warnings / chart`
 - 改造 `tools_bridge.py`:每个 tool 入参改 Pydantic schema + server-side validate
 
