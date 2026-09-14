@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-12
 **Stage:** C Day 11e (增量,基于 v2 spec `2026-09-11-finance-general-agent-harness-v2.md`)
-**Status:** ✅ **Approved** (17 轮 review 完成,2026-09-14,N1-N122 共 108+ 个 fix 已应用;5 个 P2 N8-N12 留实施时再修)
+**Status:** ✅ **Approved** (17 轮 review 完成 + Day 14 实施收尾,2026-09-14,N1-N122 共 113 个 fix 已应用;P2 N8-N12 全部修完)
 **Branch:** `codex/finance-general-agent`
 **前置依赖:** 无(可基于现有代码开工)
 
@@ -676,11 +676,14 @@ class QuantPlugin(Plugin):
 
 ### 5.5 完整目录 vs plugin 化迁移路径
 
-**Plugin 迁移阶段 1**(本 spec P3 实施):`tools/builtin/` 直接放 tool 代码(类似 FastAPI 的 router pattern)
-**Plugin 迁移阶段 2**(本 spec P6 实施):每个 `builtin/` 子目录变成 `plugins/builtin/` 子模块,用 `Plugin` 类包装
-**Plugin 迁移阶段 3**(Day 15+ 后续 spec):第三方 plugin 通过 `pip install tradingagents-plugin-xxx` 安装,自动被发现
+**Plugin 迁移阶段 1** [Plugin 迁移路径,非 §9 实施阶段 — N10 fix,2026-09-14](本 spec P3 实施):`tools/builtin/` 直接放 tool 代码(类似 FastAPI 的 router pattern)
+**Plugin 迁移阶段 2** [Plugin 迁移路径,非 §9 实施阶段 — N10 fix,2026-09-14](本 spec P6 实施):每个 `builtin/` 子目录变成 `plugins/builtin/` 子模块,用 `Plugin` 类包装
+**Plugin 迁移阶段 3** [Plugin 迁移路径,非 §9 实施阶段 — N10 fix,2026-09-14](Day 15+ 后续 spec):第三方 plugin 通过 `pip install tradingagents-plugin-xxx` 安装,自动被发现
 
-**注**:本节的 "阶段 1/2/3" 是 plugin 迁移路径,**不**是 §9 实施路线图的 P1-P7(那是代码实施阶段)。
+**注**(N10 fix,2026-09-14 强化):本节的 "阶段 1/2/3" 是 plugin 迁移路径,与 §9 实施路线图的 P1-P7 是**两套独立编号**,请勿混用:
+- §5.5 "阶段 1/2/3" = plugin 架构迁移路径(plugin migration phases)
+- §9 "P1-P7" = 代码实施阶段(implementation phases,4.5 天工作量)
+- 例 "Plugin 迁移阶段 1(本 spec P3 实施)" 中,"Plugin 迁移阶段 1" 是 plugin 路径编号,"P3 实施" 指 §9 实施阶段 P3,二者交叉引用但编号平行。
 
 ---
 
@@ -1013,7 +1016,7 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 | # | Risk / Question | Mitigation / 待你拍板 |
 |---|---|---|
 | R1 | 旧代码 re-export 阶段容易出循环 import | **抽象对策**(M5 fix,2026-09-11):三种循环方向分别用 lazy / deferred / TYPE_CHECKING 机制处理;**测试验证** `tests/test_harness_no_circular_import.py` 用 `importlib.import_module` 验证所有路径无循环。**N111 fix,2026-09-11**:删除具体 Python 机制细节,实施时由 P1-P2 工程师选合适方案 |
-| R2 | 7 个 agent 拆分粒度太细(早期 v1 草案) | **已通过 O14=B 拍板**:当前为 **6 个 sub-agent**(Quote+Fundamentals 合并为 DataAgent),更聚焦,实现快 1 天 |
+| R2 | 6 个 sub-agent 拆分粒度(N9 fix,2026-09-14:原写 '7 个' 是早期 v1 草案,O14=B 拍板后改为 6 个) | **已通过 O14=B 拍板**:当前为 **6 个 sub-agent**(Quote+Fundamentals 合并为 DataAgent),更聚焦,实现快 1 天 |
 | R3 | Plugin entry_points 第三方生态短 | 内置 plugin 覆盖 80% 用例,第三方 plugin 留接口 |
 | R4 | ToolRegistry 的 decorator + entry_points 双注册可能冲突 | 注册时去重,后注册抛错 |
 | O14 | **sub-agent 划分粒度**:太细 / 合适 / 太少? | ✅ **已拍板**(下面) |
