@@ -162,12 +162,50 @@ class Orchestrator:
             observations = self._observe(state)
             yield ("observed", observations)
 
+            # L1 + L2 first (can short-circuit via plan mutation).
             verification = await self._verify(state)
             yield ("verified", {"ok": verification.ok, "level": int(verification.level)})
 
             final = await self._synthesize(state)
             state.final = final
             yield ("agent_final", {"tier": int(Tier.PLAN_EXECUTE), "result": self._dump(final)})
+
+            # L3 LLM-judge (spec §D6) — runs AFTER synthesize so the judge
+            # has the synthesized answer available. Separate event so
+            # downstream listeners can distinguish L1+L2 from L3.
+            if (
+                self.enable_l3
+                and self._verifier.should_run_l3(state.tool_results, enable_l3=True)
+            ):
+                try:
+                    llm_answer = (
+                        state.final.get("summary", "")
+                        if isinstance(state.final, dict)
+                        else _stringify(state.final)
+                    )
+                    l3 = await self._verifier.verify_l3(
+                        user_query=state.user_message,
+                        tool_results=state.tool_results,
+                        llm_answer=llm_answer,
+                    )
+                    yield (
+                        "answer_verified",
+                        {
+                            "ok": l3.ok,
+                            "level": int(l3.level),
+                            "reason": l3.reason,
+                            "details": l3.details,
+                        },
+                    )
+                    if not l3.ok:
+                        # Spec: ungrounded → back to PlanNode (replan logged).
+                        state.plan.append({
+                            "step": len(state.plan) + 1,
+                            "action": "synthesize",
+                            "args": {"replan_reason": l3.reason, "judge": l3.details or {}},
+                        })
+                except Exception as e:
+                    LOGGER.warning("L3 verification (post-synth) failed: %s", e)
 
             if self.audit is not None and hasattr(self.audit, "log"):
                 try:

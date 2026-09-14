@@ -445,6 +445,32 @@ def create_app(
             app.state.harness.config.enable_l3,
         )
 
+        # P8: chat endpoint — wraps harness.stream_chat in SSE so the
+        # orchestrator + LLM + L3 judge fire in real production paths.
+        @app.post("/api/harness/chat")
+        async def _harness_chat(body: dict) -> StreamingResponse:
+            import json as _json
+            session_id = body.get("session_id") or f"harness-{__import__('uuid').uuid4().hex[:8]}"
+            message = body.get("message") or ""
+            if not message:
+                raise _error(status.HTTP_400_BAD_REQUEST, "message is required")
+
+            async def _event_stream():
+                try:
+                    async for event, payload in app.state.harness.stream_chat(
+                        session_id=session_id, user_message=message
+                    ):
+                        yield f"event: {event}\ndata: {_json.dumps(payload, ensure_ascii=False, default=str)}\n\n"
+                except Exception as e:
+                    LOGGER.exception("harness chat failed")
+                    yield f"event: error\ndata: {_json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
+
+            return StreamingResponse(
+                _event_stream(),
+                media_type="text/event-stream",
+                headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+            )
+
         # P8 L3 verification status endpoint — exposes judge_factory
         # wiring + per-agent LLM state so we can curl-verify L3 is wired.
         @app.get("/api/harness/status")
