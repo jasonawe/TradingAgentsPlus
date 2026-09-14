@@ -80,8 +80,8 @@ class Harness:
         self.metrics = Metrics()
         self.tracer = Tracer()
 
-        # 9. context priority
-        self.context_priority = ContextPriority()
+        # 9. context priority — auto-injects memory L1/L2 (P8 Task 2)
+        self.context_priority = ContextPriority(memory=self.memory)
 
         # 10. retry + circuit breaker
         self.retry_policy = RetryPolicy(max_retries=2, backoff_seconds=0.5, exponential=True)
