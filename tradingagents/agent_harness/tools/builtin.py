@@ -42,13 +42,40 @@ class QuoteArgs(BaseModel):
 
 
 class QuoteResult(BaseModel):
+    """Quote snapshot exposed to LLM via harness tools.
+
+    Previously only had 8 fields, silently dropping QuoteSnapshot\'s
+    quantitative fields (pe_ratio, market_cap, turnover_rate, etc.)
+    that EastMoney / AKShare actually return. The downstream
+    synthesizer refused to do valuation work because it had no
+    PE / PB / market-cap. Widening the surface here keeps the
+    harness-tool contract stable (downstream code reads these names)
+    while giving the LLM the inputs it needs.
+    """
+
     symbol: str
     price: Optional[float] = None
+    open: Optional[float] = None
+    high: Optional[float] = None
+    low: Optional[float] = None
+    previous_close: Optional[float] = None
     change: Optional[float] = None
-    change_pct: Optional[float] = None
+    change_pct: Optional[float] = None  # aliased from QuoteSnapshot.change_percent
     volume: Optional[int] = None
+    turnover: Optional[float] = None
+    volume_ratio: Optional[float] = None
+    turnover_rate: Optional[float] = None
+    market_cap: Optional[float] = None
+    circulating_cap: Optional[float] = None
+    pe_ratio: Optional[float] = None
+    pb_ratio: Optional[float] = None
+    amplitude: Optional[float] = None
     as_of: Optional[datetime] = None
     provider: str
+    currency: Optional[str] = None
+    exchange: Optional[str] = None
+    market_status: Optional[str] = None
+    asset_name: Optional[str] = None
     warnings: list[str] = Field(default_factory=list)
 
 
@@ -60,14 +87,41 @@ async def get_quote(args: QuoteArgs) -> QuoteResult:
     # single point that decides which upstream actually answers.
     fo = ProviderFailover(primary=get_active_provider_name())
     snap = fo.call("get_quote", args.symbol, args.asset_type)
+    # EastMoney and AKShare put the ticker name in raw_summary; quote
+    # providers typically expose .name too. Use raw_summary as a fallback
+    # chain.
+    asset_name = (
+        getattr(snap, "name", None)
+        or getattr(snap, "raw_summary", None)
+    )
     return QuoteResult(
         symbol=snap.symbol,
         price=getattr(snap, "price", None),
+        open=getattr(snap, "open", None),
+        high=getattr(snap, "high", None),
+        low=getattr(snap, "low", None),
+        previous_close=getattr(snap, "previous_close", None),
         change=getattr(snap, "change", None),
-        change_pct=getattr(snap, "change_pct", None),
-        volume=getattr(snap, "volume", None),
+        # NOTE: QuoteSnapshot uses ``change_percent``; we expose
+        # ``change_pct`` to keep the harness-tool contract stable.
+        change_pct=getattr(snap, "change_percent", None),
+        volume=int(getattr(snap, "volume")) if getattr(snap, "volume", None) is not None else None,
+        turnover=getattr(snap, "turnover", None),
+        volume_ratio=getattr(snap, "volume_ratio", None),
+        turnover_rate=getattr(snap, "turnover_rate", None),
+        market_cap=getattr(snap, "market_cap", None),
+        circulating_cap=getattr(snap, "circulating_cap", None),
+        pe_ratio=getattr(snap, "pe_ratio", None),
+        # pb_ratio is not in QuoteSnapshot — left None for now; downstream
+        # can populate later or callers can read QuoteSnapshot directly.
+        pb_ratio=None,
+        amplitude=getattr(snap, "amplitude", None),
         as_of=getattr(snap, "as_of", None),
         provider=fo.last_used_name or fo.primary_name,  # last tried in chain (None if never raised)
+        currency=getattr(snap, "currency", None),
+        exchange=getattr(snap, "exchange", None),
+        market_status=getattr(snap, "market_status", None),
+        asset_name=asset_name,
         warnings=list(getattr(snap, "warnings", []) or []),
     )
 
@@ -97,16 +151,36 @@ async def get_quotes_batch(args: BatchQuoteArgs) -> BatchQuoteResult:
         else:
             assert fo is not None
             snap = fo.call("get_quote", sym, args.asset_type)
-            last_provider_name = fo.primary_name
+            last_provider_name = fo.last_used_name or fo.primary_name
+        asset_name = (
+            getattr(snap, "name", None)
+            or getattr(snap, "raw_summary", None)
+        )
         out.append(
             QuoteResult(
                 symbol=snap.symbol,
                 price=getattr(snap, "price", None),
+                open=getattr(snap, "open", None),
+                high=getattr(snap, "high", None),
+                low=getattr(snap, "low", None),
+                previous_close=getattr(snap, "previous_close", None),
                 change=getattr(snap, "change", None),
-                change_pct=getattr(snap, "change_pct", None),
-                volume=getattr(snap, "volume", None),
+                change_pct=getattr(snap, "change_percent", None),
+                volume=int(getattr(snap, "volume")) if getattr(snap, "volume", None) is not None else None,
+                turnover=getattr(snap, "turnover", None),
+                volume_ratio=getattr(snap, "volume_ratio", None),
+                turnover_rate=getattr(snap, "turnover_rate", None),
+                market_cap=getattr(snap, "market_cap", None),
+                circulating_cap=getattr(snap, "circulating_cap", None),
+                pe_ratio=getattr(snap, "pe_ratio", None),
+                pb_ratio=None,
+                amplitude=getattr(snap, "amplitude", None),
                 as_of=getattr(snap, "as_of", None),
                 provider=last_provider_name,
+                currency=getattr(snap, "currency", None),
+                exchange=getattr(snap, "exchange", None),
+                market_status=getattr(snap, "market_status", None),
+                asset_name=asset_name,
                 warnings=list(getattr(snap, "warnings", []) or []),
             )
         )
