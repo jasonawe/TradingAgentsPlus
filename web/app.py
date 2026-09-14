@@ -449,6 +449,12 @@ def create_app(
         from tradingagents.agent_harness.harness import Harness, mount_health_endpoint
         app.state.harness = Harness()
         mount_health_endpoint(app, app.state.harness, path="/api/harness/health")
+        # P1 in-flight lock: per-session lock so concurrent stream_chat
+        # requests for the same session don't race on circuit breaker /
+        # audit log / SSE event emission. Second request yields a `busy`
+        # event and exits immediately.
+        from tradingagents.agent_harness.core.session_lock import SessionLockManager
+        app.state.session_lock = SessionLockManager()
         LOGGER.info(
             "harness mounted (agents=%d, tools=%d, enable_l3=%s)",
             len(app.state.harness.agent_registry.list()),
@@ -467,10 +473,14 @@ def create_app(
                 raise _error(status.HTTP_400_BAD_REQUEST, "message is required")
 
             async def _event_stream():
-                try:
+                lock_mgr = app.state.session_lock
+                async def _producer():
                     async for event, payload in app.state.harness.stream_chat(
                         session_id=session_id, user_message=message
                     ):
+                        yield event, payload
+                try:
+                    async for event, payload in lock_mgr.run(session_id, _producer):
                         yield f"event: {event}\ndata: {_json.dumps(payload, ensure_ascii=False, default=str)}\n\n"
                 except Exception as e:
                     LOGGER.exception("harness chat failed")

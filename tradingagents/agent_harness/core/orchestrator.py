@@ -28,6 +28,7 @@ from tradingagents.agent_harness.tools.pipeline import ToolPipeline, DangerousTo
 from .context import ContextPriority
 from .retry import CircuitBreaker, RetryPolicy, retry_async
 from web.market_models import ProviderError
+from tradingagents.agent_harness.llm.failure import LlmFailure, LlmFailureKind
 from .short_circuit import ShortCircuit
 from .tier import Intent, RouteResult, Tier, fast_route
 from .verification import VerificationLevel, Verifier
@@ -205,7 +206,13 @@ class Orchestrator:
         except Exception as e:
             LOGGER.exception("orchestrator failed")
             state.error = str(e)
-            yield ("error", {"tier": int(route.tier), "error": str(e)})
+            # Surface structured LlmFailure details so the frontend can
+            # render specific messages (e.g. cooldown timer for rate_limit)
+            # instead of a generic "something went wrong".
+            err_payload: dict = {"tier": int(route.tier), "error": str(e)}
+            if isinstance(e, LlmFailure):
+                err_payload["failure"] = e.to_dict()
+            yield ("error", err_payload)
 
     # ------------------------------------------------------------------
     # 5 nodes

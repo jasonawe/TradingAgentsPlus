@@ -20,6 +20,7 @@ from typing import Iterable
 from tradingagents.llm_clients.factory import create_llm_client
 
 from .base import ChatMessage, LLMProvider, LLMResponse
+from .failure import classify_llm_error
 
 LOGGER = logging.getLogger(__name__)
 
@@ -70,8 +71,14 @@ class OpenAICompatibleProvider(LLMProvider):
         try:
             response = llm.invoke(payload, **kwargs)
         except Exception as e:
+            # Re-raise as a normalized LlmFailure so callers (orchestrator,
+            # agents, L3 judge, frontend) get a structured kind field
+            # instead of having to parse strings.
             LOGGER.warning("LLM call failed: %s", e)
-            raise
+            failure = classify_llm_error(
+                e, provider=self._provider_name, model=self._model,
+            )
+            raise failure from e
 
         content = getattr(response, "content", str(response))
         if isinstance(content, list):
