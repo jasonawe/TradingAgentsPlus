@@ -376,94 +376,307 @@ async def evaluate_alpha(args: EvaluateAlphaArgs) -> EvaluateAlphaResult:
 # ----------------------------------------------------------------------
 
 
-class AlertWriteArgs(BaseModel):
+class CreateAlertArgs(BaseModel):
     symbol: str
-    kind: Literal["price", "change_pct"] = "price"
-    threshold: float
-    direction: Literal["above", "below"] = "above"
+    kind: Literal["price_above", "price_below", "change_pct", "volume_spike"] = "price_above"
+    params: dict = Field(default_factory=dict)
+    asset_type: Literal["stock", "crypto", "fund"] = "stock"
+    cooldown_seconds: int = 3600
     scope: str = "user"
 
 
-async def create_alert(args: AlertWriteArgs) -> dict:
-    return {"status": "pending_approval", "scope": args.scope, "symbol": args.symbol}
+class UpdateAlertArgs(BaseModel):
+    alert_id: str
+    enabled: Optional[bool] = None
+    params: Optional[dict] = None
+    cooldown_seconds: Optional[int] = None
 
 
-async def update_alert(args: AlertWriteArgs) -> dict:
-    return {"status": "pending_approval", "action": "update", "scope": args.scope}
+class DeleteAlertArgs(BaseModel):
+    alert_id: str
 
 
-async def delete_alert(args: AlertWriteArgs) -> dict:
-    return {"status": "pending_approval", "action": "delete", "scope": args.scope}
-
-
-class NoteWriteArgs(BaseModel):
+class CreateNoteArgs(BaseModel):
     symbol: str
-    body: str
+    body_md: str
+    asset_type: Literal["stock", "crypto"] = "stock"
     scope: str = "user"
 
 
-async def create_note(args: NoteWriteArgs) -> dict:
-    return {"status": "pending_approval", "action": "create", "symbol": args.symbol}
+class UpdateNoteArgs(BaseModel):
+    note_id: str
+    body_md: str
 
 
-async def update_note(args: NoteWriteArgs) -> dict:
-    return {"status": "pending_approval", "action": "update", "symbol": args.symbol}
-
-
-async def delete_note(args: NoteWriteArgs) -> dict:
-    return {"status": "pending_approval", "action": "delete", "symbol": args.symbol}
-
-
-class ScheduledWriteArgs(BaseModel):
-    name: str
-    cron: str
-    payload: dict = Field(default_factory=dict)
-    scope: str = "user"
-
-
-async def create_scheduled_task(args: ScheduledWriteArgs) -> dict:
-    return {"status": "pending_approval", "action": "create", "name": args.name}
-
-
-async def update_scheduled_task(args: ScheduledWriteArgs) -> dict:
-    return {"status": "pending_approval", "action": "update", "name": args.name}
-
-
-async def delete_scheduled_task(args: ScheduledWriteArgs) -> dict:
-    return {"status": "pending_approval", "action": "delete", "name": args.name}
-
-
-
-
-
-class WatchlistItem(BaseModel):
-    symbol: str
-    asset_type: str
-    note: str = ""
+class DeleteNoteArgs(BaseModel):
+    note_id: str
 
 
 class ListWatchlistResult(BaseModel):
-    items: list[WatchlistItem]
+    """Markdown-formatted watchlist (from tools_bridge.list_watchlist)."""
 
-
-async def list_watchlist() -> ListWatchlistResult:
-    """Return the user's current watchlist (stub; real impl reads web/state.db)."""
-    return ListWatchlistResult(items=[])
-
-
-class ScheduledTaskItem(BaseModel):
-    name: str
-    cron: str
-    enabled: bool = True
+    text: str
+    count: int = 0
 
 
 class ListScheduledTasksResult(BaseModel):
-    items: list[ScheduledTaskItem]
+    """Markdown / JSON-formatted scheduled-task list."""
+
+    text: str
+    count: int = 0
 
 
-async def list_scheduled_tasks() -> ListScheduledTasksResult:
-    """Return the user's scheduled tasks (stub; real impl reads web/state.db)."""
-    return ListScheduledTasksResult(items=[])
+_BRIDGE_PREFIXES = (
+    "AWAITING_CONFIRMATION:",
+    "NOTE_CREATED:",
+    "NOTE_UPDATED:",
+    "NOTE_DELETED:",
+    "ALERT_CREATED:",
+    "ALERT_UPDATED:",
+    "ALERT_DELETED:",
+    "ERROR:",
+    "NO_DATA:",
+    "(no scheduled tasks)",
+    "(\u7528\u6237\u5173\u6ce8\u5217\u8868\u4e3a\u7a7a)",
+)
+
+
+def _parse_bridge_text(text):
+    """Map a tools_bridge return string to a harness tool result dict.
+
+    Preserves the legacy ``{"status": "pending_approval"}`` shape so
+    downstream orchestrator code that pattern-matches on status keeps
+    working. The original bridge string is preserved in ``raw`` for
+    audit / UI surfacing.
+    """
+    if not isinstance(text, str):
+        return {"status": "ok", "raw": str(text)}
+    for prefix in _BRIDGE_PREFIXES:
+        if text.startswith(prefix):
+            status_map = {
+                "AWAITING_CONFIRMATION:": "pending_approval",
+                "NOTE_CREATED:": "created",
+                "NOTE_UPDATED:": "updated",
+                "NOTE_DELETED:": "deleted",
+                "ALERT_CREATED:": "created",
+                "ALERT_UPDATED:": "updated",
+                "ALERT_DELETED:": "deleted",
+                "ERROR:": "error",
+                "NO_DATA:": "no_data",
+                "(no scheduled tasks)": "empty",
+                "(\u7528\u6237\u5173\u6ce8\u5217\u8868\u4e3a\u7a7a)": "empty",
+            }
+            return {"status": status_map[prefix], "raw": text}
+    return {"status": "ok", "raw": text}
+
+
+async def _invoke_bridge(tool, kwargs, context):
+    """Call a tools_bridge StructuredTool and parse the result."""
+    import json as _json
+    from langchain_core.runnables import RunnableConfig
+
+    config = RunnableConfig(
+        configurable={"thread_id": context.session_id if context else "default"}
+    )
+    try:
+        result_text = await tool.ainvoke(kwargs, config=config)
+    except Exception as e:
+        return {"status": "error", "raw": f"ERROR: {type(e).__name__}: {e}"}
+    parsed = _parse_bridge_text(result_text)
+    if parsed["status"] == "pending_approval":
+        try:
+            payload = _json.loads(result_text[len("AWAITING_CONFIRMATION:"):].strip())
+            parsed["gate"] = payload
+        except Exception:
+            pass
+    return parsed
+
+
+# ---------------------------------------------------------------------------
+# Kind translation: harness-side schema → AlertRepository schema.
+#
+# AlertRepository only accepts kind in {"price", "quantitative"} with
+# specific param shapes. tools_bridge.create_alert uses a different
+# vocabulary (price_above / price_below / change_pct / volume_spike)
+# that was never aligned with the repository — so any real write goes
+# through the harness's translator below, NOT tools_bridge.create_alert.
+# ---------------------------------------------------------------------------
+def _translate_alert_args(args) -> tuple[str, dict]:
+    """Map (kind, params) to (AlertRepository.kind, AlertRepository.params)."""
+    params = dict(args.params or {})
+    if args.kind == "price_above":
+        return "price", {"threshold": params.get("threshold"), "direction": "above"}
+    if args.kind == "price_below":
+        return "price", {"threshold": params.get("threshold"), "direction": "below"}
+    if args.kind == "change_pct":
+        return "quantitative", {
+            "metric": "change_percent",
+            "change_pct": params.get("change_pct", 0),
+            "window_minutes": params.get("window_minutes", 0),
+        }
+    if args.kind == "volume_spike":
+        return "quantitative", {
+            "metric": "volume",
+            "change_pct": params.get("change_pct", 0),
+            "window_minutes": params.get("window_minutes", 0),
+        }
+    raise ValueError(f"unsupported alert kind: {args.kind}")
+
+
+async def _hitl_gate(session_id: str, tool_name: str, tool_args: dict) -> dict | None:
+    """Return AWAITING_CONFIRMATION payload if not approved, else None."""
+    from tradingagents.agents.general import approval as _approval, audit as _audit
+    if _approval.is_approved(session_id, tool_name, tool_args):
+        return None
+    payload = {
+        "needs_confirmation": True,
+        "tool_name": tool_name,
+        "tool_args": tool_args,
+        "session_id": session_id,
+    }
+    # Impact description (best-effort, fall back to generic string)
+    try:
+        from tradingagents.agents.general.guardrails import describe_impact
+        payload["impact"] = describe_impact(tool_name, tool_args)
+    except Exception:
+        payload["impact"] = f"Write operation: {tool_name}"
+    try:
+        payload["audit_id"] = _audit.log_write(
+            tool_name=tool_name, tool_args=tool_args, status="pending"
+        )
+    except Exception:
+        pass
+    return payload
+
+
+async def _hitl_consume(session_id: str, tool_name: str, tool_args: dict) -> None:
+    from tradingagents.agents.general import approval as _approval
+    _approval.consume_approval(session_id, tool_name, tool_args)
+
+
+async def create_alert(args, context):
+    """Create an alert via AlertRepository with kind translation + HITL gate."""
+    from tradingagents.agents.general.tools_bridge import _get_repo
+    import json as _json
+
+    try:
+        repo_kind, repo_params = _translate_alert_args(args)
+    except ValueError as e:
+        return {"status": "error", "raw": f"ERROR: {e}"}
+
+    tool_args = {
+        "symbol": args.symbol,
+        "kind": args.kind,
+        "params": dict(args.params or {}),
+        "asset_type": args.asset_type,
+        "cooldown_seconds": args.cooldown_seconds,
+    }
+    gate = await _hitl_gate(context.session_id, "create_alert", tool_args)
+    if gate is not None:
+        return {
+            "status": "pending_approval",
+            "raw": "AWAITING_CONFIRMATION: " + _json.dumps(gate, ensure_ascii=False),
+            "gate": gate,
+        }
+
+    try:
+        repo = _get_repo("alerts")
+        alert = repo.create(
+            symbol=args.symbol,
+            asset_type=args.asset_type,
+            kind=repo_kind,
+            params=repo_params,
+            cooldown_seconds=args.cooldown_seconds,
+        )
+        await _hitl_consume(context.session_id, "create_alert", tool_args)
+        return {
+            "status": "created",
+            "raw": "ALERT_CREATED: " + _json.dumps(
+                {"id": alert.get("id"), "symbol": alert.get("symbol"), "kind": repo_kind},
+                ensure_ascii=False,
+            ),
+        }
+    except Exception as e:
+        return {"status": "error", "raw": f"ERROR: {type(e).__name__}: {e}"}
+
+
+async def update_alert(args, context):
+    """Update an alert by ID (enabled / params / cooldown).
+
+    Uses tools_bridge.update_alert directly (operates by alert_id, no
+    schema mismatch to translate).
+    """
+    from tradingagents.agents.general.tools_bridge import update_alert as bridge
+    kwargs = {"alert_id": args.alert_id}
+    if args.enabled is not None:
+        kwargs["enabled"] = args.enabled
+    if args.params is not None:
+        kwargs["params"] = dict(args.params)
+    if args.cooldown_seconds is not None:
+        kwargs["cooldown_seconds"] = args.cooldown_seconds
+    return await _invoke_bridge(bridge, kwargs, context)
+
+
+async def delete_alert(args, context):
+    from tradingagents.agents.general.tools_bridge import delete_alert as bridge
+    return await _invoke_bridge(bridge, {"alert_id": args.alert_id}, context)
+
+
+async def create_note(args, context):
+    from tradingagents.agents.general.tools_bridge import create_note as bridge
+    return await _invoke_bridge(
+        bridge,
+        {"symbol": args.symbol, "body_md": args.body_md, "asset_type": args.asset_type},
+        context,
+    )
+
+
+async def update_note(args, context):
+    from tradingagents.agents.general.tools_bridge import update_note as bridge
+    return await _invoke_bridge(
+        bridge, {"note_id": args.note_id, "body_md": args.body_md}, context
+    )
+
+
+async def delete_note(args, context):
+    from tradingagents.agents.general.tools_bridge import delete_note as bridge
+    return await _invoke_bridge(bridge, {"note_id": args.note_id}, context)
+
+
+async def list_watchlist(args=None, context=None):
+    from tradingagents.agents.general.tools_bridge import list_watchlist as bridge
+    config = {"configurable": {"thread_id": context.session_id if context else "default"}}
+    try:
+        text = await bridge.ainvoke({}, config=config)
+    except Exception as e:
+        return ListWatchlistResult(text=f"ERROR: {type(e).__name__}: {e}", count=0)
+    count = 0
+    if text.startswith("\u5171 "):
+        try:
+            count = int(text.split(" ", 2)[1])
+        except (IndexError, ValueError):
+            count = 0
+    return ListWatchlistResult(text=text, count=count)
+
+
+async def list_scheduled_tasks(args=None, context=None):
+    from tradingagents.agents.general.tools_bridge import list_scheduled_tasks as bridge
+    config = {"configurable": {"thread_id": context.session_id if context else "default"}}
+    try:
+        text = await bridge.ainvoke({}, config=config)
+    except Exception as e:
+        return ListScheduledTasksResult(text=f"ERROR: {type(e).__name__}: {e}", count=0)
+    count = 0
+    try:
+        import json as _json
+        parsed = _json.loads(text)
+        if isinstance(parsed, list):
+            count = len(parsed)
+    except Exception:
+        pass
+    return ListScheduledTasksResult(text=text, count=count)
+
+
 
 # ----------------------------------------------------------------------
 # Tool registry — one place to wire every builtin tool
@@ -576,66 +789,46 @@ def install_builtin_tools(registry) -> None:
     # ---- Layer 2: write tools (HITL) -------------------------------
     registry.register(
         name="create_alert",
-        description="Create a price/change alert (HITL approval).",
-        args_schema=AlertWriteArgs,
+        description="Create a price/change alert (HITL approval; real impl via tools_bridge).",
+        args_schema=CreateAlertArgs,
         result_schema=dict,
         permission=PermissionType.WRITE,
     )(create_alert)
     registry.register(
         name="update_alert",
-        description="Update an existing alert (HITL approval).",
-        args_schema=AlertWriteArgs,
+        description="Update an existing alert by ID (enabled/params/cooldown; HITL).",
+        args_schema=UpdateAlertArgs,
         result_schema=dict,
         permission=PermissionType.WRITE,
     )(update_alert)
     registry.register(
         name="delete_alert",
-        description="Delete an alert (HITL approval).",
-        args_schema=AlertWriteArgs,
+        description="Delete an alert by ID (soft-delete; HITL).",
+        args_schema=DeleteAlertArgs,
         result_schema=dict,
         permission=PermissionType.WRITE,
     )(delete_alert)
 
     registry.register(
         name="create_note",
-        description="Create a research note (HITL approval).",
-        args_schema=NoteWriteArgs,
+        description="Create a research note (HITL; real impl via tools_bridge).",
+        args_schema=CreateNoteArgs,
         result_schema=dict,
         permission=PermissionType.WRITE,
     )(create_note)
     registry.register(
         name="update_note",
-        description="Update a research note (HITL approval).",
-        args_schema=NoteWriteArgs,
+        description="Update a research note by ID (HITL).",
+        args_schema=UpdateNoteArgs,
         result_schema=dict,
         permission=PermissionType.WRITE,
     )(update_note)
     registry.register(
         name="delete_note",
-        description="Delete a research note (HITL approval).",
-        args_schema=NoteWriteArgs,
+        description="Delete a research note by ID (soft-delete; HITL).",
+        args_schema=DeleteNoteArgs,
         result_schema=dict,
         permission=PermissionType.WRITE,
     )(delete_note)
 
-    registry.register(
-        name="create_scheduled_task",
-        description="Create a scheduled analysis task (HITL approval).",
-        args_schema=ScheduledWriteArgs,
-        result_schema=dict,
-        permission=PermissionType.WRITE,
-    )(create_scheduled_task)
-    registry.register(
-        name="update_scheduled_task",
-        description="Update a scheduled task (HITL approval).",
-        args_schema=ScheduledWriteArgs,
-        result_schema=dict,
-        permission=PermissionType.WRITE,
-    )(update_scheduled_task)
-    registry.register(
-        name="delete_scheduled_task",
-        description="Delete a scheduled task (HITL approval).",
-        args_schema=ScheduledWriteArgs,
-        result_schema=dict,
-        permission=PermissionType.WRITE,
-    )(delete_scheduled_task)
+

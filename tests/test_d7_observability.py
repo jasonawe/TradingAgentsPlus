@@ -121,9 +121,14 @@ def test_health_check_all_returns_expected_keys() -> None:
     payload = asyncio.run(checker.check_all(h))
     assert payload["ok"] is True
     assert "providers" in payload
-    assert payload["tools"]["total"] == 19
+    # Reads: 9 builtin reads (get_quote, get_quotes_batch, get_history,
+    # get_fundamentals, get_news, list_alpha_factors, compute_alpha_factors,
+    # evaluate_alpha, list_watchlist) + list_scheduled_tasks = 10.
+    # Writes: 6 (alerts/notes × create/update/delete, scheduled_task
+    # writes were dropped — see test_d3_tool_registry for reasons).
+    assert payload["tools"]["total"] == 16
     assert payload["tools"]["read"] == 10
-    assert payload["tools"]["write"] == 9
+    assert payload["tools"]["write"] == 6
     assert len(payload["agents"]) == 6
     assert {"quant", "news", "alert"}.issubset(payload["plugins"])
 
@@ -144,7 +149,7 @@ def test_health_endpoint_helper_attaches_route() -> None:
     assert resp.status_code == 200
     body = resp.json()
     assert body["ok"] is True
-    assert body["tools"]["total"] == 19
+    assert body["tools"]["total"] == 16
 
 
 # ---------------------------------------------------------------------------
