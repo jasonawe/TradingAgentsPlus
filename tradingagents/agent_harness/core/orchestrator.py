@@ -171,42 +171,11 @@ class Orchestrator:
             state.final = final
             yield ("agent_final", {"tier": int(Tier.PLAN_EXECUTE), "result": self._dump(final)})
 
-            # L3 LLM-judge (spec §D6) — runs AFTER synthesize so the judge
-            # has the synthesized answer available. Separate event so
-            # downstream listeners can distinguish L1+L2 from L3.
-            if (
-                self.enable_l3
-                and self._verifier.should_run_l3(state.tool_results, enable_l3=True)
-            ):
-                try:
-                    llm_answer = (
-                        state.final.get("summary", "")
-                        if isinstance(state.final, dict)
-                        else _stringify(state.final)
-                    )
-                    l3 = await self._verifier.verify_l3(
-                        user_query=state.user_message,
-                        tool_results=state.tool_results,
-                        llm_answer=llm_answer,
-                    )
-                    yield (
-                        "answer_verified",
-                        {
-                            "ok": l3.ok,
-                            "level": int(l3.level),
-                            "reason": l3.reason,
-                            "details": l3.details,
-                        },
-                    )
-                    if not l3.ok:
-                        # Spec: ungrounded → back to PlanNode (replan logged).
-                        state.plan.append({
-                            "step": len(state.plan) + 1,
-                            "action": "synthesize",
-                            "args": {"replan_reason": l3.reason, "judge": l3.details or {}},
-                        })
-                except Exception as e:
-                    LOGGER.warning("L3 verification (post-synth) failed: %s", e)
+            # L3 LLM-judge (spec §D6) — runs AFTER synthesize. Extracted
+            # into `_run_l3_judge` so it's directly testable without
+            # spinning up the full 5-node state machine.
+            async for ev in self._run_l3_judge(state):
+                yield ev
 
             if self.audit is not None and hasattr(self.audit, "log"):
                 try:
@@ -345,39 +314,54 @@ class Orchestrator:
             })
         l2 = self._verifier.verify_l2(state.intent.value, state.tool_results)
 
-        # L3 LLM-judge (spec §D6, N12 fix): only when tool_results > 4
-        # AND user explicitly enabled (UI toggle / HarnessConfig). L3 only
-        # runs when L1 passes — otherwise there's nothing grounded to judge.
-        if (
-            l1_ok
-            and self.enable_l3
+        # L3 LLM-judge intentionally NOT run here — runs in
+        # `_run_l3_judge` AFTER `_synthesize` (otherwise llm_answer is empty
+        # and L3 scores 0 with a misleading "verified: fail" event).
+        return l2
+
+    async def _run_l3_judge(
+        self, state: OrchestratorState
+    ) -> AsyncIterator[tuple[str, dict]]:
+        """L3 LLM-judge — runs AFTER synthesize so the judge has the answer.
+
+        On ungrounded verdict, appends a replan entry to ``state.plan``
+        (spec §D6: "back-to-plan on fail"). Yields ``answer_verified``
+        event regardless of verdict; replan is a side-effect on state.plan.
+        """
+        if not (
+            self.enable_l3
             and self._verifier.should_run_l3(state.tool_results, enable_l3=True)
         ):
-            try:
-                # Reconstruct an LLM answer from the state if available.
-                llm_answer = ""
-                if isinstance(state.final, dict):
-                    llm_answer = state.final.get("summary", "") or _stringify(state.final)
-                else:
-                    llm_answer = _stringify(state.final)
-                l3 = await self._verifier.verify_l3(
-                    user_query=state.user_message,
-                    tool_results=state.tool_results,
-                    llm_answer=llm_answer,
-                )
-                # L3 verdict short-circuits if it fails (back-to-plan per spec).
-                if not l3.ok:
-                    state.plan.append({
-                        "step": len(state.plan) + 1,
-                        "action": "synthesize",
-                        "args": {"replan_reason": l3.reason, "judge": l3.details or {}},
-                    })
-                # Return worst-of L1/L2/L3 so downstream sees the strictest verdict.
-                return _worst_verification(l2, l3)
-            except Exception as e:
-                LOGGER.warning("L3 verification failed, falling back to L1+L2: %s", e)
-
-        return l2
+            return
+        try:
+            llm_answer = (
+                state.final.get("summary", "")
+                if isinstance(state.final, dict)
+                else _stringify(state.final)
+            )
+            l3 = await self._verifier.verify_l3(
+                user_query=state.user_message,
+                tool_results=state.tool_results,
+                llm_answer=llm_answer,
+            )
+            if not l3.ok:
+                # Spec §D6 back-to-plan on fail.
+                state.plan.append({
+                    "step": len(state.plan) + 1,
+                    "action": "synthesize",
+                    "args": {"replan_reason": l3.reason, "judge": l3.details or {}},
+                })
+            yield (
+                "answer_verified",
+                {
+                    "ok": l3.ok,
+                    "level": int(l3.level),
+                    "reason": l3.reason,
+                    "details": l3.details,
+                },
+            )
+        except Exception as e:
+            LOGGER.warning("L3 verification (post-synth) failed: %s", e)
 
     async def _synthesize(self, state: OrchestratorState) -> Any:
         """SynthesizeNode — turn tool results into a final answer."""
@@ -412,7 +396,14 @@ class Orchestrator:
     _PLAN_SYSTEM = (
         "You are a finance research planner. Reply ONLY with valid JSON. "
         "No commentary, no markdown fences. Output schema: "
-        "[{\"step\": <int>, \"agent\": <agent_name>, \"args\": {<dict>}}]"
+        "[{\"step\": <int>, \"agent\": <agent_name>, \"args\": {<dict>}}].\n"
+        "Question classification (mandatory):\n"
+        "- A-class (self-knowledge, no tool needed): current date/weekday, "
+        "unit conversion, basic finance terms, definitions. Output an empty "
+        "plan [] — SynthesizeNode answers directly using its system prompt.\n"
+        "- B-class (market data, fundamentals, news, factors): output a plan "
+        "that calls the appropriate agent(s). Use \"agent\": \"data_agent\" "
+        "for concurrent quote+fundamentals, \"news_agent\" for news, etc."
     )
 
     def _build_plan_prompt(self, state: OrchestratorState) -> str:
@@ -423,10 +414,13 @@ class Orchestrator:
         ]
         return (
             f"User message: {state.user_message}\n\n"
+            f"Current date: 2026-09-14 (东八区时间 周一)\n"
             f"Detected symbols: {state.symbols}\n"
             f"Detected intent: {state.intent.value}\n\n"
             "Available agents:\n" + "\n".join(agent_caps) +
-            "\n\nGenerate a JSON plan as a list of {step, agent, args} objects."
+            "\n\nGenerate a JSON plan as a list of {step, agent, args} objects.\n"
+            "If the user question is A-class (date / weekday / basic concept), "
+            "return an empty plan [] — the synthesizer will answer directly."
         )
 
     @staticmethod
@@ -471,19 +465,42 @@ class Orchestrator:
             return base
 
     _SYNTH_SYSTEM = (
-        "You are a finance assistant. Synthesize the provided tool results "
-        "into a concise, accurate answer. Always ground your answer in the "
-        "tool outputs; never invent numbers. Reply in the same language the "
-        "user used."
+        "You are a finance research assistant. Synthesize tool results into "
+        "a concise, accurate answer in the user\u2019s language.\n"
+        "\n"
+        "Output structure (use markdown headings):\n"
+        "1. **数据事实** — ONLY data points actually returned "
+        "by tools. Quote numbers verbatim; mark missing fields as \"—\".\n"
+        "2. **行为面观察** — technical / flow-based reading "
+        "(e.g. \"量比 1.22 + 换手 6.9% → 资金接继\"). "
+        "Allowed to use finance common knowledge, but mark inferences with "
+        "\"基于××推断\" so the L3 judge can verify.\n"
+        "3. **方向性建议** — a concrete stance "
+        "(观望 / 跳过 / 关注支撑位) with a one-line "
+        "rationale + risk note. NEVER output \"不能给出结论\" "
+        "— a direction is required even when data is partial.\n"
+        "\n"
+        "Grounding rules:\n"
+        "- Numbers must come from tool results. If a tool returned null / "
+        "\"[stub]\" / an error, surface it as missing rather than inventing "
+        "an estimate.\n"
+        "- Brief historical references (e.g. \"2021 年高点约 53 元\") "
+        "are allowed if marked \"参考\" / \"常识\" — the L3 "
+        "judge down-weights them but does not fail the answer."
     )
 
     def _build_synthesize_prompt(self, state: OrchestratorState) -> str:
         import json as _json
         results_dump = _json.dumps(state.tool_results, ensure_ascii=False, default=str)[:6000]
         return (
+            f"Current date: 2026-09-14 (东八区时间 周一)\n\n"
             f"User message: {state.user_message}\n\n"
             f"Tool results: {results_dump}\n\n"
-            "Write a concise answer in the same language as the user message."
+            "Follow the structure in your system prompt: "
+            "\u6570\u636e\u4e8b\u5b9e / \u884c\u4e3a\u9762\u89c2\u5bdf / "
+            "\u65b9\u5411\u6027\u5efa\u8bae. "
+            "For A-class questions (date/weekday/concept) where tool_results "
+            "is empty, answer directly from your own knowledge."
         )
 
     # ------------------------------------------------------------------

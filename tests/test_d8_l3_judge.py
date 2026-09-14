@@ -23,6 +23,7 @@ if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
 from tradingagents.agent_harness.config import HarnessConfig  # noqa: E402
+from tradingagents.agent_harness.core.tier import Intent
 from tradingagents.agent_harness.core import (  # noqa: E402
     CircuitBreaker,
     ContextPriority,
@@ -276,39 +277,87 @@ def test_orchestrator_skips_l3_when_disabled() -> None:
 
 
 def test_orchestrator_runs_l3_when_enabled_and_enough_results() -> None:
+    """L3 runs in `_run_l3_judge` AFTER synthesize (so the judge sees the
+    LLM answer). Verify the post-synthesize `answer_verified` event."""
     judge = MockLLMProvider(
         response_content=json.dumps({"score": 0.9, "issues": [], "suggestion": "", "reasoning": "grounded"})
     )
     orch = _build_orchestrator(judge, enable_l3=True)
+    tool_results = [{"name": "get_quote", "result": {"price": 99.5}}] * 10
+
+    async def fake_execute(state, context):
+        return tool_results
+    async def fake_synth(state):
+        return {"summary": "招商银行 99.50"}
+    async def fake_plan(state, context):
+        return [{"step": 1, "action": "noop"}]
+
+    orch._execute = fake_execute  # type: ignore[assignment]
+    orch._synthesize = fake_synth  # type: ignore[assignment]
+    orch._plan = fake_plan  # type: ignore[assignment]
+
     state = OrchestratorState(
         session_id="t",
         user_message="600036.SS",
         symbols=["600036.SS"],
-        tool_results=[{"name": "get_quote", "result": {"price": 99.5}}] * 10,
-        final={"summary": "招商银行 99.50"},
+        intent=Intent.QUOTE,
     )
-    result = asyncio.run(orch._verify(state))
+
+    async def drive() -> list:
+        plan = await orch._plan(state, context=None)
+        state.plan = plan
+        state.tool_results = await orch._execute(state, context=None)
+        await orch._verify(state)
+        state.final = await orch._synthesize(state)
+        events = []
+        async for ev in orch._run_l3_judge(state):
+            events.append(ev)
+        return events
+
+    events = asyncio.run(drive())
     assert judge.calls, "judge was not invoked"
-    assert result.level == VerificationLevel.L3_LLM_JUDGE
+    answer_verified = next(e for e in events if e[0] == "answer_verified")
+    _, payload = answer_verified
+    assert payload["level"] == int(VerificationLevel.L3_LLM_JUDGE)
+    assert payload["ok"] is True
 
 
 def test_orchestrator_l3_ungrounded_replans() -> None:
+    """L3 ungrounded verdict appends a replan entry to state.plan (spec §D6)."""
     judge = MockLLMProvider(
         response_content=json.dumps({"score": 0.3, "issues": ["hallucinated"], "suggestion": "replan", "reasoning": "bad"})
     )
     orch = _build_orchestrator(judge, enable_l3=True)
-    initial_plan = [{"step": 1, "agent": "data_agent", "args": {"symbol": "X"}}]
+    initial_plan = [{"step": 1, "action": "noop"}]
+    tool_results = [{"name": "get_quote", "result": {"price": 99.5}}] * 10
+
+    async def fake_execute(state, context):
+        return tool_results
+    async def fake_synth(state):
+        return {"summary": "招商银行 50.00 (made up)"}
+    async def fake_plan(state, context):
+        return list(initial_plan)
+    orch._execute = fake_execute  # type: ignore[assignment]
+    orch._synthesize = fake_synth  # type: ignore[assignment]
+    orch._plan = fake_plan  # type: ignore[assignment]
+
     state = OrchestratorState(
         session_id="t",
         user_message="600036.SS",
         symbols=["600036.SS"],
-        plan=list(initial_plan),
-        tool_results=[{"name": "get_quote", "result": {"price": 99.5}}] * 10,
-        final={"summary": "招商银行 50.00 (made up)"},
+        intent=Intent.QUOTE,
     )
-    result = asyncio.run(orch._verify(state))
-    assert result.ok is False
-    # Replan entry should have been appended.
+
+    async def drive() -> None:
+        state.plan = await orch._plan(state, context=None)
+        state.tool_results = await orch._execute(state, context=None)
+        await orch._verify(state)
+        state.final = await orch._synthesize(state)
+        async for _ in orch._run_l3_judge(state):
+            pass
+
+    asyncio.run(drive())
+    # The ungrounded verdict appends a replan entry to state.plan.
     assert any("replan_reason" in step.get("args", {}) for step in state.plan)
 
 
