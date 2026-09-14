@@ -961,11 +961,11 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 |---|---|---|---|
 | **P1** ✅ | (无,纯骨架) | (无) | (无) |
 | **P2** | #2 Tool adapter | (无) | #8 Connection pooling |
-| **P3** | #1 Plugin 注册 / #5 Config / #6 Hook(预留) | #9 Graceful degradation | (无 — Tier 1 short circuit 在 P4) |
-| **P4** | #3 Provider 抽象 / #4 Agent factory / #7 Prompt 覆盖 / #8 Permission | #4 Timeout / #7 State 持久化 | #1 Tier 1 短路径 / #2 并行 invoke / #5 Streaming / #6 Plan 复用 |
-| **P5** | (P5 是 agents,不算高扩展) | (无) | (无) |
-| **P6** | (核心就是 plugin 完整化) | (无) | #7 Lazy plugin load |
-| **P7** | (无) | #1 降级 / #2 Failover / #3 Retry / #5 Rate limit / #6 Circuit breaker / #8 Health check / #10 Audit | #10 Tier 3 DAG 并行 |
+| **P3** | #5 Config / #6 Hook(预留)(**N117 fix,2026-09-11**:原标「#1 Plugin 注册」误,P1 Plugin 注册实际在 P6 实施) | #9 Graceful degradation | (无 — Tier 1 short circuit 在 P4) |
+| **P4** | #7 Prompt 覆盖 / #8 Permission(**N116 fix,2026-09-11**:原标「#3 Provider 抽象 / #4 Agent factory」误,#3 Provider 抽象实际在 P2,#4 Agent factory 实际在 P5) | #4 Timeout / #7 State 持久化 | #1 Tier 1 短路径 / #2 并行 invoke / #5 Streaming(**N114 fix,2026-09-11**:原标「#6 Plan 复用」误,Plan 复用实际在 v2 P2 StateGraph 实施,见 N65 fix) |
+| **P5** | #4 Agent factory(同上 N116) | (无) | (无) |
+| **P6** | #1 Plugin 注册(同上 N117) | (无) | (无,**N115 fix,2026-09-11**:原标「#7 Lazy plugin load」与下面 N67 fix 矛盾,实际不在 P6 实施,留 Day 15+) |
+| **P7** | (无) | #1 降级 / #2 Failover / #3 Retry / #5 Rate limit / #6 Circuit breaker / #8 Health check / #10 Audit | (无,**N118 fix,2026-09-11**:原标「#10 Tier 3 DAG 并行」误,Tier 3 DAG 在 §10 明确划出本 spec 范围,留 Day 15+)|
 
 **N61 fix,2026-09-11**:原文「§7.3 #4 Pre-fetch」是 typo,实际 #4 = **Tool result cache**,#9 = Pre-fetch。
 
@@ -1006,6 +1006,8 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 ---
 
 ## 11. 风险 & 拍板点
+
+**跨 spec 风险对应**(**N119 fix,2026-09-11**):本表 R1-R4 关注 harness **模块化**实施风险(循环 import / agent 粒度 / plugin 生态 / registry 冲突)。v2 §6 R1-R4 关注 D1-D6 **设计决策**实施风险(Pydantic 化 21 个 tool / StateGraph 重构 / LLM-judge 成本 / plan UI)。两表关注阶段不同但实施时一并处理(具体措施见 v2 §6 Mitigation)。
 
 | # | Risk / Question | Mitigation / 待你拍板 |
 |---|---|---|
