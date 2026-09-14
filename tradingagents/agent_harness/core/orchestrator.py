@@ -271,7 +271,8 @@ class Orchestrator:
         try:
             provider = self.llm_factory.make()
             prompt = self._build_plan_prompt(state)
-            content = provider.complete_text(prompt=prompt, system=self._PLAN_SYSTEM, temperature=0.0)
+            response = provider.complete_text(prompt=prompt, system=self._PLAN_SYSTEM, temperature=0.0)
+            content = getattr(response, "content", response)
             return self._parse_plan(content, state)
         except Exception as e:
             LOGGER.warning("LLM plan failed: %s", e)
@@ -327,9 +328,10 @@ class Orchestrator:
         try:
             provider = self.llm_factory.make()
             prompt = self._build_synthesize_prompt(state)
-            content = provider.complete_text(
+            response = provider.complete_text(
                 prompt=prompt, system=self._SYNTH_SYSTEM, temperature=0.0
             )
+            content = getattr(response, "content", response)
             base["summary"] = content
             return base
         except Exception as e:
