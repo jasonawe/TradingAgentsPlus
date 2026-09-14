@@ -888,3 +888,230 @@ dsh 设计这么重(cordis 2000 行 + 72 seam + 5 阶段管线 + append-only log
 - 现有功能完全兼容
 
 要不要这样动?
+
+---
+
+## 十二、TradingAgentsPlus 现状 — Memory 与多 Session
+
+> 在调研完 dsh 后回到我们项目,看我们当前的 memory 和多 session 实现是怎么样。
+
+### 12.1 我们的 Memory 架构(`tradingagents/agent_harness/memory/`,606 行)
+
+#### 12.1.1 三层划分(清晰,dsh 没我们分层干净)
+
+| 层 | 类 | 存储 | Key | TTL | 用途 |
+|---|---|---|---|---|---|
+| **L1 SESSION** | `SqliteSessionMemory` | `.ta_cache/session_memory.sqlite` | `session:{session_id}:{key}` | 24h | 当前 session 的对话历史 + 短期上下文 |
+| **L2 PREFERENCES** | `UserPreferencesMemory` | `.ta_cache/user_prefs.sqlite` | `(user_id, key)` | 无 | 用户偏好设置 |
+| **L3 REFERENCES** | `AgentReferencesMemory` | `.ta_cache/agent_refs.sqlite` | `(kind, ref_key)` | 可选 | 跨 session 知识缓存(行情/财务/新闻) |
+
+共同接口 `MemoryLayer`(base.py 58 行):
+- `get(key, session_id=None) -> MemoryEntry | None`
+- `set(key, value, session_id=None, ttl_seconds=None, metadata=None) -> MemoryEntry`
+- `delete(key, session_id=None) -> bool`
+- `list(session_id=None, prefix=None) -> list[MemoryEntry]`
+
+`MemoryEntry` 是 Pydantic model:`key / value / scope / session_id / created_at / expires_at / metadata`。
+
+#### 12.1.2 `MemoryManager` 门面(manager.py 78 行)
+
+```python
+class MemoryManager:
+    def __init__(self, data_dir=None, l1=None, l2=None, l3=None):
+        base = data_dir or ".ta_cache"
+        self.l1 = l1 or SqliteSessionMemory(db_path=f"{base}/session_memory.sqlite")
+        self.l2 = l2 or UserPreferencesMemory(db_path=f"{base}/user_prefs.sqlite")
+        self.l3 = l3 or AgentReferencesMemory(db_path=f"{base}/agent_refs.sqlite")
+
+    def get_layer(self, scope: MemoryScope) -> MemoryLayer: ...  # L1/L2/L3 dispatch
+    def get(self, key, *, session_id=None, scope=None) -> MemoryEntry | None: ...
+    def set(self, key, value, *, session_id=None, ttl_seconds=None, scope=None, metadata=None): ...
+
+    # 便捷方法
+    def append_message(self, session_id, role, content) -> MemoryEntry: ...
+    def get_history(self, session_id) -> list[dict]: ...
+
+    # 跨层
+    def remember_quote(self, symbol, quote) -> MemoryEntry:  # → L3
+    def recall_quote(self, symbol) -> MemoryEntry | None:   # ← L3
+```
+
+#### 12.1.3 L1 session 细节(173 行)
+
+- 键格式:`session:{session_id}:{key}`(前缀隔离多 session)
+- `append_message()` 自动追加到 `key=history`,**只保留最近 200 条**(静默截断,不归档)
+- 默认 TTL = 24h,过期条目 read 时删除
+- `get_history()` 返回 `[{role, content, ts}, ...]` 列表
+
+#### 12.1.4 L2 preferences 细节(123 行)
+
+- 键格式:`(user_id, key)`,无 TTL
+- `user_id` 默认 `"default"`(单用户场景);多用户时 session_id 当 user_id
+- `list(session_id=uid, prefix=...)` 拉用户所有偏好
+
+#### 12.1.5 L3 references 细节(148 行)
+
+- 键格式:`kind:ref_key`(如 `quotes:600036.SS`),TTL 可选
+- 用 `quote_provider` 时缓存(我们当前没用 — 上轮加)
+- `remember_quote/recall_quote` 跨 session 复用 quote 缓存
+
+#### 12.1.6 与 Context 装配集成(`core/context.py`,ContextPriority)
+
+`ContextPriority.assemble()` 自动注入:
+
+```python
+# Layer 6 (CHAT) ← L1 history, last 20 messages
+history = self.memory.get_history(session_id)[-20:]
+if history:
+    layers[Layer.CHAT] = {"messages": history}
+
+# Layer 7 (GLOBAL) ← L2 prefs
+uid = user_id or session_id or "default"
+prefs = self.memory.l2.list(session_id=uid)
+if prefs:
+    layers[Layer.GLOBAL] = {p.key: p.value for p in prefs}
+```
+
+8 层总预算 4000 tokens(L1/EXPLICIT 200, L2/SKILLS 200, L3/TOOLS 800, L4/FILES 300, L5/DASHBOARD 300, L6/CHAT 1500, L7/GLOBAL 200, L8/SEARCH 500)。
+
+### 12.2 我们的多 Session 现状
+
+#### 12.2.1 模型
+
+**session_id 就是个字符串** — 没有 Session 对象、没有 AgentHandle、没有会话生命周期。
+
+```python
+# orchestrator.py
+@dataclass
+class OrchestratorState:
+    session_id: str                        # ← 就是个 string
+    user_message: str
+    intent: Intent = Intent.UNKNOWN
+    symbols: list[str] = field(default_factory=list)
+    plan: list[dict[str, Any]] = field(default_factory=list)
+    tool_results: list[dict[str, Any]] = field(default_factory=list)
+    final: Any = None
+    error: str | None = None
+
+# harness.py
+async def stream_chat(
+    self,
+    session_id: str,                       # ← 字符串参数
+    user_message: str,
+    *,
+    history: list | None = None,
+) -> AsyncIterator[tuple[str, dict]]:
+    async for event in self.orchestrator.stream_chat(
+        session_id=session_id,             # ← 透传
+        user_message=user_message,
+        history=history,
+    ):
+        yield event
+```
+
+#### 12.2.2 多 session 隔离
+
+**靠 SQLite key 前缀**:`session:{session_id}:*`,session A 和 session B 的 history 是不同 row。
+
+- ✅ 多 session 互不污染
+- ✅ SQLite 单表 + 索引,简单
+- ❌ 没有 session 元数据表(创建时间、最后活跃、关联 user_id 等)
+- ❌ 没有"列出所有 session"接口
+- ❌ 没有跨 session 查询("哪些 session 看过 600036.SS")
+
+#### 12.2.3 没有的能力
+
+| 能力 | dsh 有 | 我们有吗 |
+|---|---|---|
+| `Session` 类(创建/恢复/销毁) | ✅ `ctx.sessions.create/resume/dispose` | ❌ |
+| `AgentHandle`(disposer 是 capability) | ✅ | ❌ |
+| Fork(seed + end-seed marker) | ✅ | ❌ |
+| Crash recovery | ✅ `session/end-seed` + `assistant/message.interrupted` | ❌ |
+| In-flight session tracking | ✅ `AgentStatus` (idle/running) | ❌ |
+| Session 列表 / 跨 session 查询 | ✅ `ctx.sessionQuery` | ❌ |
+| Agent 6 能力(followup/steer/inject/send/runMaintenance/whenIdle) | ✅ | ❌ |
+| Turn/Step boundary marker | ✅ `turn/start/end`, `step/start/end` | ❌ |
+| TurnEndReason | ✅ `completed/cancelled/errored/max-tokens/interrupted` | ❌(只 ok/error) |
+| 历史截断归档 | ❌(append-only,只看 projection) | ❌(静默丢 200 之前) |
+| TTL per entry | ⚠️(依赖 persistence backend) | ✅ L1 默认 24h,L3 可设 |
+
+### 12.3 Memory 维度 side-by-side
+
+| 维度 | 我们 | dsh | 差距 |
+|---|---|---|---|
+| **存储抽象** | `MemoryLayer` ABC + 3 SQLite 实例 | `SessionPersistence` seam + JSONL/SQLite backend | 我们更简单;dsh 多 backend 可换 |
+| **键模型** | 字符串 `session:{id}:{key}` / `(user_id, key)` / `kind:ref_key` | Branded `SessionId` + Branded `SessionSeq` + SessionEvent type | dsh 类型更强 |
+| **数据模型** | `MemoryEntry`(Pydantic) | `SessionEvent<T>`(判别联合) | dsh 编译期保证 |
+| **写入语义** | `INSERT OR REPLACE`(可覆盖) | append-only(不可改) | **dsh 强** — 审计 trail |
+| **过期** | TTL per entry(L1 默认 24h,L3 可设) | 无 TTL,持久化完整 log,靠 compaction | 我们更省存储 |
+| **并发** | threading.Lock | async + sqlite WAL | dsh 更现代 |
+| **序列化** | JSON.dumps | lossless JSON(detail 在 dsh-session) | dsh 严格 |
+| **恢复** | 无 — SQLite 是 source of truth | `sessions.create(id, { seed })` 回放 | **dsh 强** |
+| **跨层关联** | `MemoryManager.remember_quote()` 显式调用 | session log + Remote adapters 隐式 | 一样 |
+| **多用户** | `user_id` 字段(默认 "default") | session-scoped + user-scoped Remote | dsh 更灵活 |
+| **LLM 注入** | `ContextPriority._inject_memory()` Layer 6/7 | `systemPrompt.section()` + `SessionSurface` projection | 我们直接,dsh 间接 |
+| **观测** | `audit.log()` 单点 | `tools/result` 同步 emit + 30+ 事件监听器 | **dsh 强** |
+
+### 12.4 我们做得好的 5 个地方
+
+| # | 我们的强项 | 为什么好 |
+|---|---|---|
+| **1** | **3 层 Memory 分层(L1/L2/L3)+ 不同 TTL 策略** | dsh 把这些混在 session log,靠 Remote 兜底;我们直接 |
+| **2** | **Pydantic MemoryEntry 类型安全** | 自带 key/value/scope/session_id/created_at/expires_at/metadata |
+| **3** | **TTL per entry**(L1 24h,L2 无,L3 可设) | dsh append-only 全量存,靠 compaction 清理 |
+| **4** | **ContextPriority 自动注入**(Layer 6/7) | 一行 `assemble(session_id=...)` 自动从 L1/L2 拉 |
+| **5** | **跨层便捷方法**(`remember_quote/recall_quote`) | L1 历史 + L3 缓存配合用 |
+
+### 12.5 dsh 做得比我们好的 8 个地方
+
+| # | dsh 设计 | 价值 | 我们的差距 |
+|---|---|---|---|
+| **A** | **Append-only SessionEvent log**(不可覆盖) | **极高** — 完整审计 trail,可回放 | 我们 `INSERT OR REPLACE` 直接覆盖 |
+| **B** | **SessionSurface projection + SurfaceFoldReplacement** | 极高 — 同 log 派生不同视图,UI/审计/LLM 各取所需 | 我们没有 projection,L1 history 是 source of truth |
+| **C** | **Session 第一公民**(`ctx.sessions.create/resume/dispose`)+ `AgentHandle` disposer | 高 — 完整生命周期,in-flight 可追踪 | 我们 session_id 是裸字符串 |
+| **D** | **Fork + end-seed boundary** + crash recovery(`session/end-seed` marker) | 中-高 — 多 session 复用历史 / 服务挂了能恢复 | 我们无 fork / 无 crash recovery |
+| **E** | **Session 列表 + 跨 session 查询**(`ctx.sessionQuery`) | 中 — "哪些 session 看过 600036.SS" | 我们没这个 API |
+| **F** | **Turn/Step boundary marker** + `TurnEndReasonMap` | 中 — 知道每个 turn 为何结束 | 我们只 ok / error |
+| **G** | **Agent 6 能力**(followup/steer/inject/send/runMaintenance/whenIdle) | 中-高 — 定时任务 / 中途改主意 / 等 drain | 我们只有 stream_chat |
+| **H** | **30+ 事件监听器全生命周期观测** | 中 — 工具/agent/turn 全事件可观测 | 我们只有 audit.log 单点 |
+
+### 12.6 综合建议(给我们的 memory + 多 session)
+
+**保留的(我们的强项)**
+- 3 层 Memory 分层 + 不同 TTL
+- Pydantic MemoryEntry
+- ContextPriority 自动注入 Layer 6/7
+- 跨层便捷方法
+
+**该学的(增量价值)**
+
+| # | 动作 | 价值 | 工作量 | 来源 |
+|---|---|---|---|---|
+| **P0-M1** | **Append-only event log** — 把 L1 从 K-V 改成 append-only `Event{seq, type, data, time}`,LLM 看到的历史从 log 派生 | 极高(审计 + 回放) | 1d | dsh A+B |
+| **P0-M2** | **Session 第一公民** — 加 `Session` dataclass / class,带 `id / created_at / last_active / user_id / status`,in-memory + SQLite 表 | 高(in-flight 追踪) | 0.5d | dsh C |
+| **P0-M3** | **Turn/Step boundary + TurnEndReason** — 在 log 里加 `turn/start/end` `step/start/end`,TurnEndReason enum | 中(审计 + 调试) | 0.5d | dsh F |
+| **P1-M1** | **Session 列表 + 跨 session 查询** API(`list_sessions(user_id)` / `search_sessions(symbol=...)`) | 中(管理) | 0.5d | dsh E |
+| **P1-M2** | **Fork + session/end-seed marker**(可选,从已有 session 派生新 session 复用历史) | 中(实验 / 对比) | 1d | dsh D |
+| **P1-M3** | **Agent 6 能力**(`followup` 已有 / 加 `steer` / `inject` / `whenIdle`) | 中-高(定时任务) | 0.5d | dsh G |
+| **P2-M1** | **Crash recovery**(`assistant/message.interrupted` marker + 重启时检测) | 中(可靠性) | 1d | dsh D |
+| **P2-M2** | **Event 30+ 监听器** 统一抽象(emit/waterfall/around) | 中(可观测) | 1d | dsh H |
+
+**总预算:约 5.5 天**
+
+### 12.7 不该搬的
+
+| dsh 设计 | 不搬的原因 |
+|---|---|
+| **Branded SessionSeq / SessionLogOffset** | 我们用普通 int,Python 不需要类型层强保证 |
+| **完整 lossless JSON 序列化** | 我们 JSON.dumps 已经够 |
+| **Merge-extensible SessionEventMap** | TS 特性,Python 没等价物 |
+| **`ignorable?: true` 严格拒绝重建** | 我们没跨 session resume 严格需求 |
+| **Multiple persistence backend**(jsonl/sqlite) | 我们 SQLite 一份够用 |
+| **Compaction 压缩历史** | 我们 L1 history 只保留最近 20 条,直接 truncation |
+| **会话恢复 + session header schema_version** | 我们没跨版本升级场景 |
+
+### 12.8 一句话总结
+
+> **我们的 memory 比 dsh 干净**(3 层 + TTL + Pydantic),**多 session 管理比 dsh 简单 50 倍**(裸 session_id 字符串 vs Session 类 + 6 Agent 能力 + 30+ 事件)。
+>
+> **该学的不是"它们怎么做 memory",而是"append-only event log + surface projection + Session 第一公民"**——这三个心智模型能把我们的可观测性、可审计性、可恢复性从"能用"变成"可运维"。
