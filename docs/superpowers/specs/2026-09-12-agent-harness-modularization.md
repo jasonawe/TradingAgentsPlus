@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-12
 **Stage:** C Day 11e (增量,基于 v2 spec `2026-09-11-finance-general-agent-harness-v2.md`)
-**Status:** 🔄 Draft — 待用户 review + 拍板
+**Status:** ✅ **Approved** (17 轮 review 完成,2026-09-14,N1-N122 共 108+ 个 fix 已应用;5 个 P2 N8-N12 留实施时再修)
 **Branch:** `codex/finance-general-agent`
 **前置依赖:** 无(可基于现有代码开工)
 

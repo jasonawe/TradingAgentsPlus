@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-11
 **Stage:** C Day 11d (增量设计,基于 v1 spec `2026-09-10-finance-general-agent-design.md`)
-**Status:** 🔄 Draft — 待用户 review + 拍板
+**Status:** ✅ **Approved** (17 轮 review 完成,2026-09-14,N1-N122 共 108+ 个 fix 已应用;5 个 P2 N8-N12 留实施时再修)
 **Branch:** `codex/finance-general-agent`
 **前置依赖:** 无(可立即基于现有代码开工)
 

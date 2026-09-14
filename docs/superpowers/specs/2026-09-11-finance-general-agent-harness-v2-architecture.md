@@ -2,6 +2,8 @@
 
 > v2 spec 的可视化补充 — 配 `2026-09-11-finance-general-agent-harness-v2.md` 阅读
 > 包含 3 张图:① 总架构 ② Tier 2 StateGraph 详细 ③ Data Layer + Provider ABC
+>
+> **Status:** ✅ **Approved** (17 轮 review 完成,2026-09-14,与 v2 spec 同步)
 
 ---
 
