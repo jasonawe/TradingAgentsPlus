@@ -330,7 +330,7 @@ def test_provider_failover_terminal_error_does_not_fall_back(swapped_providers) 
 
     fo = ProviderFailover()
     with pytest.raises(ProviderError) as ei:
-        fo.call("get_quote", "X", "stock")
+        fo.call("get_quote", "BAD.SS", "stock")  # A-share suffix so non-A-share fall-through heuristic does NOT activate
     assert ei.value.code == ProviderErrorCode.INVALID_SYMBOL
     assert fo.last_used_name is None
 
@@ -432,3 +432,71 @@ def test_auto_chain_excludes_primary_and_uses_known_providers() -> None:
     # pinned by tests, just that they\'re all present.
     assert "yfinance" in chain
     assert "akshare" in chain
+
+
+# ---------------------------------------------------------------------------
+# Provider resilience — new behaviors (N-change: non-A-share auto fall-through
+# + QuoteArgs.symbols batch compatibility)
+# ---------------------------------------------------------------------------
+
+
+def test_provider_failover_invalid_symbol_falls_through_for_non_a_share(
+    swapped_providers,
+) -> None:
+    """NVDA / AAPL etc. have no .SS/.SZ/.SH suffix \u2014 INVALID_SYMBOL on
+    eastmoney should auto walk to the next provider (yfinance) so a US
+    equity request doesn't fail just because eastmoney doesn't carry it."""
+    from tradingagents.data.providers import registry as reg_mod
+
+    reg_mod._active = "eastmoney"
+    swapped_providers["eastmoney"] = _make_fake_provider(
+        "eastmoney",
+        raise_provider_error=True,
+        raise_code=ProviderErrorCode.INVALID_SYMBOL,
+    )
+    swapped_providers["yfinance"] = _make_fake_provider(
+        "yfinance", quote_price=900.0
+    )
+    swapped_providers["akshare"] = _make_fake_provider("akshare")
+    swapped_providers["alpha_vantage"] = _make_fake_provider("alpha_vantage")
+
+    fo = ProviderFailover()
+    snap = fo.call("get_quote", "NVDA", "stock")
+    assert snap.price == 900.0
+    assert fo.last_used_name == "yfinance"
+
+
+def test_quote_args_accepts_symbols_list_and_dispatches_to_batch(
+    swapped_providers,
+) -> None:
+    """QuoteArgs(symbols=[...]) is a Pydantic-valid batch request; the
+    tool fans out via the same chain as get_quotes_batch and returns a
+    BatchQuoteResult (avoids the 'symbols field required' error LLM
+    planners used to hit when emitting a list)."""
+    from tradingagents.data.providers import registry as reg_mod
+
+    reg_mod._active = "yfinance"
+    swapped_providers["yfinance"] = _make_fake_provider(
+        "yfinance", quote_price=11.0
+    )
+    swapped_providers["eastmoney"] = _make_fake_provider("eastmoney")
+    swapped_providers["akshare"] = _make_fake_provider("akshare")
+    swapped_providers["alpha_vantage"] = _make_fake_provider("alpha_vantage")
+
+    args = builtin_mod.QuoteArgs(
+        symbols=["600036.SS", "NVDA", "000001.SZ"], asset_type="stock"
+    )
+    result = asyncio.run(builtin_mod.get_quote(args))
+    # Result type is BatchQuoteResult when symbols given.
+    from tradingagents.agent_harness.tools.builtin import BatchQuoteResult
+    assert isinstance(result, BatchQuoteResult)
+    assert len(result.quotes) == 3
+    assert all(q.price == 11.0 for q in result.quotes)
+
+
+def test_quote_args_rejects_when_neither_symbol_nor_symbols() -> None:
+    """Neither field set -> clear ValueError, not a silent no-op."""
+    args = builtin_mod.QuoteArgs(asset_type="stock")
+    import pytest
+    with pytest.raises(ValueError, match="requires either"):
+        asyncio.run(builtin_mod.get_quote(args))

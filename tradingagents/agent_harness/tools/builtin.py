@@ -22,7 +22,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from tradingagents.data.responses import DataResponse
 from tradingagents.data.providers.registry import get_active_provider, get_active_provider_name, get_provider
@@ -37,8 +37,26 @@ from .schema import ToolSchema
 
 
 class QuoteArgs(BaseModel):
-    symbol: str
+    """Schema for get_quote. Either ``symbol`` (one) or ``symbols`` (many).
+
+    LLM planners sometimes emit a list when they actually want a batch
+    snapshot; accepting both avoids Pydantic validation errors and lets
+    the tool fan out via the same ProviderFailover chain as
+    ``get_quotes_batch``. When ``symbols`` is provided, ``symbol`` is
+    ignored and the response is a ``BatchQuoteResult``.
+    """
+
+    symbol: Optional[str] = None
+    symbols: Optional[list[str]] = None
     asset_type: Literal["stock", "crypto", "fund"] = "stock"
+
+    @field_validator("symbols")
+    @classmethod
+    def _strip_blanks(cls, v: Optional[list[str]]) -> Optional[list[str]]:
+        if v is None:
+            return v
+        cleaned = [s for s in (s.strip() for s in v) if s]
+        return cleaned or None
 
 
 class QuoteResult(BaseModel):
@@ -79,12 +97,23 @@ class QuoteResult(BaseModel):
     warnings: list[str] = Field(default_factory=list)
 
 
-async def get_quote(args: QuoteArgs) -> QuoteResult:
-    # ProviderFailover walks the active provider first, then falls through
-    # to yfinance/akshare/alpha_vantage on transient network errors. The
-    # orchestrator layer (retry_async + skip_exceptions=ProviderError) is
-    # configured NOT to retry provider-level failures, so this is the
-    # single point that decides which upstream actually answers.
+async def get_quote(args: QuoteArgs) -> "QuoteResult | BatchQuoteResult":
+    """Single- or batch-quote entry point.
+
+    - When ``args.symbols`` is a non-empty list, fans out to the same
+      ProviderFailover chain as ``get_quotes_batch`` and returns a
+      ``BatchQuoteResult``. This lets LLM planners emit a list without
+      hitting a Pydantic validation error.
+    - When ``args.symbol`` is provided, returns a single ``QuoteResult``.
+    - If neither is provided, raises a clear ValueError.
+    """
+    if args.symbols:
+        return await get_quotes_batch(
+            BatchQuoteArgs(symbols=args.symbols, asset_type=args.asset_type)
+        )
+    if not args.symbol:
+        raise ValueError("get_quote requires either `symbol` or `symbols`")
+
     fo = ProviderFailover(primary=get_active_provider_name())
     snap = fo.call("get_quote", args.symbol, args.asset_type)
     # EastMoney and AKShare put the ticker name in raw_summary; quote
@@ -449,7 +478,13 @@ def install_builtin_tools(registry) -> None:
     """
     registry.register(
         name="get_quote",
-        description="Get the latest quote snapshot for one symbol.",
+        description=(
+            "Get the latest quote snapshot for one symbol. "
+            "For 2+ symbols in one call, prefer `get_quotes_batch` \u2014 "
+            "it runs the provider chain once and returns a list. "
+            "`get_quote` also accepts an optional `symbols` list and will "
+            "internally dispatch to the batch path."
+        ),
         args_schema=QuoteArgs,
         result_schema=QuoteResult,
         permission=PermissionType.READ,
@@ -458,7 +493,11 @@ def install_builtin_tools(registry) -> None:
 
     registry.register(
         name="get_quotes_batch",
-        description="Get quote snapshots for many symbols in one call.",
+        description=(
+            "Get quote snapshots for many symbols in one call. Use this "
+            "instead of multiple `get_quote` calls when the user asks "
+            "about several tickers or a market overview."
+        ),
         args_schema=BatchQuoteArgs,
         result_schema=BatchQuoteResult,
         permission=PermissionType.READ,

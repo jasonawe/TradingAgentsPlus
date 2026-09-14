@@ -21,6 +21,25 @@ _TRANSIENT_CODES = {
 }
 
 
+_A_SHARE_SUFFIXES = (".SS", ".SZ", ".SH")
+
+
+def _is_non_a_share(call_args: tuple) -> bool:
+    """Best-effort: detect when a get_quote() call is for a non-A-share symbol.
+
+    Heuristic — we only look at the FIRST positional arg (the symbol).
+    A-share symbols end in .SS / .SZ / .SH; anything else is treated as
+    non-A-share so ProviderFailover will walk to the next provider
+    instead of raising on INVALID_SYMBOL.
+    """
+    if not call_args:
+        return False
+    sym = call_args[0]
+    if not isinstance(sym, str):
+        return False
+    return not sym.upper().endswith(_A_SHARE_SUFFIXES)
+
+
 def _auto_fallback_chain(primary: str) -> list[str]:
     """Return fallback names in priority order (excluding ``primary``).
 
@@ -75,7 +94,15 @@ class ProviderFailover:
             try:
                 result = fn(*args, **kwargs)
             except ProviderError as e:
-                if e.code not in _TRANSIENT_CODES:
+                # INVALID_SYMBOL is terminal for THIS provider but may be
+                # answerable by another (e.g. eastmoney doesn't know NVDA,
+                # but yfinance does). Promote INVALID_SYMBOL to transient
+                # only when the symbol looks non-A-share (no .SS/.SZ/.SH
+                # suffix) so we don't double-roundtrip on truly bad A-share codes.
+                if e.code not in _TRANSIENT_CODES and not (
+                    e.code == ProviderErrorCode.INVALID_SYMBOL
+                    and _is_non_a_share(args)
+                ):
                     raise
                 last_err = e
                 LOGGER.warning("provider %s.%s transient error: %s; trying fallback", name, method, e)
