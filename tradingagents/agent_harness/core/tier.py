@@ -37,6 +37,38 @@ class Intent(str, Enum):
 
 _TICKER_RE = re.compile(r"\b[A-Z0-9]{1,6}(?:\.[A-Z]{2})?\b")
 
+# A-share prefix → exchange suffix (N121 fix, 2026-09-14).
+# 6XXXXX → 上交所 .SS ; 0XXXXX / 3XXXXX → 深交所 .SZ ; 4XXXXX/5XXXXX
+# 多数是基金/债券,这里保守不自动补,避免误判。
+_A_SHARE_SS_PREFIXES = ("600", "601", "603", "605", "688")
+_A_SHARE_SZ_PREFIXES = ("000", "001", "002", "003", "300", "301")
+
+
+def normalize_symbol(token: str) -> str:
+    """Auto-suffix 6-digit A-share codes so providers can route them.
+
+    Examples
+    --------
+    >>> normalize_symbol("600036")
+    '600036.SS'
+    >>> normalize_symbol("000001")
+    '000001.SZ'
+    >>> normalize_symbol("600036.SS")
+    '600036.SS'
+    >>> normalize_symbol("AAPL")
+    'AAPL'
+    """
+    s = (token or "").strip().upper()
+    if not s or "." in s:
+        return s
+    if len(s) != 6 or not s.isdigit():
+        return s
+    if s.startswith(_A_SHARE_SS_PREFIXES):
+        return s + ".SS"
+    if s.startswith(_A_SHARE_SZ_PREFIXES):
+        return s + ".SZ"
+    return s
+
 _TIER1_KEYWORDS = {"价格", "多少钱", "报价", "quote", "价格?", "price", "rsi", "换手", "成交"}
 _TIER2_KEYWORDS = {"估值", "分析", "对比", "compare", "估值合理性", "对比一下"}
 _TIER3_KEYWORDS = {"深度", "综合", "详细", "全维度", "深度分析", "全面分析"}
@@ -61,13 +93,20 @@ class RouteResult:
 
 
 def extract_symbols(message: str) -> list[str]:
-    """Extract upper-case ticker-looking tokens (e.g. ``600036.SS``, ``AAPL``)."""
+    """Extract upper-case ticker tokens + auto-suffix A-share codes (N121 fix).
+
+    Examples
+    --------
+    >>> extract_symbols("分析 600036.SS 和 000001")
+    ['600036.SS', '000001.SZ']
+    """
     seen: list[str] = []
     seen_set: set[str] = set()
     for tok in _TICKER_RE.findall(message or ""):
-        if tok not in seen_set:
-            seen_set.add(tok)
-            seen.append(tok)
+        norm = normalize_symbol(tok)
+        if norm not in seen_set:
+            seen_set.add(norm)
+            seen.append(norm)
     return seen
 
 
