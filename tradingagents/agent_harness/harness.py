@@ -1,7 +1,19 @@
-"""Harness 主类 — 组装所有组件,提供统一入口。
+"""Harness 主类 — 组装所有组件(v3 spec §6, N4/N15/N36 fix).
 
-P1 阶段:最小实现 — 只包含构造 + import 验证。
-P2-P7 阶段:逐步填充组件(orchestrator / tier / verification / agents / plugins)。
+Init order (must follow §6.0 docstring):
+1.  config (HarnessConfig)
+2.  tool_registry (ToolRegistry) + builtin tools (P3)
+3.  agent_registry (AgentRegistry) + 6 builtin agents (P5)
+4.  llm_factory (LLMFactory)
+5.  data_registry (PROVIDERS dict — P2)
+6.  memory (MemoryManager)
+7.  audit (AuditLogger)
+8.  health (HealthChecker — P7)
+9.  context_priority (ContextPriority — P4)
+10. retry_policy + circuit_breaker (P4)
+11. routing (fast_route — P4)
+12. plugin_registry (PluginRegistry + entry_points — P6)
+13. orchestrator (Orchestrator, depends on 2-11)
 """
 from __future__ import annotations
 
@@ -10,35 +22,81 @@ from pathlib import Path
 from typing import AsyncIterator
 
 from tradingagents.agent_harness.config.schema import HarnessConfig
+from tradingagents.agent_harness.core import (
+    CircuitBreaker,
+    ContextPriority,
+    Orchestrator,
+    RetryPolicy,
+)
+from tradingagents.agent_harness.tools import (
+    ToolRegistry,
+    install_builtin_tools,
+)
 
 LOGGER = logging.getLogger(__name__)
 
 
 class Harness:
-    """Harness 主类 — Day 11e P1 最小实现。
+    """Harness 主类 — 组装 tool/agent/registry + orchestrator, 提供统一入口."""
 
-    后续 Phase 填充:
-    - P2: data providers (PROVIDERS dict)
-    - P3: tool_registry + Tool Pydantic schemas
-    - P4: orchestrator (StateGraph 5 nodes) + tier router + short_circuit
-    - P5: agent_registry (5 sub-agents)
-    - P6: plugin_registry + entry_points discovery
-    - P7: observability (health / audit / circuit_breaker)
-    """
-
-    def __init__(self, config: HarnessConfig | None = None):
+    def __init__(self, config: HarnessConfig | None = None) -> None:
         self.config = config or HarnessConfig.from_env()
-        LOGGER.info(
-            "Harness initialized (data_dir=%s, llm_provider=%s, stage=P1-stub)",
-            self.config.data_dir, self.config.llm_provider,
-        )
-        # Placeholder components — filled in P2-P7
-        self.tool_registry = None
-        self.agent_registry = None
-        self.data_providers = {}
+
+        # 2. ToolRegistry + builtin tools
+        self.tool_registry = ToolRegistry()
+        install_builtin_tools(self.tool_registry)
+
+        # 3. AgentRegistry (P5 阶段填充 6 个 agent)
+        # 延迟导入避免 P4 阶段循环
+        from tradingagents.agent_harness.agents.registry import AgentRegistry
+        self.agent_registry = AgentRegistry()
+
+        # 5. data_registry (PROVIDERS dict)
+        from tradingagents.data.providers.registry import PROVIDERS
+        self.data_registry = PROVIDERS
+
+        # 6. memory — placeholder (P5+ 实现)
+        self.memory = None
+
+        # 7. audit — placeholder (P5+ 实现)
         self.audit = None
+
+        # 8. health — placeholder (P7 实现)
         self.health = None
 
+        # 9. context priority
+        self.context_priority = ContextPriority()
+
+        # 10. retry + circuit breaker
+        self.retry_policy = RetryPolicy(max_retries=2, backoff_seconds=0.5, exponential=True)
+        self.circuit_breaker = CircuitBreaker(failure_threshold=5, reset_seconds=30.0)
+
+        # 12. plugin registry — placeholder (P6)
+        self.plugin_registry = None
+
+        # 4. llm_factory — placeholder (依赖 llm_clients)
+        self.llm_factory = None
+
+        # 13. orchestrator (depends on 2, 3, 9, 10)
+        self.orchestrator = Orchestrator(
+            tool_registry=self.tool_registry,
+            agent_registry=self.agent_registry,
+            llm_factory=self.llm_factory,
+            context_priority=self.context_priority,
+            retry_policy=self.retry_policy,
+            circuit_breaker=self.circuit_breaker,
+            audit=self.audit,
+        )
+
+        LOGGER.info(
+            "Harness ready (tools=%d, providers=%d, stage=P3+P4)",
+            len(self.tool_registry.list_all()),
+            len(self.data_registry),
+        )
+
+    # ------------------------------------------------------------------
+    # Public API
+    # ------------------------------------------------------------------
     async def stream_chat(
         self,
         session_id: str,
@@ -46,26 +104,16 @@ class Harness:
         *,
         history: list | None = None,
     ) -> AsyncIterator[tuple[str, dict]]:
-        """统一入口 — P4 才完整实现,P1 抛 NotImplementedError。
+        """Tier-aware unified entry — delegates to orchestrator."""
+        async for event in self.orchestrator.stream_chat(
+            session_id=session_id,
+            user_message=user_message,
+            history=history,
+        ):
+            yield event
 
-        web/routes/agent.py 暂时仍调旧 tradingagents.agents.general.build_agent
-        等 P4 完成 StateGraph 后切换。
-        """
-        # 这里是 async generator function (有 yield 关键字),所以调用方用 async for
-        # P1 阶段立即抛 NotImplementedError — unreachable yield 仅满足类型签名
-        # TODO(P4): replace with orchestrator.stream_chat
-        raise NotImplementedError(  # noqa: F904
-            "Harness.stream_chat not implemented yet — will land in P4 (Day 13). "
-            "Old code path: tradingagents.agents.general.build_agent"
-        )
-        yield  # unreachable: makes this an async generator function
+    def get_tool(self, name: str):
+        return self.tool_registry.get(name)
 
-    async def health_check(self) -> dict:
-        """健康检查 — P7 实现。"""
-        return {"status": "stub", "version": __import__("tradingagents.agent_harness").__version__}
-
-    def __repr__(self) -> str:
-        return f"<Harness data_dir={self.config.data_dir} llm_provider={self.config.llm_provider}>"
-
-
-__all__ = ["Harness"]
+    def list_tools(self):
+        return self.tool_registry.list_all()
