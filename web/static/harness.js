@@ -314,6 +314,96 @@
     dispatchEvent(eventName, payload, assistant);
   }
 
+  // Minimal client-side markdown renderer scoped to what the harness
+  // LLM emits: # / ## / ### headers, **bold**, *italic*, pipe tables,
+  // bullet lists (-), numbered lists, and inline code. Escapes HTML
+  // before applying markdown so injected scripts can\'t break out.
+  function renderMarkdown(md) {
+    if (!md) return "";
+    const esc = md
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+    const lines = esc.split(/\r?\n/);
+    const out = [];
+    let i = 0;
+    while (i < lines.length) {
+      const line = lines[i];
+      // Pipe table: header | --- | rows
+      if (/^\|.+\|$/.test(line) && i + 1 < lines.length && /^\|?[\s:|-]+\|?$/.test(lines[i + 1])) {
+        const headers = splitRow(line);
+        i += 2;
+        const rows = [];
+        while (i < lines.length && /^\|.+\|$/.test(lines[i])) {
+          rows.push(splitRow(lines[i]));
+          i++;
+        }
+        out.push(renderTable(headers, rows));
+        continue;
+      }
+      // Headers
+      const h = line.match(/^(#{1,4})\s+(.+)$/);
+      if (h) {
+        out.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`);
+        i++;
+        continue;
+      }
+      // Bullet list
+      if (/^[-*+]\s+/.test(line)) {
+        const items = [];
+        while (i < lines.length && /^[-*+]\s+/.test(lines[i])) {
+          items.push(`<li>${inline(lines[i].replace(/^[-*+]\s+/, ""))}</li>`);
+          i++;
+        }
+        out.push(`<ul>${items.join("")}</ul>`);
+        continue;
+      }
+      // Ordered list
+      if (/^\d+\.\s+/.test(line)) {
+        const items = [];
+        while (i < lines.length && /^\d+\.\s+/.test(lines[i])) {
+          items.push(`<li>${inline(lines[i].replace(/^\d+\.\s+/, ""))}</li>`);
+          i++;
+        }
+        out.push(`<ol>${items.join("")}</ol>`);
+        continue;
+      }
+      // Blank line — paragraph break
+      if (/^\s*$/.test(line)) {
+        out.push("");
+        i++;
+        continue;
+      }
+      // Paragraph: collect consecutive non-blank lines
+      const para = [];
+      while (i < lines.length && !/^\s*$/.test(lines[i]) && !/^(#{1,4}\s|[-*+]\s|\d+\.\s|\|)/.test(lines[i])) {
+        para.push(lines[i]);
+        i++;
+      }
+      if (para.length) out.push(`<p>${inline(para.join(" "))}</p>`);
+    }
+    return out.join("\n");
+  }
+
+  function splitRow(row) {
+    return row.replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
+  }
+
+  function renderTable(headers, rows) {
+    const th = headers.map((h) => `<th>${inline(h)}</th>`).join("");
+    const trs = rows
+      .map((r) => "<tr>" + r.map((c) => `<td>${inline(c)}</td>`).join("") + "</tr>")
+      .join("");
+    return `<table class="harness-md-table"><thead><tr>${th}</tr></thead><tbody>${trs}</tbody></table>`;
+  }
+
+  function inline(s) {
+    return s
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+      .replace(/`([^`]+)`/g, "<code>$1</code>");
+  }
+
   // Client-side pretty-printer for Tier-1 raw tool results (no LLM
   // synthesis). Detects the schema shape and emits a readable summary
   // instead of dumping the raw dict — the JSON form was confusing users
@@ -429,8 +519,9 @@
         // so result.summary is empty — fall back to client-side formatting
         // instead of dumping raw QuoteResult JSON to the user.
         const summary = result.summary || formatRawResult(result, payload.tier);
-        // 替换 assistant 流式 bubble
-        assistant.bubble.textContent = summary;
+        // Use innerHTML with escaped markdown rendering — textContent would
+        // display the raw "#", "|", "**" characters.
+        assistant.bubble.innerHTML = renderMarkdown(summary);
         scrollToBottom();
         appendReasoningDelta(`💡 SynthesizeNode 完成\n`);
         break;
