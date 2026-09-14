@@ -486,3 +486,281 @@ dsh 是为"多客户端(Claude Desktop / Web / ACP / SDK)+ 多 profile(无头 / 
 - DeepWiki 解读: <https://deepwiki.com/deepseek-ai/deepseek-harness>
 - 我们当前的 harness: `tradingagents/agent_harness/`(orchestrator / tools_bridge / providers / builtin)
 - 我们之前的实现 notes: `.agents/notes/implemented/`
+
+---
+
+## 十、Session 与 Context — 深度补读
+
+> 在原 doc 起草时,我对 session 和 context 只给了概览(§2.4 + §2.1)。本节是补读,从 `subsystems/session.md`(67KB)+ `core.md`(66KB)+ `subsystems/scope.md` 提炼真正可用的细节。
+
+### 10.1 SessionEvent 的本质
+
+dsh 的 **Session = append-only event log**,不是"消息列表"。每次状态变化都 append 一条 `SessionEvent`,只能追加不能改 / 不能删。模型看到的消息列表是从 log **派生**出来的。
+
+#### 10.1.1 事件分类 — 4 surface + N log-only
+
+`SurfaceEventType` 是 **唯一** 4 个会产生 LLM 上下文的事件:
+
+```ts
+type SurfaceEventType =
+  | 'system/message'   // 渲染后的 system prompt
+  | 'user/message'     // 用户 / inject / goal continuation
+  | 'assistant/message' // 模型输出(含 stream)
+  | 'tool/result'      // 工具结果(单条 model-facing outcome)
+```
+
+其他都是 **log-only**(有 `seq` 有 `time` 有 `data`,但不进 LLM context):
+
+- `turn/start` / `turn/end` — turn 边界
+- `step/start` / `step/end` — step 边界
+- `assistant/attempt` — 模型失败重试,无 surface message
+- `request/header` / `request/context` — 路由元数据
+- `agent/created` / `agent/disposed` / `agent/error` — agent 生命周期
+- `compaction/*` — 压缩(pluggable)
+- `hook/invoked` / `hook/result` — hook 桥接
+- `session/end-seed` — fork 边界 marker
+- 其他 plugin-contributed log-only 事件(merge-extensible)
+
+#### 10.1.2 SessionEvent 结构 — 判别联合,不是字段拼凑
+
+```ts
+type SessionEvent<T extends SessionEventType> = {
+  type: T                        // 判别字段,switch 时自动窄化 data
+  seq: SessionSeq                // monotonic,branded
+  time: number                   // epoch ms
+  data: SessionEventMap[T]       // 类型由 type 决定
+  ignorable?: true               // 缺失=必读,识别不出就拒绝重建
+} & (T extends SurfaceEventType ? SurfaceIntent<T> : {
+  surfaceOp?: never              // log-only 事件编译期禁止
+  sourceEventSeqs?: never
+})
+```
+
+关键设计:
+
+- **判别联合,不是独立 type/data 联合** — `switch (event.type)` 自动窄化 `event.data`,无需 cast
+- **`ignorable?: true`** — 缺失视为必读,reader 遇到不识别的必读事件直接拒绝重建(避免静默丢事件导致状态错乱)
+- **SurfaceIntent 是条件类型** — 编译期就保证 log-only 事件不会带 `surfaceOp`,编译器帮你抓错
+
+#### 10.1.3 SurfaceOp — 怎么把事件挂到 surface
+
+```ts
+type SurfaceOp =
+  | 'append'                                          // 正常追加
+  | { op: 'replace'; startSeq: SessionSeq; endSeq: SessionSeq }  // 替换一段
+```
+
+`replace(startSeq, endSeq)` shadows [startSeq, endSeq] 区间的所有 surface 节点,新节点插入原位。要点:
+
+- `startSeq === endSeq` 替换单节点
+- 端点必须在当前 surface 里存在
+- 端点的 seq 是 surface 顺序,不是数字顺序
+- `sourceEventSeqs` 必须包含被替换的所有 surface node 的 seq(审计 / 回放需要)
+
+典型用例:**compaction** 把 50 条历史消息替换成 1 条 summary,生成 `replace(startSeq, endSeq)` 事件,`sourceEventSeqs` 列出被替换的 50 条。
+
+#### 10.1.4 TurnEndReasonMap — turn 为什么结束
+
+```ts
+type TurnEndReason =
+  | { kind: 'completed' }   // 正常完成
+  | { kind: 'cancelled' }   // 用户取消
+  | { kind: 'errored'; error: ... }  // 错误
+  | { kind: 'max-tokens' }  // 模型截断(整个 turn 都标 max-tokens,即使后续有续写)
+  | { kind: 'interrupted' } // 仅由 crash recovery 合成
+```
+
+merge-extensible,plugin 可以加自己的 reason。
+
+#### 10.1.5 session/end-seed — fork 边界 marker
+
+dsh 把 fork seed 和 live work 用一个 marker 隔开:`session/end-seed { inherited: true }` 在继承的 seed 末尾,`session/end-seed {}` 在新 fork 末尾。这样:
+
+- crash recovery 能区分"crash 时正在跑的 compaction"vs"刚从历史里加载的 compaction"
+- 读取历史时能从最后 `inherited: true` marker 切回 live work
+- ordering by human activity 排除这个 marker(打开 session 不是工作)
+
+#### 10.1.6 Agent 生命周期 — 6 个能力
+
+```ts
+interface Agent {
+  followup(message: UserMessage): void                // 普通后续 turn,唤醒
+  steer(message: UserMessage): void                   // 下一步插入,运行中也可
+  inject(message: UserMessage): void                  // 注入上下文但不唤醒
+  send(message: UserMessage, target: InboxTarget, wakeup: boolean): void  // 投递到 inbox 边界
+  runMaintenance<T>(task): Promise<T>                 // 同步维护任务
+  whenIdle(): Promise<void>                           // 等到 idle
+  cancel(): void                                      // 取消
+  dispose(): Promise<void>                            // 卸载
+}
+```
+
+加 `AgentStatus = 'idle' | 'running'`,`running` 覆盖整个 drain 区间(包括连续 queued turns),不证明 turn 还开着。
+
+每个事件流都是 bracketed:
+
+```ts
+type AssistantStreamFrame =
+  | { type: 'start'; attemptId, revision, turn, step }
+  | { type: 'chunk'; attemptId, revision, index, time, chunk }
+  | { type: 'end'; attemptId, revision, index, outcome: 'committed' | 'abandoned' }
+```
+
+`revision` 是 monotone,replacement 重启时从 1 开始。
+
+### 10.2 Context — Cordis 根对象 + Scope
+
+dsh 的 `Context` 是 Cordis 的根,所有 plugin 挂到共享 Context。`ctx.<service>` 是命名服务(72+ 个 seam),`ctx.inject(['X'])` 声明依赖。**Scope** 是核心抽象,per-agent 隔离所有注册。
+
+#### 10.2.1 Scope 三件套
+
+```ts
+import { createScope, scopeOf, scopeTarget } from '@deepseek-ai/dsh-scope'
+
+const subScope = createScope(parent)         // 创建子 scope
+scopeOf(registration) === subScope           // 查询注册所属 scope
+scopeTarget(registration) === parent         // 查询注册的目标
+```
+
+Scope 让"per-agent 注册"成为 first-class 操作:
+
+- agent 自带的 system prompt section、tool registration、prompt variable 都挂在 agent scope 上
+- agent 卸载时 scope 整体撤销
+- subagent 的 toolFilter 通过 `scope.restrict()` 实现(命名工具消失 + 拒绝执行,**一条 visibility**)
+
+#### 10.2.2 Plugin 三段式
+
+```ts
+// pkg_X/index.ts
+export const name = 'X'
+export const inject = ['A', 'B']              // 依赖的服务
+export const Config: z<Config> = z.object({...})  // 配置(用 schemastery 校验)
+
+export function apply(ctx: Context, config: Config) {
+  ctx.X = { /* service 接口 */ }
+
+  ctx.effect(() => {
+    // 注册 service / event / listener,卸载时自动撤销
+    ctx.on('foo/bar', (event) => {...})
+    ctx.emit('foo/registered')
+    return () => { /* disposer(可选) */ }
+  })
+}
+```
+
+每个 plugin 都有:
+- `name` — 唯一标识
+- `inject` — 依赖服务列表
+- `apply(ctx, config)` — 安装函数(可返回 disposer)
+
+#### 10.2.3 Event 三种模式
+
+```ts
+// emit — 广播,无返回值
+ctx.emit('foo/bar', payload)
+
+// waterfall — 链式,返回第一个非 undefined 值
+const decision = await ctx.waterfall('agent/pre-step', input)
+// listener 1 -> undefined, listener 2 -> 'deny' → 整个 waterfall 返回 'deny'
+
+// around — 包裹,around 模式可换上下文
+const result = await ctx.around('tools/execute', async () => {
+  return await toolBody(input)
+}, timeoutMs)
+// 可在 around 里替换 signal,加 timeout,捕获异常
+```
+
+这三种模式对应了 `tools/pre-execute` (waterfall 决策) / `tools/execute` (around 包裹) / `tools/post-execute` (waterfall 校验) / `tools/result` (emit 通知) 的完整语义。
+
+### 10.3 对 TradingAgentsPlus 的精确启示(更新版)
+
+#### 10.3.1 立即可学 — 4 个高价值点(更新原 doc §5.1)
+
+| # | 动作 | 工作量 | 价值 | 直接对应 |
+|---|---|---|---|---|
+| **P0-A** | **Surface event 分类** — 把我们的"消息事件"拆成 surface(4 类进 LLM 上下文)vs log-only(N 类只落审计)。前端 SSE 推送只推送 surface 事件。 | 0.5 天 | 高 | **统一事件流,前端简化** |
+| **P0-B** | **SurfaceOp.replace 模型** — 我们的 5 节点状态机"重新评估"步骤,显式记录 `replace(startSeq, endSeq)`,而非"我重写了历史"。回放 / 审计更清楚。 | 0.5 天 | 高 | **审计可回放** |
+| **P1-A** | **Agent 6 能力** — 加 `steer`(中途改主意)、`inject`(定时任务结果注入,不唤醒)、`whenIdle()`(等 drain) | 1 天 | 中 | **定时任务 + 用户干预** |
+| **P1-B** | **Per-agent scope** — sub-agent 创建独立 scope,tool registry / LLM adapter / prompt 都在自己 scope,卸载时整体撤销 | 1 天 | 中 | **sub-agent 隔离** |
+
+#### 10.3.2 仍然不要搬
+
+| dsh 特性 | 为什么不要 |
+|---|---|
+| **Branded SessionSeq / BrandedNumber** | 我们不需要类型层面的强保证,普通 int 就够 |
+| **merge-extensible event map**(declaration merging) | TS 特性,Python 没等价物 |
+| **`ignorable?: true` 严格拒绝重建** | 我们没跨 session resume 需求,fallback 策略直接重试就行 |
+| **`session/end-seed` marker** | 我们没 fork + crash recovery 的复合场景 |
+| **`AssistantStreamFrame` 完整 bracketed** | 我们 SSE 推送用 dict 就够 |
+| **64KB session.md 全量阅读** | 除非真要做多客户端 / fork / resume,不必读那么深 |
+
+#### 10.3.3 推荐的实施优先级(综合 §5.1 + §10.3.1)
+
+```
+Day 1 (0.5d): P0-1 quote_provider seam        (回用户上轮诉求)
+Day 1 (0.5d): P0-A Surface event 分类          (统一事件流)
+Day 2 (0.5d): P0-B SurfaceOp.replace 模型     (审计可回放)
+Day 3-4 (1.5d): P0-2 PTC 模式                 (核心痛点)
+Day 5 (0.5d): P1-1 monotonic guards + tools/result 观测
+Day 6 (0.5d): P1-A Agent 6 能力 (steer/inject/whenIdle)
+Day 7 (1d): P1-2 subagent provider 注册表
+Day 8 (1d): P1-B Per-agent scope
+```
+
+### 10.4 关键引用 — SessionEvent 字段在我们 harness 的对应
+
+| dsh 字段 | 我们当前 | 应该改 |
+|---|---|---|
+| `type` | 没强类型,`event["type"]` 字符串 | 用 `Literal["turn/start", "tool/call", ...]` Enum |
+| `seq` | 用 timestamp | 加 monotonic counter(branded 不必) |
+| `data` | dict | `TypedDict` per type |
+| `surfaceOp` | 无 | 显式 `append` / `replace` |
+| `sourceEventSeqs` | 无 | 审计要追溯"我是从哪些历史节点派生来的" |
+| `ignorable` | 无 | fallback 策略参考:识别不出必读事件 → 拒绝重建 |
+
+### 10.5 关键引用 — Agent 6 能力的 Python 对应
+
+```python
+# tradingagents/agent_harness/agent.py
+class Agent(Protocol):
+    async def followup(self, message: UserMessage) -> MessageId: ...   # 已有
+    async def steer(self, message: UserMessage) -> MessageId: ...      # 新增(中途改主意)
+    async def inject(self, message: UserMessage) -> MessageId: ...     # 新增(定时任务结果)
+    async def send(self, message: UserMessage, target: InboxTarget, wakeup: bool) -> MessageId: ...
+    async def run_maintenance(self, task: Callable) -> Any: ...        # 新增(同步维护)
+    async def when_idle(self) -> None: ...                             # 新增(等 drain)
+    async def cancel(self) -> None: ...                                # 已有
+    async def dispose(self) -> None: ...                               # 已有
+```
+
+### 10.6 关键引用 — Scope 的 Python 对应
+
+```python
+# tradingagents/agent_harness/scope.py
+class Scope:
+    """Per-agent scoped registration container.
+
+    Every tool / prompt / variable registration is bound to a scope.
+    Disposing the scope disposes every registration — sub-agent 隔离核心。
+    """
+    def __init__(self, parent: Scope | None = None): ...
+    def restrict_tools(self, allowed: list[str]) -> None: ...  # 对应 dsh scope.restrict()
+    def effect(self, fn: Callable[[], Callable | None]) -> Callable[[], None]: ...  # 注册 + 自动撤销
+
+# 用法:sub-agent 创建
+sub_scope = Scope(parent=main_scope)
+sub_scope.restrict_tools(['get_quote', 'get_news'])  # 只给数据工具,不给删除类
+sub_agent = create_agent(scope=sub_scope, ...)
+# 卸载时:sub_scope.dispose() 自动撤销所有注册
+```
+
+### 10.7 反思 — 为什么 dsh 这么重
+
+dsh 设计这么重(cordis 2000 行 + 72 seam + 5 阶段管线 + append-only log)是为了:
+
+1. **多客户端**(Claude Desktop / Web / ACP / SDK)— 每个客户端需要从同一份 log 派生不同视图(surface)
+2. **跨 session fork + resume** — fork seed + inherited marker 让 fork 和 resume 语义清晰
+3. **plugin 互不耦合** — 任何 capability 都能被替换 / 卸载,不留"特权内核"
+4. **强类型安全** — branded ID + 判别联合 + conditional type 让 TS compiler 帮你抓错
+
+我们没这 4 个需求,所以大部分机制是过度设计。但**心智模型**(surface vs log-only / scope 隔离 / event 三种模式 / 5 阶段管线)可以低成本迁移。
