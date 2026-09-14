@@ -764,3 +764,127 @@ dsh 设计这么重(cordis 2000 行 + 72 seam + 5 阶段管线 + append-only log
 4. **强类型安全** — branded ID + 判别联合 + conditional type 让 TS compiler 帮你抓错
 
 我们没这 4 个需求,所以大部分机制是过度设计。但**心智模型**(surface vs log-only / scope 隔离 / event 三种模式 / 5 阶段管线)可以低成本迁移。
+
+---
+
+## 十一、TradingAgentsPlus vs DeepSeek Harness — 完整对比
+
+> 之前 §5 / §10.3 是"我们要学什么"。本节是**完整 side-by-side** — 我们的每个组件对应 dsh 的什么、差在哪、谁做得更好。
+
+### 11.1 组件映射表(我们的 → dsh 的)
+
+| 我们的组件 | 文件 / 行数 | dsh 对应 | 差异 |
+|---|---|---|---|
+| `Harness`(根容器) | `harness.py`(未读) | `Context`(cordis 根对象)+ 72 个 seam | 我们是单一 root;dsh 是命名 service 总线 |
+| `Orchestrator`(5-node FSM) | `core/orchestrator.py` 545 行 | `AgentLoop` + 6 个状态机 | 都是显式状态机,差异不大 |
+| `OrchestratorState`(mutable dataclass) | 同上 | `SessionEvent` log(append-only)+ `SessionSurface` projection | **关键差异** — 我们 mutable,dsh append-only |
+| `ToolRegistry`(装饰器 + 手动 + entry_points) | `tools/registry.py` 119 行 | `ctx.tools` runtime | 我们是 dict,dsh 是 service + 5 阶段管线 |
+| `BaseTool` / `FunctionTool` + Pydantic schema | `tools/base.py` 62 行 | `defineTool` + `ParameterSchemaSpec` DSL | dsh 多 `output.render` / `presentationMeta` |
+| `PermissionType`(READ/WRITE/ADMIN enum) | `tools/permission.py` | `tools/pre-execute` waterfall + monotonic guards | dsh 是插件化的,我们是硬编码 enum |
+| `Plugin` + `PluginRegistry` | `plugins/` 123 行 | Cordis plugin + `registerAdapter` | 都 OK,dsh 用 ctx.effect 自动 dispose,我们用 manual install |
+| `entry_points` 发现(group=`agent_harness.plugins`) | `plugins/registry.py` | cordis.yml(必须 cd 进 repo) | **我们对** — Python 生态标准做法 |
+| `LLMProvider` ABC + `LLM_REGISTRY` factory | `llm/` 4 文件 | `LlmAdapter` + `ctx.llm` registry | dsh 用 `usage before finish` 强约束,我们没 |
+| `MemoryManager`(L1 session / L2 prefs / L3 refs) | `memory/` 5 文件 300+ 行 | session log + sessionFileReferences 混合 | **我们对** — 三层清晰 + SQLite + TTL |
+| `Verifier`(L1/L2/L3,judge_factory 独立) | `core/verification.py` | `ctx.sessionLog` + `tool/result` observers | 我们的 L3 judge 解耦更直接 |
+| `RetryPolicy` + `CircuitBreaker` | `core/retry.py` | `tools/execute` around-dispatch | 我们的独立,dsh 在 around 里 |
+| `ShortCircuit`(Tier 1 快速路径) | `core/short_circuit.py` | 无 — 所有 turn 都走完整 loop | **我们对** — 简单查询跳过 5 节点 |
+| `ToolContext`(session_id 单字段) | `tools/context.py` 21 行 | `ToolRunContext` + `scope` per-agent | dsh 多 `deferContext()` / `concludeTurn()` |
+| `stream_chat()`(SSE AsyncIterator) | `orchestrator.py` | `AgentLoop` + `AssistantStreamFrame` bracketed | dsh 完整 bracketed 但复杂;我们简单 |
+| HITL `_await_confirmation` | `orchestrator.py` 内 | `ctx.approval` + `permission_presets` | 都在,dsh 是独立 seam |
+| `audit.log()`(单点) | `orchestrator.py` | `tools/result` 同步 emit + 30+ 事件监听器 | **dsh 强** — 全生命周期观测点 |
+
+### 11.2 我们做得比 dsh 好的 10 个地方
+
+| # | 我们的强项 | dsh 的对应 | 为什么我们更好 |
+|---|---|---|---|
+| **1** | **3-tier Memory 分层清晰** — L1 session / L2 preferences / L3 references,带 TTL,SQLite 持久化 | dsh 把这些混在 session log 里,靠 `sessionFileReferences` / `sessionSkillCatalog` Remote 兜底 | 我们更直接,Python 习惯 |
+| **2** | **entry_points plugin 发现** — Python 生态标准做法 | dsh 必须 cd into repo 用 cordis.yml | 我们的可独立 pip install |
+| **3** | **3 PermissionType 分级** — 简单 enum | dsh 用 `tools/pre-execute` waterfall 决策 | 我们更易读懂,够用 |
+| **4** | **Pydantic 双 schema** — `args_schema` + `result_schema`,LLM args 自动校验 | dsh 用 ParameterSchemaSpec DSL(更复杂,带 JSON Schema 投射) | 我们更 Pythonic,自动序列化 |
+| **5** | **L3 LLM-judge 完全解耦** — `judge_factory` 独立于主 LLM,可换模型 | dsh 把 judge 绑在主 loop,靠 `resolveModel()` 配 | 我们的更灵活 |
+| **6** | **RetryPolicy + CircuitBreaker 单独抽出** — 可配置 | dsh 写在 around-dispatch 里,要注册 plugin | 我们的可见性更好 |
+| **7** | **Streaming SSE 简单** — `AsyncIterator[(event, payload)]` | dsh 的 bracketed `AssistantStreamFrame` 完整但复杂 | 我们够用,简单胜出 |
+| **8** | **Tier 1 短路径** — `fast_route()` 命中简单查询直接返回 | dsh 所有 turn 都走完整 5 节点 | **我们对** — 性能 + UX |
+| **9** | **Plugin idempotency** — `install()` 检查重复 | dsh `register()` 抛错 | dsh 更"快速失败",我们更"宽容" |
+| **10** | **Prompt 分发到 plugin** — 每个 plugin 提供自己的 prompt section | dsh 用 `systemPrompt.section()` 中心注册 | 一样;我们更分散 |
+
+### 11.3 dsh 做得比我们好的 10 个地方(按价值排序)
+
+| # | dsh 设计 | 我们的差距 | 价值 |
+|---|---|---|---|
+| **A** | **Tool 5 阶段管线**(pre / guards / execute / post / result) | 我们只有 `tool.invoke` + `circuit_breaker.allow()` + `audit.log`,没有正式阶段 | **极高** — 直接对应 L3 judge fallback / HITL 安全闸 |
+| **B** | **PTC 模式**(LLM 写 async program) | 我们 LLM 只能返回 JSON tool_calls | **极高** — 直接解决 L3 多工具并发失败 |
+| **C** | **Capability Seam 三段式**(definition / provider / consumer) | 我们的 provider 是直接绑实现(如 `eastmoney`),没有 seam 抽象 | **高** — 用户上轮问"yfinance/eastmoney 可切换" |
+| **D** | **Event 三模式**(emit / waterfall / around) | 我们没统一事件模式,retry/circuit-breaker/audit 是散落的代码 | 高 — 一致性 + 插件化 |
+| **E** | **Surface event 分类**(4 surface + N log-only) + `SurfaceOp.replace(startSeq, endSeq)` | 我们的 SSE event 没分类,state 是 mutable,无审计 trail | 高 — 审计 + 回放 |
+| **F** | **Subagent 6 provider 注册表**(spawn/fork-in-process/ACP/Codex/Claude Code/DSH SDK) | 我们的 data/news/alpha/synthesizer 是写死函数 | 高 — 扩展性 |
+| **G** | **Scope 三件套**(`createScope` / `scopeOf` / `scopeTarget`)+ per-agent `restrict_tools` | sub-agent 共享主 agent scope,工具可能污染 | 中-高 — 隔离 |
+| **H** | **Agent 6 能力**(followup / steer / inject / send / runMaintenance / whenIdle) | 我们只有 `stream_chat` + `cancel` | 中 — `inject` 对定时任务、`steer` 对中途改主意 |
+| **I** | **Hook bridges 5 个生命周期点**(`PreToolUse` / `PostToolUse` / `UserPromptSubmit` / `Stop` / `SessionStart`) | 我们 lifecycle hook 散落在 orchestrator 各处 | 中 — 统一 |
+| **J** | **Profile + Bundle 分层组合**(`dsh-base` → `dsh-web-app` → patch) | 我们没有 profile 概念 | 低 — 单 web app 用不到 |
+
+### 11.4 综合借鉴优先级(合并 §5.1 + §10.3.1 + §11.3)
+
+**P0 — 1 周内动(用户痛点 / 反复失败的根因)**
+
+| # | 动作 | 来源 | 价值 | 工作量 |
+|---|---|---|---|---|
+| **P0-1** | 抽出 `quote_provider` seam(eastmoney/yfinance/akshare/stub 可选) | C | 高(用户上轮诉求) | 0.5d |
+| **P0-2** | 引入 PTC 模式(LLM 二选一:TS-like program / JSON tool_calls) | B | **极高**(L3 多工具并发) | 1.5d |
+| **P0-3** | Tool 管线补 5 阶段(pre / guards / execute / post / result) | A | 极高(L3 fallback / HITL) | 1d |
+| **P0-4** | Surface event 分类(4 surface + N log-only)+ SSE 推送只推 surface | E | 高(前端简化 + 审计) | 0.5d |
+
+**P1 — 月内动(扩展性)**
+
+| # | 动作 | 来源 | 价值 | 工作量 |
+|---|---|---|---|---|
+| **P1-1** | Subagent named provider 注册表(data/news/alpha/synthesizer) | F | 中(扩展) | 1d |
+| **P1-2** | Event 三模式(emit/waterfall/around)统一抽象 | D | 中(一致性) | 1d |
+| **P1-3** | Per-agent scope(sub-agent 隔离 tool/LLM/prompt) | G | 中(隔离) | 1d |
+| **P1-4** | Agent 加 steer / inject / whenIdle 三能力 | H | 中(定时任务) | 0.5d |
+
+**P2 — 季度内(看需求动)**
+
+| # | 动作 | 来源 | 价值 | 工作量 |
+|---|---|---|---|---|
+| **P2-1** | Lifecycle hook bridges 统一(PreToolUse/PostToolUse/SessionStart) | I | 中(可观测) | 1d |
+| **P2-2** | SurfaceOp.replace 模型(append-only event log) | E | 中(审计回放) | 1d |
+| **P2-3** | Profile + Bundle 分层组合 | J | 低(单 web app 不需要) | 2d |
+
+**总预算:约 11.5 天(对比之前的 8 天,加了 P0-3 完整 5 阶段 + P1-2 event 三模式)**
+
+### 11.5 我们不应该搬的(dsh 过度设计部分)
+
+| dsh 设计 | 不要搬的原因 |
+|---|---|
+| **Cordis 框架本身** | Python 生态差异,dataclass + register 就够 |
+| **Branded IDs**(`SessionSeq` 等) | Python 不需要类型层面的强保证 |
+| **BrandedNumber + schemastery 校验** | 我们用 Pydantic,功能重叠 |
+| **Append-only Session Log 全量** | 没多客户端 / fork / resume 需求 |
+| **Declaration merging**(merge-extensible event map)| TS 特性,Python 没等价物 |
+| **`ignorable?: true` 严格拒绝重建** | 我们没跨 session resume,直接 fallback 重试 |
+| **session/end-seed marker** | 没 fork + crash recovery 复合场景 |
+| **AssistantStreamFrame 完整 bracketed** | SSE 推送用 dict 就够 |
+| **64KB session.md 全量精读** | 除非真要做多客户端,不必读那么深 |
+| **PTC worker-thread backend** | 我们只 web,无沙箱 |
+| **ACP / SDK / 多 profile CLI** | 单一 web app |
+
+### 11.6 一句话总结
+
+> **我们做了 60% 的 dsh 设计**(plugin / tool / memory / permission / streaming / tier1 short-circuit / L3 judge),**少了 30% 的关键能力**(5 阶段管线 / PTC / capability seam / scope / event 三模式),**多了 10% 的 Python 化优势**(entry_points / Pydantic / 三层 memory / LLM-judge 解耦)。
+>
+> **最该学的不是"它们做了什么",而是"它们怎么把 capability 拆成 seam / 怎么用 event 三模式把 cross-cutting 抽出来"**——这俩心智模型能让我们的 harness 从"能跑"变成"可演化"。
+
+### 11.7 立刻可动手的最小动作(再压缩)
+
+如果只能做 **2 天**(2 个工作日),推荐:
+
+1. **Day 1 上午:quote_provider seam**(0.5d)— 直接回应用户上轮诉求
+2. **Day 1 下午 - Day 2:PTC 模式骨架**(1.5d)— 写一个 `PTCExecutor`,接受 LLM 返回的 program,内部 `asyncio.gather` 并发调工具,保留现有 JSON tool_calls 路径作为 fallback
+
+完成后:
+- 用户能切换 eastmoney ↔ yfinance ↔ akshare
+- LLM 可以并发调 quote+fundamentals+news,不再触发"unknown tool ''"错误
+- 现有功能完全兼容
+
+要不要这样动?
