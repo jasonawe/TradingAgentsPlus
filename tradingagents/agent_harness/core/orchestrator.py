@@ -22,6 +22,7 @@ from dataclasses import dataclass, field
 from typing import Any, AsyncIterator, Callable, Optional
 
 from tradingagents.agent_harness.tools import ToolContext, ToolRegistry
+from tradingagents.agent_harness.ptc import PTCExecutor, parse_program
 
 from .context import ContextPriority
 from .retry import CircuitBreaker, RetryPolicy, retry_async
@@ -119,6 +120,8 @@ class Orchestrator:
         self.enable_l3 = enable_l3
 
         self._short_circuit = ShortCircuit(tool_registry)
+        # PTC executor: same tool registry, concurrent group dispatch
+        self._ptc_executor = PTCExecutor(tool_registry)
         # Verifier gets its own judge_factory (N89 fix: judge model != main LLM)
         self._verifier = Verifier(judge_factory=judge_factory)
 
@@ -153,9 +156,18 @@ class Orchestrator:
             yield ("plan_started", {"intent": route.intent.value})
             plan = await self._plan(state, context)
             state.plan = plan
-            yield ("plan_ready", {"steps": plan})
+            # Detect PTC program shape: {"mode": "ptc", "groups": [...]}
+            is_ptc = isinstance(plan, dict) and plan.get("mode") == "ptc"
+            yield (
+                ("plan_ready_ptc", {"groups": plan.get("groups", [])})
+                if is_ptc
+                else ("plan_ready", {"steps": plan})
+            )
 
-            results = await self._execute(state, context)
+            if is_ptc:
+                results = await self._execute_ptc(state, context)
+            else:
+                results = await self._execute(state, context)
             state.tool_results = results
             for r in results:
                 yield ("tool_result", r)
@@ -209,7 +221,22 @@ class Orchestrator:
             except Exception as e:
                 LOGGER.warning("LLM plan failed, falling back to heuristic: %s", e)
 
-        # Heuristic plan: 1 step per symbol + 1 fundamentals step.
+        # Heuristic plan: when 2+ symbols, return a PTC program so the
+        # quote calls run concurrently (one group, no dependencies).
+        # Single-symbol path keeps the legacy sequential shape.
+        if len(state.symbols) >= 2:
+            return {
+                "mode": "ptc",
+                "groups": [{
+                    "id": "g1",
+                    "calls": [
+                        {"name": "get_quote", "args": {"symbol": sym}}
+                        for sym in state.symbols
+                    ],
+                }],
+            }
+
+        # Single-symbol heuristic: 1 quote step (+ optional fundamentals).
         plan: list[dict[str, Any]] = []
         for idx, sym in enumerate(state.symbols, start=1):
             plan.append({"step": idx, "action": "get_quote", "args": {"symbol": sym}})
@@ -286,6 +313,42 @@ class Orchestrator:
                 return {"name": name, "error": str(e)}
 
         return list(await asyncio.gather(*(_run_step(s) for s in state.plan)))
+
+    # ------------------------------------------------------------------
+    # PTC branch — concurrent execution of tool-call groups
+    # ------------------------------------------------------------------
+    async def _execute_ptc(
+        self, state: OrchestratorState, context: ToolContext,
+    ) -> list[dict[str, Any]]:
+        """Execute a PTC program (``state.plan`` is ``{mode:ptc, groups:[...]}``).
+
+        Returns a flat list of results shaped like ``_execute``::
+
+            [{"name": str, "ok": bool, "result": Any|None,
+              "error": str|None, "group_id": str}, ...]
+
+        PTC failures don't short-circuit the orch (each failure is a per-tool
+        result entry; downstream Observe/Verify nodes consume them).
+        """
+        if not isinstance(state.plan, dict):
+            # Defensive — caller should have routed via stream_chat dispatch
+            return [{"name": "ptc", "error": "state.plan is not a PTC program"}]
+        try:
+            program = parse_program(state.plan)
+        except Exception as e:
+            return [{"name": "ptc", "error": f"ptc parse failed: {e}"}]
+
+        if program.is_empty():
+            return []
+
+        raw = await self._ptc_executor.execute(program, context)
+        # Track circuit-breaker on per-call basis (best-effort)
+        for r in raw:
+            if r.get("ok"):
+                self.circuit_breaker.record_success()
+            else:
+                self.circuit_breaker.record_failure()
+        return raw
 
     def _observe(self, state: OrchestratorState) -> dict[str, Any]:
         """ObserveNode — collapse tool_results into a compact summary."""
