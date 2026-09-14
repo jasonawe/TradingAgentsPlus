@@ -227,3 +227,4 @@ web/state.db
 
 # Editor backups
 *.bak
+.ta_cache/
