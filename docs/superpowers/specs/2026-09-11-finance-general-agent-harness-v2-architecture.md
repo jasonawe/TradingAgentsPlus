@@ -472,7 +472,7 @@ User: "分析 600036 估值合理性"
 | HITL | 字符串 AWAITING_CONFIRMATION | 显式 ConfirmNode state machine |
 | Context 注入 | LLM 自由从 system prompt 提取 | 8 层优先级显式注入 |
 | Memory | L1/L2/L3 已实现 ✅ | 不变 ✅ |
-| MCP server | **7 tools** 已暴露 ✅(N86 fix,2026-09-11,实测 mcp_server.py 暴露数) | 不变 ✅ |
+| MCP server | **21 tools** 已暴露 ✅(**N103 fix,2026-09-11,N86 修订错** — 实际 mcp_server.py `for _tool in ALL_TOOLS` 注册 21 个 tool,N86 当时 grep @mcp.tool 看到 7 行是误判,因为 mcp_server.py 走手动 `_build_tool` 注册,不通过 @mcp.tool 装饰器) | 不变 ✅ |
 | Drawer UI | 已实现 ✅ | 不变 ✅ |
 
 **核心变化**:从"LLM 主导的 ReAct loop"升级为"harness 主导 + LLM 协调算法"。

@@ -138,6 +138,10 @@ Tier 3: Full Workflow (multi-agent DAG)
 - `core/stategraph.py`(D5 StateGraph 主图)— ❸ 不存在
 - `verification/*.py`(D6 Verification L1/L2/L3)— ❹ 不存在
 
+**测试命名现状**(**N105 fix,2026-09-11**):v1 §Testing Plan 列了 7 个单元测试 + 4 个 E2E 测试,但**实际 0 个**采用 v1 命名。实际 `tests/` 下 101 个测试,全部以 `D-series` 命名(`test_d1x_*.py`,对应 Day 1-11 实施阶段)。v1 命名规则(`test_routing_fast` / `test_memory_l1` 等)**已废弃**,后续 P1-P7 测试按 D-series + 功能模块双维度命名。
+
+**Memory L1 实施演进**(**N106 fix,2026-09-11**):v1 §Memory 设计写「L1 MemorySaver (in-memory)」,实际 `memory.py` 升级为 `LangGraph SqliteSaver(per-session DB)`(更好的持久化,跨重启保留)。harness 系列 spec(v2/v3)统一采用 SqliteSaver。v1 spec 该描述已过时。
+
 **借鉴**:OpenBB OBBject + Provider ABC + WrenAI sqlglot 校验
 
 **改动**:
