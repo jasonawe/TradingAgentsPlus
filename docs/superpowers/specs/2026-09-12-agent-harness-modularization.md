@@ -230,8 +230,8 @@ tradingagents/
 web/
 ├── app.py                               [MOD] 改 import 路径从 agent_harness
 ├── routes/
-│   ├── agent.py                         [MOD] 用 harness.stream_chat()
-│   └── harness_health.py                [NEW] /api/harness/health
+│   ├── (空,见 N122 fix,2026-09-11)— 实际所有 agent 路由在 web/app.py 直接注册(@app.post line 1547),无需 routes/agent.py
+│   └── harness_health.py                [NEW] /api/harness/health(待 P7 实施时新增,本节目录占位)
 └── static/                              [不变]
 
 tests/
@@ -792,7 +792,7 @@ class Harness:
         *,
         history: list | None = None,
     ) -> AsyncIterator[tuple[str, dict]]:
-        """统一入口 — 由 web/routes/agent.py 调用。"""
+        """统一入口 — 由 web/app.py 调用(实际架构,N122 fix,2026-09-11:web/routes/ 目录为空,所有路由在 app.py 直接 @app.post 注册,无需 routes/agent.py)。"""
         async for event in self.orchestrator.stream_chat(
             session_id=session_id,
             user_message=user_message,
@@ -902,7 +902,7 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 | 2 | 并行 tool invoke | `asyncio.gather` in `orchestrator.py` |
 | 3 | LLM result cache | `llm/cache.py`(key=prompt+model+temp, TTL 5min) |
 | 4 | Tool result cache | `data/cache.py`(key=provider+endpoint+params) |
-| 5 | Streaming SSE | `web/routes/agent.py` 已有,只需改 import |
+| 5 | Streaming SSE | `web/app.py` 已有(N122 fix,2026-09-11:实际 web/routes/ 目录为空,所有 agent 路由在 web/app.py line 1547 直接注册,无需 routes/agent.py),只需改 import |
 | 6 | Plan 复用 | `core/plan_template.py`(**N65 fix**:复用条件 — user_message 完全相同忽略空格/标点 + plan 模板在 cache 中存在 + 复用时间窗 ≤ 5 分钟,否则重新生成) |
 | 7 | Lazy plugin load | `plugins/registry.py` support `load_on_demand=True` |
 | 8 | Connection pooling | `data/providers/base.py` aiohttp.ClientSession 复用 |
@@ -1119,8 +1119,7 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 **DB Migration 011 已实施**(**N107 fix,2026-09-11**):v1 §Migration 提到「`web/migrations/011.sql` 跟 B2 一起做 user_preferences / agent_references 表」,**实际已实施**:`web/migrations/011_agent_memory.sql` 已存在,含 `CREATE TABLE user_preferences` (line 11) + `CREATE TABLE agent_references` (line 25)。harness 系列 spec(v2/v3)沿用这套表结构,不重复定义。
 
 **改造**:
-- `web/app.py` — 改 import 路径
-- `web/routes/agent.py` — 改 import 路径
+- `web/app.py` — 改 import 路径(**N122 fix,2026-09-11**:web/routes/agent.py **不**存在,实际所有 agent 路由都在 web/app.py 注册,无需创建 routes/agent.py)
 - `tradingagents/agents/general/` 各文件 → re-export 到新包,旧代码保留
 
 **不变**:
