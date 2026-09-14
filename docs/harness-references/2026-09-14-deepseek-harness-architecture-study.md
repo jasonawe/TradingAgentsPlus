@@ -1549,3 +1549,11 @@ Day 10:  §14 A4(前端 SSE Definition 注册制)
 > 我们的 `stream_chat` 是**单通道 SSE 推送**,dsh 的 `ConversationNodeAssembler` 是**注册制可扩展**;我们的 `LLMProvider` 是**单次 complete**,dsh 的 `LlmAdapter` 是**流式 + 7 条硬契约**;我们的 SSE 改进空间 = **流式 LLM 响应 + Definition 注册 + 精确计费 + 统一错误**。
 >
 > 该学的不是"它们怎么流式 / 怎么注册",而是 **"adapter 契约 + State 折叠 + publication cadence + disjoint 计费"**——4 个心智模型能让我们的 LLM call 和 SSE 推送从"能跑"变成"可扩展 + 可计费 + 可观测"。
+
+---
+
+## 附录 — 路线图指针
+
+本文件是**调研笔记**(详细原理 + dsh 原文引用),如果要执行,看:
+- **[`2026-09-14-harness-improvement-roadmap.md`](./2026-09-14-harness-improvement-roadmap.md)** — 344 行,按 高可用 / 高扩展 / 高可靠 3 维度组织的**改进路线图**,含 30 天计划 + 不要做清单
+
