@@ -432,6 +432,51 @@ def create_app(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         )
 
+    # P8: mount harness health endpoint (lazy build so we don't slow
+    # startup; errors are logged but never fail create_app).
+    try:
+        from tradingagents.agent_harness.harness import Harness, mount_health_endpoint
+        app.state.harness = Harness()
+        mount_health_endpoint(app, app.state.harness, path="/api/harness/health")
+        LOGGER.info(
+            "harness mounted (agents=%d, tools=%d, enable_l3=%s)",
+            len(app.state.harness.agent_registry.list()),
+            len(app.state.harness.list_tools()),
+            app.state.harness.config.enable_l3,
+        )
+
+        # P8 L3 verification status endpoint — exposes judge_factory
+        # wiring + per-agent LLM state so we can curl-verify L3 is wired.
+        @app.get("/api/harness/status")
+        async def _harness_status() -> dict:
+            h = app.state.harness
+            return {
+                "ok": True,
+                "enable_l3": h.config.enable_l3,
+                "judge": {
+                    "provider": h.config.judge_provider or h.config.llm_provider,
+                    "model": h.config.judge_model or h.config.llm_model,
+                    "configured": h.judge_factory.is_configured()
+                    if hasattr(h.judge_factory, "is_configured")
+                    else bool(h.judge_factory),
+                },
+                "agents": [
+                    {
+                        "name": name,
+                        "llm_wired": a.llm_factory is not None,
+                        "tools_wired": a.tool_registry is not None,
+                        **(
+                            {"judge_wired": a.judge_factory is not None, "enable_l3": a.enable_l3}
+                            if name == "verifier"
+                            else {}
+                        ),
+                    }
+                    for name, a in sorted(h.agent_registry._agents.items())
+                ],
+            }
+    except Exception as e:
+        LOGGER.warning("harness mount skipped: %s", e)
+
     if _STATIC_DIR.is_dir():
         app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
 
