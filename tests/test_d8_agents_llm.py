@@ -239,6 +239,78 @@ def test_data_agent_returns_error_when_no_symbol() -> None:
 
 
 # ---------------------------------------------------------------------------
+# DataAgent concurrent tool dispatch
+# ---------------------------------------------------------------------------
+
+
+def test_data_agent_invokes_tools_concurrently() -> None:
+    """quote + fundamentals have no data dependency — they must run in
+    parallel, not serially. With both tools sleeping 150ms, total wall time
+    should stay well below the 300ms serial baseline."""
+    import time
+
+    reg = ToolRegistry()
+
+    @reg.register(name="get_quote", description="fake", args_schema=_QuoteArgs, result_schema=_QuoteResult)
+    async def _quote(args: _QuoteArgs) -> _QuoteResult:
+        await asyncio.sleep(0.15)
+        return _QuoteResult(symbol=args.symbol, price=99.5, change_pct=1.2)
+
+    @reg.register(name="get_fundamentals", description="fake", args_schema=_FundArgs, result_schema=_FundResult)
+    async def _fund(args: _FundArgs) -> _FundResult:
+        await asyncio.sleep(0.15)
+        return _FundResult(symbol=args.symbol, pe=7.5)
+
+    agent = DataAgent(tool_registry=reg)
+    t0 = time.perf_counter()
+    res = asyncio.run(
+        agent.run(
+            AgentInput(user_message="x", context={"symbol": "600036.SS"}),
+            context=_ctx(),
+        )
+    )
+    elapsed = time.perf_counter() - t0
+
+    assert res.success
+    names = [r["name"] for r in res.tool_results]
+    assert names == ["get_quote", "get_fundamentals"], f"order broken: {names}"
+    # Serial baseline = 300ms. Allow 220ms — generous slack for asyncio
+    # scheduling on a busy CI box. Anything above this means we regressed
+    # back to serial awaits.
+    assert elapsed < 0.22, f"tools ran serially (elapsed={elapsed:.3f}s)"
+
+
+def test_data_agent_preserves_order_when_one_tool_fails() -> None:
+    """asyncio.gather preserves spec order regardless of resolution order,
+    and per-tool failures are swallowed inside ``_call_tool`` (return None).
+    Here ``get_fundamentals`` resolves fast + raises, ``get_quote`` is slow
+    + succeeds — the survivor must still appear in spec order."""
+    reg = ToolRegistry()
+
+    @reg.register(name="get_quote", description="fake", args_schema=_QuoteArgs, result_schema=_QuoteResult)
+    async def _quote(args: _QuoteArgs) -> _QuoteResult:
+        await asyncio.sleep(0.05)  # slow but succeeds
+        return _QuoteResult(symbol=args.symbol, price=99.5, change_pct=1.2)
+
+    @reg.register(name="get_fundamentals", description="fake", args_schema=_FundArgs, result_schema=_FundResult)
+    async def _fund(args: _FundArgs) -> _FundResult:
+        # Fast but explodes — _call_tool catches and returns None.
+        raise RuntimeError("fundamentals provider down")
+
+    agent = DataAgent(tool_registry=reg)
+    res = asyncio.run(
+        agent.run(
+            AgentInput(user_message="x", context={"symbol": "600036.SS"}),
+            context=_ctx(),
+        )
+    )
+
+    assert res.success
+    names = [r["name"] for r in res.tool_results]
+    assert names == ["get_quote"], f"order broken or failure leaked: {names}"
+
+
+# ---------------------------------------------------------------------------
 # AlphaAgent LLM path
 # ---------------------------------------------------------------------------
 
