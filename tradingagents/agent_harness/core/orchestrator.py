@@ -265,23 +265,93 @@ class Orchestrator:
     # LLM hooks (only when llm_factory is wired)
     # ------------------------------------------------------------------
     async def _llm_plan(self, state: OrchestratorState) -> list[dict[str, Any]]:
-        if self.llm_factory is None:
+        """Real LLM-backed plan generation (returns [] when LLM not configured)."""
+        if self.llm_factory is None or not self.llm_factory.is_configured():
             return []
         try:
-            from tradingagents.llm_clients.factory import get_chat_model  # type: ignore
-        except Exception:
+            provider = self.llm_factory.make()
+            prompt = self._build_plan_prompt(state)
+            content = provider.complete_text(prompt=prompt, system=self._PLAN_SYSTEM, temperature=0.0)
+            return self._parse_plan(content, state)
+        except Exception as e:
+            LOGGER.warning("LLM plan failed: %s", e)
             return []
-        # Real implementation builds a prompt with tool schemas; for now we
-        # return an empty plan so the orchestrator falls back to heuristics.
+
+    _PLAN_SYSTEM = (
+        "You are a finance research planner. Reply ONLY with valid JSON. "
+        "No commentary, no markdown fences. Output schema: "
+        "[{\"step\": <int>, \"agent\": <agent_name>, \"args\": {<dict>}}]"
+    )
+
+    def _build_plan_prompt(self, state: OrchestratorState) -> str:
+        agent_caps = [
+            f"- {name}: {self.agent_registry.get(name).description}"
+            for name in self.agent_registry.list()
+            if self.agent_registry.get(name).description
+        ]
+        return (
+            f"User message: {state.user_message}\n\n"
+            f"Detected symbols: {state.symbols}\n"
+            f"Detected intent: {state.intent.value}\n\n"
+            "Available agents:\n" + "\n".join(agent_caps) +
+            "\n\nGenerate a JSON plan as a list of {step, agent, args} objects."
+        )
+
+    @staticmethod
+    def _parse_plan(content: str, state: OrchestratorState) -> list[dict[str, Any]]:
+        import json
+        import re
+        text = content.strip()
+        # Strip optional markdown fence.
+        text = re.sub(r"^```(?:json)?\s*", "", text)
+        text = re.sub(r"```\s*$", "", text)
+        try:
+            data = json.loads(text)
+            if isinstance(data, list):
+                return [d for d in data if isinstance(d, dict)]
+        except Exception:
+            pass
+        LOGGER.warning("LLM plan returned non-JSON content: %s", content[:120])
         return []
 
     async def _llm_synthesize(self, state: OrchestratorState) -> Any:
-        return {
+        """Real LLM synthesis when configured; fallback dict otherwise."""
+        base = {
             "intent": state.intent.value,
             "symbols": state.symbols,
             "results": state.tool_results,
-            "summary": "(LLM summary placeholder)",
         }
+        if self.llm_factory is None or not self.llm_factory.is_configured():
+            base["summary"] = "(LLM not configured — returning raw tool results)"
+            return base
+        try:
+            provider = self.llm_factory.make()
+            prompt = self._build_synthesize_prompt(state)
+            content = provider.complete_text(
+                prompt=prompt, system=self._SYNTH_SYSTEM, temperature=0.0
+            )
+            base["summary"] = content
+            return base
+        except Exception as e:
+            LOGGER.warning("LLM synthesize failed: %s", e)
+            base["summary"] = "(LLM synthesize failed — returning raw tool results)"
+            return base
+
+    _SYNTH_SYSTEM = (
+        "You are a finance assistant. Synthesize the provided tool results "
+        "into a concise, accurate answer. Always ground your answer in the "
+        "tool outputs; never invent numbers. Reply in the same language the "
+        "user used."
+    )
+
+    def _build_synthesize_prompt(self, state: OrchestratorState) -> str:
+        import json as _json
+        results_dump = _json.dumps(state.tool_results, ensure_ascii=False, default=str)[:6000]
+        return (
+            f"User message: {state.user_message}\n\n"
+            f"Tool results: {results_dump}\n\n"
+            "Write a concise answer in the same language as the user message."
+        )
 
     # ------------------------------------------------------------------
     # helpers

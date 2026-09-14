@@ -64,8 +64,9 @@ class Harness:
         from tradingagents.data.providers.registry import PROVIDERS
         self.data_registry = PROVIDERS
 
-        # 6. memory — placeholder (留 P5+ 实现)
-        self.memory = None
+        # 6. memory — L1/L2/L3 facade (v3 spec §3 memory/)
+        from tradingagents.agent_harness.memory import MemoryManager
+        self.memory = MemoryManager(data_dir=str(self.config.data_dir))
 
         # 7. audit (P7)
         from tradingagents.agent_harness.observability import AuditLogger
@@ -96,8 +97,12 @@ class Harness:
             self.plugin_registry.register(cls())
         self.plugin_registry.discover_entry_points()
 
-        # 4. llm_factory — placeholder (依赖 llm_clients)
-        self.llm_factory = None
+        # 4. llm_factory — wraps tradingagents/llm_clients (v3 spec §3 llm/)
+        from tradingagents.agent_harness.llm import LLMFactory
+        self.llm_factory = LLMFactory(
+            default_provider=self.config.llm_provider,
+            default_model=self.config.llm_model,
+        )
 
         # 13. orchestrator (depends on 2, 3, 9, 10)
         self.orchestrator = Orchestrator(
