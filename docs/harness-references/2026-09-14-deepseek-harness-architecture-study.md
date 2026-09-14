@@ -1115,3 +1115,172 @@ async def stream_chat(
 > **我们的 memory 比 dsh 干净**(3 层 + TTL + Pydantic),**多 session 管理比 dsh 简单 50 倍**(裸 session_id 字符串 vs Session 类 + 6 Agent 能力 + 30+ 事件)。
 >
 > **该学的不是"它们怎么做 memory",而是"append-only event log + surface projection + Session 第一公民"**——这三个心智模型能把我们的可观测性、可审计性、可恢复性从"能用"变成"可运维"。
+
+---
+
+## 十三、补读 — dsh System Prompt 装配(`subsystems/system-prompt.md`,11KB)
+
+> 我们有 `ContextPriority` 8 层装配;dsh 用 `ctx.systemPrompt` 做 section 装配。两者目标一样(把分散的 prompt 片段拼成给模型看的 system message),但心智模型完全不同。
+
+### 13.1 dsh 的 4 个数据原语
+
+#### 13.1.1 `PromptSection` — 注册式 section
+
+```ts
+interface PromptSection {
+  readonly name: string                                                    // 唯一,重复 throw
+  readonly order: number                                                   // 升序,同 order 按 code-unit 名字排序
+  readonly text: string | ((context: AssembleContext) => string)            // 静态或动态
+  readonly complete?: boolean                                               // true = 这个 section 就是整个 prompt
+}
+```
+
+#### 13.1.2 `PromptContext` — 动态运行时上下文
+
+```ts
+interface PromptContext {
+  readonly name: string                       // 唯一,重复 throw
+  readonly order: number                      // 独立排序,跟 section 分开
+  readonly text: string | ((ctx) => string)   // 静态或动态
+}
+```
+
+Section 是**长驻配置**(persona / skills),Context 是**每次动态**(time / status / env)。
+
+#### 13.1.3 Variable — `{{var}}` 插值
+
+```ts
+variable(name: string, provider: (ctx: AssembleContext) => string | undefined): () => void
+```
+
+Section 的 `text` 可以引用 `{{my_var}}`,render 时插值。`provider` 返回 undefined → 引用此 var 的 section 渲染失败。
+
+#### 13.1.4 Tool provider — 工具列表作为 prompt 一部分
+
+```ts
+tools(provider: (ctx: AssembleContext) => ToolProviderResult): () => void
+// 返回 { schemas: ToolSchema[], knownNames: string[] }
+// schemas = 本次可见的工具
+// knownNames = 配置校验的"已知名"全集(用于区分"配置写错"vs"故意隐藏")
+```
+
+### 13.2 装配算法(`assemble()`)
+
+```
+1. 收集 global + scope-matched providers
+2. 分离 tool parameters(detach 出来独立处理)
+3. 规范化排序(section 按 order+name, context 按 order+name, tool 按 order, variable 按 name)
+4. 跑 cooperative waterfall(event 'system-prompt/assemble')
+5. 如果有 effective complete section,把它作为唯一 prompt section 复原
+6. 返回最终 PromptAssembly(给 agent-loop 渲染)
+```
+
+### 13.3 Scope 隔离 — scoped 影子全局
+
+```ts
+ctx.systemPrompt.section(sectionA)              // global
+ctx.scope.agent('agent-123').section(sectionA2) // scoped,同名时 shadow
+```
+
+scoped listener 只收到自己 scope 的 `system-prompt/assemble` 事件。
+
+### 13.4 关键 hook — `suppressRuntimeContext()`
+
+```ts
+ctx.systemPrompt.suppressRuntimeContext(): () => void
+```
+
+**禁止所有动态运行时 context 贡献**,但不动拥有 / 强制这些事实的 services。例如:
+
+- 关闭时间上下文(冻结时间)
+- 关闭 subdir AGENTS.md 注入
+- 但不动 system prompt 的 section 装配
+
+### 13.5 agent-loop 集成 — `system/message` 表面节点
+
+```ts
+agent-loop renders assembly → renderPrompt(text) → commits as system/message event
+  - 第一个 step:append as surface node 0
+  - 后续 step:text 变化 → in place replace
+  - 后续 step:有 systemPromptUpdate: 'in-history' → append after cached history
+```
+
+关键:**system prompt 在 dsh 里是 surface event,不是 request field**。这意味着:
+
+- system prompt 跟用户消息、助手回复、工具结果一样进 surface projection
+- 可以 replace(in place 或 after history)
+- LLM 看到的是 derived history 的一部分,不是请求的特殊字段
+
+### 13.6 与我们 `ContextPriority` 的对比
+
+| 维度 | 我们的 ContextPriority | dsh ctx.systemPrompt |
+|---|---|---|
+| **数据模型** | 8 个固定 layer(EXPLICIT/SKILLS/TOOLS/FILES/DASHBOARD/CHAT/GLOBAL/SEARCH) | 任意数量的 section / context / variable / tool provider |
+| **排序** | layer 编号 IntEnum(1-8) | section / context 各自 numeric order + code-unit name tiebreak |
+| **预算** | 每个 layer 有 token cap,总预算 4000,超过 trim | 无显式 token budget,靠 caller 控 |
+| **自动注入** | Layer 6 ← L1 history,Layer 7 ← L2 prefs | 任意 provider 可以在 assemble 时动态算 |
+| **变量插值** | 无 | `{{var}}` 语法 |
+| **Scope 隔离** | 无 | scoped section shadow global |
+| **事件** | 无 | `system-prompt/assemble` waterfall + `system-prompt/change` emit |
+| **Complete section** | 无 | `complete: true` section 是整个 prompt |
+| **Suppression** | 无 | `suppressRuntimeContext()` 禁止所有动态 context |
+| **Tool schemas** | Layer 3(TOOLS)是固定 budget 800 | tool provider 函数,返回 `schemas + knownNames` |
+| **system message 入 derived history** | ❌ 直接当 request field 拼 | ✅ commit as `system/message` surface event |
+| **运行时上下文表达力** | 受限于 8 个固定 layer | 任意 provider,可表达 L1 history / L2 prefs / time / env / status / 任何东西 |
+
+### 13.7 dsh 做得比我们好的 7 个地方
+
+| # | dsh 设计 | 价值 | 我们的差距 |
+|---|---|---|---|
+| **A** | **任意数量 section / context / variable** | 极高 — 不受 8 层限制,plugin 想加多少加多少 | 我们固定 8 layer |
+| **B** | **`{{var}}` 变量插值** | 高 — section 模板可复用 | 我们硬编码字符串拼接 |
+| **C** | **Scope 隔离 + scoped shadow** | 高 — sub-agent 可有独立 system prompt | 我们所有 agent 共享同一个 |
+| **D** | **`complete: true` section = 整个 prompt** | 中-高 — plugin 想"我就是 system prompt" 一行配置 | 我们没这个表达力 |
+| **E** | **Cooperative waterfall**(`system-prompt/assemble`) | 高 — plugin 可在装配时插入逻辑(L3 judge 改写 prompt / audit log) | 我们没有 hook 点 |
+| **F** | **`system/message` 入 derived history** | 极高 — system prompt 是 session event,可回放 / replace | 我们每次拼字符串 |
+| **G** | **`suppressRuntimeContext()` 临时关闭** | 中 — A/B 测试 / 故障排查 | 我们没这个能力 |
+
+### 13.8 我们做得好的 3 个地方
+
+| # | 我们的强项 | 为什么好 |
+|---|---|---|
+| **1** | **Token budget per layer + 总预算 4000 强 enforce** | 防 prompt 爆炸,可预测 |
+| **2** | **8 layer IntEnum 优先级** | 简单易懂,debug 容易 |
+| **3** | **ContextPriority 自动注入 Layer 6/7**(L1 history / L2 prefs) | 一行 `assemble(session_id=...)` 自动拉 |
+
+### 13.9 综合建议 — 怎么把 dsh 的 system prompt 设计低成本迁过来
+
+**保留的**
+- Token budget per layer(我们强项)
+- 8 layer IntEnum 优先级(简单)
+- ContextPriority 自动注入(直接)
+
+**该学的(增量价值)**
+
+| # | 动作 | 价值 | 工作量 | 来源 |
+|---|---|---|---|---|
+| **P0-S1** | **system/message 入 derived history** — 把"system prompt 拼字符串"改成"commit as event",LLM 看到的 history 从 log 派生 | 极高(审计 + replace + 回放) | 0.5d | dsh F |
+| **P0-S2** | **Section / Context 二元** — 拆"长驻配置"(persona / skills)vs"动态上下文"(time / status / env),各自有 order 独立排序 | 高(表达力) | 0.5d | dsh A |
+| **P0-S3** | **`{{var}}` 变量插值** — section text 支持 `{{time}}` `{{user_pref.risk}}` 等 | 高(reuse) | 0.5d | dsh B |
+| **P1-S1** | **Scope 隔离 + scoped shadow** — sub-agent 可独立 system prompt | 中-高(多角色) | 1d | dsh C |
+| **P1-S2** | **Cooperative waterfall** — 加 `system-prompt/assemble` event,plugin 可在装配时改写 prompt(L3 judge 拒绝时改 / audit log)| 中-高(可扩展)| 1d | dsh E |
+| **P1-S3** | **`complete: true` section 表达力** | 中(简单场景)| 0.5d | dsh D |
+| **P2-S1** | **`suppressRuntimeContext()`** | 中(A/B 测试)| 0.5d | dsh G |
+
+**总预算:约 4.5 天**
+
+### 13.10 不该搬的
+
+| dsh 设计 | 不搬的原因 |
+|---|---|
+| **`AssembleContext` merge-extensible + `signal`** | 我们用 dataclass 够 |
+| **ToolProviderResult.schemas + knownNames** | 我们的 tool registry 直接 `.list_all()`,没必要再包一层 |
+| **`getSectionOrder` / `getContextOrder` 中央排序** | 我们 layer IntEnum 已固定 |
+| **`{{var}}` provider 可以返回 undefined 失败** | 我们的拼字符串做法 |
+| **完整 surface event 系统(system/message in derived history)** | 不在 P0-S1 完整搬,只搬"commit as event"这个动作 |
+
+### 13.11 一句话总结
+
+> 我们的 `ContextPriority` 是**固定 8 层的 budget 控制器**,dsh 的 `ctx.systemPrompt` 是**任意 section 的动态装配器**。dsh 表达力更强(plugin 弱化),我们有预算保护。
+>
+> 该学的不是"它们怎么拼 prompt",而是 **"section 化 + variable 插值 + scope 隔离 + cooperative waterfall"**——这 4 个心智模型能让 prompt 装配从"硬编码字符串拼接"变成"plugin 可扩展的动态组装"。
