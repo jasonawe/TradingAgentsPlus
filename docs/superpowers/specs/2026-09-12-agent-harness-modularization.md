@@ -1009,7 +1009,7 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 
 | # | Risk / Question | Mitigation / 待你拍板 |
 |---|---|---|
-| R1 | 旧代码 re-export 阶段容易出循环 import | **具体对策**(M5 fix,2026-09-11):<br>- **新代码 → 旧代码**:`TYPE_CHECKING` guard + `if TYPE_CHECKING: from ... import ...`<br>- **旧代码 → 新代码**:`__getattr__` lazy 加载(`__getattr__` 在模块级)<br>- **plugin → 旧代码**:`importlib.import_module` deferred(在 plugin install 时才 import)<br>- **测试验证**:`tests/test_harness_no_circular_import.py` 用 `importlib.import_module` 验证所有路径无循环 |
+| R1 | 旧代码 re-export 阶段容易出循环 import | **抽象对策**(M5 fix,2026-09-11):三种循环方向分别用 lazy / deferred / TYPE_CHECKING 机制处理;**测试验证** `tests/test_harness_no_circular_import.py` 用 `importlib.import_module` 验证所有路径无循环。**N111 fix,2026-09-11**:删除具体 Python 机制细节,实施时由 P1-P2 工程师选合适方案 |
 | R2 | 7 个 agent 拆分粒度太细(早期 v1 草案) | **已通过 O14=B 拍板**:当前为 **6 个 sub-agent**(Quote+Fundamentals 合并为 DataAgent),更聚焦,实现快 1 天 |
 | R3 | Plugin entry_points 第三方生态短 | 内置 plugin 覆盖 80% 用例,第三方 plugin 留接口 |
 | R4 | ToolRegistry 的 decorator + entry_points 双注册可能冲突 | 注册时去重,后注册抛错 |
@@ -1042,7 +1042,8 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 
 ## 12. Success Criteria
 
-**重要**(N51 fix,2026-09-11):本节 12 项 criteria 是**实施完成定义**,**不是当前测试覆盖**。当前 P1 阶段只有 1 个对应 test 文件(`tests/test_p1_harness_skeleton.py`,6 个 smoke test 验证骨架)。P2-P7 实施时**必须同步创建对应 test 文件**,验收时所有 test 通过才标记 ✅。下表给出每个 criterion 的对应 test 文件路径(目标):
+**重要**(N51 + N112 fix,2026-09-11):本节 12 项是 harness 整体验收。**v2 §7** 列 8 项聚焦 D1-D6 设计决策实施验收。两者重叠(Tier 1 / StateGraph / 9+ 测试 / 延迟 / tag),但侧重不同:**v2 §7 验证 D1-D6 决策是否达成**,**v3 §12 验证 harness 整体模块化是否完整**。实施时两边都需满足。  
+本节 12 项 criteria 是**实施完成定义**,**不是当前测试覆盖**。当前 P1 阶段只有 1 个对应 test 文件(`tests/test_p1_harness_skeleton.py`,6 个 smoke test 验证骨架)。P2-P7 实施时**必须同步创建对应 test 文件**,验收时所有 test 通过才标记 ✅。下表给出每个 criterion 的对应 test 文件路径(目标):
 
 | Success Criterion | 对应 Test 文件(目标) | Phase |
 |---|---|---|
@@ -1050,13 +1051,13 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 | 旧 9+ 测试套件全不破 | `tests/test_backward_compat.py`(每 Phase 跑一遍) | P2-P7 |
 | 6 个 sub-agent 全实现 + 测试 | `tests/test_agents/{planner,verifier,data,alpha,news,synthesizer}.py` | P5 |
 | ToolRegistry + PluginRegistry + entry_points | `tests/test_harness_registry.py` + `tests/test_plugin_entry_points.py` | P3+P6 |
-| Tier 1 短路径 10 个高频 query E2E | `tests/test_tier1_short_circuit.py`(10 query) | P2(v2 spec) |
-| StateGraph 主图 5 节点(17+ sub-state)plan-first retry verify | `tests/test_stategraph_5node.py` + `tests/test_stategraph_substates.py` | P4(v2 spec) |
+| Tier 1 短路径 10 个高频 query E2E | `tests/test_tier1_short_circuit.py`(10 query) | **P1(v2 spec)** — **N108 fix,2026-09-11**:v2 §4 line 343 明确 v2 P1 = "Tier 1 Direct Tool + Provider ABC + DataResponse"。原写 P2(v2 spec) 是错(误把 StateGraph 的 P2 当成 Tier 1 的 P2,v2 P1 = Tier 1) |
+| StateGraph 主图 5 节点(17+ sub-state)plan-first retry verify | `tests/test_stategraph_5node.py` + `tests/test_stategraph_substates.py` | **P2(v2 spec)** — **N109 fix,2026-09-11**:v2 §4 line 343 明确 v2 P2 = "StateGraph 主图 5 节点(17+ sub-state) + Context Priority + Verification L1+L2"。原写 P4(v2 spec) 是错(P4 是 Context Priority / 文档收尾) |
 | Health check endpoint | `tests/test_harness_health_endpoint.py` | P7 |
 | Circuit breaker + provider failover | `tests/test_circuit_breaker.py` + `tests/test_provider_failover.py` | P7 |
 | 加新 tool 不改 harness 核心 | `tests/test_plugin_add_tool.py` | P6 |
 | 实测 "600036 现在多少钱" 延迟 <3s | `tests/test_latency_budget.py`(perf benchmark) | P4 |
-| merge 后打 v0.7.1 tag | (git 操作) | Day 14 |
+| merge 后打 v0.7.1 tag | (git 操作) | **Day 12-15** — **N110 fix,2026-09-11**:与下方 checklist 表述一致(原 Day 14 是简化,实际 v2 3.5 + v3 4.5 + buffer 1 = 9 天,跨度从 Day 12 到 Day 20,实际 merge 落在 Day 12-15 范围) |
 | 文档齐全 | (docs/ 目录检查) | 持续 |
 
 - [ ] `from tradingagents.agent_harness import Harness` 可用
@@ -1128,7 +1129,13 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 
 ## 14. Next Steps
 
-**总工期估算(N3 fix + V1/N37 修订,2026-09-11)**:
+**总工期估算**(N3 + V1/N37 + N113 fix,2026-09-11):  
+**N113 fix**:§14 总工期 9 天估算 + §12 checklist Day 12-15 + §12 表格 Day 14 三处时间表述不精确。统一如下:
+- v2 P1 已开始(2026-09-12 起算,Day 0)
+- v2 P1-P4 + v3 P2-P7 总跨度约 9 天,实际落在 Day 12-15(2026-09-15 ~ 2026-09-25)
+- buffer 1 天作为浮动
+
+**总工期估算**(N3 fix + V1/N37 修订,2026-09-11):
 - v2 spec P0-P4 = **约 3.5 天**
 - v3 spec P1-P7 = **约 4.5 天**(P1-P7 完整 = P1 0.5d + P2-P7 4.0d,§9 Phase 表 sum)
 - 1 天 buffer = **约 1 天**
