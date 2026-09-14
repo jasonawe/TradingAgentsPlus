@@ -100,8 +100,12 @@ class PTCExecutor:
     existing orchestrator path — no special-casing of pipeline stages.
     """
 
-    def __init__(self, tool_registry) -> None:
+    def __init__(self, tool_registry, pipeline=None) -> None:
         self.registry = tool_registry
+        # Optional ToolPipeline — when set, every call goes through 5-stage
+        # pipeline (pre/guard/exec/post/result) for HITL / metrics / etc.
+        # When None, calls go directly to tool.invoke (legacy behaviour).
+        self.pipeline = pipeline
 
     async def execute(self, program: PTCProgram, context: Any) -> list[dict[str, Any]]:
         """Execute the program; return a flat list of per-call results.
@@ -160,6 +164,26 @@ class PTCExecutor:
                         "group_id": group.id, "name": call.name, "ok": False,
                         "result": None, "error": args["error"],
                     }
+                if self.pipeline is not None:
+                    # Route through 5-stage pipeline (HITL / metrics / audit)
+                    pipe_res = await self.pipeline.run(
+                        tool_name=call.name, args=args, tool_context=context,
+                        executor=tool.invoke,
+                    )
+                    if not pipe_res.ok:
+                        return {
+                            "group_id": group.id, "name": call.name,
+                            "ok": False, "result": None, "error": pipe_res.error,
+                            "needs_approval": pipe_res.needs_approval,
+                            "approval_payload": pipe_res.approval_payload,
+                            "replaced": pipe_res.replaced,
+                        }
+                    return {
+                        "group_id": group.id, "name": call.name, "ok": True,
+                        "result": pipe_res.result, "error": None,
+                        "replaced": pipe_res.replaced,
+                    }
+                # No pipeline — direct invoke (legacy behaviour)
                 value = await tool.invoke(args, context)
                 return {
                     "group_id": group.id, "name": call.name, "ok": True,

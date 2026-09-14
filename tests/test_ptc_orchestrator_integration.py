@@ -248,3 +248,110 @@ class TestStreamChatPTCDispatch:
         assert kinds.count("tool_result") >= 2
         # End-to-end completion
         assert "agent_final" in kinds or "verified" in kinds
+
+
+# --------------------------------------------------------------------------
+# P0-3 follow-up: PTC ↔ Tool Pipeline integration
+#
+# Verifies that when the orchestrator wires DangerousToolGuard into the
+# pipeline, PTC calls to destructive tools surface as ``needs_approval=True``
+# with a populated ``approval_payload`` — preserving the HITL contract.
+# --------------------------------------------------------------------------
+class TestPTCPipelineIntegration:
+    def test_destructive_tool_in_ptc_yields_needs_approval(self):
+        """PTC call to delete_* must surface pending_approval, not crash."""
+        # Register a destructive tool (delete_alert)
+        from tradingagents.agent_harness.tools.schema import ToolSchema
+        from tradingagents.agent_harness.tools.permission import PermissionType
+
+        class _DeleteAlert(BaseTool):
+            def __init__(self):
+                self.schema = ToolSchema(
+                    name="delete_alert",
+                    description="mock delete",
+                    args_schema=dict,
+                    result_schema=dict,
+                    permission=PermissionType.WRITE,
+                )
+            @property
+            def name(self): return self.schema.name
+            async def invoke(self, args, context):
+                return {"deleted": True, "args": args}
+
+        registry = ToolRegistry()
+        registry.add(_DeleteAlert())
+        registry.add(_MockQuoteTool())  # safe tool
+
+        cb = CircuitBreaker(failure_threshold=5, reset_seconds=30.0)
+        orch = Orchestrator(
+            tool_registry=registry,
+            agent_registry=MM(list_names=lambda: [], get=lambda n: (_ for _ in ()).throw(KeyError(n))),
+            llm_factory=None,
+            context_priority=ContextPriority(),
+            retry_policy=RetryPolicy(max_retries=0),
+            circuit_breaker=cb,
+            audit=None,
+            enable_l3=False,
+            judge_factory=None,
+        )
+        from tradingagents.agent_harness.core.orchestrator import OrchestratorState
+        state = OrchestratorState(
+            session_id="t", user_message="",
+            intent=Intent.COMPARE, symbols=[],
+        )
+        state.plan = {
+            "mode": "ptc",
+            "groups": [{
+                "id": "g1",
+                "calls": [
+                    {"name": "delete_alert", "args": {"alert_id": 42}},
+                    {"name": "get_quote", "args": {"symbol": "600036.SS"}},
+                ],
+            }],
+        }
+        results = asyncio.run(orch._execute_ptc(state, ToolContext(session_id="t")))
+        assert len(results) == 2
+        delete_res = next(r for r in results if r["name"] == "delete_alert")
+        quote_res  = next(r for r in results if r["name"] == "get_quote")
+        # Destructive call: needs_approval=True, error set, payload populated
+        assert delete_res.get("needs_approval") is True
+        assert delete_res["ok"] is False
+        assert delete_res.get("approval_payload") is not None
+        assert delete_res["approval_payload"]["tool"] == "delete_alert"
+        assert delete_res["approval_payload"]["args"] == {"alert_id": 42}
+        # Safe call: passes through normally
+        assert quote_res["ok"] is True
+        assert quote_res.get("needs_approval", False) is False
+        assert quote_res["result"]["symbol"] == "600036.SS"
+
+    def test_pipeline_disabled_means_no_approval_surface(self):
+        """Without a pipeline, dangerous tools just execute (legacy)."""
+        # Build an executor with pipeline=None (legacy path)
+        from tradingagents.agent_harness.ptc import PTCExecutor
+        from tradingagents.agent_harness.ptc import PTCProgram, PTCGroup, PTCCall
+
+        class _Delete(BaseTool):
+            def __init__(self):
+                self.schema = ToolSchema(
+                    name="delete_watchlist",
+                    description="mock",
+                    args_schema=dict,
+                    result_schema=dict,
+                    permission=PermissionType.WRITE,
+                )
+            @property
+            def name(self): return self.schema.name
+            async def invoke(self, args, context):
+                return {"deleted": True}
+
+        registry = ToolRegistry()
+        registry.add(_Delete())
+        exec_legacy = PTCExecutor(registry, pipeline=None)
+        prog = PTCProgram(groups=[PTCGroup(id="g1", calls=[
+            PTCCall(name="delete_watchlist", args={"wid": "w1"}),
+        ])])
+        results = asyncio.run(exec_legacy.execute(prog, ToolContext(session_id="t")))
+        assert len(results) == 1
+        assert results[0]["ok"] is True
+        assert "needs_approval" not in results[0]
+        assert results[0]["result"] == {"deleted": True}

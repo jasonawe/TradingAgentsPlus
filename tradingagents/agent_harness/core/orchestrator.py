@@ -23,6 +23,7 @@ from typing import Any, AsyncIterator, Callable, Optional
 
 from tradingagents.agent_harness.tools import ToolContext, ToolRegistry
 from tradingagents.agent_harness.ptc import PTCExecutor, parse_program
+from tradingagents.agent_harness.tools.pipeline import ToolPipeline, DangerousToolGuard
 
 from .context import ContextPriority
 from .retry import CircuitBreaker, RetryPolicy, retry_async
@@ -121,7 +122,10 @@ class Orchestrator:
 
         self._short_circuit = ShortCircuit(tool_registry)
         # PTC executor: same tool registry, concurrent group dispatch
-        self._ptc_executor = PTCExecutor(tool_registry)
+        # Also routes through the same 5-stage pipeline for HITL consistency
+        self._tool_pipeline = ToolPipeline()
+        self._tool_pipeline.add_pre_execute(DangerousToolGuard())
+        self._ptc_executor = PTCExecutor(tool_registry, pipeline=self._tool_pipeline)
         # Verifier gets its own judge_factory (N89 fix: judge model != main LLM)
         self._verifier = Verifier(judge_factory=judge_factory)
 
@@ -291,26 +295,39 @@ class Orchestrator:
                     "result": {"status": "pending_approval", "args": args},
                 }
 
-            async def _call() -> Any:
+            # Funnel through the 5-stage pipeline (pre/guard/exec/post/result).
+            # Pipeline handles HITL approval (delete_*/cancel_*), retry policy
+            # wrapping, and result observation. Falls back to direct invoke if
+            # circuit breaker is open.
+            async def _executor(a, c):
                 if not self.circuit_breaker.allow():
                     raise RuntimeError("circuit breaker open")
-                return await tool.invoke(args, context)
+                # retry_async wraps the actual tool.invoke for ProviderError skip
+                async def _call() -> Any:
+                    return await retry_async(
+                        lambda: tool.invoke(a, c),
+                        policy=self.retry_policy,
+                        skip_exceptions=(ProviderError,),
+                    )
+                return await _call()
 
-            try:
-                result = await retry_async(
-                    _call,
-                    policy=self.retry_policy,
-                    # Provider-level errors (network, rate-limit) don't help
-                    # from N back-to-back retries against the same upstream.
-                    # The builtin tools already wrap ProviderFailover, so
-                    # skip retry here and let that layer take over.
-                    skip_exceptions=(ProviderError,),
-                )
+            pipe_result = await self._tool_pipeline.run(
+                tool_name=name, args=args, tool_context=context,
+                executor=_executor,
+            )
+            if pipe_result.ok:
                 self.circuit_breaker.record_success()
-                return {"name": name, "result": self._dump(result)}
-            except Exception as e:
-                self.circuit_breaker.record_failure()
-                return {"name": name, "error": str(e)}
+                return {"name": name, "result": self._dump(pipe_result.result)}
+            if pipe_result.needs_approval:
+                # HITL: dangerous tool requires approval. Preserve existing
+                # payload shape so frontend / approval endpoints stay unchanged.
+                return {
+                    "name": name,
+                    "result": {"status": "pending_approval", "args": args},
+                }
+            # denied or error
+            self.circuit_breaker.record_failure()
+            return {"name": name, "error": pipe_result.error}
 
         return list(await asyncio.gather(*(_run_step(s) for s in state.plan)))
 
