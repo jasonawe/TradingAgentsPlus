@@ -25,7 +25,8 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field
 
 from tradingagents.data.responses import DataResponse
-from tradingagents.data.providers.registry import get_active_provider, get_provider
+from tradingagents.data.providers.registry import get_active_provider, get_active_provider_name, get_provider
+from tradingagents.agent_harness.observability.failover import ProviderFailover
 
 from .permission import PermissionType
 from .schema import ToolSchema
@@ -52,16 +53,21 @@ class QuoteResult(BaseModel):
 
 
 async def get_quote(args: QuoteArgs) -> QuoteResult:
-    provider = get_active_provider()
-    snap = provider.get_quote(args.symbol, args.asset_type)
+    # ProviderFailover walks the active provider first, then falls through
+    # to yfinance/akshare/alpha_vantage on transient network errors. The
+    # orchestrator layer (retry_async + skip_exceptions=ProviderError) is
+    # configured NOT to retry provider-level failures, so this is the
+    # single point that decides which upstream actually answers.
+    fo = ProviderFailover(primary=get_active_provider_name())
+    snap = fo.call("get_quote", args.symbol, args.asset_type)
     return QuoteResult(
         symbol=snap.symbol,
-        price=getattr(snap, "last_price", None),
+        price=getattr(snap, "price", None),
         change=getattr(snap, "change", None),
         change_pct=getattr(snap, "change_pct", None),
         volume=getattr(snap, "volume", None),
         as_of=getattr(snap, "as_of", None),
-        provider=provider.name,
+        provider=fo.last_used_name or fo.primary_name,  # last tried in chain (None if never raised)
         warnings=list(getattr(snap, "warnings", []) or []),
     )
 
@@ -78,23 +84,33 @@ class BatchQuoteResult(BaseModel):
 
 
 async def get_quotes_batch(args: BatchQuoteArgs) -> BatchQuoteResult:
-    provider = get_provider(args.provider) if args.provider else get_active_provider()
+    # Explicit provider = honour the user\'s pick, no fallback.
+    # Otherwise build one failover (chains the active provider first).
+    explicit = get_provider(args.provider) if args.provider else None
+    fo = None if explicit else ProviderFailover(primary=get_active_provider_name())
     out: list[QuoteResult] = []
+    last_provider_name = explicit.name if explicit else None
     for sym in args.symbols:
-        snap = provider.get_quote(sym, args.asset_type)
+        if explicit is not None:
+            snap = explicit.get_quote(sym, args.asset_type)
+            last_provider_name = explicit.name
+        else:
+            assert fo is not None
+            snap = fo.call("get_quote", sym, args.asset_type)
+            last_provider_name = fo.primary_name
         out.append(
             QuoteResult(
                 symbol=snap.symbol,
-                price=getattr(snap, "last_price", None),
+                price=getattr(snap, "price", None),
                 change=getattr(snap, "change", None),
                 change_pct=getattr(snap, "change_pct", None),
                 volume=getattr(snap, "volume", None),
                 as_of=getattr(snap, "as_of", None),
-                provider=provider.name,
+                provider=last_provider_name,
                 warnings=list(getattr(snap, "warnings", []) or []),
             )
         )
-    return BatchQuoteResult(quotes=out, provider=provider.name)
+    return BatchQuoteResult(quotes=out, provider=last_provider_name or "?")
 
 
 class HistoryArgs(BaseModel):
@@ -122,9 +138,10 @@ class HistoryResult(BaseModel):
 
 
 async def get_history(args: HistoryArgs) -> HistoryResult:
-    provider = get_active_provider()
-    candles = provider.get_candles(
-        args.symbol, args.interval, args.start, args.end, args.asset_type
+    fo = ProviderFailover(primary=get_active_provider_name())
+    candles = fo.call(
+        "get_candles",
+        args.symbol, args.interval, args.start, args.end, args.asset_type,
     )
     return HistoryResult(
         symbol=args.symbol,
@@ -140,7 +157,7 @@ async def get_history(args: HistoryArgs) -> HistoryResult:
             )
             for c in candles
         ],
-        provider=provider.name,
+        provider=fo.last_used_name or fo.primary_name,
     )
 
 
@@ -159,15 +176,15 @@ class FundamentalsResult(BaseModel):
 
 
 async def get_fundamentals(args: FundamentalsArgs) -> FundamentalsResult:
-    provider = get_active_provider()
-    identity = provider.get_identity(args.symbol, args.asset_type)
+    fo = ProviderFailover(primary=get_active_provider_name())
+    identity = fo.call("get_identity", args.symbol, args.asset_type)
     return FundamentalsResult(
         symbol=identity.symbol,
         pe_ratio=getattr(identity, "pe_ratio", None),
         pb_ratio=getattr(identity, "pb_ratio", None),
         market_cap=getattr(identity, "market_cap", None),
         roe=getattr(identity, "roe", None),
-        provider=provider.name,
+        provider=fo.last_used_name or fo.primary_name,
     )
 
 

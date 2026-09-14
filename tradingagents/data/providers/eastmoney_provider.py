@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
+import http.client
 import time
 import urllib.error
 import urllib.parse
@@ -53,7 +54,19 @@ def _http_get_json(url: str, timeout: float = 8.0) -> dict[str, Any]:
             req = urllib.request.Request(url, headers=headers)
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 return json.loads(resp.read().decode("utf-8"))
-        except (urllib.error.URLError, ConnectionError, TimeoutError) as exc:
+        except (
+            urllib.error.URLError,
+            urllib.error.HTTPError,
+            # http.client.RemoteDisconnected / BadStatusLine inherit from
+            # http.client.HTTPException (NOT urllib.error.URLError) so they
+            # were silently escaping the previous except and bubbling up as
+            # generic "Remote end closed connection" provider errors — which
+            # the orchestrator then 3x-retried pointlessly.
+            http.client.RemoteDisconnected,
+            http.client.BadStatusLine,
+            ConnectionError,
+            TimeoutError,
+        ) as exc:
             last_exc = exc
             time.sleep(0.4 * (attempt + 1))
     raise last_exc if last_exc else RuntimeError("eastmoney http failed")

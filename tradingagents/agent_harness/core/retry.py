@@ -34,13 +34,25 @@ async def retry_async(
     *,
     policy: RetryPolicy,
     transient_exceptions: tuple[type[BaseException], ...] = (Exception,),
+    skip_exceptions: tuple[type[BaseException], ...] = (),
 ) -> T:
-    """Call ``func`` with retries; only re-raises on the last attempt."""
+    """Call ``func`` with retries; only re-raises on the last attempt.
+
+    ``skip_exceptions`` lets callers bypass retry for specific exception
+    types — used by the orchestrator for ``ProviderError`` because
+    network-level failures don't recover from N back-to-back retries
+    against the same upstream; the right answer is fallback to another
+    provider (handled one layer down in the builtin tools).
+    """
     last_err: BaseException | None = None
     for attempt in range(policy.max_retries + 1):
         try:
             return await func()
         except transient_exceptions as e:
+            if skip_exceptions and isinstance(e, skip_exceptions):
+                # Don't retry, don't double-log — just propagate so the
+                # caller (orchestrator) can surface the failure quickly.
+                raise
             last_err = e
             if attempt >= policy.max_retries:
                 break

@@ -25,6 +25,7 @@ from tradingagents.agent_harness.tools import ToolContext, ToolRegistry
 
 from .context import ContextPriority
 from .retry import CircuitBreaker, RetryPolicy, retry_async
+from web.market_models import ProviderError
 from .short_circuit import ShortCircuit
 from .tier import Intent, RouteResult, Tier, fast_route
 from .verification import VerificationLevel, Verifier
@@ -300,7 +301,15 @@ class Orchestrator:
                 return await tool.invoke(args, context)
 
             try:
-                result = await retry_async(_call, policy=self.retry_policy)
+                result = await retry_async(
+                    _call,
+                    policy=self.retry_policy,
+                    # Provider-level errors (network, rate-limit) don't help
+                    # from N back-to-back retries against the same upstream.
+                    # The builtin tools already wrap ProviderFailover, so
+                    # skip retry here and let that layer take over.
+                    skip_exceptions=(ProviderError,),
+                )
                 self.circuit_breaker.record_success()
                 return {"name": name, "result": self._dump(result)}
             except Exception as e:
