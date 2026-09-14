@@ -1112,6 +1112,8 @@ test_plugin = "tests.fixtures.test_plugin:TestPlugin"
 
 或在 `tradingagents` 环境下 `pip install -e .` + `pytest tests/` 验证全套测试。
 
+**DB Migration 011 已实施**(**N107 fix,2026-09-11**):v1 §Migration 提到「`web/migrations/011.sql` 跟 B2 一起做 user_preferences / agent_references 表」,**实际已实施**:`web/migrations/011_agent_memory.sql` 已存在,含 `CREATE TABLE user_preferences` (line 11) + `CREATE TABLE agent_references` (line 25)。harness 系列 spec(v2/v3)沿用这套表结构,不重复定义。
+
 **改造**:
 - `web/app.py` — 改 import 路径
 - `web/routes/agent.py` — 改 import 路径
