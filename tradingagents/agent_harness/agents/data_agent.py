@@ -45,11 +45,19 @@ class DataAgent(BaseAgent):
 
         # Real path: invoke tool_registry tools with proper schema validation.
         if self.tool_registry is not None:
-            for tool_name, args in (
+            specs = (
                 ("get_quote", {"symbol": symbol}),
                 ("get_fundamentals", {"symbol": symbol}),
-            ):
-                result = await self._call_tool(tool_name, args)
+            )
+            # Run independent read tools concurrently — quote + fundamentals
+            # have no data dependency on each other, so serial awaits would
+            # just stack latency. ``asyncio.gather`` preserves the order of
+            # ``specs`` even when one tool finishes first; per-tool failures
+            # are swallowed inside ``_call_tool`` (returns ``None``).
+            results = await asyncio.gather(
+                *(self._call_tool(name, args) for name, args in specs)
+            )
+            for (tool_name, _), result in zip(specs, results):
                 if result is not None:
                     tool_results.append({"name": tool_name, "result": result})
 
