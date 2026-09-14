@@ -16,6 +16,7 @@ LLM calls: 2 (plan + synthesize); L3 verifier adds 1 more if enabled.
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 from dataclasses import dataclass, field
 from typing import Any, AsyncIterator, Callable, Optional
@@ -29,6 +30,44 @@ from .tier import Intent, RouteResult, Tier, fast_route
 from .verification import VerificationLevel, Verifier
 
 LOGGER = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Verification helpers (P8 L3)
+# ---------------------------------------------------------------------------
+
+
+def _stringify(obj: Any) -> str:
+    if obj is None:
+        return ""
+    if isinstance(obj, str):
+        return obj
+    if hasattr(obj, "model_dump"):
+        return json.dumps(obj.model_dump(), ensure_ascii=False, default=str)
+    try:
+        return json.dumps(obj, ensure_ascii=False, default=str)
+    except Exception:
+        return str(obj)
+
+
+def _worst_verification(*results):
+    """Return the strictest (lowest ok, highest level) of the inputs."""
+    from .verification import VerificationLevel
+
+    if not results:
+        return None
+    ok = all(r.ok for r in results)
+    max_level = max((r.level for r in results), default=VerificationLevel.L1_STRUCTURAL)
+    reasons = [r.reason for r in results if r.reason]
+    details = {f"L{i+1}": r.details for i, r in enumerate(results) if r.details}
+    from .verification import VerificationResult
+    return VerificationResult(
+        ok=ok,
+        level=max_level,
+        reason="; ".join(reasons) if reasons else "ok",
+        details=details or None,
+    )
+
+
 
 
 @dataclass
@@ -67,6 +106,7 @@ class Orchestrator:
         circuit_breaker: CircuitBreaker,
         audit: Any,
         enable_l3: bool = False,
+        judge_factory: Any | None = None,
     ) -> None:
         self.tool_registry = tool_registry
         self.agent_registry = agent_registry
@@ -78,7 +118,8 @@ class Orchestrator:
         self.enable_l3 = enable_l3
 
         self._short_circuit = ShortCircuit(tool_registry)
-        self._verifier = Verifier()
+        # Verifier gets its own judge_factory (N89 fix: judge model != main LLM)
+        self._verifier = Verifier(judge_factory=judge_factory)
 
     # ------------------------------------------------------------------
     # Public streaming entry
@@ -121,7 +162,7 @@ class Orchestrator:
             observations = self._observe(state)
             yield ("observed", observations)
 
-            verification = self._verify(state)
+            verification = await self._verify(state)
             yield ("verified", {"ok": verification.ok, "level": int(verification.level)})
 
             final = await self._synthesize(state)
@@ -229,8 +270,8 @@ class Orchestrator:
             "errors": errors,
         }
 
-    def _verify(self, state: OrchestratorState) -> Any:
-        """VerifyNode — run L1 + L2 checks (L3 is opt-in)."""
+    async def _verify(self, state: OrchestratorState) -> Any:
+        """VerifyNode — run L1 + L2 (+ L3 if enabled) checks."""
         l1_ok = True
         for r in state.tool_results:
             check = self._verifier.verify_l1({"name": r.get("name", "")}, r.get("result"))
@@ -246,7 +287,40 @@ class Orchestrator:
                 "args": {"symbol": state.symbols[0]} if state.symbols else {},
             })
         l2 = self._verifier.verify_l2(state.intent.value, state.tool_results)
-        return l2 if l1_ok else l2
+
+        # L3 LLM-judge (spec §D6, N12 fix): only when tool_results > 4
+        # AND user explicitly enabled (UI toggle / HarnessConfig). L3 only
+        # runs when L1 passes — otherwise there's nothing grounded to judge.
+        if (
+            l1_ok
+            and self.enable_l3
+            and self._verifier.should_run_l3(state.tool_results, enable_l3=True)
+        ):
+            try:
+                # Reconstruct an LLM answer from the state if available.
+                llm_answer = ""
+                if isinstance(state.final, dict):
+                    llm_answer = state.final.get("summary", "") or _stringify(state.final)
+                else:
+                    llm_answer = _stringify(state.final)
+                l3 = await self._verifier.verify_l3(
+                    user_query=state.user_message,
+                    tool_results=state.tool_results,
+                    llm_answer=llm_answer,
+                )
+                # L3 verdict short-circuits if it fails (back-to-plan per spec).
+                if not l3.ok:
+                    state.plan.append({
+                        "step": len(state.plan) + 1,
+                        "action": "synthesize",
+                        "args": {"replan_reason": l3.reason, "judge": l3.details or {}},
+                    })
+                # Return worst-of L1/L2/L3 so downstream sees the strictest verdict.
+                return _worst_verification(l2, l3)
+            except Exception as e:
+                LOGGER.warning("L3 verification failed, falling back to L1+L2: %s", e)
+
+        return l2
 
     async def _synthesize(self, state: OrchestratorState) -> Any:
         """SynthesizeNode — turn tool results into a final answer."""

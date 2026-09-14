@@ -24,6 +24,13 @@ class HarnessConfig(BaseModel):
     llm_model: str = "MiniMax-M3"
     log_level: str = "INFO"
 
+    # L3 LLM-judge 模型 (spec §D6 N89 fix):judge 不复用主 LLM,需更强模型
+    # (GPT-4o / Claude Sonnet / Claude Opus)。judge_provider / judge_model
+    # 不配置时复用主 LLM。
+    judge_provider: str = ""
+    judge_model: str = ""
+    enable_l3: bool = False  # L3 LLM-judge 总开关 (UI toggle 同步)
+
     @classmethod
     def from_env(cls) -> "HarnessConfig":
         return cls(
@@ -31,6 +38,9 @@ class HarnessConfig(BaseModel):
             llm_provider=os.environ.get("TRADINGAGENTS_LLM_PROVIDER", "minimax-cn"),
             llm_model=os.environ.get("TRADINGAGENTS_LLM_MODEL", "MiniMax-M3"),
             log_level=os.environ.get("TRADINGAGENTS_LOG_LEVEL", "INFO"),
+            judge_provider=os.environ.get("TRADINGAGENTS_JUDGE_PROVIDER", ""),
+            judge_model=os.environ.get("TRADINGAGENTS_JUDGE_MODEL", ""),
+            enable_l3=os.environ.get("TRADINGAGENTS_ENABLE_L3", "0").lower() in {"1", "true", "yes", "on"},
         )
 
     @classmethod

@@ -54,6 +54,16 @@ class Harness:
             default_model=self.config.llm_model,
         )
 
+        # 4b. judge_factory — L3 LLM-judge 模型 (spec §D6 N89 fix: judge
+        # 不复用主 LLM)。judge_provider/model 为空时回退到主 LLM factory。
+        if self.config.judge_provider and self.config.judge_model:
+            self.judge_factory = LLMFactory(
+                default_provider=self.config.judge_provider,
+                default_model=self.config.judge_model,
+            )
+        else:
+            self.judge_factory = self.llm_factory
+
         # 3. AgentRegistry + 6 builtin agents (N64 fix, P8 LLM wiring).
         # Inject llm_factory + tool_registry so each agent.run() can do real
         # work; without injection the agents fall back to heuristic stubs.
@@ -76,7 +86,19 @@ class Harness:
             SynthesizerAgent,
         )
         for cls in agent_classes:
-            agent = cls(llm_factory=self.llm_factory, tool_registry=self.tool_registry)
+            if cls is VerifierAgent:
+                # VerifierAgent 拿额外的 judge_factory + enable_l3
+                agent = cls(
+                    llm_factory=self.llm_factory,
+                    tool_registry=self.tool_registry,
+                    judge_factory=self.judge_factory,
+                    enable_l3=self.config.enable_l3,
+                )
+            else:
+                agent = cls(
+                    llm_factory=self.llm_factory,
+                    tool_registry=self.tool_registry,
+                )
             self.agent_registry.register(agent)
 
         # 5. data_registry (PROVIDERS dict)
@@ -125,6 +147,8 @@ class Harness:
             retry_policy=self.retry_policy,
             circuit_breaker=self.circuit_breaker,
             audit=self.audit,
+            enable_l3=self.config.enable_l3,
+            judge_factory=self.judge_factory,
         )
 
         LOGGER.info(
