@@ -147,7 +147,7 @@ flowchart TB
     %% Cross-cutting 关联
     ContextPriority -.injects.-> PlanNode
     ContextPriority -.injects.-> SynthNode
-    Verification -.wraps.-> ExecuteNode  %% 注意:v2 §D5 VerifyNode 是主图独立 node,这里 wraps 指 L1 hook 在 tool_invoke 前后跑
+    Verification -.wraps.-> ExecuteNode  %% N11 fix,2026-09-14:v2 §D5 VerifyNode 是主图独立 node,这里 wraps 指 L1 hook 在 tool_invoke 前后跑 — 图示与 §D5 主图节点定义不冲突
     Retry -.wraps.-> Verification
 
     %% LLM

@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-11
 **Stage:** C Day 11d (增量设计,基于 v1 spec `2026-09-10-finance-general-agent-design.md`)
-**Status:** ✅ **Approved** (17 轮 review 完成,2026-09-14,N1-N122 共 108+ 个 fix 已应用;5 个 P2 N8-N12 留实施时再修)
+**Status:** ✅ **Approved** (17 轮 review 完成 + Day 14 实施收尾,2026-09-14,N1-N122 共 113 个 fix 已应用;P2 N8-N12 全部修完)
 **Branch:** `codex/finance-general-agent`
 **前置依赖:** 无(可立即基于现有代码开工)
 
@@ -178,12 +178,14 @@ def get_quote(symbol: str, asset_type: str = "stock") -> dict:
     """获取单个标的最新行情"""
     args = QuoteArgs(symbol=symbol, asset_type=asset_type)  # validate
     data = PROVIDERS[get_active_provider()].get_quote(args.symbol, args.asset_type)
+    # N8 fix, 2026-09-14: 返回 QuoteResult 实例(LangChain StructuredTool 会
+    # 自动调 .model_dump() 序列化),不再手动调用 .model_dump()
     return QuoteResult(
         results=data,
         provider=get_active_provider(),
         fetched_at=datetime.utcnow(),
         warnings=[],
-    ).model_dump()
+    )
 ```
 
 ### D3. Workflow 独立 — `run_trading_agents_analysis` 走独立 orchestrator
@@ -315,6 +317,11 @@ llm_answer: {llm_answer}
 **L3 默认关闭,UI 加 toggle**(O13 拍板):
 - 关闭:跳过 L3,L1+L2 通过即 verified
 - 开启:额外 ~500 token,质量 +2-3x
+
+**L3 启用条件**(N12 fix,2026-09-14,从 §6 R3 回写):
+- tool_result 数量 **> 4**(N12 fix,2026-09-14;原写"≥ 4"是 v2 草案笔误,严格大于 4 才触发)
+- 用户主动开启(UI toggle 或 `HarnessConfig.enable_l3=True`)
+- 两个条件**同时**满足才调 L3 LLM-judge;否则跳过(0 额外 token)
 
 ---
 
