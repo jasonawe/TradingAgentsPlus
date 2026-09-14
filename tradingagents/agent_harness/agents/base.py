@@ -44,13 +44,51 @@ class AgentContext:
 
 class BaseAgent(ABC):
     """Sub-agent contract — N64 fix: agents are registered directly on
-    AgentRegistry (not via Plugin.agents() — that just returns refs)."""
+    AgentRegistry (not via Plugin.agents() — that just returns refs).
+
+    Optional LLM / tool injection (P8):
+        Agents that take ``llm_factory`` + ``tool_registry`` will do real
+        work when wired up by the Harness; otherwise they fall back to
+        heuristic stubs so they remain unit-testable without API keys.
+    """
 
     name: str
     description: str
     tools: list
     system_prompt: str = ""
     timeout_seconds: float = 60.0
+
+    def __init__(
+        self,
+        *,
+        llm_factory: Any | None = None,
+        tool_registry: Any | None = None,
+    ) -> None:
+        self.llm_factory = llm_factory
+        self.tool_registry = tool_registry
+
+    # ------------------------------------------------------------------
+    # LLM / tool helpers (shared by all 6 agents)
+    # ------------------------------------------------------------------
+    def _llm_available(self) -> bool:
+        return (
+            self.llm_factory is not None
+            and hasattr(self.llm_factory, "is_configured")
+            and self.llm_factory.is_configured()
+        )
+
+    def _llm_complete(self, prompt: str, *, temperature: float = 0.0) -> str | None:
+        """Single-turn LLM call. Returns ``None`` on any failure (caller falls back)."""
+        if not self._llm_available():
+            return None
+        try:
+            provider = self.llm_factory.make()
+            response = provider.complete_text(
+                prompt=prompt, system=self.system_prompt, temperature=temperature
+            )
+            return getattr(response, "content", response) or None
+        except Exception:
+            return None
 
     @abstractmethod
     async def run(self, input: AgentInput, *, context: AgentContext) -> AgentResult:

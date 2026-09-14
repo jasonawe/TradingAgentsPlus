@@ -46,7 +46,17 @@ class Harness:
         self.tool_registry = ToolRegistry()
         install_builtin_tools(self.tool_registry)
 
-        # 3. AgentRegistry + 6 builtin agents (N64 fix)
+        # 4. llm_factory — wraps tradingagents/llm_clients (v3 spec §3 llm/).
+        # Built BEFORE agents so we can inject it into them.
+        from tradingagents.agent_harness.llm import LLMFactory
+        self.llm_factory = LLMFactory(
+            default_provider=self.config.llm_provider,
+            default_model=self.config.llm_model,
+        )
+
+        # 3. AgentRegistry + 6 builtin agents (N64 fix, P8 LLM wiring).
+        # Inject llm_factory + tool_registry so each agent.run() can do real
+        # work; without injection the agents fall back to heuristic stubs.
         from tradingagents.agent_harness.agents import (
             AgentRegistry,
             AlphaAgent,
@@ -57,8 +67,17 @@ class Harness:
             VerifierAgent,
         )
         self.agent_registry = AgentRegistry()
-        for cls in (PlannerAgent, VerifierAgent, DataAgent, AlphaAgent, NewsAgent, SynthesizerAgent):
-            self.agent_registry.register(cls())
+        agent_classes = (
+            PlannerAgent,
+            VerifierAgent,
+            DataAgent,
+            AlphaAgent,
+            NewsAgent,
+            SynthesizerAgent,
+        )
+        for cls in agent_classes:
+            agent = cls(llm_factory=self.llm_factory, tool_registry=self.tool_registry)
+            self.agent_registry.register(agent)
 
         # 5. data_registry (PROVIDERS dict)
         from tradingagents.data.providers.registry import PROVIDERS
@@ -96,13 +115,6 @@ class Harness:
         for cls in (QuantPlugin, NewsPlugin, AlertPlugin):
             self.plugin_registry.register(cls())
         self.plugin_registry.discover_entry_points()
-
-        # 4. llm_factory — wraps tradingagents/llm_clients (v3 spec §3 llm/)
-        from tradingagents.agent_harness.llm import LLMFactory
-        self.llm_factory = LLMFactory(
-            default_provider=self.config.llm_provider,
-            default_model=self.config.llm_model,
-        )
 
         # 13. orchestrator (depends on 2, 3, 9, 10)
         self.orchestrator = Orchestrator(
