@@ -46,10 +46,19 @@ class Harness:
         self.tool_registry = ToolRegistry()
         install_builtin_tools(self.tool_registry)
 
-        # 3. AgentRegistry (P5 阶段填充 6 个 agent)
-        # 延迟导入避免 P4 阶段循环
-        from tradingagents.agent_harness.agents.registry import AgentRegistry
+        # 3. AgentRegistry + 6 builtin agents (N64 fix)
+        from tradingagents.agent_harness.agents import (
+            AgentRegistry,
+            AlphaAgent,
+            DataAgent,
+            NewsAgent,
+            PlannerAgent,
+            SynthesizerAgent,
+            VerifierAgent,
+        )
         self.agent_registry = AgentRegistry()
+        for cls in (PlannerAgent, VerifierAgent, DataAgent, AlphaAgent, NewsAgent, SynthesizerAgent):
+            self.agent_registry.register(cls())
 
         # 5. data_registry (PROVIDERS dict)
         from tradingagents.data.providers.registry import PROVIDERS
@@ -71,8 +80,15 @@ class Harness:
         self.retry_policy = RetryPolicy(max_retries=2, backoff_seconds=0.5, exponential=True)
         self.circuit_breaker = CircuitBreaker(failure_threshold=5, reset_seconds=30.0)
 
-        # 12. plugin registry — placeholder (P6)
-        self.plugin_registry = None
+        # 12. plugin registry + builtin plugins (P6)
+        from tradingagents.agent_harness.plugins import PluginRegistry
+        from tradingagents.agent_harness.plugins.builtin import (
+            AlertPlugin, NewsPlugin, QuantPlugin,
+        )
+        self.plugin_registry = PluginRegistry(self)
+        for cls in (QuantPlugin, NewsPlugin, AlertPlugin):
+            self.plugin_registry.register(cls())
+        self.plugin_registry.discover_entry_points()
 
         # 4. llm_factory — placeholder (依赖 llm_clients)
         self.llm_factory = None
@@ -89,7 +105,7 @@ class Harness:
         )
 
         LOGGER.info(
-            "Harness ready (tools=%d, providers=%d, stage=P3+P4)",
+            "Harness ready (tools=%d, providers=%d, stage=P3+P4+P5+P6)",
             len(self.tool_registry.list_all()),
             len(self.data_registry),
         )
