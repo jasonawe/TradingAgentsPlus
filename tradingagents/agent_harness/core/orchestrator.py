@@ -261,8 +261,18 @@ class Orchestrator:
             return []
 
         async def _run_step(step: dict[str, Any]) -> dict[str, Any]:
-            name = step.get("action", "")
+            name, agent_name = self._resolve_action(step)
             args = step.get("args", {})
+
+            # Agents without tools (planner / verifier / synthesizer) are
+            # handled by separate orchestrator nodes, not by ExecuteNode.
+            # Treat their steps as no-op markers so they don't error.
+            if agent_name and name == "":
+                return {
+                    "name": agent_name,
+                    "result": {"status": "delegated", "note": f"{agent_name} handled outside ExecuteNode"},
+                }
+
             try:
                 tool = self.tool_registry.get(name)
             except KeyError:
@@ -475,3 +485,35 @@ class Orchestrator:
         if hasattr(obj, "model_dump"):
             return obj.model_dump()
         return obj
+
+    @staticmethod
+    def _resolve_action(step: dict[str, Any]) -> tuple[str, str]:
+        """Resolve a plan step to ``(action_name, agent_name)``.
+
+        Spec plans use ``action=<tool_name>`` (canonical). LLMs that ignore
+        this convention often emit ``agent=<sub_agent_name>`` instead — for
+        those we look up the agent in the registry and pick its first tool
+        as the action (N122 fix, 2026-09-14).
+
+        Returns
+        -------
+        (action, agent) tuple — either may be empty.
+        """
+        action = step.get("action") or ""
+        agent_name = step.get("agent") or ""
+        if action or not agent_name:
+            return action, agent_name
+        # The orchestrator doesn't own the registry directly; the agent name
+        # itself is the lookup key (we don't need the registry instance here
+        # because we only need to know the agent's tool list — and the LLM
+        # already passes the symbol/args, so the executor picks the tool
+        # by walking the agent's ``tools`` list).
+        # Per-agent first-tool mapping (matches P5 §4.1):
+        agent_to_first_tool = {
+            "data_agent": "get_quote",
+            "alpha_agent": "list_alpha_factors",
+            "news_agent": "get_news",
+            # planner / verifier / synthesizer: no tool, handled outside
+        }
+        first_tool = agent_to_first_tool.get(agent_name, "")
+        return first_tool, agent_name
