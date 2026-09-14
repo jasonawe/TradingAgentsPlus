@@ -1284,3 +1284,268 @@ agent-loop renders assembly → renderPrompt(text) → commits as system/message
 > 我们的 `ContextPriority` 是**固定 8 层的 budget 控制器**,dsh 的 `ctx.systemPrompt` 是**任意 section 的动态装配器**。dsh 表达力更强(plugin 弱化),我们有预算保护。
 >
 > 该学的不是"它们怎么拼 prompt",而是 **"section 化 + variable 插值 + scope 隔离 + cooperative waterfall"**——这 4 个心智模型能让 prompt 装配从"硬编码字符串拼接"变成"plugin 可扩展的动态组装"。
+
+---
+
+## 十四、补读 — conversation + llm-streaming + agent-team(合一分析)
+
+> 本次 3 篇连读:`conversation.md`(17KB,对应我们 SSE)+ `llm-streaming.md`(62KB,对应我们 LLMProvider)+ `agent-team.md`(20KB,可选)。
+
+### 14.1 conversation.md — target-neutral 装配层
+
+#### 14.1.1 数据模型
+
+dsh 的 `ConversationNodeAssembler` 是 **Session events ↔ browser views** 的中间层:
+
+| 概念 | 职责 |
+|---|---|
+| **Event Definition** | 业务插件声明 "匹配某 event,关联 (kind,id),折叠 State,可选生成 target node" |
+| **Context** | 引擎拥有:有序 Matches + 当前 State,按 `(kind,id)` 关联 |
+| **Location** | 引擎拥有:Session / Turn / Step 坐标,Definition 可发布 typed data 到 Turn/Step |
+| **View Definition** | target 包声明:增量 builder + 最终 snapshot 类型 |
+| **View** | Slot(Chat / Trajectory)只读自己 target snapshot 渲染 |
+
+#### 14.1.2 Event Definition 6 件套
+
+```ts
+interface ConversationNodeDefinition<State> {
+  kind: string                              // 业务 id
+  target: string                            // 渲染到哪个 view
+
+  match(event: SessionEventLike): { id, role: 'start' | 'update' } | null
+  start(context, match): State              // 只在 start 时调一次
+  update(context, match): State             // 每次 update 时调
+  publication: (match) => 'immediate' | 'animation-frame' | 'none'
+
+  buildLocationData(context, scope): LocationData | null  // 共享到 Turn/Step
+  buildViewNode(context): ViewNode | null                // target 渲染节点
+}
+```
+
+#### 14.1.3 8 个 Verification Obligations(replay correctness)
+
+1. 完整 window replace → 期望 State / Location / Node / anchorSeq
+2. update-only tail 保持 pending,prepend 唯一 start → 同 replace 结果
+3. 初始历史 + live append → 同 replay combined window
+4. Prepend 老 page 不破坏现有 keyed Node
+5. 重复 delta 保持 `context.key`,动画帧合并发布
+6. Keyed renderer 只消费 `node.data` + 约束 hooks,不扫 Session
+7. Scalar + packed Assistant history 同结果
+8. 创建 target source 不创建 builder,显式 select 才建
+
+#### 14.1.4 vs 我们的 SSE 推送
+
+| 维度 | 我们的 `stream_chat` | dsh ConversationNodeAssembler |
+|---|---|---|
+| 推送模型 | `AsyncIterator[(event, payload)]` 单一通道 | Definition 注册制,每个 target 一个 snapshot |
+| 增量更新 | 没有 — 每次 yield 完整 payload | State 折叠,只 publish 变化部分 |
+| 渲染目标 | 前端固定解析 `(event, payload)` | View 注册,可扩展(Trajectory / ToolGroup / MetricChart 等) |
+| Replay | 无 | 8 项 correctness 验证,可从 Session log 重放 |
+| Animation frame | 无 | `publication: 'animation-frame'` 节流 |
+| Predecessor | 无 | `reader.previous<State>(kind)` 取最近历史 |
+| Location | 无 | Turn/Step typed data,可被其他 node 共享 |
+| 第三方扩展 | 加新 event 类型要改前端 | 加 Definition + 注册 slot,不改框架 |
+
+#### 14.1.5 dsh 做得更好的 5 个
+
+| # | 设计 | 价值 |
+|---|---|---|
+| A | Event Definition 注册制 | 极高 — 业务 plugin 可自挂,不需改 framework |
+| B | State 折叠(增量) | 高 — 高频 update 不重复推 |
+| C | Location typed data(Turn/Step) | 中-高 — 跨 node 共享上下文 |
+| D | Predecessor read(`reader.previous`) | 中 — "取最近一次 review job" 类查询 |
+| E | Publication cadence(`immediate` / `animation-frame` / `none`) | 中 — 渲染节流 |
+
+### 14.2 llm-streaming.md — StreamChunk 协议
+
+#### 14.2.1 7 种 chunk 类型(closed discriminated union)
+
+```ts
+type StreamChunk =
+  | { type: 'block-start'; index: number; blockType: ContentBlockType }
+  | { type: 'text-delta'; index: number; text: string }
+  | { type: 'reasoning-delta'; index: number; text: string }
+  | { type: 'tool-call-delta'; index: number; id: ToolCallId; name?: string; argumentsDelta: string }
+  | { type: 'block-end'; index: number; block: ContentBlock }
+  | { type: 'usage'; usage: TokenUsage }
+  | {
+    type: 'finish'
+    reason: FinishReason
+    replayState?: ReplayEnvelope
+  }
+```
+
+`index` 关联 interleaved deltas。`block-end` 携带组装好的 `ContentBlock`,消费者不用自己重组。
+
+#### 14.2.2 `BlockAssembler`(单实现,所有 adapter 复用)
+
+```ts
+class BlockAssembler {
+  push(chunk: StreamChunk): void              // 流式喂
+  blocks(): ContentBlock[]                    // 全部 block
+  interruptedBlocks(): ContentBlock[]         // 中断前缀(只 closed + 非空白 text/reasoning,跳过未 dispatch 的 tool call)
+  usage: TokenUsage | undefined
+  finish: FinishReason                        // 默认 {kind: 'stop'}
+  replayState: ReplayEnvelope | undefined     // 跟 blocks 对齐,drop 时同步 drop per-block entry
+  message(source): Message                    // frozen Assistant message
+}
+```
+
+`max-tokens` finish **drop 所有 tool call**(截断的工具调用不安全执行),同步 drop replay envelope 对应 entry。
+
+#### 14.2.3 Adapter 必须遵守的 7 条契约(强烈推荐我们照搬)
+
+1. **emit `usage` BEFORE `finish`,finish 后不再 emit 任何东西**(最稳健做法:缓冲 finish/usage 到流结束 marker)
+2. **Tool-call `arguments` 全程 RAW JSON string**,`argumentsDelta` 是 stream 增量;adapter 如果拿到 parsed object,在 `block-end` 时 re-stringify
+3. **block `index` 按 first-seen 顺序分配**,同 block 的所有 delta 复用
+4. **错误两条合法路径**:`throw` (transport / protocol 失败,用 `LlmError` + stable code) OR `finish {kind: 'error'|'aborted'}` (provider in-band)
+5. **Honor `options.signal`**(传给 fetch / SDK)
+6. **不识别的 provider option 抛 `LlmError('UNSUPPORTED_OPTION')`**,不静默丢弃
+7. **replayState** 只在 historical provider 和 target provider 是 **同一个 adapter 实例** 时透传;adapter 决定是否合法,不要从 provider/model 名推断
+
+#### 14.2.4 TokenUsage(disjoint 计数)
+
+```ts
+interface TokenUsage {
+  inputTokens: number                              // uncached input
+  outputTokens: number
+  totalTokens?: number                             // exact aggregate,可选
+  cacheReadTokens?: number
+  cacheWriteTokens?: number
+  reasoningTokens?: number                         // informational,已包含在 outputTokens
+}
+```
+
+`reasoningTokens` 是 detail,total **不能再加**它。adapters whose providers fold cache hits into a single prompt total (DeepSeek's `prompt_tokens`) 减去它们。
+
+#### 14.2.5 ResolvedRetryPolicy
+
+```ts
+type ResolvedRetryPolicy =
+  | { mode: 'normal'; maxRetries: number; retryableCodes: string[]; initialDelayMs: number; maxDelayMs: number; jitterRatio: number }
+  | { mode: 'always'; initialDelayMs: number; maxDelayMs: number; jitterRatio: number }
+```
+
+默认 normal 5 retries。`llmRetryPolicyOf(stream)` 捕获 serving 注册时的 policy,route 销毁或替换后 in-flight failure 的恢复策略不变。
+
+#### 14.2.6 vs 我们的 `LLMProvider`
+
+| 维度 | 我们的 LLMProvider | dsh LlmAdapter |
+|---|---|---|
+| 抽象粒度 | `complete(messages) -> LLMResponse`(单次,无流式) | `stream(options) -> AsyncIterable<StreamChunk>` |
+| 流式协议 | ❌ 无 | ✅ 7 种 chunk,closed discriminated union |
+| Block index | N/A | first-seen 分配,delta 复用 |
+| Usage before finish | N/A | **强约束** |
+| Replay state | N/A | opaque per-block envelope,adapter 拥有 |
+| Token accounting | `usage: dict[str, int]`(随便塞)| disjoint TokenUsage(input/output/cacheRead/cacheWrite/reasoning/total)|
+| Retry policy | `RetryPolicy(max_retries, backoff_seconds, exponential)` | ResolvedRetryPolicy(normal/always, retryableCodes, jitter) |
+| Error normalization | 不统一 | `LlmFailure{message/code/statusCode/providerRetryAfterMs/ProviderRequestId}` |
+| AppIdentity(User-Agent) | 不知道 | 强制,默认从 package manifest 拿 |
+| Reasoner toggle | 不知道 | `resolveModel()` 配 reasoning 字段,adapter 自己管 wire format |
+| `signal` 支持 | 没强约束 | **Honor `options.signal`** 硬约束 |
+
+#### 14.2.7 dsh 做得更好的 8 个
+
+| # | 设计 | 价值 |
+|---|---|---|
+| A | **StreamChunk 7 类型 + closed union** | 极高 — 流式响应是 harness 的未来 |
+| B | **usage before finish 强约束** | 高 — 防止 in-band 计费漏洞 |
+| C | **disjoint TokenUsage 字段** | 高 — cache/reasoning 精确计费 |
+| D | **LlmFailure 统一序列化** | 高 — 上层 retry 决策可靠 |
+| E | **ResolvedRetryPolicy retryableCodes** | 中-高 — 按错误类型决定是否重试 |
+| F | **replayState opaque envelope** | 中 — 跨 session resume 用 |
+| G | **AppIdentity User-Agent 强制** | 中 — provider 友好 |
+| H | **BlockAssembler 单实现** | 中 — 不需每个 adapter 写自己的 fold |
+
+### 14.3 agent-team.md — 多 Agent 协作(实验性)
+
+#### 14.3.1 数据模型
+
+- **Lead Session** + **teammates**(每个 teammate = 自己的 Session)
+- **TeamMember**:phases = `provisioning` → `active` | `failed`(终态)
+- **TeamTaskSnapshot**:`{id, revision, subject, description, status, ownerId?, blockedBy[], writeScopes[]}`
+  - `revision` CAS 字段,每次 +1
+  - `blockedBy` 必须 non-deleted,acyclic
+  - `writeScopes` advisory,不是锁
+- **TeamMessageSnapshot**:peer-to-peer message,queued-minus-delivered = recovery mailbox
+- **TeamMessageSource**:`{kind: 'team-message', teamId, messageId, senderId, senderName}` 持久化在 inbox / user message 上
+
+#### 14.3.2 调度
+
+- **Steer delivery**:running target 下个 step 边界收;idle target 开 turn;inactive cold-resume
+- **Mode 不持久化**(callers 不能选其他 mode)
+- **foldTeam()**:从 root Session log 回放(类似 `deriveMessages` for Team)
+
+#### 14.3.3 Service API
+
+```ts
+class TeamService {
+  membership(agent): TeamMembership          // 查 agent 在哪个 team
+  listMembers(agent): TeamMemberView[]       // 列出可见 roster(Lead + teammates)
+  spawnTeammate(caller, request): Promise<SpawnTeammateResult>  // 建 continuable child
+  queueMessage(caller, request): Promise<...>                   // 投 peer message
+}
+```
+
+#### 14.3.4 对我们的相关性
+
+**短期(本季度):低** — 我们没有 multi-agent team 需求。
+**长期(看需求):中** — 未来如果做"研究员 agent + 交易员 agent + 风控 agent"协作,可参考。
+
+### 14.4 综合 — 三合一启示
+
+#### 14.4.1 价值最高的(直接对应我们问题)
+
+| # | 来源 | 动作 | 价值 | 工作量 |
+|---|---|---|---|---|
+| **A1** | streaming §14.2.3 | **LLM 流式协议 + 7 条 adapter 契约** | 极高 — 用户问"深度分析 600036 估值"时,LLM 边生成边推 | 1d |
+| **A2** | streaming §14.2.4 | **TokenUsage disjoint 精确计费** | 高 — 我们 cache hit / reasoning token 现在算不准 | 0.5d |
+| **A3** | streaming §14.2.5 | **ResolvedRetryPolicy retryableCodes** | 中-高 — provider 限流 / 配额用完精确处理 | 0.5d |
+| **A4** | conversation §14.1.4 A | **Event Definition 注册制**(前端 SSE 扩展点)| 中 — 加新 event 类型不再改 framework | 1d |
+| **A5** | streaming §14.2.7 D | **LlmFailure 统一序列化** | 高 — 上层 retry 决策可靠 | 0.5d |
+
+#### 14.4.2 中等价值(锦上添花)
+
+| # | 来源 | 动作 | 价值 | 工作量 |
+|---|---|---|---|---|
+| **B1** | conversation §14.1.4 B | State 折叠(增量推送)| 中 — 高频 update 减少重复 | 1d |
+| **B2** | conversation §14.1.4 E | Publication cadence 节流 | 中 — 渲染性能 | 0.5d |
+| **B3** | streaming §14.2.7 H | BlockAssembler 单实现 | 中 — 简化我们的流式折 叠 | 0.5d |
+| **B4** | streaming §14.2.7 G | AppIdentity User-Agent | 低 — provider 友好 | 0.5d |
+
+#### 14.4.3 低价值 / 不该搬
+
+| 来源 | 设计 | 不搬的原因 |
+|---|---|---|
+| conversation §14.1.4 C | Location typed data(Turn/Step)| 我们 SSE 模型简单,不需要 Turn/Step 共享 typed data |
+| conversation §14.1.4 D | Predecessor read | 我们前端简单,不需要 |
+| streaming §14.2.7 F | replayState opaque envelope | 我们没跨 session resume |
+| agent-team §14.3 | 多 Agent 协作 / task DAG | 本季度不需要 |
+
+### 14.5 总预算 vs 之前的 roadmap
+
+之前 §13.9 + §12.6 + §11.4 累计推荐工作量:
+
+- §11(P0):3.5d(quote_provider / PTC / 5 阶段 / surface event)
+- §12(P0+M1/M2/M3):1.5d(append-only log / Session 1st / Turn/Step)
+- §13(P0-S1/S2/S3):1.5d(system as event / section-context / {{var}})
+- §14 本节(新增 P0):3.5d(A1-A5)
+- 累计 P0:**约 10 天**(2 周)
+
+如果只做 P0 最高价值的:
+
+```
+Day 1-2: §11 P0-1 + P0-2(quote_provider seam + PTC 模式骨架)— 直接回应老痛点
+Day 3:   §11 P0-3 + §13 P0-S1(tool 5 阶段 + system as event)— 管线 + 审计
+Day 4:   §14 A1 + A2(streaming 协议 + TokenUsage)— 流式 + 计费
+Day 5:   §14 A5 + A3(LlmFailure + retryableCodes)— 错误处理 + retry 精准
+Day 6-7: §12 P0-M1(append-only event log)— 审计回放
+Day 8-9: §13 P0-S2 + S3(section / context / {{var}})— prompt 装配升级
+Day 10:  §14 A4(前端 SSE Definition 注册制)
+```
+
+### 14.6 一句话总结
+
+> 我们的 `stream_chat` 是**单通道 SSE 推送**,dsh 的 `ConversationNodeAssembler` 是**注册制可扩展**;我们的 `LLMProvider` 是**单次 complete**,dsh 的 `LlmAdapter` 是**流式 + 7 条硬契约**;我们的 SSE 改进空间 = **流式 LLM 响应 + Definition 注册 + 精确计费 + 统一错误**。
+>
+> 该学的不是"它们怎么流式 / 怎么注册",而是 **"adapter 契约 + State 折叠 + publication cadence + disjoint 计费"**——4 个心智模型能让我们的 LLM call 和 SSE 推送从"能跑"变成"可扩展 + 可计费 + 可观测"。
