@@ -64,14 +64,20 @@ class Harness:
         from tradingagents.data.providers.registry import PROVIDERS
         self.data_registry = PROVIDERS
 
-        # 6. memory — placeholder (P5+ 实现)
+        # 6. memory — placeholder (留 P5+ 实现)
         self.memory = None
 
-        # 7. audit — placeholder (P5+ 实现)
-        self.audit = None
+        # 7. audit (P7)
+        from tradingagents.agent_harness.observability import AuditLogger
+        self.audit = AuditLogger(self.config.data_dir)
 
-        # 8. health — placeholder (P7 实现)
-        self.health = None
+        # 8. health (P7)
+        from tradingagents.agent_harness.observability import (
+            HealthChecker, Metrics, Tracer,
+        )
+        self.health = HealthChecker()
+        self.metrics = Metrics()
+        self.tracer = Tracer()
 
         # 9. context priority
         self.context_priority = ContextPriority()
@@ -105,7 +111,7 @@ class Harness:
         )
 
         LOGGER.info(
-            "Harness ready (tools=%d, providers=%d, stage=P3+P4+P5+P6)",
+            "Harness ready (tools=%d, providers=%d, stage=P3+P4+P5+P6+P7)",
             len(self.tool_registry.list_all()),
             len(self.data_registry),
         )
@@ -133,3 +139,31 @@ class Harness:
 
     def list_tools(self):
         return self.tool_registry.list_all()
+
+
+# ---------------------------------------------------------------------------
+# FastAPI integration helper
+# ---------------------------------------------------------------------------
+
+def mount_health_endpoint(app, harness: "Harness", path: str = "/api/harness/health") -> None:
+    """Attach the `` /api/harness/health `` endpoint to ``app``.
+
+    Caller decides when to call this (e.g. inside ``web/app.create_app()``);
+    we keep the harness package free-free of FastAPI dependencies.
+    """
+    try:
+        from fastapi import HTTPException  # type: ignore
+    except ImportError as e:
+        raise RuntimeError(
+            "FastAPI is required to mount the health endpoint; "
+            "pip install fastapi"
+        ) from e
+
+    @app.get(path)
+    async def _health():  # type: ignore[misc]
+        try:
+            return await harness.health.check_all(harness)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    LOGGER.info("mounted harness health endpoint at %s", path)
