@@ -49,11 +49,6 @@
     if (entryBtn) {
       entryBtn.addEventListener("click", openDrawer);
     }
-    // Day 11: sidebar AI 入口也绑定 openDrawer
-    const sidebarAgentBtn = document.getElementById("sidebar-agent-btn");
-    if (sidebarAgentBtn) {
-      sidebarAgentBtn.addEventListener("click", openDrawer);
-    }
     if (closeBtn) {
       closeBtn.addEventListener("click", closeDrawer);
     }

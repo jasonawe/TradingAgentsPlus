@@ -314,6 +314,83 @@
     dispatchEvent(eventName, payload, assistant);
   }
 
+  // Client-side pretty-printer for Tier-1 raw tool results (no LLM
+  // synthesis). Detects the schema shape and emits a readable summary
+  // instead of dumping the raw dict — the JSON form was confusing users
+  // who asked simple quote questions.
+  function formatRawResult(result, tier) {
+    if (!result || typeof result !== "object") return JSON.stringify(result || {}, null, 2);
+    // Tier 1 QuoteResult — has symbol + price + provider
+    if (typeof result.price === "number" || result.price === null) {
+      if (result.symbol && ("change" in result || "volume" in result)) {
+        const symbol = result.symbol;
+        const price = typeof result.price === "number" ? result.price.toFixed(2) : "—";
+        let changeLine = "";
+        if (typeof result.change === "number") {
+          const sign = result.change >= 0 ? "+" : "";
+          changeLine = `  涨跌: ${sign}${result.change.toFixed(2)}`;
+          if (typeof result.change_pct === "number") {
+            changeLine += ` (${sign}${result.change_pct.toFixed(2)}%)`;
+          }
+        } else if (typeof result.change_pct === "number") {
+          changeLine = `  涨跌幅: ${result.change_pct.toFixed(2)}%`;
+        }
+        const vol = typeof result.volume === "number"
+          ? `  成交量: ${result.volume.toLocaleString("en-US")}`
+          : "";
+        const asOf = result.as_of ? `  时间: ${result.as_of}` : "";
+        const provider = result.provider ? `  数据源: ${result.provider}` : "";
+        return [`📈 ${symbol}`, `  价格: ¥${price}`, changeLine, vol, asOf, provider]
+          .filter(Boolean)
+          .join("\n");
+      }
+      // HistoryResult (candles[])
+      if (Array.isArray(result.candles)) {
+        const symbol = result.symbol || "?";
+        const interval = result.interval || "";
+        const last = result.candles[result.candles.length - 1];
+        const lastLine = last
+          ? `  最新: ¥${(last.close ?? "—")} @ ${last.timestamp || "?"}`
+          : "";
+        return [`📊 ${symbol} (${interval}, ${result.candles.length} 根)`, lastLine]
+          .filter(Boolean)
+          .join("\n");
+      }
+    }
+    // FundamentalsResult
+    if (result.symbol && ("pe_ratio" in result || "pb_ratio" in result || "market_cap" in result)) {
+      const lines = [`💼 ${result.symbol}`];
+      if (result.pe_ratio != null) lines.push(`  PE: ${result.pe_ratio}`);
+      if (result.pb_ratio != null) lines.push(`  PB: ${result.pb_ratio}`);
+      if (result.market_cap != null) lines.push(`  市值: ${result.market_cap.toLocaleString("en-US")}`);
+      if (result.roe != null) lines.push(`  ROE: ${result.roe}%`);
+      return lines.join("\n");
+    }
+    // NewsResult
+    if (Array.isArray(result.items)) {
+      const symbol = result.symbol || "?";
+      const items = result.items.slice(0, 3)
+        .map((it) => `  - ${it.title || "(无标题)"}`)
+        .join("\n");
+      return [`📰 ${symbol} (${result.items.length} 条)`, items].join("\n");
+    }
+    // ListAlphaFactorsResult / ListWatchlistResult / scheduled tasks
+    if (Array.isArray(result.factors)) {
+      return `🔢 因子 (${result.factors.length}): ${result.factors.slice(0, 8).join(", ")}${result.factors.length > 8 ? "…" : ""}`;
+    }
+    if (Array.isArray(result.items) || Array.isArray(result.watchlist)) {
+      const list = result.items || result.watchlist || [];
+      const lines = list.slice(0, 10).map((it) => {
+        if (typeof it === "string") return `  - ${it}`;
+        const sym = it.symbol || it.ticker || "?";
+        return `  - ${sym}${it.name ? ` ( ${it.name} )` : ""}`;
+      });
+      return [`📋 (${list.length} 项)`, ...lines].join("\n");
+    }
+    // Unknown shape — fall back to compact JSON so we never crash.
+    return JSON.stringify(result, null, 2);
+  }
+
   function dispatchEvent(name, payload, assistant) {
     switch (name) {
       case "plan_started":
@@ -348,7 +425,10 @@
       case "agent_final": {
         // SynthesizeNode 的最终回答(LLM 合成或 raw)
         const result = payload.result || {};
-        const summary = result.summary || JSON.stringify(result, null, 2);
+        // Tier 1 short-circuit paths don't go through the LLM synthesizer,
+        // so result.summary is empty — fall back to client-side formatting
+        // instead of dumping raw QuoteResult JSON to the user.
+        const summary = result.summary || formatRawResult(result, payload.tier);
         // 替换 assistant 流式 bubble
         assistant.bubble.textContent = summary;
         scrollToBottom();

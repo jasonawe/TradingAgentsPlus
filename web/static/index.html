@@ -25,11 +25,6 @@
       <aside class="sidebar" id="sidebar-nav" aria-label="主要导航">
         <div class="sidebar-brand"><span class="brand-mark">TA</span><span class="brand-text">TradingAgents</span></div>
         <nav class="nav-primary">
-          <button type="button" class="nav-primary-ai" id="sidebar-agent-btn" data-i18n-title="nav.aiAgent" title="AI 通用助手(打开 Drawer)">
-            <svg class="icon" aria-hidden="true"><use href="#i-agent"/></svg>
-            <span class="nav-label" data-i18n="nav.aiAgent">AI 助手</span>
-            <span class="nav-ai-badge">💬</span>
-          </button>
           <a href="/" data-view="setup" class="is-active"><svg class="icon" aria-hidden="true"><use href="#i-watchlist"/></svg><span class="nav-label" data-i18n="nav.watchlist">我的关注</span></a>
           <a href="/analysis" data-view="analysis"><svg class="icon" aria-hidden="true"><use href="#i-analysis"/></svg><span class="nav-label" data-i18n="nav.analysis">分析任务</span></a>
           <a href="/active" data-view="active"><svg class="icon" aria-hidden="true"><use href="#i-active"/></svg><span class="nav-label" data-i18n="nav.active">进行中</span></a>
@@ -465,19 +460,6 @@
           <div id="report-notes-list" class="notes-list" aria-live="polite"><p class="muted" data-i18n="notes.emptyShort">暂无笔记</p></div>
         </section>
       </section></section>
-      <div id="modal-root" class="modal-root" aria-hidden="true"></div>
-          </div>
-        </main>
-      </div>
-    </div>
-    <script>
-      // 必须在所有 module 脚本之前同步执行。
-      // 当 window/document 被某些 Chrome 扩展冻结时,
-      // window.X = api 这种赋值会抛 "object is not extensible"。
-      // 但 top-level var 声明通过 lexicalEnvironment 而非 window 属性赋值,
-      // 因此即使 window 被冻结也能成功创建全局对象,作为模块注册表的 fallback。
-      var __TA_MODULES__ = {};
-    </script>
       <section id="harness-view" class="view" aria-labelledby="harness-title" hidden>
         <h1 id="harness-title" class="visually-hidden" data-i18n="harness.title">理财通用 Agent (P8)</h1>
         <div class="harness-page">
@@ -492,6 +474,19 @@
           </form>
         </div>
       </section>
+      <div id="modal-root" class="modal-root" aria-hidden="true"></div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <script>
+      // 必须在所有 module 脚本之前同步执行。
+      // 当 window/document 被某些 Chrome 扩展冻结时,
+      // window.X = api 这种赋值会抛 "object is not extensible"。
+      // 但 top-level var 声明通过 lexicalEnvironment 而非 window 属性赋值,
+      // 因此即使 window 被冻结也能成功创建全局对象,作为模块注册表的 fallback。
+      var __TA_MODULES__ = {};
+    </script>
 
     <script src="/static/i18n.js?v=20260911-i18n-1" defer></script>
     <script src="/static/rating-labels.js?v=20260909-rating-labels-1" defer></script>
