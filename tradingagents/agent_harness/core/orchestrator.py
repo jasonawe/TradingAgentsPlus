@@ -29,6 +29,7 @@ from .context import ContextPriority
 from .retry import CircuitBreaker, RetryPolicy, retry_async
 from web.market_models import ProviderError
 from tradingagents.agent_harness.llm.failure import LlmFailure, LlmFailureKind
+from .token_usage import TokenUsageStore, attach_store, track_agent
 from .short_circuit import ShortCircuit
 from .tier import Intent, RouteResult, Tier, fast_route
 from .verification import VerificationLevel, Verifier
@@ -156,6 +157,40 @@ class Orchestrator:
                 yield ev
             return
 
+        # Token accounting: every LLM call inside stream_chat records
+        # into this per-session store (P1 TokenUsage disjoint). Surfaces
+        # as ``usage_summary`` SSE event so the frontend can render
+        # per-agent cost attribution.
+        store = TokenUsageStore()
+        try:
+            with attach_store(store):
+                async for ev in self._stream_chat_impl(state, context, route):
+                    yield ev
+            yield ("usage_summary", store.summary())
+        except Exception as e:
+            LOGGER.exception("orchestrator failed")
+            state.error = str(e)
+            err_payload: dict = {"tier": int(route.tier), "error": str(e)}
+            if isinstance(e, LlmFailure):
+                err_payload["failure"] = e.to_dict()
+            err_payload["usage"] = store.summary()
+            yield ("error", err_payload)
+            return
+        return
+
+    async def _stream_chat_impl(
+        self,
+        state: OrchestratorState,
+        context: ToolContext,
+        route: Any,
+    ) -> AsyncIterator[tuple[str, dict]]:
+        """Body of stream_chat — runs inside ``attach_store(store)``.
+
+        Refactored from the original monolithic stream_chat so the
+        TokenUsageStore lifetime is explicit. All LLM calls inside
+        (plan, synthesize, L3 judge, sub-agents via track_agent) end
+        up in the active store.
+        """
         # Tier 2: 5-node state machine.
         try:
             yield ("plan_started", {"intent": route.intent.value})
@@ -204,15 +239,9 @@ class Orchestrator:
                 except Exception:  # audit must never break the orchestrator
                     LOGGER.debug("audit log failed", exc_info=True)
         except Exception as e:
-            LOGGER.exception("orchestrator failed")
-            state.error = str(e)
-            # Surface structured LlmFailure details so the frontend can
-            # render specific messages (e.g. cooldown timer for rate_limit)
-            # instead of a generic "something went wrong".
-            err_payload: dict = {"tier": int(route.tier), "error": str(e)}
-            if isinstance(e, LlmFailure):
-                err_payload["failure"] = e.to_dict()
-            yield ("error", err_payload)
+            # Errors from inside _stream_chat_impl propagate to the outer
+            # attach_store block, which attaches structured failure info.
+            raise
 
     # ------------------------------------------------------------------
     # 5 nodes
@@ -357,8 +386,11 @@ class Orchestrator:
         if not isinstance(state.plan, dict):
             # Defensive — caller should have routed via stream_chat dispatch
             return [{"name": "ptc", "error": "state.plan is not a PTC program"}]
+        # LLM-emitted PTC may use "agent" instead of "name"; normalise
+        # so parse_program sees the executor-facing field.
+        plan_norm = self._normalise_ptc_plan(state.plan)
         try:
-            program = parse_program(state.plan)
+            program = parse_program(plan_norm)
         except Exception as e:
             return [{"name": "ptc", "error": f"ptc parse failed: {e}"}]
 
@@ -373,6 +405,38 @@ class Orchestrator:
             else:
                 self.circuit_breaker.record_failure()
         return raw
+
+    @staticmethod
+    def _normalise_ptc_plan(plan: dict[str, Any]) -> dict[str, Any]:
+        """Translate LLM-shaped PTC (``agent`` field) into executor-shaped
+        PTC (``name`` field).  Mirrors the agent→first-tool mapping used in
+        ``_resolve_action`` for sequential plans.
+
+        Defensive: returns the input untouched if it doesn't pass
+        ``_validate_ptc`` (e.g. ``groups`` is a string).  Caller is
+        expected to either validate beforehand or catch the resulting
+        ``parse_program`` error downstream.
+        """
+        if not Orchestrator._validate_ptc(plan):
+            return plan  # leave for downstream error path
+        # agent → first tool name (must mirror _resolve_action)
+        agent_to_first_tool = {
+            "data_agent": "get_quote",
+            "alpha_agent": "list_alpha_factors",
+            "news_agent": "get_news",
+        }
+        groups_out = []
+        for g in plan.get("groups", []):
+            calls_out = []
+            for c in g.get("calls", []):
+                c2 = dict(c)
+                if "name" not in c2 and c2.get("agent"):
+                    c2["name"] = agent_to_first_tool.get(c2["agent"], c2["agent"])
+                calls_out.append(c2)
+            g2 = dict(g)
+            g2["calls"] = calls_out
+            groups_out.append(g2)
+        return {"mode": plan.get("mode", "ptc"), "groups": groups_out}
 
     def _observe(self, state: OrchestratorState) -> dict[str, Any]:
         """ObserveNode — collapse tool_results into a compact summary."""
@@ -466,8 +530,13 @@ class Orchestrator:
     # ------------------------------------------------------------------
     # LLM hooks (only when llm_factory is wired)
     # ------------------------------------------------------------------
-    async def _llm_plan(self, state: OrchestratorState) -> list[dict[str, Any]]:
-        """Real LLM-backed plan generation (returns [] when LLM not configured)."""
+    async def _llm_plan(self, state: OrchestratorState):
+        """Real LLM-backed plan generation (returns [] when LLM not configured).
+
+        Returns either a sequential list or a PTC dict.  PTC outputs are
+        normalised (agent → name) so downstream consumers see a consistent
+        shape.
+        """
         if self.llm_factory is None or not self.llm_factory.is_configured():
             return []
         try:
@@ -475,22 +544,51 @@ class Orchestrator:
             prompt = self._build_plan_prompt(state)
             response = provider.complete_text(prompt=prompt, system=self._PLAN_SYSTEM, temperature=0.0)
             content = getattr(response, "content", response)
-            return self._parse_plan(content, state)
+            plan = self._parse_plan(content, state)
+            # Normalise PTC so the executor doesn't need to (state.plan
+            # and the consumed plan stay in sync).
+            if isinstance(plan, dict) and plan.get("mode") == "ptc":
+                plan = self._normalise_ptc_plan(plan)
+            return plan
         except Exception as e:
             LOGGER.warning("LLM plan failed: %s", e)
             return []
 
     _PLAN_SYSTEM = (
         "You are a finance research planner. Reply ONLY with valid JSON. "
-        "No commentary, no markdown fences. Output schema: "
-        "[{\"step\": <int>, \"agent\": <agent_name>, \"args\": {<dict>}}].\n"
+        "No commentary, no markdown fences.\n"
         "Question classification (mandatory):\n"
         "- A-class (self-knowledge, no tool needed): current date/weekday, "
         "unit conversion, basic finance terms, definitions. Output an empty "
         "plan [] — SynthesizeNode answers directly using its system prompt.\n"
         "- B-class (market data, fundamentals, news, factors): output a plan "
         "that calls the appropriate agent(s). Use \"agent\": \"data_agent\" "
-        "for concurrent quote+fundamentals, \"news_agent\" for news, etc."
+        "for concurrent quote+fundamentals, \"news_agent\" for news, etc.\n"
+        "\n"
+        "Two output schemas — pick the one that matches the question:\n"
+        "\n"
+        "1. SEQUENTIAL — when steps depend on each other (one feeds the next):\n"
+        "   [{\"step\": 1, \"agent\": <name>, \"args\": {<dict>}}, ...]\n"
+        "\n"
+        "2. PTC (Parallel Tool Call) — when 2+ tool calls are independent and "
+        "should run concurrently (e.g. quotes for multiple symbols, parallel "
+        "news+alpha fetch):\n"
+        "   {\"mode\": \"ptc\", \"groups\": [\n"
+        "     {\"id\": \"g1\", \"calls\": [\n"
+        "       {\"agent\": \"data_agent\", \"args\": {<dict>}}, ...]},\n"
+        "     {\"id\": \"g2\", \"calls\": [...], \"depends_on\": [\"g1\"]}\n"
+        "   ]}\n"
+        "\n"
+        "Use PTC when:\n"
+        "- 2+ independent data calls (e.g. 3 stock quotes — no data dependency)\n"
+        "- Multi-source fan-out (data_agent + news_agent + alpha_agent in parallel)\n"
+        "Use SEQUENTIAL when:\n"
+        "- Output of step 1 feeds into step 2 (rare for finance data)\n"
+        "- Single data call (no parallelism to exploit)\n"
+        "\n"
+        "For each call, use \"agent\" (preferred) — the executor maps agents "
+        "to their first tool. Available agents and their primary tools are listed "
+        "in the user prompt below."
     )
 
     def _build_plan_prompt(self, state: OrchestratorState) -> str:
@@ -499,33 +597,101 @@ class Orchestrator:
             for name in self.agent_registry.list()
             if self.agent_registry.get(name).description
         ]
+        ptc_hint = ""
+        if len(state.symbols) >= 2:
+            sym_list = ", ".join(state.symbols)
+            ptc_hint = (
+                f"\nHint: {len(state.symbols)} symbols detected ({sym_list}). "
+                "Strongly consider PTC mode with one group containing all "
+                "calls — they'll run concurrently and finish in the time of "
+                "the slowest single call."
+            )
         return (
             f"User message: {state.user_message}\n\n"
             f"Current date: 2026-09-14 (东八区时间 周一)\n"
             f"Detected symbols: {state.symbols}\n"
             f"Detected intent: {state.intent.value}\n\n"
             "Available agents:\n" + "\n".join(agent_caps) +
-            "\n\nGenerate a JSON plan as a list of {step, agent, args} objects.\n"
-            "If the user question is A-class (date / weekday / basic concept), "
-            "return an empty plan [] — the synthesizer will answer directly."
+            ptc_hint +
+            "\n\nChoose SEQUENTIAL or PTC mode (see system prompt). "
+            "For A-class questions (date/weekday/concept), return [] and "
+            "the synthesizer will answer directly."
         )
 
     @staticmethod
-    def _parse_plan(content: str, state: OrchestratorState) -> list[dict[str, Any]]:
+    def _parse_plan(content: str, state: OrchestratorState):
+        """Parse LLM plan output into either a sequential list or PTC program.
+
+        Accepts:
+          - Sequential: ``[{step, agent|action, args}, ...]``
+          - PTC: ``{"mode": "ptc", "groups": [{id, calls: [...], depends_on?}]}``
+
+        Returns ``[]`` on any parse failure so the caller falls back to
+        the heuristic plan.
+        """
         import json
         import re
         text = content.strip()
-        # Strip optional markdown fence.
         text = re.sub(r"^```(?:json)?\s*", "", text)
         text = re.sub(r"```\s*$", "", text)
         try:
             data = json.loads(text)
-            if isinstance(data, list):
-                return [d for d in data if isinstance(d, dict)]
         except Exception:
-            pass
-        LOGGER.warning("LLM plan returned non-JSON content: %s", content[:120])
+            LOGGER.warning("LLM plan returned non-JSON content: %s", content[:120])
+            return []
+        if isinstance(data, dict) and data.get("mode") == "ptc":
+            if Orchestrator._validate_ptc(data):
+                return data
+            LOGGER.warning("LLM plan returned malformed PTC program: %s", content[:200])
+            return []
+        if isinstance(data, list):
+            return [d for d in data if isinstance(d, dict)]
+        LOGGER.warning("LLM plan returned unexpected shape: %s", content[:120])
         return []
+
+    @staticmethod
+    def _validate_ptc(program: dict[str, Any]) -> bool:
+        """Best-effort validation of an LLM-emitted PTC program.
+
+        Required: ``mode == "ptc"`` + ``groups`` is a non-empty list of
+        dicts each with ``id`` (str), ``calls`` (list of dicts with
+        ``agent`` or ``name`` + ``args``), and optional ``depends_on``.
+        """
+        if not isinstance(program, dict):
+            return False
+        if program.get("mode") != "ptc":
+            return False
+        groups = program.get("groups")
+        if not isinstance(groups, list) or not groups:
+            return False
+        seen_ids: set[str] = set()
+        for g in groups:
+            if not isinstance(g, dict):
+                return False
+            gid = g.get("id")
+            if not isinstance(gid, str) or not gid:
+                return False
+            if gid in seen_ids:
+                return False
+            seen_ids.add(gid)
+            calls = g.get("calls")
+            if not isinstance(calls, list) or not calls:
+                return False
+            for c in calls:
+                if not isinstance(c, dict):
+                    return False
+                if not (c.get("agent") or c.get("name")):
+                    return False
+                if not isinstance(c.get("args", {}), dict):
+                    return False
+            deps = g.get("depends_on")
+            if deps is not None:
+                if not isinstance(deps, list):
+                    return False
+                for d in deps:
+                    if not isinstance(d, str) or not d:
+                        return False
+        return True
 
     async def _llm_synthesize(self, state: OrchestratorState) -> Any:
         """Real LLM synthesis when configured; fallback dict otherwise."""

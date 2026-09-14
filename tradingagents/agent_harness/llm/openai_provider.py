@@ -21,6 +21,11 @@ from tradingagents.llm_clients.factory import create_llm_client
 
 from .base import ChatMessage, LLMProvider, LLMResponse
 from .failure import classify_llm_error
+from tradingagents.agent_harness.core.token_usage import (
+    get_active_agent,
+    get_active_store,
+    get_active_surface,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -78,6 +83,14 @@ class OpenAICompatibleProvider(LLMProvider):
             failure = classify_llm_error(
                 e, provider=self._provider_name, model=self._model,
             )
+            # Bump errors counter (zero tokens — we never saw the response).
+            store = get_active_store()
+            if store is not None:
+                store.record(
+                    get_active_agent(),
+                    input_tokens=0, output_tokens=0, total_tokens=0,
+                    surface=get_active_surface(), errored=True,
+                )
             raise failure from e
 
         content = getattr(response, "content", str(response))
@@ -91,15 +104,29 @@ class OpenAICompatibleProvider(LLMProvider):
 
         usage_meta = getattr(response, "response_metadata", {}) or {}
         token_usage = usage_meta.get("token_usage", {}) or {}
+        usage = {
+            "input_tokens": int(token_usage.get("prompt_tokens", 0) or 0),
+            "output_tokens": int(token_usage.get("completion_tokens", 0) or 0),
+            "total_tokens": int(token_usage.get("total_tokens", 0) or 0),
+        }
+        # Record into active TokenUsageStore (if attached by caller).
+        # Sub-agents wrap their LLM call with track_agent(name) so the
+        # usage ends up bucketed by agent name; surface partitioning
+        # hooks into P0-4.
+        store = get_active_store()
+        if store is not None:
+            store.record(
+                get_active_agent(),
+                input_tokens=usage["input_tokens"],
+                output_tokens=usage["output_tokens"],
+                total_tokens=usage["total_tokens"] or None,
+                surface=get_active_surface(),
+            )
         return LLMResponse(
             content=content or "",
             provider=self._provider_name,
             model=self._model,
-            usage={
-                "input_tokens": int(token_usage.get("prompt_tokens", 0) or 0),
-                "output_tokens": int(token_usage.get("completion_tokens", 0) or 0),
-                "total_tokens": int(token_usage.get("total_tokens", 0) or 0),
-            },
+            usage=usage,
         )
 
 

@@ -78,14 +78,21 @@ class BaseAgent(ABC):
         )
 
     def _llm_complete(self, prompt: str, *, temperature: float = 0.0) -> str | None:
-        """Single-turn LLM call. Returns ``None`` on any failure (caller falls back)."""
+        """Single-turn LLM call. Returns ``None`` on any failure (caller falls back).
+
+        Wrapped in ``track_agent(self.name)`` so the token usage ends up
+        bucketed under this agent's name in the active ``TokenUsageStore``.
+        Subclasses just override ``name``; the bookkeeping is automatic.
+        """
         if not self._llm_available():
             return None
+        from tradingagents.agent_harness.core.token_usage import track_agent
         try:
-            provider = self.llm_factory.make()
-            response = provider.complete_text(
-                prompt=prompt, system=self.system_prompt, temperature=temperature
-            )
+            with track_agent(getattr(self, "name", type(self).__name__)):
+                provider = self.llm_factory.make()
+                response = provider.complete_text(
+                    prompt=prompt, system=self.system_prompt, temperature=temperature
+                )
             return getattr(response, "content", response) or None
         except Exception:
             return None
