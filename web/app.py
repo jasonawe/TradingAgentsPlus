@@ -248,6 +248,17 @@ def create_app(
     concurrency_setting = settings_repo.get(SettingsRepository.SCHEDULER_MAX_CONCURRENT_RUNS)
     if manager is None or (concurrency_setting or {}).get("source") != "default":
         active_manager.configure_concurrency(settings_repo.all())
+    # Load persisted data provider choice (survives restart).
+    from tradingagents.data.providers.registry import (
+        PROVIDERS, get_active_provider_name, set_active_provider,
+    )
+    persisted = (settings_repo.get("active_data_provider") or {}).get("value")
+    if isinstance(persisted, str) and persisted in PROVIDERS:
+        # Only override if env var wasn't explicitly set.
+        env_name = os.environ.get("TRADINGAGENTS_DATA_PROVIDER")
+        if not env_name:
+            set_active_provider(persisted)
+
     active_manager.set_report_root(Path(active_config.get("results_dir") or ".") / "web_reports")
     active_history = history or ReportHistory(
         results_dir=active_config.get("results_dir"),
@@ -952,6 +963,10 @@ def create_app(
         fields["notifier_monitor_enabled"] = {"value": "true" if monitor_status.get("enabled") else "false", "source": "sqlite"}
         fields["notifier_monitor_interval_seconds"] = {"value": str(monitor_status.get("interval_seconds") or 60), "source": "sqlite"}
         fields["notifier_monitor_running"] = {"value": "true" if monitor_status.get("running") else "false", "source": "sqlite"}
+        from tradingagents.data.providers.registry import get_active_provider_name
+        persisted_provider = (settings_repo.get("active_data_provider") or {}).get("value")
+        current_provider = persisted_provider or get_active_provider_name()
+        fields["active_data_provider"] = {"value": current_provider, "source": "sqlite" if persisted_provider else "env"}
         return {"schema_version": 1, "fields": fields, "strategies": [{"id": k, "providers": v["providers"], "available": next((s["available"] for s in catalog["strategies"] if s["id"] == k), False)} for k, v in QUOTE_STRATEGIES.items()], "provider_health": {item["provider"]: item for item in provider_health_repo.list()}}
 
     @app.patch("/api/settings/quote-strategy")
@@ -969,6 +984,26 @@ def create_app(
             },
             "fields": {key: catalog[key] for key in ("quote_strategy_id", "quote_provider_chain", "quote_ttl_seconds")},
         }
+
+    @app.patch("/api/settings/data-provider")
+    def update_data_provider(payload: dict[str, Any]) -> dict[str, Any]:
+        """Switch the active market data provider (yfinance/eastmoney/akshare/alpha_vantage).
+
+        Persists to settings_repo and applies immediately to the in-process
+        registry, so the next get_quote / get_history call goes through the
+        chosen provider.
+        """
+        from tradingagents.data.providers.registry import PROVIDERS, set_active_provider
+
+        name = (payload or {}).get("provider")
+        if not isinstance(name, str) or name not in PROVIDERS:
+            raise _error(
+                status.HTTP_400_BAD_REQUEST,
+                f"unknown provider; known: {sorted(PROVIDERS)}",
+            )
+        settings_repo.set("active_data_provider", name, source="sqlite")
+        set_active_provider(name)
+        return {"provider": name, "providers": sorted(PROVIDERS)}
 
     @app.patch("/api/settings/notifier")
     def update_notifier(payload: dict[str, Any]) -> dict[str, Any]:
