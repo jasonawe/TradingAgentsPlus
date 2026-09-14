@@ -124,7 +124,7 @@ tradingagents/
 │   ├── core/                            编排核心(原 orchestrator.py / routing.py 拆开)
 │   │   ├── __init__.py
 │   │   ├── orchestrator.py              Tier 2 StateGraph 主图 5 节点(17+ sub-state,N20 fix,D5)
-│   │   ├── tier.py                      Tier 路由 (D1) + classify_tier()
+│   │   ├── tier.py                      Tier 路由 (D1,N121 fix,2026-09-11:N44 fix — **不**新增 classify_tier 函数,扩展 fast_route 加 tier 维度)
 │   │   ├── context.py                   ContextPriority 8 层注入 (D4)
 │   │   ├── verification.py              三层 verification (D6)
 │   │   ├── retry.py                     retry + backoff + circuit breaker
@@ -731,7 +731,8 @@ class Harness:
         self.context_priority = ContextPriority(self.config.context)
         self.retry_policy = RetryPolicy.from_config(self.config.retry)
         self.circuit_breaker = CircuitBreaker(self.config.circuit_breaker)
-        self.tier_router = TierRouter(self.config.tier)
+        # P1 实施:扩展 routing.py fast_route 加 tier 维度(**N44/N95/N120 fix,2026-09-11** — 不新增 TierRouter 类,与 v2 §D1 N44 fix 统一)
+        # 旧 API 占位:self.tier_router = TierRouter(self.config.tier) — **本行 P1 实施时删除**,改为 self.routing = Routing.from_config(...)
 
         # orchestrator(Tier 2 主图)
         self.orchestrator = Orchestrator(
