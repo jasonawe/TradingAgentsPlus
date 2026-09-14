@@ -440,3 +440,152 @@ details[open] .agent-reasoning-summary::before {
     color: var(--text-secondary-dark, #cbd5e0);
   }
 }
+
+/* ────────────────────────────────────────────────
+   P8 Harness Chat (/harness)
+   ──────────────────────────────────────────────── */
+
+.harness-page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 4rem);
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 1rem 1.25rem 0;
+}
+
+.harness-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+  margin-bottom: 0.75rem;
+}
+
+.harness-banner {
+  font-size: 0.85rem;
+  color: var(--muted-color, #666);
+  background: rgba(76, 175, 80, 0.08);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+}
+
+.harness-messages {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.harness-message {
+  max-width: 80%;
+  padding: 0;
+  word-break: break-word;
+  border-radius: 8px;
+}
+
+.harness-message.is-user {
+  align-self: flex-end;
+  background: #1976d2;
+  color: white;
+  padding: 0.6rem 0.9rem;
+}
+
+.harness-message.is-assistant {
+  align-self: flex-start;
+  background: #f5f5f5;
+  padding: 0.6rem 0.9rem;
+}
+
+.harness-message.is-tool-call,
+.harness-message.is-tool-result,
+.harness-message.is-verified,
+.harness-message.is-l3,
+.harness-message.is-error,
+.harness-message.is-reasoning {
+  align-self: stretch;
+  max-width: 100%;
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.7rem;
+}
+
+.harness-message.is-tool-call { background: #fff8e1; border-left: 3px solid #ffa000; }
+.harness-message.is-tool-result { background: #f1f8e9; border-left: 3px solid #7cb342; }
+.harness-message.is-verified { background: #e8f5e9; border-left: 3px solid #43a047; }
+.harness-message.is-l3 { background: #e3f2fd; border-left: 3px solid #1976d2; }
+.harness-message.is-error { background: #ffebee; border-left: 3px solid #e53935; color: #b71c1c; }
+.harness-message.is-reasoning { background: #f3e5f5; border-left: 3px solid #8e24aa; }
+
+.harness-message-bubble {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.harness-message.is-loading .harness-message-bubble::after {
+  content: "▍";
+  animation: harness-blink 1s steps(1) infinite;
+}
+
+@keyframes harness-blink {
+  50% { opacity: 0; }
+}
+
+.harness-welcome {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--muted-color, #666);
+}
+
+.harness-welcome-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+.harness-welcome-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; color: inherit; }
+.harness-welcome-lede { font-size: 0.85rem; margin-bottom: 1.5rem; }
+.harness-welcome-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.harness-suggestion-chip {
+  background: white;
+  border: 1px solid var(--border-color, #ddd);
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.harness-suggestion-chip:hover {
+  background: #1976d2;
+  color: white;
+  border-color: #1976d2;
+}
+
+.harness-form {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--border-color, #e0e0e0);
+}
+
+.harness-form textarea {
+  flex: 1 1 auto;
+  resize: vertical;
+  min-height: 2.5rem;
+  max-height: 8rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+.harness-form button {
+  flex: 0 0 auto;
+}
