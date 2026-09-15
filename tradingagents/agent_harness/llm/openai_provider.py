@@ -22,6 +22,10 @@ from tradingagents.llm_clients.factory import create_llm_client
 from .base import ChatMessage, LLMProvider, LLMResponse
 from .failure import classify_llm_error
 from .cache import LLMResponseCache, make_cache_key
+from tradingagents.agent_harness.core.retry import (
+    ResolvedRetryPolicy,
+    retry_resolved_sync,
+)
 from tradingagents.agent_harness.core.token_usage import (
     get_active_agent,
     get_active_store,
@@ -40,6 +44,7 @@ class OpenAICompatibleProvider(LLMProvider):
         model: str,
         base_url: str | None = None,
         cache: "LLMResponseCache | None" = None,
+        retry_policy: ResolvedRetryPolicy | None = None,
         **kwargs,
     ) -> None:
         self._provider_name = provider
@@ -47,6 +52,15 @@ class OpenAICompatibleProvider(LLMProvider):
         self._client = create_llm_client(provider, model, base_url=base_url, **kwargs)
         # Optional response cache (P2-LLM cache): same prompt → same response
         self._cache = cache
+        # spec R7 ResolvedRetryPolicy retryableCodes — kind-based 重试决策。
+        # 默认 = TRANSIENT_KINDS(RATE_LIMIT / TIMEOUT / NETWORK / SERVER)。
+        # CONTEXT_TOO_LONG / AUTH / NOT_FOUND / INVALID_OUTPUT 默认不重试。
+        self._retry_policy = retry_policy or ResolvedRetryPolicy()
+
+    def set_retry_policy(self, policy: ResolvedRetryPolicy) -> None:
+        """Wire or replace the retry policy post-init (matches the
+        ``set_checkpoint_store`` / ``set_session_store`` pattern)."""
+        self._retry_policy = policy
 
     @property
     def name(self) -> str:
@@ -60,7 +74,12 @@ class OpenAICompatibleProvider(LLMProvider):
         max_tokens: int | None = None,
         stop: list[str] | None = None,
     ) -> LLMResponse:
+        """Send messages; spec R7 — wraps with ResolvedRetryPolicy retry.
+
+        Cache short-circuit stays outside retry (cache hit ≠ retryable failure).
+        """
         # LLM response cache (P2): short-circuit identical requests
+        # Cache 命中不走 retry — 不算可重试失败。
         if self._cache is not None:
             key = make_cache_key(
                 messages, system=None,
@@ -68,13 +87,39 @@ class OpenAICompatibleProvider(LLMProvider):
             )
             cached = self._cache.get(key)
             if cached is not None:
-                # Mark this as a cache hit so token accounting sees zero real tokens
                 cached_copy = cached.model_copy()
                 cached_copy.usage = {
                     **(cached.usage or {}),
                     "cached": True,
                 }
                 return cached_copy
+        # spec R7:用 ResolvedRetryPolicy 决策哪些 LlmFailure 重试。
+        # kind 不在 retryable_codes 里(或非 LlmFailure) → 立即 raise。
+        # The inner callable raises LlmFailure; retry_resolved_sync decides.
+        return retry_resolved_sync(
+            lambda: self._do_complete(
+                messages, temperature=temperature,
+                max_tokens=max_tokens, stop=stop, cache_key=(
+                    make_cache_key(
+                        messages, system=None,
+                        temperature=temperature, max_tokens=max_tokens,
+                        model=self._model,
+                    ) if self._cache is not None else None
+                ),
+            ),
+            policy=self._retry_policy,
+        )
+
+    def _do_complete(
+        self,
+        messages: Iterable[ChatMessage],
+        *,
+        temperature: float,
+        max_tokens: int | None,
+        stop: list[str] | None,
+        cache_key: str | None,
+    ) -> LLMResponse:
+        """Inner LLM call — raises :class:`LlmFailure` on failure."""
         llm = self._client.get_llm()
         langchain_msgs = [{"role": m.role, "content": m.content} for m in messages]
         payload: list = []
@@ -186,9 +231,9 @@ class OpenAICompatibleProvider(LLMProvider):
             model=self._model,
             usage=usage,
         )
-        if self._cache is not None:
+        if self._cache is not None and cache_key is not None:
             try:
-                self._cache.put(key, response)
+                self._cache.put(cache_key, response)
             except Exception:
                 LOGGER.debug("cache store failed", exc_info=True)
         return response
