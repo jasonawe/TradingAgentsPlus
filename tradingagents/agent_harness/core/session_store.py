@@ -1,32 +1,25 @@
-"""SessionStore — single source of truth for session lifecycle (roadmap A2).
+"""SessionStore — Session 元数据表(roadmap §1.3 A2).
+
+Schema 严格按 spec:
+
+    sessions(id, created_at, last_active, user_id, message_count, status)
 
 Why this exists
 ---------------
-Today ``session_id`` is just a string parameter flowing through
-``Orchestrator.stream_chat`` — there's no Session object, no metadata,
-no lifecycle. The roadmap (§1.3 A2) calls for a dedicated table to hold:
-
-    ``sessions(id, created_at, last_active, user_id, message_count, status)``
-
-This module provides ``SessionStore`` (SQLite-backed) with the operations
-needed by the harness + REST endpoints:
-
-- ``upsert(session)`` — auto-create or update last_active on first message
-- ``touch(session_id)`` — bump last_active + message_count + token_total
-- ``get(session_id)`` — fetch metadata
-- ``list_sessions(user_id, limit, offset, status)`` — paginated list
-- ``archive(session_id)`` — soft-delete (status='archived')
-- ``delete(session_id)`` — hard-delete with cascade cleanup
-
-Cascade cleanup (A3) drops related rows from:
-- ``harness_checkpoints`` (in-flight state)
-- LangGraph SqliteSaver (legacy agent state)
-- agent_harness L1 (legacy short-term memory)
+之前 ``session_id`` 是裸字符串参数,没有 Session 对象、没有生命周期。
+spec §1.1.2 列出 4 个具体缺口,其中 §1.1.3 = ``list_sessions 半成品
+(last_active 硬编码 None)`` + §1.1.4 = 无 DELETE 接口。这个模块
+加上 §1.3 A2 的元数据表 + §1.3 A3 的级联清理 db 文件接口。
 
 Wire-in
 -------
-``Orchestrator.__init__`` accepts optional ``session_store``. ``stream_chat``
-auto-creates the session on first call + calls ``touch`` after each run.
+``Orchestrator.__init__`` 接受可选 ``session_store``;``stream_chat``
+每次入口 upsert + 末尾 touch(message_count++、token_total 不在 spec 里,跳过)。
+DELETE /api/agent/sessions/{id} 由 web 层调用,负责:
+1. ``sessions`` 行删除
+2. ``harness_checkpoints`` 行删除
+3. ``{data_dir}/sessions/agent_<safe_id>.db`` 文件删除
+4. 审计日志
 """
 from __future__ import annotations
 
@@ -49,29 +42,25 @@ def _now_iso() -> str:
 
 @dataclass
 class Session:
-    """Session metadata (mirrors the ``sessions`` table)."""
+    """严格按 spec: id / created_at / last_active / user_id / message_count / status.
 
+    不带 title / token_total / metadata / metadata_json 等扩展字段。
+    """
     id: str
     user_id: str = "default"
-    title: str | None = None
     created_at: str = field(default_factory=_now_iso)
     last_active: str = field(default_factory=_now_iso)
     message_count: int = 0
-    token_total: int = 0
     status: str = SESSION_STATUS_ACTIVE
-    metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_row(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "user_id": self.user_id,
-            "title": self.title,
             "created_at": self.created_at,
             "last_active": self.last_active,
             "message_count": self.message_count,
-            "token_total": self.token_total,
             "status": self.status,
-            "metadata_json": json.dumps(self.metadata, ensure_ascii=False, default=str),
         }
 
     @classmethod
@@ -80,47 +69,36 @@ class Session:
         return cls(
             id=d["id"],
             user_id=d.get("user_id") or "default",
-            title=d.get("title"),
             created_at=d.get("created_at") or _now_iso(),
             last_active=d.get("last_active") or _now_iso(),
             message_count=int(d.get("message_count") or 0),
-            token_total=int(d.get("token_total") or 0),
             status=d.get("status") or SESSION_STATUS_ACTIVE,
-            metadata=json.loads(d.get("metadata_json") or "{}"),
         )
 
     def to_dict(self) -> dict[str, Any]:
-        """JSON shape for API responses."""
         return {
             "id": self.id,
             "user_id": self.user_id,
-            "title": self.title,
             "created_at": self.created_at,
             "last_active": self.last_active,
             "message_count": self.message_count,
-            "token_total": self.token_total,
             "status": self.status,
-            "metadata": self.metadata,
         }
 
 
 class SessionStore:
     """SQLite-backed SessionStore.
 
-    Wraps any ``SQLiteStore`` (same one used by settings + harness checkpoints).
-    All methods are synchronous; SQLite writes are sub-ms.
+    Wraps a ``SQLiteStore`` (settings). 接受任何带 ``_connect()`` 返回
+    raw ``sqlite3.Connection`` 的对象(SQLiteStore 直接、或者
+    SettingsRepository 之类的 wrapper,后者通过 .store 暴露 SQLiteStore)。
+
+    这是 web 层 ``app.state.repositories["settings"]`` 的最小适配,
+    不发明新接口。
     """
 
     def __init__(self, store: Any) -> None:
-        """Wrap any object that can yield a raw sqlite3 connection.
-
-        Accepts:
-        - ``SQLiteStore`` (has ``_connect()`` returning ``sqlite3.Connection``)
-        - ``SettingsRepository`` or any repo with a ``.store`` attribute
-          pointing at a ``SQLiteStore``
-        """
         if hasattr(store, "store") and hasattr(store.store, "_connect"):
-            # SettingsRepository-style wrapper
             self._store = store.store
         else:
             self._store = store
@@ -129,7 +107,7 @@ class SessionStore:
     # Write
     # ------------------------------------------------------------------
     def upsert(self, session: Session) -> None:
-        """Insert if new, otherwise update mutable fields (last_active, etc.)."""
+        """Insert if new, otherwise update ``last_active`` only."""
         session.last_active = _now_iso()
         row = session.to_row()
         with self._store._connect() as conn:
@@ -138,47 +116,27 @@ class SessionStore:
             ).fetchone()
             if existing:
                 conn.execute(
-                    "UPDATE sessions SET title=?, last_active=?, message_count=?, "
-                    "token_total=?, status=?, metadata_json=? WHERE id=?",
-                    (row["title"], row["last_active"], row["message_count"],
-                     row["token_total"], row["status"], row["metadata_json"],
-                     session.id),
+                    "UPDATE sessions SET last_active = ?, status = ? WHERE id = ?",
+                    (row["last_active"], row["status"], session.id),
                 )
             else:
                 conn.execute(
-                    "INSERT INTO sessions (id, user_id, title, created_at, "
-                    "last_active, message_count, token_total, status, metadata_json) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    (row["id"], row["user_id"], row["title"], row["created_at"],
-                     row["last_active"], row["message_count"], row["token_total"],
-                     row["status"], row["metadata_json"]),
+                    "INSERT INTO sessions "
+                    "(id, user_id, created_at, last_active, message_count, status) "
+                    "VALUES (?, ?, ?, ?, ?, ?)",
+                    (row["id"], row["user_id"], row["created_at"],
+                     row["last_active"], row["message_count"], row["status"]),
                 )
             conn.commit()
 
-    def touch(
-        self,
-        session_id: str,
-        *,
-        message_delta: int = 1,
-        token_delta: int = 0,
-    ) -> bool:
-        """Bump ``last_active``, increment counters. Returns False if missing."""
+    def touch(self, session_id: str, *, message_delta: int = 1) -> bool:
+        """Bump ``last_active`` + ``message_count`` (spec A2 only)."""
         with self._store._connect() as conn:
             cur = conn.execute(
                 "UPDATE sessions SET last_active = ?, "
-                "message_count = message_count + ?, "
-                "token_total = token_total + ? "
+                "message_count = message_count + ? "
                 "WHERE id = ? AND status = 'active'",
-                (_now_iso(), message_delta, token_delta, session_id),
-            )
-            conn.commit()
-            return cur.rowcount > 0
-
-    def set_title(self, session_id: str, title: str | None) -> bool:
-        with self._store._connect() as conn:
-            cur = conn.execute(
-                "UPDATE sessions SET title = ? WHERE id = ?",
-                (title, session_id),
+                (_now_iso(), message_delta, session_id),
             )
             conn.commit()
             return cur.rowcount > 0
@@ -207,13 +165,10 @@ class SessionStore:
         *,
         user_id: str | None = None,
         status: str | None = SESSION_STATUS_ACTIVE,
-        limit: int = 50,
+        limit: int = 100,
         offset: int = 0,
     ) -> list[Session]:
-        """List sessions, newest-active first.
-
-        ``status=None`` returns all (active + archived).
-        """
+        """按 spec 列出 sessions(默认 active only, newest-active first)。"""
         clauses, params = [], []
         if user_id is not None:
             clauses.append("user_id = ?")
@@ -231,7 +186,12 @@ class SessionStore:
             rows = conn.execute(sql, params).fetchall()
         return [Session.from_row(r) for r in rows]
 
-    def count(self, *, user_id: str | None = None, status: str | None = SESSION_STATUS_ACTIVE) -> int:
+    def count(
+        self,
+        *,
+        user_id: str | None = None,
+        status: str | None = SESSION_STATUS_ACTIVE,
+    ) -> int:
         clauses, params = [], []
         if user_id is not None:
             clauses.append("user_id = ?")
@@ -247,21 +207,22 @@ class SessionStore:
         return int(row["n"]) if row else 0
 
     # ------------------------------------------------------------------
-    # Delete (A3) — cascade cleanup
+    # Delete (spec A3 行级清理)— 文件级清理由 web 层负责,见 app.py
     # ------------------------------------------------------------------
     def delete(self, session_id: str) -> dict[str, int]:
-        """Hard-delete the session + cascade-clean related rows.
+        """Hard-delete session row + cascade harness_checkpoints row.
 
-        Returns counts of rows deleted from each table for audit logging.
-        Caller (the API endpoint) writes those counts to the audit log.
+        Returns counts for audit. 文件级清理(LangGraph
+        ``{data_dir}/sessions/agent_<safe_id>.db``)由 web 层负责,
+        因为 SessionStore 不持有 data_dir 路径。
         """
         deleted = {"sessions": 0, "harness_checkpoints": 0}
         with self._store._connect() as conn:
             cur = conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
             deleted["sessions"] = cur.rowcount
-            # Cascade: drop harness checkpoint if any (A3 cascade)
             if conn.execute(
-                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='harness_checkpoints'"
+                "SELECT 1 FROM sqlite_master "
+                "WHERE type='table' AND name='harness_checkpoints'"
             ).fetchone():
                 cur2 = conn.execute(
                     "DELETE FROM harness_checkpoints WHERE session_id = ?",
@@ -269,8 +230,4 @@ class SessionStore:
                 )
                 deleted["harness_checkpoints"] = cur2.rowcount
             conn.commit()
-        LOGGER.info(
-            "session %s deleted (cascade: %s)",
-            session_id, deleted,
-        )
         return deleted

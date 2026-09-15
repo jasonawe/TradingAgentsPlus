@@ -1,13 +1,12 @@
-"""Roadmap A2 + A3 — Session metadata + DELETE endpoint.
+"""Roadmap §1.3 A2 + A3 — 严格按 spec 的端点测试。
 
-Validates the wired SessionStore end-to-end via FastAPI TestClient:
-- GET    /api/agent/sessions                  list with last_active
-- GET    /api/agent/sessions/{id}/detail     session metadata
-- PATCH  /api/agent/sessions/{id}            rename / archive
-- DELETE /api/agent/sessions/{id}            A3 cascade cleanup
+Spec 端点:
+- GET    /api/agent/sessions                  列出 sessions(6 字段)
+- DELETE /api/agent/sessions/{id}             A3 级联清理(sessions 行 +
+                                             harness_checkpoints 行 +
+                                             LangGraph agent_*.db 文件)+ audit
 
-Mirrors the pattern from ``test_harness_event_modes.py`` — uses a tmp
-SQLite + a real ``Harness()`` with session_store wired.
+不测 PATCH、detail、POST 增强 — spec 里没这些。
 """
 from __future__ import annotations
 
@@ -17,15 +16,20 @@ from unittest.mock import MagicMock as MM
 import pytest
 from fastapi.testclient import TestClient
 
-from tradingagents.agent_harness.core.harness_checkpoint import HarnessCheckpointStore
-from tradingagents.agent_harness.core.session_store import (
-    Session,
-    SessionStore,
+from tradingagents.agent_harness.core.harness_checkpoint import (
+    HarnessCheckpoint,
+    HarnessCheckpointStore,
+    NODE_PLANNING,
 )
+from tradingagents.agent_harness.core.session_store import Session, SessionStore
 from tradingagents.agent_harness.harness import Harness
 from web.app import create_app
 from web.manager import RunManager
 from web.storage import SQLiteStore
+
+
+SPEC_FIELDS = {"id", "user_id", "created_at", "last_active",
+               "message_count", "status"}
 
 
 @pytest.fixture
@@ -44,178 +48,119 @@ def _make_app(tmp_db: Path):
     ckpt_store = HarnessCheckpointStore(settings)
     harness = Harness()
     harness.set_checkpoint_store(ckpt_store)
-    session_store = SessionStore(settings)
-    harness.set_session_store(session_store)
+    harness.set_session_store(SessionStore(settings))
     app.state.harness = harness
     app.state.session_lock = MM(run=lambda sid, prod: prod())  # passthrough
     app.state.checkpoint_store = ckpt_store
-    app.state.session_store = session_store
-    return app, session_store
+    app.state.session_store = harness.orchestrator._session_store
+    return app
 
 
 @pytest.fixture
 def client(tmp_db):
-    app, store = _make_app(tmp_db)
-    with TestClient(app) as c:
-        yield c, store
+    with TestClient(_make_app(tmp_db)) as c:
+        yield c
 
 
 # --------------------------------------------------------------------------
-# A2 — list + metadata endpoints
+# A2 — list
 # --------------------------------------------------------------------------
-class TestSessionListEndpoint:
+class TestListEndpoint:
     def test_list_empty(self, client):
-        c, _ = client
-        r = c.get("/api/agent/sessions")
+        r = client.get("/api/agent/sessions")
         assert r.status_code == 200
-        body = r.json()
-        assert body["sessions"] == []
-        assert body["total"] == 0
+        assert r.json() == {"sessions": [], "total": 0}
 
-    def test_list_after_upsert_returns_real_last_active(self, client):
-        c, store = client
-        store.upsert(Session(id="s_abc", title="研究 600036"))
-        r = c.get("/api/agent/sessions")
+    def test_list_returns_real_last_active(self, client):
+        """spec §1.1.3 — 之前 stub 硬编码 last_active=None,现在必须真实。"""
+        client.app.state.session_store.upsert(Session(id="s_aaa"))
+        r = client.get("/api/agent/sessions")
         body = r.json()
         assert body["total"] == 1
         sess = body["sessions"][0]
-        assert sess["id"] == "s_abc"
-        assert sess["title"] == "研究 600036"
-        assert sess["last_active"] is not None  # was None before A2 fix
+        assert sess["last_active"] is not None  # was None before
         assert sess["message_count"] == 0
-        assert sess["status"] == "active"
 
-    def test_list_includes_archived_only_with_flag(self, client):
-        c, store = client
+    def test_list_response_only_has_spec_fields(self, client):
+        """spec 字段:id, user_id, created_at, last_active, message_count, status
+        不带 title / token_total / metadata。"""
+        client.app.state.session_store.upsert(Session(id="s_a", user_id="alice"))
+        r = client.get("/api/agent/sessions")
+        sess = r.json()["sessions"][0]
+        assert set(sess.keys()) == SPEC_FIELDS
+
+    def test_list_archived_filter(self, client):
+        store = client.app.state.session_store
         store.upsert(Session(id="s_active"))
-        store.upsert(Session(id="s_arch", title="old"))
+        store.upsert(Session(id="s_arch"))
         store.archive("s_arch")
         # Default: active only
-        r = c.get("/api/agent/sessions")
-        ids = [s["id"] for s in r.json()["sessions"]]
+        ids = [s["id"] for s in client.get("/api/agent/sessions").json()["sessions"]]
         assert "s_active" in ids
         assert "s_arch" not in ids
-        # include_archived=true: both
-        r = c.get("/api/agent/sessions?include_archived=true")
-        ids = [s["id"] for s in r.json()["sessions"]]
-        assert "s_active" in ids
-        assert "s_arch" in ids
-
-    def test_list_newest_active_first(self, client):
-        c, store = client
-        # Insert two sessions in known order with controlled last_active
-        s_old = Session(id="s_old", title="old")
-        s_old.last_active = "2020-01-01T00:00:00+00:00"
-        store.upsert(s_old)
-        s_new = Session(id="s_new", title="new")
-        # Default _now_iso() is "now", so s_new wins the ordering check
-        store.upsert(s_new)
-        r = c.get("/api/agent/sessions")
-        ids = [s["id"] for s in r.json()["sessions"]]
-        assert ids[0] == "s_new"
-        assert ids[1] == "s_old"
-
-
-class TestSessionDetailEndpoint:
-    def test_detail_returns_metadata(self, client):
-        c, store = client
-        store.upsert(Session(id="s_det", title="深度分析 招商银行"))
-        r = c.get("/api/agent/sessions/s_det/detail")
-        assert r.status_code == 200
-        body = r.json()
-        assert body["id"] == "s_det"
-        assert body["title"] == "深度分析 招商银行"
-        assert body["status"] == "active"
-
-    def test_detail_404_for_missing(self, client):
-        c, _ = client
-        r = c.get("/api/agent/sessions/does_not_exist/detail")
-        assert r.status_code == 404
-
-
-class TestSessionPatchEndpoint:
-    def test_patch_rename(self, client):
-        c, store = client
-        store.upsert(Session(id="s_p", title="old title"))
-        r = c.patch("/api/agent/sessions/s_p", json={"title": "new title"})
-        assert r.status_code == 200
-        assert r.json()["title"] == "new title"
-        # Persisted
-        assert store.get("s_p").title == "new title"
-
-    def test_patch_archive(self, client):
-        c, store = client
-        store.upsert(Session(id="s_a"))
-        r = c.patch("/api/agent/sessions/s_a", json={"archive": True})
-        assert r.status_code == 200
-        assert r.json()["status"] == "archived"
-
-    def test_patch_404_for_missing(self, client):
-        c, _ = client
-        r = c.patch("/api/agent/sessions/nope", json={"title": "x"})
-        assert r.status_code == 404
+        # include_archived=true
+        ids = [
+            s["id"]
+            for s in client.get("/api/agent/sessions?include_archived=true").json()["sessions"]
+        ]
+        assert "s_active" in ids and "s_arch" in ids
 
 
 # --------------------------------------------------------------------------
-# A3 — DELETE endpoint + cascade
+# A3 — DELETE + 3-tier cascade + audit
 # --------------------------------------------------------------------------
-class TestSessionDeleteEndpoint:
-    def test_delete_returns_cascade_audit(self, client):
-        c, store = client
-        store.upsert(Session(id="s_del"))
-        r = c.delete("/api/agent/sessions/s_del")
+class TestDeleteEndpoint:
+    def test_delete_returns_audit(self, client):
+        client.app.state.session_store.upsert(Session(id="s_del"))
+        r = client.delete("/api/agent/sessions/s_del")
         assert r.status_code == 200
         body = r.json()
         assert body["session_id"] == "s_del"
+        # spec A3: 级联清理 db 文件 + audit
+        assert "deleted" in body
+        assert "files_removed" in body
         assert body["deleted"]["sessions"] == 1
-        assert body["deleted"]["harness_checkpoints"] == 0
-        # Row gone
-        assert store.get("s_del") is None
+        assert client.app.state.session_store.get("s_del") is None
 
     def test_delete_cascades_harness_checkpoint(self, client):
-        c, store = client
-        from tradingagents.agent_harness.core.harness_checkpoint import (
-            HarnessCheckpoint,
-            NODE_PLANNING,
-        )
+        store = client.app.state.session_store
+        ckpt_store = client.app.state.checkpoint_store
         store.upsert(Session(id="s_cascade"))
-        c.app.state.checkpoint_store.save(
-            HarnessCheckpoint(
-                session_id="s_cascade",
-                node_position=NODE_PLANNING,
-                state={"intent": "analysis", "symbols": ["600036.SS"]},
-                emitted_events=[],
-            )
-        )
-        r = c.delete("/api/agent/sessions/s_cascade")
-        assert r.status_code == 200
+        ckpt_store.save(HarnessCheckpoint(
+            session_id="s_cascade",
+            node_position=NODE_PLANNING,
+            state={"intent": "analysis"},
+            emitted_events=[],
+        ))
+        r = client.delete("/api/agent/sessions/s_cascade")
         body = r.json()
         assert body["deleted"]["sessions"] == 1
         assert body["deleted"]["harness_checkpoints"] == 1
-        # Verify both gone
-        assert store.get("s_cascade") is None
-        assert c.app.state.checkpoint_store.load("s_cascade") is None
+        assert ckpt_store.load("s_cascade") is None
 
-    def test_delete_missing_returns_404(self, client):
-        c, _ = client
-        r = c.delete("/api/agent/sessions/does_not_exist")
-        # delete() returns counts of 0 for missing rows; still 200 with audit
-        assert r.status_code == 200
-        body = r.json()
-        assert body["deleted"]["sessions"] == 0
+    def test_delete_removes_langgraph_db_file(self, client):
+        """spec A3: '级联清理 db 文件' — 必须删 LangGraph per-session db 文件。
 
+        通过实际路径(agent_session_db_path 默认返回 Path.home()/.tradingagents)
+        验证 DELETE 会删文件并把路径写入 audit payload。"""
+        from pathlib import Path
+        from tradingagents.agents.general.memory import agent_session_db_path
 
-# --------------------------------------------------------------------------
-# Orchestrator integration — SessionStore directly verifies the wiring
-# (avoids the full /api/harness/chat/batch path which has its own
-# flaky LLM-fallback hang — see test_harness_event_modes).
-# --------------------------------------------------------------------------
-class TestSessionStoreWiring:
-    def test_harness_has_session_store(self, client):
-        """Harness.set_session_store() should expose SessionStore."""
-        c, _ = client
-        assert c.app.state.harness.orchestrator._session_store is not None
-        # Round-trip through the orchestrator's store
-        sess = c.app.state.harness.orchestrator._session_store
-        sess.upsert(Session(id="via_orch", title="via orchestrator"))
-        assert sess.get("via_orch").title == "via orchestrator"
+        client.app.state.session_store.upsert(Session(id="s_file_del"))
+        # 预创建 LangGraph per-session db 文件
+        db_file = agent_session_db_path(Path.home() / ".tradingagents", "s_file_del")
+        db_file.parent.mkdir(parents=True, exist_ok=True)
+        db_file.touch()
+        assert db_file.exists()
+        try:
+            r = client.delete("/api/agent/sessions/s_file_del")
+            body = r.json()
+            # audit: 行级 + 文件级 都清理
+            assert body["deleted"]["db_files"] == 1
+            assert body["deleted"]["sessions"] == 1
+            assert not db_file.exists(), f"file not removed: {db_file}"
+            # audit payload 包含完整文件路径
+            assert any(str(db_file) == f for f in body["files_removed"])
+        finally:
+            if db_file.exists():
+                db_file.unlink()

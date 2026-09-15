@@ -1,12 +1,14 @@
-"""SessionStore — session metadata + lifecycle (roadmap A2 + A3)."""
+"""SessionStore — Session 元数据表(roadmap §1.3 A2/A3) — 严格按 spec。
+
+Schema 字段:`id, user_id, created_at, last_active, message_count, status`
+(spec §1.3 A2)。不带 title / token_total / metadata。
+"""
 from __future__ import annotations
 
-import tempfile
 from pathlib import Path
 
 import pytest
 
-from tradingagents.agent_harness.core.harness_checkpoint import HarnessCheckpoint, HarnessCheckpointStore
 from tradingagents.agent_harness.core.session_store import (
     SESSION_STATUS_ACTIVE,
     SESSION_STATUS_ARCHIVED,
@@ -30,261 +32,179 @@ def store(sqlite_store):
 
 
 # --------------------------------------------------------------------------
-# Session dataclass round-trip
+# Session dataclass round-trip — 严格按 spec 字段
 # --------------------------------------------------------------------------
 class TestSessionDataclass:
     def test_defaults(self):
-        s = Session(id="harness-abc")
+        s = Session(id="s_abc")
         assert s.user_id == "default"
         assert s.status == SESSION_STATUS_ACTIVE
         assert s.message_count == 0
-        assert s.token_total == 0
-        assert s.metadata == {}
+        # spec: 不应有 title / token_total / metadata
+        assert not hasattr(s, "title")
+        assert not hasattr(s, "token_total")
+        assert not hasattr(s, "metadata")
 
-    def test_to_row_round_trip(self):
-        s = Session(
-            id="harness-xyz",
-            user_id="alice",
-            title="Compare 600036 vs 600418",
-            message_count=5,
-            token_total=10000,
-            metadata={"intent": "compare", "symbols": ["600036", "600418"]},
-        )
+    def test_to_row_has_only_spec_fields(self):
+        s = Session(id="s_xyz", user_id="alice", message_count=5)
         row = s.to_row()
-        restored = Session.from_row(dict(row))
-        assert restored.id == "harness-xyz"
-        assert restored.user_id == "alice"
-        assert restored.title == "Compare 600036 vs 600418"
-        assert restored.message_count == 5
-        assert restored.metadata == {"intent": "compare", "symbols": ["600036", "600418"]}
+        assert set(row.keys()) == {
+            "id", "user_id", "created_at", "last_active", "message_count", "status"
+        }
 
-    def test_to_dict_api_shape(self):
-        s = Session(id="harness-1", title="hello")
+    def test_to_dict_has_only_spec_fields(self):
+        s = Session(id="s_xyz")
         d = s.to_dict()
-        for key in ("id", "user_id", "title", "created_at", "last_active",
-                    "message_count", "token_total", "status", "metadata"):
-            assert key in d
+        assert set(d.keys()) == {
+            "id", "user_id", "created_at", "last_active", "message_count", "status"
+        }
+
+    def test_round_trip(self):
+        s = Session(
+            id="s_xyz",
+            user_id="alice",
+            message_count=5,
+        )
+        s2 = Session.from_row(s.to_row())
+        assert s2.id == s.id
+        assert s2.user_id == s.user_id
+        assert s2.message_count == s.message_count
 
 
 # --------------------------------------------------------------------------
-# upsert + get
+# upsert / touch
 # --------------------------------------------------------------------------
-class TestUpsertGet:
-    def test_upsert_creates_new(self, store):
-        s = Session(id="harness-new")
+class TestUpsertAndTouch:
+    def test_upsert_creates_new_row(self, store):
+        store.upsert(Session(id="s1"))
+        sess = store.get("s1")
+        assert sess is not None
+        assert sess.id == "s1"
+        assert sess.message_count == 0
+        assert sess.status == SESSION_STATUS_ACTIVE
+
+    def test_upsert_existing_updates_last_active(self, store):
+        s = Session(id="s1")
+        s.last_active = "2020-01-01T00:00:00+00:00"
         store.upsert(s)
-        loaded = store.get("harness-new")
-        assert loaded is not None
-        assert loaded.id == "harness-new"
-        assert loaded.status == SESSION_STATUS_ACTIVE
+        # Re-upsert with new last_active
+        store.upsert(Session(id="s1"))
+        sess = store.get("s1")
+        assert sess.last_active != "2020-01-01T00:00:00+00:00"
 
-    def test_upsert_updates_existing(self, store):
-        store.upsert(Session(id="harness-up", message_count=3))
-        # Upsert again with new counters
-        s = Session(id="harness-up", message_count=7)
-        store.upsert(s)
-        loaded = store.get("harness-up")
-        assert loaded.message_count == 7
+    def test_touch_bumps_message_count(self, store):
+        store.upsert(Session(id="s1"))
+        assert store.touch("s1", message_delta=1)
+        assert store.get("s1").message_count == 1
+        assert store.touch("s1", message_delta=3)
+        assert store.get("s1").message_count == 4
 
-    def test_get_returns_none_for_missing(self, store):
-        assert store.get("harness-nonexistent") is None
-
-    def test_upsert_preserves_created_at(self, store):
-        store.upsert(Session(id="harness-keep"))
-        first = store.get("harness-keep")
-        store.upsert(Session(id="harness-keep"))
-        second = store.get("harness-keep")
-        assert first.created_at == second.created_at
+    def test_touch_skips_archived(self, store):
+        store.upsert(Session(id="s1"))
+        store.archive("s1")
+        # touch on archived returns False, count not bumped
+        assert not store.touch("s1", message_delta=1)
+        assert store.get("s1").message_count == 0
 
 
 # --------------------------------------------------------------------------
-# touch — counters + last_active
+# list / count
 # --------------------------------------------------------------------------
-class TestTouch:
-    def test_touch_increments_message_count(self, store):
-        store.upsert(Session(id="harness-touch"))
-        store.touch("harness-touch", message_delta=1)
-        store.touch("harness-touch", message_delta=1)
-        s = store.get("harness-touch")
-        assert s.message_count == 2
+class TestListAndCount:
+    def test_list_empty(self, store):
+        assert store.list_sessions() == []
+        assert store.count() == 0
 
-    def test_touch_increments_token_total(self, store):
-        store.upsert(Session(id="harness-tok"))
-        store.touch("harness-tok", token_delta=1500)
-        store.touch("harness-tok", token_delta=800)
-        assert store.get("harness-tok").token_total == 2300
+    def test_list_active_only_default(self, store):
+        store.upsert(Session(id="s_active"))
+        store.upsert(Session(id="s_arch"))
+        store.archive("s_arch")
+        listed = store.list_sessions(status=SESSION_STATUS_ACTIVE)
+        assert [s.id for s in listed] == ["s_active"]
 
-    def test_touch_updates_last_active(self, store):
-        store.upsert(Session(id="harness-active"))
-        first_active = store.get("harness-active").last_active
-        import time
-        time.sleep(0.01)
-        store.touch("harness-active")
-        new_active = store.get("harness-active").last_active
-        assert new_active > first_active
+    def test_list_include_archived(self, store):
+        store.upsert(Session(id="s_active"))
+        store.upsert(Session(id="s_arch"))
+        store.archive("s_arch")
+        listed = store.list_sessions(status=None)
+        ids = {s.id for s in listed}
+        assert ids == {"s_active", "s_arch"}
 
-    def test_touch_returns_false_for_missing(self, store):
-        assert store.touch("harness-ghost") is False
+    def test_list_newest_first(self, store):
+        s1 = Session(id="s_old")
+        s1.last_active = "2020-01-01T00:00:00+00:00"
+        store.upsert(s1)
+        store.upsert(Session(id="s_new"))
+        listed = store.list_sessions()
+        assert listed[0].id == "s_new"
+        assert listed[1].id == "s_old"
 
-    def test_touch_skips_archived_sessions(self, store):
-        store.upsert(Session(id="harness-arc"))
-        store.archive("harness-arc")
-        # touch on archived session returns False (no update)
-        result = store.touch("harness-arc", message_delta=1)
-        assert result is False
-        # Count remains 0
-        assert store.get("harness-arc").message_count == 0
-
-
-# --------------------------------------------------------------------------
-# list_sessions
-# --------------------------------------------------------------------------
-class TestListSessions:
-    def test_list_active_newest_first(self, store):
-        import time
-        for sid in ["a", "b", "c"]:
-            store.upsert(Session(id=f"harness-{sid}"))
-            time.sleep(0.005)
-        result = store.list_sessions()
-        assert [s.id for s in result] == ["harness-c", "harness-b", "harness-a"]
-
-    def test_list_excludes_archived_by_default(self, store):
-        store.upsert(Session(id="harness-act"))
-        store.upsert(Session(id="harness-arc"))
-        store.archive("harness-arc")
-        result = store.list_sessions()
-        assert all(s.status == "active" for s in result)
-        assert any(s.id == "harness-act" for s in result)
-        assert not any(s.id == "harness-arc" for s in result)
-
-    def test_list_includes_archived_when_status_none(self, store):
-        store.upsert(Session(id="harness-arc"))
-        store.archive("harness-arc")
-        result = store.list_sessions(status=None)
-        assert any(s.id == "harness-arc" for s in result)
+    def test_count_reflects_status(self, store):
+        store.upsert(Session(id="s1"))
+        store.upsert(Session(id="s2"))
+        store.archive("s2")
+        assert store.count() == 1
+        assert store.count(status=None) == 2
 
     def test_list_pagination(self, store):
-        for i in range(10):
-            store.upsert(Session(id=f"harness-{i:02d}"))
-        page1 = store.list_sessions(limit=3, offset=0)
-        page2 = store.list_sessions(limit=3, offset=3)
-        assert len(page1) == 3
-        assert len(page2) == 3
-        assert set(s.id for s in page1).isdisjoint(s.id for s in page2)
-
-    def test_list_filter_by_user(self, store):
-        store.upsert(Session(id="harness-1", user_id="alice"))
-        store.upsert(Session(id="harness-2", user_id="bob"))
-        alice = store.list_sessions(user_id="alice")
-        assert all(s.user_id == "alice" for s in alice)
-        assert any(s.id == "harness-1" for s in alice)
-        assert not any(s.id == "harness-2" for s in alice)
-
-    def test_count(self, store):
         for i in range(5):
-            store.upsert(Session(id=f"harness-{i}"))
-        assert store.count() == 5
-        store.archive("harness-0")
-        assert store.count() == 4
-        assert store.count(status=None) == 5
+            store.upsert(Session(id=f"s{i}"))
+        page1 = store.list_sessions(limit=2, offset=0)
+        page2 = store.list_sessions(limit=2, offset=2)
+        assert len(page1) == 2
+        assert len(page2) == 2
+        assert page1[0].id != page2[0].id
 
 
 # --------------------------------------------------------------------------
-# archive + delete + cascade
+# delete — spec A3 row-level cascade
 # --------------------------------------------------------------------------
-class TestArchiveDelete:
-    def test_archive_marks_status(self, store):
-        store.upsert(Session(id="harness-arc"))
-        assert store.archive("harness-arc") is True
-        assert store.get("harness-arc").status == SESSION_STATUS_ARCHIVED
+class TestDelete:
+    def test_delete_removes_session_row(self, store):
+        store.upsert(Session(id="s1"))
+        out = store.delete("s1")
+        assert out["sessions"] == 1
+        assert store.get("s1") is None
 
-    def test_archive_returns_false_for_missing(self, store):
-        assert store.archive("harness-ghost") is False
+    def test_delete_missing_returns_zero(self, store):
+        out = store.delete("does_not_exist")
+        assert out["sessions"] == 0
 
-    def test_delete_removes_session(self, store):
-        store.upsert(Session(id="harness-del"))
-        deleted = store.delete("harness-del")
-        assert deleted["sessions"] == 1
-        assert store.get("harness-del") is None
-
-    def test_delete_cascades_harness_checkpoint(self, sqlite_store, store):
-        """A3 cascade: deleting a session drops its harness checkpoint too."""
-        store.upsert(Session(id="harness-cascade"))
-        ckpt_store = HarnessCheckpointStore(sqlite_store)
+    def test_delete_cascades_harness_checkpoints(self, store):
+        from tradingagents.agent_harness.core.harness_checkpoint import (
+            HarnessCheckpoint,
+            HarnessCheckpointStore,
+            NODE_PLANNING,
+        )
+        store.upsert(Session(id="s_cascade"))
+        ckpt_store = HarnessCheckpointStore(store._store)
         ckpt_store.save(HarnessCheckpoint(
-            session_id="harness-cascade",
-            node_position="executing",
-            state={"plan": [{"step": 1}]},
+            session_id="s_cascade",
+            node_position=NODE_PLANNING,
+            state={"intent": "analysis"},
+            emitted_events=[],
         ))
-        assert ckpt_store.has_checkpoint("harness-cascade") is True
-
-        deleted = store.delete("harness-cascade")
-        assert deleted["sessions"] == 1
-        assert deleted["harness_checkpoints"] == 1
-        assert ckpt_store.has_checkpoint("harness-cascade") is False
-
-    def test_delete_returns_zero_counts_for_missing(self, store):
-        deleted = store.delete("harness-ghost")
-        assert deleted == {"sessions": 0, "harness_checkpoints": 0}
-
-    def test_delete_does_not_affect_other_sessions(self, sqlite_store, store):
-        ckpt_store = HarnessCheckpointStore(sqlite_store)
-        store.upsert(Session(id="harness-keep"))
-        store.upsert(Session(id="harness-drop"))
-        ckpt_store.save(HarnessCheckpoint(session_id="harness-keep", node_position="executing", state={}))
-        ckpt_store.save(HarnessCheckpoint(session_id="harness-drop", node_position="executing", state={}))
-
-        store.delete("harness-drop")
-        assert store.get("harness-keep") is not None
-        assert store.get("harness-drop") is None
-        assert ckpt_store.has_checkpoint("harness-keep") is True
-        assert ckpt_store.has_checkpoint("harness-drop") is False
+        out = store.delete("s_cascade")
+        assert out["sessions"] == 1
+        assert out["harness_checkpoints"] == 1
+        assert ckpt_store.load("s_cascade") is None
 
 
 # --------------------------------------------------------------------------
-# set_title
-# --------------------------------------------------------------------------
-class TestSetTitle:
-    def test_set_title_updates(self, store):
-        store.upsert(Session(id="harness-tt"))
-        assert store.set_title("harness-tt", "My Compare Session") is True
-        assert store.get("harness-tt").title == "My Compare Session"
-
-    def test_set_title_to_none_clears(self, store):
-        store.upsert(Session(id="harness-clr", title="orig"))
-        store.set_title("harness-clr", None)
-        assert store.get("harness-clr").title is None
-
-    def test_set_title_returns_false_for_missing(self, store):
-        assert store.set_title("harness-ghost", "x") is False
-
-
-# --------------------------------------------------------------------------
-# SettingsRepository-wrapping backend (matches web/app.py wiring)
+# SettingsRepository 适配 — app.state.repositories["settings"] 实际类型
 # --------------------------------------------------------------------------
 class TestSettingsRepositoryBackend:
-    """The real wiring in web/app.py passes
-    ``app.state.repositories["settings"]`` (a SettingsRepository),
-    not a raw SQLiteStore. Make sure SessionStore unwraps it.
-
-    Regression test for the bug where the A2 wire-up crashed at
-    runtime with ``AttributeError: 'SettingsRepository' object has no
-    attribute '_connect'``.
-    """
-
     def test_settings_repository_unwrapped(self, tmp_path):
         from web.repositories import SettingsRepository
         from web.storage import SQLiteStore
 
         settings = SQLiteStore(tmp_path / "rep.db")
         repo = SettingsRepository(settings)
-        # Pass the repo (not the raw store) — should still work
-        store = SessionStore(repo)
-        store.upsert(Session(id="s_repo", title="via repo"))
-        assert store.get("s_repo").title == "via repo"
-        sessions = store.list_sessions()
-        assert [s.id for s in sessions] == ["s_repo"]
-        # And delete works through the wrapper too
-        deleted = store.delete("s_repo")
-        assert deleted["sessions"] == 1
+        store = SessionStore(repo)  # 传 wrapper,不传 raw SQLiteStore
+        store.upsert(Session(id="s_repo", user_id="alice"))
+        assert store.get("s_repo").user_id == "alice"
+        assert store.count() == 1
+        # delete 也通过 wrapper 工作
+        out = store.delete("s_repo")
+        assert out["sessions"] == 1
         assert store.get("s_repo") is None

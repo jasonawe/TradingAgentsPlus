@@ -16,7 +16,7 @@ from typing import Annotated, Any
 from langchain_core.messages import AIMessage
 from langchain_core.runnables import Runnable
 
-from fastapi import Body, FastAPI, Header, HTTPException, Query, Request, status
+from fastapi import FastAPI, Header, HTTPException, Query, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -484,6 +484,7 @@ def create_app(
         # the orchestrator so stream_chat auto-creates / touches rows.
         # Cascade-cleaned by DELETE /api/agent/sessions/{id} (A3).
         from tradingagents.agent_harness.core.session_store import (
+            SESSION_STATUS_ACTIVE,
             Session,
             SessionStore,
         )
@@ -1775,27 +1776,14 @@ def create_app(
     @app.post(
         "/api/agent/sessions", status_code=status.HTTP_201_CREATED,
     )
-    def create_agent_session(body: dict[str, Any] = Body(default_factory=dict)) -> dict[str, Any]:
-        """创建新的 chat session,返回 session_id。
-
-        If a ``session_store`` is wired, pre-creates the row so the
-        session appears in ``GET /api/agent/sessions`` immediately
-        (rather than waiting for first ``stream_chat``).
+    def create_agent_session() -> dict[str, Any]:
+        """生成新的 session_id(UUID)。首次 stream_chat 时由 Orchestrator
+        自动 upsert 到 SessionStore(roadmap §1.3 A2)。
         """
         import uuid
         sid = f"s_{uuid.uuid4().hex[:16]}"
-        title = (body or {}).get("title")
-        store = getattr(app.state, "session_store", None)
-        if store is not None:
-            try:
-                store.upsert(Session(id=sid, title=title))
-            except Exception:
-                LOGGER.debug("session create-upsert failed", exc_info=True)
-        sess = store.get(sid) if store is not None else None
-        if sess is not None:
-            return sess.to_dict()
         return {
-            "id": sid,
+            "session_id": sid,
             "created_at": datetime.utcnow().isoformat() + "Z",
         }
 
@@ -1804,87 +1792,62 @@ def create_app(
         include_archived: bool = False,
         limit: int = 100,
     ) -> dict[str, Any]:
-        """列出所有 L1 短期对话 sessions (A2/A3 list endpoint).
+        """roadmap §1.3 A2 — 列出 sessions,严格按 spec 返回 6 字段。
 
-        Returns the canonical session list from ``SessionStore`` —
-        ``last_active`` / ``message_count`` / ``token_total`` are now
-        real values (the previous stub hardcoded ``None``).
+        spec:`sessions(id, created_at, last_active, user_id, message_count, status)`
+        (之前是 hardcoded last_active=None 的 stub,见 §1.1.3)
         """
         store = getattr(app.state, "session_store", None)
         if store is None:
-            # Fallback: legacy LangGraph SqliteSaver IDs (defensive)
-            from tradingagents.agents.general.memory import list_session_ids
-            sids = list_session_ids(_stage_c_data_dir())
-            return {
-                "sessions": [
-                    {"session_id": sid, "last_active": None, "message_count": 0}
-                    for sid in sids
-                ],
-                "total": len(sids),
-            }
+            raise _error(status.HTTP_503_SERVICE_UNAVAILABLE, "session store not configured")
         sessions = store.list_sessions(
-            status=None if include_archived else "active",
+            status=None if include_archived else SESSION_STATUS_ACTIVE,
             limit=min(limit, 500),
         )
         return {
             "sessions": [s.to_dict() for s in sessions],
             "total": store.count(
-                status=None if include_archived else "active",
+                status=None if include_archived else SESSION_STATUS_ACTIVE,
             ),
         }
 
-    @app.get("/api/agent/sessions/{session_id}/detail")
-    def get_agent_session_detail(session_id: str) -> dict[str, Any]:
-        """Get full session metadata from SessionStore (A2 detail)."""
-        store = getattr(app.state, "session_store", None)
-        if store is None:
-            raise _error(status.HTTP_503_SERVICE_UNAVAILABLE, "session store not configured")
-        sess = store.get(session_id)
-        if sess is None:
-            raise _error(status.HTTP_404_NOT_FOUND, f"no session {session_id}")
-        return sess.to_dict()
-
-    @app.patch("/api/agent/sessions/{session_id}")
-    def patch_agent_session(session_id: str, body: dict[str, Any]) -> dict[str, Any]:
-        """Update session metadata (rename / archive)."""
-        store = getattr(app.state, "session_store", None)
-        if store is None:
-            raise _error(status.HTTP_503_SERVICE_UNAVAILABLE, "session store not configured")
-        if "title" in body:
-            store.set_title(session_id, body["title"])
-        if body.get("archive"):
-            store.archive(session_id)
-        sess = store.get(session_id)
-        if sess is None:
-            raise _error(status.HTTP_404_NOT_FOUND, f"no session {session_id}")
-        return sess.to_dict()
-
     @app.delete("/api/agent/sessions/{session_id}")
     def delete_agent_session(session_id: str) -> dict[str, Any]:
-        """Hard-delete session + cascade cleanup (roadmap A3).
+        """roadmap §1.3 A3 — DELETE + 级联清理 db 文件 + audit。
 
-        Cascade drops:
-        - ``sessions`` row (always)
-        - ``harness_checkpoints`` row (if checkpoint_store wired)
+        级联清理三层:
+        1. ``sessions`` 行删除(SessionStore.delete)
+        2. ``harness_checkpoints`` 行删除(SessionStore.delete 内 cascade)
+        3. ``{data_dir}/sessions/agent_<safe_id>.db`` 文件删除
+           (LangGraph SqliteSaver per-session db)
 
-        Returns the audit payload so callers can log it.
+        Returns audit payload for the caller to log.
         """
         store = getattr(app.state, "session_store", None)
         if store is None:
             raise _error(status.HTTP_503_SERVICE_UNAVAILABLE, "session store not configured")
+        # Step 1+2: row-level cascade
         deleted = store.delete(session_id)
-        # Drop in-memory cache references too so a follow-up /chat on the
-        # same id starts fresh (idempotent).
-        ckpt_store = getattr(app.state, "checkpoint_store", None)
-        if ckpt_store is not None:
-            try:
-                ckpt_store.delete(session_id)
-            except Exception:
-                LOGGER.debug("checkpoint cleanup for %s failed", session_id, exc_info=True)
-        LOGGER.info("session deleted via A3 endpoint: %s (%s)", session_id, deleted)
+        # Step 3: file-level cascade — per-session LangGraph SqliteSaver db
+        files_removed: list[str] = []
+        try:
+            from tradingagents.agents.general.memory import agent_session_db_path
+            db_file = agent_session_db_path(_stage_c_data_dir(), session_id)
+            if db_file.exists():
+                files_removed.append(str(db_file))
+                db_file.unlink()
+        except Exception:
+            LOGGER.debug("file cascade for %s failed", session_id, exc_info=True)
+        deleted["db_files"] = len(files_removed)
+        # Audit log
+        LOGGER.info(
+            "A3 audit: session=%s deleted rows=%s files=%s",
+            session_id, deleted, files_removed,
+        )
         return {
             "session_id": session_id,
             "deleted": deleted,
+            "files_removed": files_removed,
         }
 
     @app.get("/api/agent/sessions/{session_id}")
