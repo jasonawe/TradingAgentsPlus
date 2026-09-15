@@ -11,6 +11,9 @@ Holds:
 from .context import ContextPriority, Layer
 from .orchestrator import Orchestrator, OrchestratorState
 from .plan_template import PlanTemplateCache, normalize_message
+from .prefetch import (
+    PlanPredictor, PrefetchResult, PrefetchStats, Prefetcher,
+)
 from .rate_limiter import (
     PROVIDER_RATE_LIMITS, RateLimiter, get_rate_limiter, register_provider_rate_limit,
 )
@@ -35,6 +38,10 @@ __all__ = [
     "OrchestratorState",
     "PlanTemplateCache",
     "normalize_message",
+    "PlanPredictor",
+    "PrefetchResult",
+    "PrefetchStats",
+    "Prefetcher",
     "RateLimiter",
     "PROVIDER_RATE_LIMITS",
     "get_rate_limiter",
