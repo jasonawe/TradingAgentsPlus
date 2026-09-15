@@ -11,7 +11,7 @@ scope.
 """
 from .base import MemoryEntry, MemoryLayer, MemoryScope
 from .l1_session import SqliteSessionMemory
-from .event_log import Event, EventLog
+from .event_log import Event, EventLog, SurfaceType, TYPE_TO_SURFACE, classify_surface
 from .l2_preferences import UserPreferencesMemory
 from .l3_references import AgentReferencesMemory
 from .manager import MemoryManager

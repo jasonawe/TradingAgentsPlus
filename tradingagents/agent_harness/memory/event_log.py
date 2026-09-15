@@ -42,10 +42,43 @@ import threading
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from enum import Enum
 from pathlib import Path
 from typing import Any, Iterable, Iterator, Optional
 
 DEFAULT_DB_PATH = Path(".ta_cache") / "event_log.sqlite"
+
+
+class SurfaceType(str, Enum):
+    """W3-D6 R2 — surface classification for events.
+
+    The 4 surface types feed the derived LLM history (and are visible
+    to the front-end). Everything else is log-only — kept in the audit
+    trail but not exposed to the LLM.
+    """
+
+    SYSTEM = "system"          # system prompt + LLM-bound context
+    USER = "user"              # user input
+    ASSISTANT = "assistant"    # LLM response (full message or final stream chunk)
+    TOOL = "tool"              # tool execution result
+    LOG = "log"                # audit-only — never shown to the LLM
+
+
+# Mapping from event type string → surface classification. Anything not
+# in this table defaults to ``SurfaceType.LOG`` so the derived history
+# stays clean by default.
+TYPE_TO_SURFACE: dict[str, SurfaceType] = {
+    "system/message":    SurfaceType.SYSTEM,
+    "user/message":      SurfaceType.USER,
+    "assistant/message": SurfaceType.ASSISTANT,
+    "assistant/delta":   SurfaceType.ASSISTANT,  # streaming chunk
+    "tool/result":       SurfaceType.TOOL,
+    "replace":           SurfaceType.LOG,         # audit-only
+}
+
+
+def classify_surface(type_: str) -> SurfaceType:
+    return TYPE_TO_SURFACE.get(type_, SurfaceType.LOG)
 
 
 @dataclass(frozen=True)
@@ -55,6 +88,10 @@ class Event:
     ``seq`` is monotonic per ``session_id``; the first event for a
     session has seq=1. ``time`` is UNIX seconds (UTC). ``data`` is
     whatever the producer serialised — the log is type-agnostic.
+
+    ``surface`` (W3-D6 R2) is derived from ``type`` at construction
+    time; surface events flow into the LLM history, log-only ones
+    stay in the audit trail.
     """
 
     seq: int
@@ -63,6 +100,7 @@ class Event:
     data: Any
     time: float
     replaced_by: Optional[int] = None  # seq of the replace event, if any
+    surface: SurfaceType = field(default=SurfaceType.LOG)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -72,11 +110,17 @@ class Event:
             "data": self.data,
             "time": self.time,
             "replaced_by": self.replaced_by,
+            "surface": self.surface.value,
         }
 
     @property
     def time_iso(self) -> str:
         return datetime.fromtimestamp(self.time, tz=timezone.utc).isoformat()
+
+    @property
+    def is_surface(self) -> bool:
+        """True when this event feeds the derived LLM history."""
+        return self.surface != SurfaceType.LOG
 
 
 class EventLog:
@@ -167,6 +211,7 @@ class EventLog:
             import time as _time
             ts = _time.time()
         payload = self._serialize(data)
+        surface = classify_surface(type)
         with self._lock, self._connect() as conn:
             # Allocate next seq under the global lock so concurrent
             # appends can't collide on the (session_id, seq) PK.
@@ -182,7 +227,8 @@ class EventLog:
             )
             conn.commit()
         return Event(
-            seq=next_seq, session_id=session_id, type=type, data=data, time=ts,
+            seq=next_seq, session_id=session_id, type=type, data=data,
+            time=ts, surface=surface,
         )
 
     # ------------------------------------------------------------------
@@ -224,6 +270,7 @@ class EventLog:
                 type=r["type"],
                 data=self._deserialize(r["data"]),
                 time=float(r["time"]),
+                surface=classify_surface(r["type"]),
             )
             for r in rows
         ]
@@ -247,6 +294,7 @@ class EventLog:
             data=self._deserialize(row["data"]),
             time=float(row["time"]),
             replaced_by=int(row["replaced_by"]) if row["replaced_by"] is not None else None,
+            surface=classify_surface(row["type"]),
         )
 
     # ------------------------------------------------------------------
@@ -256,20 +304,119 @@ class EventLog:
         """Return ``type='message'`` events (the LLM chat history)."""
         return self.events(session_id, after_seq=after_seq, type_filter="message")
 
-    def chat_history(self, session_id: str) -> list[dict[str, Any]]:
-        """Project messages into the ``{role, content, ts}`` shape the
-        LLM context composer expects.
+    # W3-D6 R2: surface query — returns only events that feed the
+    # derived LLM history (system / user / assistant / tool). log-only
+    # events are skipped. The full log is still available via
+    # ``events()`` for audit.
+    SURFACE_TYPES: tuple[str, ...] = (
+        "system/message", "user/message",
+        "assistant/message", "assistant/delta",
+        "tool/result",
+    )
+
+    def surface_events(
+        self, session_id: str, *, after_seq: int = 0,
+    ) -> list[Event]:
+        """Return surface-classified events in seq order.
+
+        Used to derive the LLM chat history — system prompt is the
+        first event (committed once at session start), followed by
+        user / assistant / tool interleaved by seq.
+        """
+        clauses = [
+            "session_id = ?",
+            "seq > ?",
+            "type IN ({})".format(",".join("?" for _ in self.SURFACE_TYPES)),
+        ]
+        params: list[Any] = [session_id, after_seq, *self.SURFACE_TYPES]
+        sql = (
+            "SELECT seq, type, data, time, replaced_by FROM event_log WHERE "
+            + " AND ".join(clauses)
+            + " ORDER BY seq ASC"
+        )
+        with self._connect() as conn:
+            rows = conn.execute(sql, params).fetchall()
+        return [
+            Event(
+                seq=int(r["seq"]),
+                session_id=session_id,
+                type=r["type"],
+                data=self._deserialize(r["data"]),
+                time=float(r["time"]),
+                replaced_by=int(r["replaced_by"]) if r["replaced_by"] is not None else None,
+                surface=classify_surface(r["type"]),
+            )
+            for r in rows
+        ]
+
+    def chat_history(
+        self, session_id: str, *, apply_replaces: bool = True,
+    ) -> list[dict[str, Any]]:
+        """Project the full surface chain into LLM messages.
+
+        W3-D6 R3: system prompt (``type='system/message'``) is the
+        first event; user/assistant/tool follow in seq order. The
+        result is the canonical LLM history — derived from the log,
+        not stored separately.
+
+        apply_replaces=True (default) walks the replace chain so
+        the LLM sees the LATEST data — e.g. if the system prompt
+        was re-committed, the history reflects the new prompt. Set
+        to False for strict replay (original data only).
         """
         out: list[dict[str, Any]] = []
-        for ev in self.messages(session_id):
+        for ev in self.surface_events(session_id):
             data = ev.data if isinstance(ev.data, dict) else {"content": ev.data}
+            content = data.get("content", "")
+            if ev.type == "system/message":
+                role = "system"
+            elif ev.type == "tool/result":
+                role = "tool"
+            elif ev.type.startswith("assistant/"):
+                role = "assistant"
+            else:
+                role = data.get("role", "user")
+            if apply_replaces and ev.replaced_by is not None:
+                rep = self.get(session_id, ev.replaced_by)
+                if rep and isinstance(rep.data, dict):
+                    new_data = rep.data.get("new_data", data)
+                    if isinstance(new_data, dict):
+                        content = new_data.get("content", content)
             out.append({
-                "role": data.get("role", "user"),
-                "content": data.get("content", ""),
+                "role": role,
+                "content": content,
                 "ts": ev.time,
                 "seq": ev.seq,
+                "surface": ev.surface.value,
             })
         return out
+
+    def commit_system_prompt(
+        self, session_id: str, prompt: str, *, ts: float | None = None,
+    ) -> Event:
+        """W3-D6 R3: commit the system prompt as a surface event.
+
+        Idempotent: if a ``system/message`` event already exists for
+        this session, the existing one is replaced (audit-tombstoned)
+        rather than appending a second one. New sessions get a fresh
+        commit. ``replace`` is used so the audit trail still shows
+        the old prompt.
+        """
+        existing = next(
+            (e for e in self.events(session_id, type_filter="system/message")),
+            None,
+        )
+        if existing is not None:
+            return self.replace(
+                session_id, existing.seq,
+                {"content": prompt, "role": "system"},
+                reason="system prompt re-commit",
+            )
+        return self.append(
+            session_id, "system/message",
+            {"content": prompt, "role": "system"},
+            ts=ts,
+        )
 
     # ------------------------------------------------------------------
     # Replace (audit-friendly mutation)

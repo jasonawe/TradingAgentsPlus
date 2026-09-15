@@ -143,12 +143,15 @@ def test_messages_filters_message_type(log: EventLog) -> None:
 
 
 def test_chat_history_projects_to_llm_shape(log: EventLog) -> None:
-    log.append("s", "message", {"role": "user", "content": "hi"}, ts=1.0)
-    log.append("s", "message", {"role": "assistant", "content": "hello"}, ts=2.0)
+    # W3-D6 R2: surface types are now user/message / assistant/message
+    # (the old message type is still accepted by messages() but
+    # doesn't flow into the surface-derived chat_history).
+    log.append("s", "user/message", {"role": "user", "content": "hi"}, ts=1.0)
+    log.append("s", "assistant/message", {"role": "assistant", "content": "hello"}, ts=2.0)
     hist = log.chat_history("s")
     assert hist == [
-        {"role": "user", "content": "hi", "ts": 1.0, "seq": 1},
-        {"role": "assistant", "content": "hello", "ts": 2.0, "seq": 2},
+        {"role": "user", "content": "hi", "ts": 1.0, "seq": 1, "surface": "user"},
+        {"role": "assistant", "content": "hello", "ts": 2.0, "seq": 2, "surface": "assistant"},
     ]
 
 
@@ -237,6 +240,6 @@ def test_harness_has_event_log(tmp_path, monkeypatch) -> None:
     h = Harness()
     assert isinstance(h.event_log, EventLog)
     # Round-trip
-    ev = h.event_log.append("test", "message", {"role": "user", "content": "hi"})
+    ev = h.event_log.append("test", "user/message", {"role": "user", "content": "hi"})
     assert ev.seq >= 1
     assert h.event_log.chat_history("test")[0]["content"] == "hi"
