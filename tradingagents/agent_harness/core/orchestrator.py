@@ -31,6 +31,18 @@ from web.market_models import ProviderError
 from tradingagents.agent_harness.llm.failure import LlmFailure, LlmFailureKind
 from .token_usage import TokenUsageStore, attach_store, track_agent
 from .surface import SurfaceRouter
+from .session_store import Session, SessionStore
+from .harness_checkpoint import (
+    ALL_NODES,
+    HarnessCheckpoint,
+    HarnessCheckpointStore,
+    NODE_DONE,
+    NODE_EXECUTING,
+    NODE_OBSERVING,
+    NODE_PLANNING,
+    NODE_SYNTHESIZING,
+    NODE_VERIFYING,
+)
 from .short_circuit import ShortCircuit
 from .tier import Intent, RouteResult, Tier, fast_route
 from .verification import VerificationLevel, Verifier
@@ -114,6 +126,7 @@ class Orchestrator:
         enable_l3: bool = False,
         judge_factory: Any | None = None,
         checkpoint_store: HarnessCheckpointStore | None = None,
+        session_store: SessionStore | None = None,
     ) -> None:
         self.tool_registry = tool_registry
         self.agent_registry = agent_registry
@@ -140,6 +153,9 @@ class Orchestrator:
         # Crash recovery (P1-7): when wired, every milestone event is
         # persisted so resume() can replay + continue after restart.
         self._checkpoint_store = checkpoint_store
+        # Session metadata (roadmap A2): when wired, every stream_chat
+        # auto-creates/updates the session row + bumps message_count.
+        self._session_store = session_store
 
     # ------------------------------------------------------------------
     # Public streaming entry
@@ -161,10 +177,39 @@ class Orchestrator:
             symbols=route.symbols,
         )
 
+        # Session lifecycle (roadmap A2): auto-create or update metadata.
+        if self._session_store is not None:
+            try:
+                existing = self._session_store.get(session_id)
+                if existing is None:
+                    self._session_store.upsert(Session(id=session_id, title=user_message[:64]))
+                else:
+                    self._session_store.touch(session_id)
+            except Exception:
+                LOGGER.debug("session upsert failed", exc_info=True)
+
+        # Crash recovery bookkeeping (P1-7): buffer emitted events so we
+        # can checkpoint + replay after restart. Local list, not on state.
+        emitted_events: list[tuple[str, dict[str, Any]]] = []
+        current_node = NODE_PLANNING
+        token_store_holder: dict[str, TokenUsageStore] = {}
+
+        async def _emit(
+            ev: str, payload: dict[str, Any]
+        ) -> tuple[str, dict[str, Any]]:
+            return await self._tag_and_dispatch(
+                ev, payload,
+                _emitted_events=emitted_events,
+                _current_node=current_node,
+                _state=state,
+                _token_store=token_store_holder.get("store"),
+                _session_id=session_id,
+            )
+
         # Tier 1 short-circuit when route lands on it.
         if route.tier == Tier.DIRECT and route.symbols:
             async for ev, payload in self._short_circuit.run(route, user_message, context):
-                yield await self._emit(ev, payload)
+                yield await _emit(ev, payload)
             return
 
         # Token accounting: every LLM call inside stream_chat records
@@ -172,11 +217,28 @@ class Orchestrator:
         # as ``usage_summary`` SSE event so the frontend can render
         # per-agent cost attribution.
         store = TokenUsageStore()
+        token_store_holder["store"] = store
         try:
             with attach_store(store):
-                async for ev in self._stream_chat_impl(state, context, route):
+                async for ev in self._stream_chat_impl(state, context, route, _emit):
                     yield ev
-            yield await self._emit("usage_summary", store.summary())
+            current_node = NODE_DONE
+            yield await _emit("usage_summary", store.summary())
+            # Session accounting (A2): bump token_total on success.
+            if self._session_store is not None:
+                try:
+                    self._session_store.touch(
+                        session_id,
+                        token_delta=store.totals().get("total_tokens", 0),
+                    )
+                except Exception:
+                    LOGGER.debug("session touch failed", exc_info=True)
+            # Success: drop the checkpoint so resume() doesn't replay.
+            if self._checkpoint_store is not None:
+                try:
+                    self._checkpoint_store.delete(session_id)
+                except Exception:
+                    LOGGER.debug("checkpoint cleanup failed", exc_info=True)
         except Exception as e:
             LOGGER.exception("orchestrator failed")
             state.error = str(e)
@@ -184,19 +246,51 @@ class Orchestrator:
             if isinstance(e, LlmFailure):
                 err_payload["failure"] = e.to_dict()
             err_payload["usage"] = store.summary()
-            yield await self._emit("error", err_payload)
+            yield await _emit("error", err_payload)
             return
         return
 
-    async def _emit(self, event: str, payload: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    async def _tag_and_dispatch(
+        self,
+        event: str,
+        payload: dict[str, Any],
+        *,
+        _emitted_events: list[tuple[str, dict[str, Any]]] | None = None,
+        _current_node: str | None = None,
+        _state: OrchestratorState | None = None,
+        _token_store: TokenUsageStore | None = None,
+        _session_id: str | None = None,
+    ) -> tuple[str, dict[str, Any]]:
         """Surface-tag an event before yielding it.
 
-        Side-effects: dispatch to audit/debug sinks via ``SurfaceRouter``.
-        Returns the (event, payload) tuple with ``surface`` added to
-        payload (or the caller's pre-set surface preserved).
+        Side-effects:
+        - dispatch to audit/debug sinks via ``SurfaceRouter``
+        - append (event, tagged_payload) to ``_emitted_events`` (for replay)
+        - call ``_maybe_checkpoint`` if wiring is in place
+
+        The trailing underscore kwargs are filled in by ``stream_chat``
+        to thread context through the emit pipeline.  When called
+        directly (e.g. from tests) they're None and no checkpointing
+        happens.
         """
         self._surface_router.route(event, payload)
-        return event, self._surface_router.tag(event, payload)
+        tagged = self._surface_router.tag(event, payload)
+        if _emitted_events is not None:
+            _emitted_events.append((event, tagged))
+        if (
+            self._checkpoint_store is not None
+            and _state is not None
+            and _current_node is not None
+            and _session_id is not None
+        ):
+            self._maybe_checkpoint(
+                session_id=_session_id,
+                state=_state,
+                node_position=_current_node,
+                emitted_events=_emitted_events or [],
+                token_store=_token_store,
+            )
+        return event, tagged
 
     def _maybe_checkpoint(
         self,
@@ -266,6 +360,7 @@ class Orchestrator:
         state: OrchestratorState,
         context: ToolContext,
         route: Any,
+        _emit: Callable[[str, dict[str, Any]], Any],
     ) -> AsyncIterator[tuple[str, dict]]:
         """Body of stream_chat — runs inside ``attach_store(store)``.
 
@@ -278,39 +373,42 @@ class Orchestrator:
         """
         # Tier 2: 5-node state machine.
         try:
-            yield await self._emit("plan_started", {"intent": route.intent.value})
+            yield await _emit("plan_started", {"intent": route.intent.value})
             plan = await self._plan(state, context)
             state.plan = plan
             # Detect PTC program shape: {"mode": "ptc", "groups": [...]}
             is_ptc = isinstance(plan, dict) and plan.get("mode") == "ptc"
             ev_name = "plan_ready_ptc" if is_ptc else "plan_ready"
             ev_payload = {"groups": plan.get("groups", [])} if is_ptc else {"steps": plan}
-            yield await self._emit(ev_name, ev_payload)
+            current_node = NODE_EXECUTING
+            yield await _emit(ev_name, ev_payload)
 
             if is_ptc:
                 results = await self._execute_ptc(state, context)
             else:
                 results = await self._execute(state, context)
             state.tool_results = results
+            current_node = NODE_OBSERVING
             for r in results:
-                yield await self._emit("tool_result", r)
+                yield await _emit("tool_result", r)
 
             observations = self._observe(state)
-            yield await self._emit("observed", observations)
+            yield await _emit("observed", observations)
 
             # L1 + L2 first (can short-circuit via plan mutation).
             verification = await self._verify(state)
-            yield await self._emit("verified", {"ok": verification.ok, "level": int(verification.level)})
+            yield await _emit("verified", {"ok": verification.ok, "level": int(verification.level)})
 
             final = await self._synthesize(state)
             state.final = final
-            yield await self._emit("agent_final", {"tier": int(Tier.PLAN_EXECUTE), "result": self._dump(final)})
+            current_node = NODE_DONE
+            yield await _emit("agent_final", {"tier": int(Tier.PLAN_EXECUTE), "result": self._dump(final)})
 
             # L3 LLM-judge (spec §D6) — runs AFTER synthesize. Extracted
             # into `_run_l3_judge` so it's directly testable without
             # spinning up the full 5-node state machine.
             async for ev, payload in self._run_l3_judge(state):
-                yield await self._emit(ev, payload)
+                yield await _emit(ev, payload)
 
             if self.audit is not None and hasattr(self.audit, "log"):
                 try:
