@@ -7,6 +7,10 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Callable
 
+from tradingagents.agent_harness.core.timeout_enforcer import (
+    CallTimeoutError, TimeoutEnforcer,
+)
+
 from .context import ToolContext
 from .permission import PermissionType
 from .schema import RetryPolicy, ToolSchema
@@ -57,6 +61,18 @@ class FunctionTool(BaseTool):
             kwargs["context"] = context
         if "args" in sig.parameters:
             kwargs["args"] = args
+
+        # §7.2 #4 — wall-clock cap from ToolSchema.timeout_seconds.
+        # 0 = no cap.  CallTimeoutError inherits asyncio.TimeoutError so
+        # callers that catch ``asyncio.TimeoutError`` still match.
+        timeout_seconds = self.schema.timeout_seconds
+        enforcer = TimeoutEnforcer(
+            op=f"tool.{self.name}", default_timeout_seconds=timeout_seconds,
+        )
         if self._is_coro:
-            return await self._func(**kwargs)
-        return await asyncio.to_thread(self._func, **kwargs)
+            # Build the coroutine so we can pass it to enforce().
+            async def _coro():
+                return await self._func(**kwargs)
+            return await enforcer.enforce(_coro())
+        # Sync path — runs in worker thread so the timeout still fires.
+        return await enforcer.enforce_sync(self._func, kwargs=kwargs)

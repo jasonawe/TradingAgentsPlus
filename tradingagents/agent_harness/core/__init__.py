@@ -17,6 +17,9 @@ from .rate_limiter import (
 from .template import (
     DEFAULT_TEMPLATES, TEMPLATE_TRIGGER_KEYWORDS, TemplateEngine, should_use_template,
 )
+from .timeout_enforcer import (
+    CallTimeoutError, TimeoutEnforcer, TimeoutStats, with_timeout,
+)
 from .retry import CircuitBreaker, CircuitState, RetryPolicy, retry_async
 from .short_circuit import ShortCircuit
 from .tier import Tier, classify_intent, fast_route
@@ -40,6 +43,10 @@ __all__ = [
     "DEFAULT_TEMPLATES",
     "TEMPLATE_TRIGGER_KEYWORDS",
     "should_use_template",
+    "CallTimeoutError",
+    "TimeoutEnforcer",
+    "TimeoutStats",
+    "with_timeout",
     "CircuitBreaker",
     "RetryPolicy",
     "retry_async",

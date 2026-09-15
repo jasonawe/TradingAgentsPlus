@@ -23,6 +23,9 @@ from .app_identity import AppIdentity, default_app_identity
 from .base import ChatMessage, LLMProvider, LLMResponse
 from .failure import classify_llm_error
 from .cache import LLMResponseCache, make_cache_key
+from tradingagents.agent_harness.core.timeout_enforcer import (
+    CallTimeoutError, TimeoutEnforcer,
+)
 from tradingagents.agent_harness.core.retry import (
     ResolvedRetryPolicy,
     retry_resolved_sync,
@@ -66,11 +69,26 @@ class OpenAICompatibleProvider(LLMProvider):
         # 默认 = TRANSIENT_KINDS(RATE_LIMIT / TIMEOUT / NETWORK / SERVER)。
         # CONTEXT_TOO_LONG / AUTH / NOT_FOUND / INVALID_OUTPUT 默认不重试。
         self._retry_policy = retry_policy or ResolvedRetryPolicy()
+        # §7.2 #4 — per-call timeout enforcement.  ``timeout_seconds`` is
+        # passed through complete() / stream() so callers can override
+        # per request (e.g. deep analysis might want 120s, simple chat
+        # 30s).  ``0`` disables enforcement.
+        default_timeout = float(kwargs.pop("default_timeout_seconds", 60.0))
+        self._timeout_enforcer = TimeoutEnforcer(
+            op=f"llm.{provider}",
+            default_timeout_seconds=default_timeout,
+        )
 
     def set_retry_policy(self, policy: ResolvedRetryPolicy) -> None:
         """Wire or replace the retry policy post-init (matches the
         ``set_checkpoint_store`` / ``set_session_store`` pattern)."""
         self._retry_policy = policy
+
+    def set_default_timeout(self, seconds: float) -> None:
+        """Update the default per-call timeout (sec)."""
+        if seconds < 0:
+            raise ValueError("seconds must be >= 0")
+        self._timeout_enforcer.default_timeout_seconds = float(seconds)
 
     @property
     def name(self) -> str:
@@ -88,8 +106,12 @@ class OpenAICompatibleProvider(LLMProvider):
         temperature: float = 0.0,
         max_tokens: int | None = None,
         stop: list[str] | None = None,
+        timeout_seconds: float | None = None,
     ) -> LLMResponse:
         """Send messages; spec R7 — wraps with ResolvedRetryPolicy retry.
+
+        §7.2 #4 — ``timeout_seconds`` (None → provider default) caps each
+        retry attempt's wall-clock.  ``0`` disables enforcement.
 
         Cache short-circuit stays outside retry (cache hit ≠ retryable failure).
         """
@@ -111,19 +133,34 @@ class OpenAICompatibleProvider(LLMProvider):
         # spec R7:用 ResolvedRetryPolicy 决策哪些 LlmFailure 重试。
         # kind 不在 retryable_codes 里(或非 LlmFailure) → 立即 raise。
         # The inner callable raises LlmFailure; retry_resolved_sync decides.
-        return retry_resolved_sync(
-            lambda: self._do_complete(
-                messages, temperature=temperature,
-                max_tokens=max_tokens, stop=stop, cache_key=(
-                    make_cache_key(
-                        messages, system=None,
-                        temperature=temperature, max_tokens=max_tokens,
-                        model=self._model,
-                    ) if self._cache is not None else None
-                ),
-            ),
-            policy=self._retry_policy,
+        # §7.2 #4 — enforce wall-clock cap on the whole retry sequence.
+        # retry_resolved_sync iterates internally; the timeout covers the
+        # outer budget (initial attempt + every backoff sleep + retry).
+        # complete() is sync (LLMProvider ABC); we drive the async
+        # enforcer via asyncio.run() so wait_for can fire on a worker
+        # thread.  Safe because callers already block on this method.
+        import asyncio as _a
+        budget = (
+            self._timeout_enforcer.default_timeout_seconds
+            if timeout_seconds is None
+            else float(timeout_seconds)
         )
+        return _a.run(self._timeout_enforcer.enforce_sync(
+            lambda: retry_resolved_sync(
+                lambda: self._do_complete(
+                    messages, temperature=temperature,
+                    max_tokens=max_tokens, stop=stop, cache_key=(
+                        make_cache_key(
+                            messages, system=None,
+                            temperature=temperature, max_tokens=max_tokens,
+                            model=self._model,
+                        ) if self._cache is not None else None
+                    ),
+                ),
+                policy=self._retry_policy,
+            ),
+            timeout_seconds=budget,
+        ))
 
     def _do_complete(
         self,

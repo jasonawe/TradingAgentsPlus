@@ -22,6 +22,10 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Awaitable, Callable
 
+from tradingagents.agent_harness.core.timeout_enforcer import (
+    CallTimeoutError, TimeoutEnforcer,
+)
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -168,11 +172,15 @@ class ToolPipeline:
         args: Any,
         tool_context: Any,
         executor: Callable[[Any, Any], Awaitable[Any]],
+        timeout_seconds: float = 0.0,
     ) -> PipelineResult:
         """Execute ``executor(args, tool_context)`` through 5 stages.
 
         Stages are skipped if no hooks are registered. Order:
-        pre_execute → guard → execute → post_execute → result.
+        pre_execute -> guard -> execute -> post_execute -> result.
+
+        §7.2 #4 -- pass ``timeout_seconds`` to enforce the execute-stage
+        wall-clock cap. ``0`` disables enforcement (default).
         """
         import time
         pctx = PipelineContext(
@@ -204,9 +212,21 @@ class ToolPipeline:
                 return self._finalize(
                     pctx, denied=True, denied_by=getattr(guard, "__name__", "?"))
 
-        # 3. execute
+        # 3. execute — §7.2 #4 wrap with TimeoutEnforcer when caller
+        # passed a budget.  CallTimeoutError inherits asyncio.TimeoutError
+        # so the generic ``except BaseException`` still catches it and
+        # ``pctx.error`` is set correctly.
         try:
-            pctx.result = await executor(pctx.args, pctx.tool_context)
+            if timeout_seconds > 0:
+                enforcer = TimeoutEnforcer(
+                    op=f"pipeline.{tool_name}",
+                    default_timeout_seconds=timeout_seconds,
+                )
+                pctx.result = await enforcer.enforce(
+                    executor(pctx.args, pctx.tool_context),
+                )
+            else:
+                pctx.result = await executor(pctx.args, pctx.tool_context)
             pctx.error = None
         except BaseException as e:
             pctx.error = e
