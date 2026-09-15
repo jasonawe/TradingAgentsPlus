@@ -14,6 +14,7 @@ so the project doesn't add a heavy graph runtime just for Tier 2.
 LLM calls: 2 (plan + synthesize); L3 verifier adds 1 more if enabled.
 """
 from __future__ import annotations
+import time
 
 import asyncio
 import json
@@ -105,6 +106,10 @@ class OrchestratorState:
     # hits so tool calls fired in parallel between plan and execute
     # short-circuit the actual ``tool.invoke``.
     prefetcher: Any = None  # tradingagents.agent_harness.core.prefetch.Prefetcher
+    # Q1 / P2-4: live turn + step bookkeeping. Filled in by ``_stream_chat_impl``.
+    turn: Any = None
+    current_step_id: int = 0
+    current_step_started_at: float = 0.0
 
 
 class Orchestrator:
@@ -161,6 +166,21 @@ class Orchestrator:
         # Session metadata (roadmap A2): when wired, every stream_chat
         # auto-creates/updates the session row + bumps message_count.
         self._session_store = session_store
+        # Q4 / P1-4: AgentControlBus for steer / inject / whenIdle runtime
+        # control. Owned by Orchestrator so callers can route commands
+        # without poking private state; the bus itself is process-wide
+        # (keyed by session_id) so multiple orchestrators share.
+        from tradingagents.agent_harness.core.agent_control import AgentControlBus
+        self.control_bus: AgentControlBus = AgentControlBus()
+        # Q1 / P2-4: TurnBoundary + history. ``turn_boundary`` hands out
+        # monotonic ``turn_id`` values; ``turn_history`` keeps the last
+        # ``TURN_HISTORY_LIMIT`` :class:`TurnRecord` entries for
+        # observability / debugging (not for audit — that lives in
+        # EventLog).
+        from tradingagents.agent_harness.core.turn_boundary import TurnBoundary
+        self.turn_boundary = TurnBoundary()
+        self._turn_history: list = []
+        self._turn_history_limit: int = 50
 
     # ------------------------------------------------------------------
     # Public streaming entry
@@ -175,6 +195,27 @@ class Orchestrator:
         """Top-level orchestration. Yields SSE-shaped ``(event, payload)``."""
         route = fast_route(user_message)
         context = ToolContext(session_id=session_id)
+
+        # Q4 / P1-4: consume pending steers — prepend them to the user
+        # message as a directive prefix so the LLM sees them as
+        # authoritative guidance for this turn.
+        steers = self.control_bus.consume_steers(session_id)
+        if steers:
+            steer_block = "\n".join(
+                f"[STEERED by {m.author}] {m.message}" for m in steers
+            )
+            user_message = f"{steer_block}\n\n{user_message}"
+
+        # Q4 / P1-4: consume pending next_idle injects — attach as a
+        # hidden system hint via user-role prefix; surface events are
+        # emitted in chat_history derivation, not here.
+        injects = self.control_bus.consume_injects(session_id, when="next_idle")
+        if injects:
+            inject_block = "\n".join(
+                f"[INJECT from {m.author}] {m.message}" for m in injects
+            )
+            user_message = f"{inject_block}\n\n{user_message}"
+
         state = OrchestratorState(
             session_id=session_id,
             user_message=user_message,
@@ -225,8 +266,28 @@ class Orchestrator:
         token_store_holder["store"] = store
         try:
             with attach_store(store):
-                async for ev in self._stream_chat_impl(state, context, route, _emit):
-                    yield ev
+                
+                try:
+
+                    async for ev in self._stream_chat_impl(state, context, route, _emit):
+
+                        yield ev
+
+                finally:
+
+                    # Q4 / P1-4: fire whenIdle callbacks regardless of
+
+                    # success / error / early-return so scheduled tasks
+
+                    # and observability hooks see every turn complete.
+
+                    try:
+
+                        await self.control_bus.notify_idle(session_id, state=state)
+
+                    except Exception:
+
+                        LOGGER.debug("notify_idle failed", exc_info=True)
             current_node = NODE_DONE
             yield await _emit("usage_summary", store.summary())
             # Session accounting (A2): bump token_total on success.
@@ -252,6 +313,15 @@ class Orchestrator:
                 err_payload["failure"] = e.to_dict()
             err_payload["usage"] = store.summary()
             yield await _emit("error", err_payload)
+            # Q1: close turn with ERROR (defensive — _stream_chat_impl
+            # should have done this already; if we got here it's a bug
+            # in the inner flow).
+            try:
+                if state.turn is not None and state.turn.finished_at is None:
+                    async for _ev in _close_turn(TurnEndReason.ERROR, error=str(e)):
+                        yield _ev
+            except Exception:
+                LOGGER.debug("outer close_turn failed", exc_info=True)
             return
         return
 
@@ -375,9 +445,70 @@ class Orchestrator:
         up in the active store.  Every yielded event is also tagged
         with its ``surface`` (P0-4) via the ``_emit`` closure defined
         in ``stream_chat`` (above).
+
+        Q1 / P2-4: emits turn/started + per-step step/started/step/ended,
+        then a closing turn/ended with TurnEndReason. The TurnRecord is
+        appended to self._turn_history (capped at _turn_history_limit).
         """
+        from tradingagents.agent_harness.core.turn_boundary import (
+            TurnRecord, TurnEndReason, StepRecord,
+        )
+        turn = TurnRecord(
+            turn_id=self.turn_boundary.next_turn_id(),
+            session_id=state.session_id,
+            user_message=state.user_message,
+            started_at=time.time(),
+        )
+        state.turn = turn
+        state.current_step_id = 0
+        yield await _emit("turn/started", {
+            "turn_id": turn.turn_id, "session_id": turn.session_id,
+        })
+
+        async def _step_start(name):
+            state.current_step_id += 1
+            state.current_step_started_at = time.time()
+            step = StepRecord(
+                step_id=state.current_step_id, name=name,
+                started_at=state.current_step_started_at,
+            )
+            turn.steps.append(step)
+            ev = await _emit("step/started", {
+                "turn_id": turn.turn_id, "step_id": step.step_id, "name": step.name,
+            })
+            yield ev
+
+        async def _step_end(name, status, error=None):
+            if turn.steps and turn.steps[-1].name == name and turn.steps[-1].finished_at is None:
+                last = turn.steps[-1]
+                last.finished_at = time.time()
+                last.status = status
+                last.error = error
+            ev = await _emit("step/ended", {
+                "turn_id": turn.turn_id, "step_id": state.current_step_id,
+                "name": name, "status": status,
+                "duration_s": (time.time() - state.current_step_started_at),
+                "error": error,
+            })
+            yield ev
+
+        async def _close_turn(reason, error=None):
+            turn.finished_at = time.time()
+            turn.end_reason = reason
+            self._turn_history.append(turn)
+            if len(self._turn_history) > self._turn_history_limit:
+                self._turn_history = self._turn_history[-self._turn_history_limit:]
+            ev = await _emit("turn/ended", {
+                "turn_id": turn.turn_id, "session_id": turn.session_id,
+                "end_reason": reason.value, "duration_s": turn.duration_s,
+                "step_count": turn.step_count, "error": error,
+            })
+            yield ev
+
         # Tier 2: 5-node state machine.
         try:
+            async for _ev in _step_start("planning"):
+                yield _ev
             yield await _emit("plan_started", {"intent": route.intent.value})
             plan = await self._plan(state, context)
             state.plan = plan
@@ -389,26 +520,44 @@ class Orchestrator:
             is_ptc = isinstance(plan, dict) and plan.get("mode") == "ptc"
             ev_name = "plan_ready_ptc" if is_ptc else "plan_ready"
             ev_payload = {"groups": plan.get("groups", [])} if is_ptc else {"steps": plan}
+            async for _ev in _step_end("planning", "ok"):
+                yield _ev
             current_node = NODE_EXECUTING
             yield await _emit(ev_name, ev_payload)
 
+            async for _ev in _step_start("executing"):
+                yield _ev
             if is_ptc:
                 results = await self._execute_ptc(state, context)
             else:
                 results = await self._execute(state, context)
+            async for _ev in _step_end("executing", "ok"):
+                yield _ev
             state.tool_results = results
             current_node = NODE_OBSERVING
             for r in results:
                 yield await _emit("tool_result", r)
 
+            async for _ev in _step_start("observing"):
+                yield _ev
             observations = self._observe(state)
+            async for _ev in _step_end("observing", "ok"):
+                yield _ev
             yield await _emit("observed", observations)
 
+            async for _ev in _step_start("verifying"):
+                yield _ev
             # L1 + L2 first (can short-circuit via plan mutation).
             verification = await self._verify(state)
+            async for _ev in _step_end("verifying", "ok"):
+                yield _ev
             yield await _emit("verified", {"ok": verification.ok, "level": int(verification.level)})
 
+            async for _ev in _step_start("synthesizing"):
+                yield _ev
             final = await self._synthesize(state)
+            async for _ev in _step_end("synthesizing", "ok"):
+                yield _ev
             state.final = final
             current_node = NODE_DONE
             yield await _emit("agent_final", {"tier": int(Tier.PLAN_EXECUTE), "result": self._dump(final)})
@@ -428,9 +577,25 @@ class Orchestrator:
                     )
                 except Exception:  # audit must never break the orchestrator
                     LOGGER.debug("audit log failed", exc_info=True)
+            # Q1: close turn on successful completion.
+            async for _ev in _close_turn(TurnEndReason.USER_DONE):
+                yield _ev
         except Exception as e:
-            # Errors from inside _stream_chat_impl propagate to the outer
-            # attach_store block, which attaches structured failure info.
+            # Q1: close turn on error path; mark the currently-active step
+            # as errored so the audit log can pinpoint which node failed.
+            try:
+                cur = state.turn.steps[-1].name if state.turn and state.turn.steps else "unknown"
+                async for _ev in _step_end(cur, "error", error=str(e)):
+                    yield _ev
+            except Exception:
+                LOGGER.debug("step_end on error failed", exc_info=True)
+            try:
+                if state.turn is not None and state.turn.finished_at is None:
+                    async for _ev in _close_turn(TurnEndReason.ERROR, error=str(e)):
+                        yield _ev
+            except Exception:
+                LOGGER.debug("close_turn on error failed", exc_info=True)
+            # Errors propagate to outer attach_store block.
             raise
 
     # ------------------------------------------------------------------
