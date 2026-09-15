@@ -15,6 +15,8 @@ from .short_circuit import ShortCircuit
 from .tier import Tier, classify_intent, fast_route
 from .verification import VerificationLevel, Verifier
 from .event_bus import EventBus, _StopPropagation
+from .system_prompt import SystemPrompt
+from .agent_scope import AgentScope
 
 __all__ = [
     "ContextPriority",
@@ -31,5 +33,7 @@ __all__ = [
     "VerificationLevel",
     "EventBus",
     "_StopPropagation",
+    "SystemPrompt",
+    "AgentScope",
     "Verifier",
 ]

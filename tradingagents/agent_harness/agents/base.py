@@ -63,9 +63,13 @@ class BaseAgent(ABC):
         *,
         llm_factory: Any | None = None,
         tool_registry: Any | None = None,
+        scope: Any | None = None,
     ) -> None:
         self.llm_factory = llm_factory
         self.tool_registry = tool_registry
+        # W3-D4 E7: per-agent scope (tool restriction / LLM override /
+        # variables). None means "no scope, behave as before".
+        self.scope = scope
 
     # ------------------------------------------------------------------
     # LLM / tool helpers (shared by all 6 agents)

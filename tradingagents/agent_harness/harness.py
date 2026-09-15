@@ -23,6 +23,7 @@ from typing import AsyncIterator
 
 from tradingagents.agent_harness.config.schema import HarnessConfig
 from tradingagents.agent_harness.core import (
+    AgentScope,
     CircuitBreaker,
     ContextPriority,
     EventBus,
@@ -87,6 +88,11 @@ class Harness:
             SynthesizerAgent,
             VerifierAgent,
         )
+        # W3-D4 E7: per-agent scope. The harness owns the default scope
+        # (no restrictions); individual agents can shadow it to restrict
+        # tools or override the LLM. Plugins can mutate
+        # ``harness.default_agent_scope`` before agents are built.
+        self.default_agent_scope = AgentScope(name="harness")
         self.subagent_provider = SubagentProvider()
         # 3rd-party first so builtin names win on collision (we want a
         # bad plugin to surface as ``ValueError`` rather than silently
@@ -106,12 +112,15 @@ class Harness:
         # filters by factory signature, so ``verifier`` picks up the
         # extra judge / L3 args and the others ignore them. No per-name
         # map required → 3rd-party entry points just work.
+        # E7: ``scope`` is passed too; agents that declare it (e.g. when
+        # subclasses opt in) get the harness default scope.
         self.agent_registry = AgentRegistry()
         build_kwargs = {
             "llm_factory": self.llm_factory,
             "tool_registry": self.tool_registry,
             "judge_factory": self.judge_factory,
             "enable_l3": self.config.enable_l3,
+            "scope": self.default_agent_scope,
         }
         for name in self.subagent_provider.list_names():
             agent = self.subagent_provider.build(name, **build_kwargs)
