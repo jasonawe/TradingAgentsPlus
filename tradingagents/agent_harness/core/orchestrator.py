@@ -181,6 +181,11 @@ class Orchestrator:
         self.turn_boundary = TurnBoundary()
         self._turn_history: list = []
         self._turn_history_limit: int = 50
+        # Q6 / P2-9: LifecycleHooks registry. Plugins / observability
+        # code subscribe to session_start / pre_tool_use / etc. via
+        # ``harness.orchestrator.lifecycle.register(name, cb)``.
+        from tradingagents.agent_harness.core.lifecycle import LifecycleHooks
+        self.lifecycle: LifecycleHooks = LifecycleHooks()
 
     # ------------------------------------------------------------------
     # Public streaming entry
@@ -195,6 +200,13 @@ class Orchestrator:
         """Top-level orchestration. Yields SSE-shaped ``(event, payload)``."""
         route = fast_route(user_message)
         context = ToolContext(session_id=session_id)
+
+        # Q6 / P2-9: session_start hook — plugins get a chance to set up
+        # per-session state (load config, open DB cursors, etc.).
+        from tradingagents.agent_harness.core.lifecycle import HookContext
+        await self.lifecycle.fire("session_start", HookContext(
+            name="session_start", session_id=session_id, extra={"user_message": user_message},
+        ))
 
         # Q4 / P1-4: consume pending steers — prepend them to the user
         # message as a directive prefix so the LLM sees them as
@@ -288,6 +300,19 @@ class Orchestrator:
                     except Exception:
 
                         LOGGER.debug("notify_idle failed", exc_info=True)
+
+                    # Q6 / P2-9: session_end hook (mirrors notify_idle
+                    # pattern — runs even on early return / error).
+                    try:
+
+                        await self.lifecycle.fire("session_end", HookContext(
+                            name="session_end", session_id=session_id,
+                            extra={"turn_id": getattr(state.turn, "turn_id", None)},
+                        ))
+
+                    except Exception:
+
+                        LOGGER.debug("session_end hook failed", exc_info=True)
             current_node = NODE_DONE
             yield await _emit("usage_summary", store.summary())
             # Session accounting (A2): bump token_total on success.
@@ -453,6 +478,7 @@ class Orchestrator:
         from tradingagents.agent_harness.core.turn_boundary import (
             TurnRecord, TurnEndReason, StepRecord,
         )
+        from tradingagents.agent_harness.core.lifecycle import HookContext
         turn = TurnRecord(
             turn_id=self.turn_boundary.next_turn_id(),
             session_id=state.session_id,
@@ -464,6 +490,9 @@ class Orchestrator:
         yield await _emit("turn/started", {
             "turn_id": turn.turn_id, "session_id": turn.session_id,
         })
+        await self.lifecycle.fire("turn_start", HookContext(
+            name="turn_start", session_id=turn.session_id, turn_id=turn.turn_id,
+        ))
 
         async def _step_start(name):
             state.current_step_id += 1
@@ -473,6 +502,10 @@ class Orchestrator:
                 started_at=state.current_step_started_at,
             )
             turn.steps.append(step)
+            await self.lifecycle.fire("step_start", HookContext(
+                name="step_start", session_id=turn.session_id,
+                turn_id=turn.turn_id, step_id=step.step_id, step_name=step.name,
+            ))
             ev = await _emit("step/started", {
                 "turn_id": turn.turn_id, "step_id": step.step_id, "name": step.name,
             })
@@ -484,6 +517,12 @@ class Orchestrator:
                 last.finished_at = time.time()
                 last.status = status
                 last.error = error
+            await self.lifecycle.fire("step_end", HookContext(
+                name="step_end", session_id=turn.session_id,
+                turn_id=turn.turn_id, step_id=state.current_step_id,
+                step_name=name, error=error,
+                extra={"status": status},
+            ))
             ev = await _emit("step/ended", {
                 "turn_id": turn.turn_id, "step_id": state.current_step_id,
                 "name": name, "status": status,
@@ -496,6 +535,10 @@ class Orchestrator:
             turn.finished_at = time.time()
             turn.end_reason = reason
             self._turn_history.append(turn)
+            await self.lifecycle.fire("turn_end", HookContext(
+                name="turn_end", session_id=turn.session_id, turn_id=turn.turn_id,
+                error=error, extra={"end_reason": reason.value},
+            ))
             if len(self._turn_history) > self._turn_history_limit:
                 self._turn_history = self._turn_history[-self._turn_history_limit:]
             ev = await _emit("turn/ended", {
@@ -728,10 +771,39 @@ class Orchestrator:
                     )
                 return await _call()
 
+            # Q6 / P2-9: pre_tool_use hook — plugins can intercept /
+            # modify args or deny the call entirely. ``any_deny`` short
+            # circuits this step (no further tool invocation, no
+            # circuit_breaker side effect).
+            from tradingagents.agent_harness.core.lifecycle import (
+                HookContext, any_deny,
+            )
+            pre_results = await self.lifecycle.fire("pre_tool_use", HookContext(
+                name="pre_tool_use",
+                session_id=context.session_id,
+                turn_id=getattr(state.turn, "turn_id", None),
+                tool_name=name, args=args,
+            ))
+            if any_deny(pre_results):
+                return {"name": name, "result": {"status": "denied_by_hook"}}
+
             pipe_result = await self._tool_pipeline.run(
                 tool_name=name, args=args, tool_context=context,
                 executor=_executor,
             )
+            # Q6 / P2-9: post_tool_use hook — fires regardless of
+            # success / failure so audit / telemetry can observe every
+            # tool call without monkey-patching the pipeline.
+            post_payload = HookContext(
+                name="post_tool_use",
+                session_id=context.session_id,
+                turn_id=getattr(state.turn, "turn_id", None),
+                tool_name=name, args=args,
+                result=pipe_result.result if pipe_result.ok else None,
+                error=pipe_result.error if not pipe_result.ok else None,
+            )
+            await self.lifecycle.fire("post_tool_use", post_payload)
+
             if pipe_result.ok:
                 self.circuit_breaker.record_success()
                 return {"name": name, "result": self._dump(pipe_result.result)}

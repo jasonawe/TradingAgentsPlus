@@ -185,6 +185,18 @@ class Harness:
 
         # 9. context priority — auto-injects memory L1/L2 (P8 Task 2)
         self.context_priority = ContextPriority(memory=self.memory)
+        # Q5 / P2-8: cooperative system-prompt waterfall. Plugins can
+        # ``harness.system_prompt_waterfall.add(WaterfallSection(...))``
+        # in ``install()`` to contribute sections at runtime. The
+        # waterfall composes sections by priority and is the canonical
+        # way to merge plugin-injected prompts without monkey-patching
+        # ``ContextPriority.assemble()``.
+        from tradingagents.agent_harness.core.system_prompt_waterfall import (
+            SystemPromptWaterfall,
+        )
+        self.system_prompt_waterfall = SystemPromptWaterfall(
+            final_prefix="TradingAgentsPlus harness",
+        )
 
         # 10. retry + circuit breaker
         self.retry_policy = RetryPolicy(max_retries=2, backoff_seconds=0.5, exponential=True)
