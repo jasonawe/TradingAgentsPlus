@@ -1,7 +1,15 @@
 """L1 session memory — short-term per-session chat history (v3 spec §3 l1_session.py).
 
-SQLite-backed, key format ``session:{session_id}:{key}``. Default TTL
-24 hours; entries past their expiry are filtered on read.
+SQLite-backed (default), key format ``session:{session_id}:{key}``. Default
+TTL 24 hours; entries past their expiry are filtered on read.
+
+W3-D7 A6: when constructed with ``use_langgraph_checkpointer=True`` the
+chat history (``append_message / get_history / archive_legacy``) is stored
+in the same per-session file that ``agents/general/orchestrator.py`` writes
+to via ``langgraph.checkpoint.sqlite.SqliteSaver`` — single source of truth
+for session state. The shared file path is
+``{data_dir}/agent_general/sessions/agent_<safe_id>.db``; deleting it
+cascades both the agent's ReAct state and the L1 history.
 
 W3-D6 R9: history 滚动归档 — 当超过 ``archive_threshold`` 时,
 老消息通过 ``archive_callback`` 推到上层(EventLog 等),
@@ -9,6 +17,7 @@ W3-D6 R9: history 滚动归档 — 当超过 ``archive_threshold`` 时,
 """
 from __future__ import annotations
 
+import json as _json
 import logging
 import sqlite3
 import threading
@@ -25,6 +34,15 @@ DEFAULT_ARCHIVE_THRESHOLD = 200  # W3-D6 R9 default: 200 messages 触发滚动
 LOGGER = logging.getLogger(__name__)
 
 
+
+
+def _safe_msgpack_default(obj: Any) -> Any:
+    """msgpack fallback for non-primitive values (datetime etc.)."""
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    return str(obj)
+
+
 class SqliteSessionMemory(MemoryLayer):
     scope = MemoryScope.SESSION
 
@@ -34,6 +52,10 @@ class SqliteSessionMemory(MemoryLayer):
         default_ttl: int = DEFAULT_TTL_SECONDS,
         archive_threshold: int = DEFAULT_ARCHIVE_THRESHOLD,
         archive_callback: Callable[[str, list], None] | None = None,
+        # W3-D7 A6: opt-in LangGraph SqliteSaver backend (single source of
+        # truth shared with ``agents/general/orchestrator.py``).
+        use_langgraph_checkpointer: bool = False,
+        data_dir: str | Path | None = None,
     ) -> None:
         self._lock = threading.Lock()
         self._db_path = Path(db_path) if db_path else Path(".ta_cache") / "session_memory.sqlite"
@@ -47,6 +69,28 @@ class SqliteSessionMemory(MemoryLayer):
         # archive_threshold=0 表示禁用归档(走老路径)。
         self.archive_threshold = archive_threshold
         self._archive_callback = archive_callback
+        # W3-D7 A6: LangGraph SqliteSaver backend.
+        # When enabled, ``history`` lives in the LangGraph checkpoints table
+        # inside ``{data_dir}/agent_general/sessions/agent_<safe_id>.db`` —
+        # the same file ``agents/general/orchestrator.py`` writes via
+        # ``SqliteSaver``. Per-session ``SqliteSaver`` instances are cached
+        # so the connection stays open across appends.
+        self.use_langgraph_checkpointer = bool(use_langgraph_checkpointer)
+        self._lg_data_dir: Path | None = (
+            Path(data_dir).expanduser() if data_dir else None
+        )
+        self._lg_savers: dict[str, tuple[Any, sqlite3.Connection]] = {}
+        self._lg_lock = threading.Lock()
+        # Per-session RMW lock for append/archive (SqliteSaver has no internal
+        # coordination across ``get``/``put`` calls; without this, concurrent
+        # append_message on the same session_id loses writes).
+        self._lg_session_locks: dict[str, threading.Lock] = {}
+        self._lg_session_locks_guard = threading.Lock()
+        if self.use_langgraph_checkpointer and self._lg_data_dir is None:
+            raise ValueError(
+                "use_langgraph_checkpointer=True requires data_dir "
+                "(path to the agent_general data root)"
+            )
         self._init_schema()
 
     def _connect(self) -> sqlite3.Connection:
@@ -178,10 +222,138 @@ class SqliteSessionMemory(MemoryLayer):
         return f"session:{session_id or ''}:{key}"
 
     # ------------------------------------------------------------------
+    # W3-D7 A6: LangGraph SqliteSaver backend
+    # ------------------------------------------------------------------
+    def _lg_db_path(self, session_id: str) -> Path:
+        """Resolve the per-session LangGraph db file path."""
+        # Local import keeps ``l1_session`` importable when LangGraph is not
+        # installed (tests that only exercise the legacy SQLite path).
+        from tradingagents.agents.general.memory import agent_session_db_path
+        return agent_session_db_path(self._lg_data_dir, session_id)
+
+    def _lg_get_saver(self, session_id: str) -> tuple[Any, sqlite3.Connection]:
+        """Return (SqliteSaver, Connection) for ``session_id``, opening lazily."""
+        cached = self._lg_savers.get(session_id)
+        if cached is not None:
+            return cached
+        with self._lg_lock:
+            cached = self._lg_savers.get(session_id)
+            if cached is not None:
+                return cached
+            from langgraph.checkpoint.sqlite import SqliteSaver
+            db = self._lg_db_path(session_id)
+            db.parent.mkdir(parents=True, exist_ok=True)
+            conn = sqlite3.connect(str(db), check_same_thread=False)
+            saver = SqliteSaver(conn)
+            saver.setup()
+            self._lg_savers[session_id] = (saver, conn)
+            return self._lg_savers[session_id]
+
+    def _lg_config(self, session_id: str, checkpoint_id: str | None = None) -> dict:
+        cfg = {
+            "configurable": {
+                "thread_id": session_id,
+                "checkpoint_ns": "",
+            }
+        }
+        if checkpoint_id:
+            cfg["configurable"]["checkpoint_id"] = checkpoint_id
+        return cfg
+
+    def _lg_next_checkpoint_id(self) -> str:
+        # LangGraph SqliteSaver.get() returns the row with the highest
+        # lexicographic ``checkpoint_id`` for a given thread_id — so ids MUST
+        # be lexicographically monotonic for our latest-by-write semantics to
+        # work without a StateGraph. Zero-padded microsecond timestamps fit
+        # within ~10k years and are unique enough per process.
+        return f"{int(time.time() * 1_000_000):016d}"
+
+    def _lg_get_session_lock(self, session_id: str) -> threading.Lock:
+        """Return a per-session RMW lock (lazily created)."""
+        lk = self._lg_session_locks.get(session_id)
+        if lk is not None:
+            return lk
+        with self._lg_session_locks_guard:
+            lk = self._lg_session_locks.get(session_id)
+            if lk is None:
+                lk = threading.Lock()
+                self._lg_session_locks[session_id] = lk
+            return lk
+
+    def _lg_serialize_history(self, msgs: list[dict]) -> list[dict]:
+        """Strip non-msgpack-friendly fields (callables etc.)."""
+        out = []
+        for m in msgs:
+            if not isinstance(m, dict):
+                continue
+            out.append({k: v for k, v in m.items() if isinstance(v, (str, int, float, bool, list, dict, type(None)))})
+        return out
+
+    def _lg_read_history(self, session_id: str) -> list[dict]:
+        saver, _conn = self._lg_get_saver(session_id)
+        cfg = self._lg_config(session_id)
+        try:
+            cp = saver.get(cfg)
+        except Exception:
+            LOGGER.warning("LangGraph get failed for %s; treating as empty", session_id, exc_info=True)
+            return []
+        if not cp:
+            return []
+        vals = cp.get("channel_values") or {}
+        history = vals.get("history")
+        return history if isinstance(history, list) else []
+
+    def _lg_write_history(self, session_id: str, msgs: list[dict]) -> None:
+        saver, _conn = self._lg_get_saver(session_id)
+        cfg = self._lg_config(session_id)
+        latest = None
+        try:
+            latest = saver.get(cfg)
+        except Exception:
+            latest = None
+        prev_versions = (latest.get("channel_versions") or {}) if latest else {}
+        next_history_version = int(prev_versions.get("history", 0)) + 1
+        cfg_with_parent = dict(cfg)
+        if latest and latest.get("id"):
+            cfg_with_parent = {
+                "configurable": {
+                    "thread_id": session_id,
+                    "checkpoint_ns": "",
+                    "checkpoint_id": latest["id"],
+                }
+            }
+        ts = datetime.now(timezone.utc).isoformat()
+        new_cp = {
+            "v": 1,
+            "id": self._lg_next_checkpoint_id(),
+            "ts": ts,
+            "channel_values": {"history": self._lg_serialize_history(msgs)},
+            "channel_versions": {"history": next_history_version},
+            "versions_seen": {},
+        }
+        # ``SqliteSaver.put`` signature:
+        #   put(config, checkpoint, metadata, new_versions)
+        # - metadata is a CheckpointMetadata dict (must have source/step/writes)
+        # - new_versions is the ChannelVersions dict (channel → int version)
+        # The 4th positional arg must therefore be the versions map, not a
+        # session id (previous wiring silently coerced to a dict and broke
+        # subsequent reads).
+        saver.put(
+            cfg_with_parent,
+            new_cp,
+            {"source": "input", "step": next_history_version, "writes": None},
+            {"history": next_history_version},
+        )
+
+    # ------------------------------------------------------------------
     # W3-D6 R9: history 滚动归档
     # ------------------------------------------------------------------
     def append_message(self, session_id: str, role: str, content: str) -> MemoryEntry:
         """Append a chat message; trigger rolling archive past threshold.
+
+        W3-D7 A6: when ``use_langgraph_checkpointer=True`` the history is
+        persisted via ``langgraph.checkpoint.sqlite.SqliteSaver``; otherwise
+        it stays in the legacy ``session_memory`` SQLite table.
 
         W3-D6 R9: 不再静默截断到 200 条。
 
@@ -192,6 +364,9 @@ class SqliteSessionMemory(MemoryLayer):
           ``archive_threshold``(向后兼容)。
         - ``archive_threshold=0`` 时:完全禁用归档(老路径不限制)。
         """
+        # W3-D7 A6: LangGraph backend dispatch
+        if self.use_langgraph_checkpointer:
+            return self._lg_append_message(session_id, role, content)
         history = self.get("history", session_id=session_id)
         msgs = (history.value if history else []) or []
         msgs.append({"role": role, "content": content, "ts": time.time()})
@@ -242,6 +417,9 @@ class SqliteSessionMemory(MemoryLayer):
         callback failure or when history already fits within ``max_keep``).
         无 callback 时按"截断"算,返回截断条数(行为兼容)。
         """
+        # W3-D7 A6: LangGraph backend dispatch
+        if self.use_langgraph_checkpointer:
+            return self._lg_archive_legacy(session_id, max_keep)
         history = self.get("history", session_id=session_id)
         msgs = (history.value if history else []) or []
         if len(msgs) <= max_keep:
@@ -261,5 +439,66 @@ class SqliteSessionMemory(MemoryLayer):
         return len(to_archive)
 
     def get_history(self, session_id: str) -> list[dict[str, Any]]:
+        # W3-D7 A6: LangGraph backend dispatch
+        if self.use_langgraph_checkpointer:
+            return self._lg_read_history(session_id)
         entry = self.get("history", session_id=session_id)
         return (entry.value if entry else []) or []
+
+    # ------------------------------------------------------------------
+    # W3-D7 A6: LangGraph-flavored variants of append / archive
+    # ------------------------------------------------------------------
+    def _lg_append_message(self, session_id: str, role: str, content: str) -> MemoryEntry:
+        with self._lg_get_session_lock(session_id):
+            msgs = list(self._lg_read_history(session_id))
+            msgs.append({"role": role, "content": content, "ts": time.time()})
+            if self.archive_threshold and len(msgs) > self.archive_threshold:
+                msgs = self._lg_archive_and_truncate(session_id, msgs)
+            self._lg_write_history(session_id, msgs)
+        return MemoryEntry(
+            key="history",
+            value=msgs,
+            scope=self.scope,
+            session_id=session_id,
+            created_at=datetime.now(timezone.utc),
+        )
+
+    def _lg_archive_and_truncate(
+        self, session_id: str, msgs: list,
+    ) -> list:
+        """Mirror of ``_archive_and_truncate`` for the LangGraph backend."""
+        if self._archive_callback is None:
+            return msgs[-self.archive_threshold:]
+        keep = max(self.archive_threshold // 2, 50)
+        to_archive = msgs[:-keep] if len(msgs) > keep else []
+        if to_archive:
+            try:
+                self._archive_callback(session_id, to_archive)
+            except Exception:
+                LOGGER.warning(
+                    "LG archive_callback failed for session=%s (%d msgs); "
+                    "preserving history to avoid silent data loss",
+                    session_id, len(to_archive), exc_info=True,
+                )
+                return msgs
+        return msgs[-keep:]
+
+    def _lg_archive_legacy(self, session_id: str, max_keep: int = 50) -> int:
+        """LangGraph variant of ``archive_legacy``."""
+        with self._lg_get_session_lock(session_id):
+            msgs = list(self._lg_read_history(session_id))
+            if len(msgs) <= max_keep:
+                return 0
+            to_archive = msgs[:-max_keep]
+            if self._archive_callback is not None:
+                try:
+                    self._archive_callback(session_id, to_archive)
+                except Exception:
+                    LOGGER.warning(
+                        "LG archive_legacy callback failed for session=%s; "
+                        "history not truncated",
+                        session_id, exc_info=True,
+                    )
+                    return 0
+            self._lg_write_history(session_id, msgs[-max_keep:])
+            return len(to_archive)

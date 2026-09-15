@@ -140,7 +140,16 @@ class Harness:
 
         # 6. memory — L1/L2/L3 facade (v3 spec §3 memory/)
         from tradingagents.agent_harness.memory import MemoryManager, EventLog
-        self.memory = MemoryManager(data_dir=str(self.config.data_dir))
+        from tradingagents.agent_harness.memory.l1_session import SqliteSessionMemory
+        # W3-D7 A6: L1 默认走 LangGraph SqliteSaver,和
+        # ``agents/general/orchestrator.py`` 共用
+        # ``{data_dir}/agent_general/sessions/agent_<safe_id>.db`` 文件,
+        # session 级 DELETE 时一个 unlink 就够了。
+        l1 = SqliteSessionMemory(
+            use_langgraph_checkpointer=True,
+            data_dir=str(self.config.data_dir),
+        )
+        self.memory = MemoryManager(data_dir=str(self.config.data_dir), l1=l1)
         # W3-D5 R1: append-only event log (separate from L1 chat history).
         # Plugins and orchestrator can append to ``harness.event_log``;
         # the LLM chat history is derived from ``type='message'`` events.
