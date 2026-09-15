@@ -14,6 +14,7 @@ from .retry import CircuitBreaker, CircuitState, RetryPolicy, retry_async
 from .short_circuit import ShortCircuit
 from .tier import Tier, classify_intent, fast_route
 from .verification import VerificationLevel, Verifier
+from .event_bus import EventBus, _StopPropagation
 
 __all__ = [
     "ContextPriority",
@@ -28,5 +29,7 @@ __all__ = [
     "classify_intent",
     "fast_route",
     "VerificationLevel",
+    "EventBus",
+    "_StopPropagation",
     "Verifier",
 ]

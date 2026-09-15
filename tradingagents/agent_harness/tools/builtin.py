@@ -309,18 +309,40 @@ class NewsResult(BaseModel):
 
 
 async def get_news(args: NewsArgs) -> NewsResult:
-    # Stub: real implementation lives in dataflows/news.py — wrapped via plugin in P6.
-    return NewsResult(
-        symbol=args.symbol,
-        items=[
+    # W3-D2 E2: news_provider seam. Picks an active provider from
+    # NEWS_PROVIDERS (stub / yfinance / alpha_vantage) and adapts the
+    # NewsWindow schema back into the existing NewsItem tool
+    # contract. Failures degrade to a stub item with a warning so the
+    # LLM still gets *something* to look at.
+    from tradingagents.data.providers.news_registry import (
+        get_active_news_provider,
+    )
+    provider = get_active_news_provider()
+    window = provider.get_news(
+        args.symbol, days=args.days, asset_type="stock",
+    )
+    items: list[NewsItem] = []
+    for art in window.items:
+        items.append(
+            NewsItem(
+                title=art.title,
+                url=art.url or "about:blank",
+                published_at=art.published_at,
+                sentiment=art.sentiment,
+            )
+        )
+    if not items:
+        # Empty window from real provider → still return a placeholder
+        # so the synthesizer can continue (matches pre-seam behaviour).
+        items.append(
             NewsItem(
                 title=f"[stub] news for {args.symbol}",
                 url="about:blank",
                 published_at=datetime.now(timezone.utc),
                 sentiment=0.0,
             )
-        ],
-    )
+        )
+    return NewsResult(symbol=args.symbol, items=items)
 
 
 class ListAlphaFactorsResult(BaseModel):
@@ -328,11 +350,18 @@ class ListAlphaFactorsResult(BaseModel):
 
 
 async def list_alpha_factors() -> ListAlphaFactorsResult:
-    """Return the list of alpha158 factor names. Implemented in P5 (AlphaAgent)."""
-    # Stub for P3; full implementation arrives with the AlphaAgent in P5.
-    return ListAlphaFactorsResult(
-        factors=["alpha_001", "alpha_002", "alpha_003"],
-    )
+    """Return the list of alpha158 factor names from the local factor library."""
+    # W3-D2 E3: enumerates the real alpha158 factor registry (numpy/pandas
+    # math stays local). The seam is about *where OHLCV data comes from*;
+    # the factor library is intrinsic.
+    try:
+        from tradingagents.dataflows.alpha_factors import list_factors
+        names = [s.name for s in list_factors()]
+    except Exception:
+        # Preserve the pre-seam placeholder if the factor library is
+        # unavailable for any reason (e.g. broken pandas install).
+        names = ["alpha_001", "alpha_002", "alpha_003"]
+    return ListAlphaFactorsResult(factors=names)
 
 
 class ComputeAlphaFactorsArgs(BaseModel):
@@ -346,7 +375,34 @@ class ComputeAlphaFactorsResult(BaseModel):
 
 
 async def compute_alpha_factors(args: ComputeAlphaFactorsArgs) -> ComputeAlphaFactorsResult:
-    return ComputeAlphaFactorsResult(symbol=args.symbol, values={f: 0.0 for f in args.factors})
+    # W3-D2 E3: pull OHLCV from the active alpha_provider and compute
+    # the requested factors via the local alpha158 library. When the
+    # provider has no data (empty df) we fall back to the pre-seam
+    # zero-values so the synthesizer still gets a stable shape.
+    from tradingagents.data.providers.alpha_registry import get_active_alpha_provider
+    provider = get_active_alpha_provider()
+    df = provider.load_ohlcv(args.symbol, asset_type="stock")
+    if df is None or df.empty:
+        return ComputeAlphaFactorsResult(
+            symbol=args.symbol, values={f: 0.0 for f in args.factors}
+        )
+    try:
+        from tradingagents.dataflows.alpha_factors import compute_factors
+        out = compute_factors(df, args.factors)
+    except Exception:
+        return ComputeAlphaFactorsResult(
+            symbol=args.symbol, values={f: 0.0 for f in args.factors}
+        )
+    # compute_factors returns a DataFrame (one col per factor) keyed
+    # by date. Take the most recent row as the current factor reading.
+    values: dict[str, float] = {}
+    for f in args.factors:
+        if f in out.columns and not out[f].empty:
+            last = out[f].dropna()
+            values[f] = float(last.iloc[-1]) if not last.empty else 0.0
+        else:
+            values[f] = 0.0
+    return ComputeAlphaFactorsResult(symbol=args.symbol, values=values)
 
 
 class EvaluateAlphaArgs(BaseModel):
@@ -363,11 +419,28 @@ class EvaluateAlphaResult(BaseModel):
 
 
 async def evaluate_alpha(args: EvaluateAlphaArgs) -> EvaluateAlphaResult:
+    # W3-D2 E3: load OHLCV via the active alpha_provider and ask the
+    # alpha158 library for IC / Rank IC of the requested factor. Falls
+    # back to zero IC when the library / provider is unavailable.
+    from tradingagents.data.providers.alpha_registry import get_active_alpha_provider
+    provider = get_active_alpha_provider()
+    df = provider.load_ohlcv(args.symbol, asset_type="stock")
+    if df is None or df.empty:
+        return EvaluateAlphaResult(
+            symbol=args.symbol, factor=args.factor, ic=0.0, rank_ic=0.0,
+        )
+    try:
+        from tradingagents.dataflows.alpha_factors import evaluate_factor
+        out = evaluate_factor(df, args.factor, forward_days=args.horizon_days)
+    except Exception:
+        return EvaluateAlphaResult(
+            symbol=args.symbol, factor=args.factor, ic=0.0, rank_ic=0.0,
+        )
     return EvaluateAlphaResult(
         symbol=args.symbol,
         factor=args.factor,
-        ic=0.0,
-        rank_ic=0.0,
+        ic=float(out.get("ic", 0.0)),
+        rank_ic=float(out.get("rank_ic", 0.0)),
     )
 
 

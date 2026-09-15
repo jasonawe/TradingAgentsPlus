@@ -25,6 +25,7 @@ from tradingagents.agent_harness.config.schema import HarnessConfig
 from tradingagents.agent_harness.core import (
     CircuitBreaker,
     ContextPriority,
+    EventBus,
     Orchestrator,
     RetryPolicy,
 )
@@ -41,6 +42,13 @@ class Harness:
 
     def __init__(self, config: HarnessConfig | None = None) -> None:
         self.config = config or HarnessConfig.from_env()
+
+        # 1b. EventBus (W3-D3 E6) — single unified event bus for plugin
+        # cross-cutting hooks. 3rd-party plugins can subscribe to
+        # "tool.invoked" / "llm.complete" / "tool.execute" etc.
+        # through harness.events.subscribe(...). Built before tool /
+        # agent / plugin wiring so plugins can register handlers.
+        self.events = EventBus()
 
         # 2. ToolRegistry + builtin tools
         self.tool_registry = ToolRegistry()
