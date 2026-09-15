@@ -1,6 +1,12 @@
 """Sub-agent layer — P5 (v3 spec §4)."""
 from .base import AgentContext, AgentInput, AgentResult, BaseAgent
 from .registry import AgentRegistry
+from .subagent_provider import (
+    AgentFactory,
+    SUBAGENT_PROVIDER,
+    SubagentProvider,
+    register as register_subagent,
+)
 from .planner import PlannerAgent
 from .verifier import VerifierAgent
 from .data_agent import DataAgent
@@ -14,6 +20,10 @@ __all__ = [
     "AgentResult",
     "BaseAgent",
     "AgentRegistry",
+    "AgentFactory",
+    "SUBAGENT_PROVIDER",
+    "SubagentProvider",
+    "register_subagent",
     "PlannerAgent",
     "VerifierAgent",
     "DataAgent",

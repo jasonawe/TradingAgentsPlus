@@ -65,40 +65,48 @@ class Harness:
             self.judge_factory = self.llm_factory
 
         # 3. AgentRegistry + 6 builtin agents (N64 fix, P8 LLM wiring).
-        # Inject llm_factory + tool_registry so each agent.run() can do real
-        # work; without injection the agents fall back to heuristic stubs.
+        # W3-D1 E5: sub-agents are now wired through SubagentProvider (name
+        # → factory) instead of a hard-coded class tuple. 3rd-party agents
+        # can register themselves via the ``agent_harness.subagents`` entry
+        # point group and join the same registry at startup.
         from tradingagents.agent_harness.agents import (
             AgentRegistry,
             AlphaAgent,
             DataAgent,
             NewsAgent,
             PlannerAgent,
+            SubagentProvider,
             SynthesizerAgent,
             VerifierAgent,
         )
+        self.subagent_provider = SubagentProvider()
+        # 3rd-party first so builtin names win on collision (we want a
+        # bad plugin to surface as ``ValueError`` rather than silently
+        # shadowing the builtin).
+        self.subagent_provider.discover_entry_points()
+        for name, cls in (
+            ("planner", PlannerAgent),
+            ("verifier", VerifierAgent),
+            ("data_agent", DataAgent),
+            ("alpha_agent", AlphaAgent),
+            ("news_agent", NewsAgent),
+            ("synthesizer", SynthesizerAgent),
+        ):
+            self.subagent_provider.register(name, cls)
+
+        # All build kwargs (full superset). ``SubagentProvider.build``
+        # filters by factory signature, so ``verifier`` picks up the
+        # extra judge / L3 args and the others ignore them. No per-name
+        # map required → 3rd-party entry points just work.
         self.agent_registry = AgentRegistry()
-        agent_classes = (
-            PlannerAgent,
-            VerifierAgent,
-            DataAgent,
-            AlphaAgent,
-            NewsAgent,
-            SynthesizerAgent,
-        )
-        for cls in agent_classes:
-            if cls is VerifierAgent:
-                # VerifierAgent 拿额外的 judge_factory + enable_l3
-                agent = cls(
-                    llm_factory=self.llm_factory,
-                    tool_registry=self.tool_registry,
-                    judge_factory=self.judge_factory,
-                    enable_l3=self.config.enable_l3,
-                )
-            else:
-                agent = cls(
-                    llm_factory=self.llm_factory,
-                    tool_registry=self.tool_registry,
-                )
+        build_kwargs = {
+            "llm_factory": self.llm_factory,
+            "tool_registry": self.tool_registry,
+            "judge_factory": self.judge_factory,
+            "enable_l3": self.config.enable_l3,
+        }
+        for name in self.subagent_provider.list_names():
+            agent = self.subagent_provider.build(name, **build_kwargs)
             self.agent_registry.register(agent)
 
         # 5. data_registry (PROVIDERS dict)
