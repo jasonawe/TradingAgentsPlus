@@ -16,15 +16,27 @@ from tradingagents.agent_harness.tools import ToolContext, ToolRegistry
 from tradingagents.agent_harness.tools.schema import ToolSchema
 
 from .tier import Intent, RouteResult, Tier
+from .template import TemplateEngine, should_use_template  # noqa: F401
 
 LOGGER = logging.getLogger(__name__)
 
 
 class ShortCircuit:
-    """Server-side executor that bypasses the StateGraph for Tier 1 queries."""
+    """Server-side executor that bypasses the StateGraph for Tier 1 queries.
 
-    def __init__(self, registry: ToolRegistry) -> None:
+    v2 spec §D1 N101 fix — Tier 1b: when ``template_engine`` is wired and
+    the query matches one of ``TEMPLATE_TRIGGER_KEYWORDS`` (e.g. "说明",
+    "解释"), the tool result is rendered through a Jinja2 template and
+    emitted as a text string instead of raw structured data.
+    """
+
+    def __init__(
+        self,
+        registry: ToolRegistry,
+        template_engine: "TemplateEngine | None" = None,
+    ) -> None:
         self.registry = registry
+        self.template_engine = template_engine
 
     async def run(
         self,
@@ -52,8 +64,33 @@ class ShortCircuit:
             args = self._build_args(args_schema, symbol)
             yield ("tool_call", {"name": tool_name, "args": self._safe_dump(args)})
             result = await tool.invoke(args, context)
-            yield ("tool_result", {"name": tool_name, "result": self._safe_dump(result)})
-            yield ("agent_final", {"tier": int(Tier.DIRECT), "result": self._safe_dump(result)})
+            result_payload = self._safe_dump(result)
+            yield ("tool_result", {"name": tool_name, "result": result_payload})
+            # v2 spec §D1 N101 fix: Tier 1b — render template when query
+            # matches ``TEMPLATE_TRIGGER_KEYWORDS``.  Falls back to raw
+            # emit when no engine is wired or template name does not
+            # match the intent.
+            if self.template_engine is not None and should_use_template(message):
+                tmpl_name = f"{route.intent.value}_simple"
+                if self.template_engine.has(tmpl_name):
+                    try:
+                        text = self.template_engine.render(
+                            tmpl_name, **self._ctx_for_template(result_payload),
+                        )
+                        yield ("agent_final", {
+                            "tier": int(Tier.DIRECT),
+                            "result": text,
+                            "rendered": True,
+                            "template": tmpl_name,
+                        })
+                        return
+                    except Exception:
+                        # Template render failed → fall through to raw emit
+                        LOGGER.debug(
+                            "template render failed, falling back to raw emit",
+                            exc_info=True,
+                        )
+            yield ("agent_final", {"tier": int(Tier.DIRECT), "result": result_payload})
         except Exception as e:
             LOGGER.warning("Tier 1 short-circuit failed: %s", e)
             yield ("error", {"tier": int(Tier.DIRECT), "error": str(e)})
@@ -63,6 +100,19 @@ class ShortCircuit:
         if hasattr(obj, "model_dump"):
             return obj.model_dump()
         return obj
+
+    @staticmethod
+    def _ctx_for_template(result: Any) -> dict:
+        """Flatten a tool result (dict / dict-like / Pydantic) into a
+        template context dict.  Templates only see primitive values.
+        """
+        if hasattr(result, "model_dump"):
+            result = result.model_dump()
+        if isinstance(result, dict):
+            return {k: v for k, v in result.items()
+                    if isinstance(v, (int, float, str, list, bool, type(None)))}
+        # Fallback: wrap as a single ``value`` field
+        return {"value": str(result)}
 
     @staticmethod
     def _tool_for_intent(intent: Intent) -> str:
