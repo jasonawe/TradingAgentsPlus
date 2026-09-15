@@ -23,8 +23,12 @@ from tradingagents.agent_harness.core.token_usage import (
 class TestUsageBucket:
     def test_empty_defaults(self):
         b = UsageBucket()
+        # spec R5: disjoint 6 字段 + 2 计数
         assert b.input_tokens == 0
         assert b.output_tokens == 0
+        assert b.cache_read_tokens == 0
+        assert b.cache_write_tokens == 0
+        assert b.reasoning_tokens == 0
         assert b.total_tokens == 0
         assert b.calls == 0
         assert b.errors == 0
@@ -51,14 +55,44 @@ class TestUsageBucket:
         assert b.errors == 1  # unchanged
 
     def test_to_dict_shape(self):
+        """spec R5:to_dict 必须包含 disjoint 6 字段 + 2 计数 = 8 字段。"""
         b = UsageBucket()
         b.add(input_tokens=10, output_tokens=20, total_tokens=30)
         d = b.to_dict()
+        assert set(d.keys()) == {
+            "input_tokens", "output_tokens",
+            "cache_read_tokens", "cache_write_tokens", "reasoning_tokens",
+            "total_tokens", "calls", "errors",
+        }
         assert d["input_tokens"] == 10
         assert d["output_tokens"] == 20
         assert d["total_tokens"] == 30
         assert d["calls"] == 1
         assert d["errors"] == 0
+
+    def test_add_disjoint_6_fields(self):
+        """spec R5:cache_read/cache_write 是 input 的子集,reasoning 是 output 子集,
+        但账面上分开报数。"""
+        b = UsageBucket()
+        b.add(
+            input_tokens=100,
+            output_tokens=50,
+            cache_read_tokens=40,   # 100 里有 40 来自 cache hit
+            cache_write_tokens=10,  # 100 里有 10 是 cache 创建
+            reasoning_tokens=30,    # 50 output 里有 30 是思考
+        )
+        assert b.input_tokens == 100
+        assert b.output_tokens == 50
+        assert b.cache_read_tokens == 40
+        assert b.cache_write_tokens == 10
+        assert b.reasoning_tokens == 30
+        # 默认 total = 6 个分量相加(分立报表)
+        assert b.total_tokens == 100 + 50 + 40 + 10 + 30
+
+    def test_add_explicit_total_overrides_sum(self):
+        b = UsageBucket()
+        b.add(input_tokens=10, output_tokens=5, total_tokens=100)
+        assert b.total_tokens == 100  # explicit overrides default sum
 
 
 # --------------------------------------------------------------------------
@@ -219,3 +253,44 @@ class TestProviderPattern:
         assert d["by_agent"]["news_agent"]["total_tokens"] == 120
         assert d["totals"]["calls"] == 2
         assert d["totals"]["total_tokens"] == 270
+
+
+
+# --------------------------------------------------------------------------
+# spec R5:disjoint 6 字段 在 store / by_agent / totals 层面要正确分流
+# --------------------------------------------------------------------------
+class TestR5DisjointAggregation:
+    def test_by_agent_includes_6_fields(self):
+        s = TokenUsageStore()
+        s.record(
+            "data_agent",
+            input_tokens=100, output_tokens=50,
+            cache_read_tokens=40, reasoning_tokens=10,
+        )
+        agent = s.by_agent()["data_agent"]
+        assert set(agent.keys()) == {
+            "input_tokens", "output_tokens",
+            "cache_read_tokens", "cache_write_tokens", "reasoning_tokens",
+            "total_tokens", "calls", "errors",
+        }
+        assert agent["cache_read_tokens"] == 40
+        assert agent["reasoning_tokens"] == 10
+
+    def test_by_surface_includes_6_fields(self):
+        s = TokenUsageStore()
+        with attach_store(s):
+            with track_surface("ui"):
+                s.record("orchestrator", input_tokens=10, output_tokens=5,
+                         cache_write_tokens=3)
+        surf = s.by_surface()["ui"]
+        assert surf["cache_write_tokens"] == 3
+
+    def test_totals_includes_cache_and_reasoning(self):
+        s = TokenUsageStore()
+        s.record("a", input_tokens=10, output_tokens=5, cache_read_tokens=4)
+        s.record("b", output_tokens=5, reasoning_tokens=2)
+        t = s.totals()
+        assert t["cache_read_tokens"] == 4
+        assert t["reasoning_tokens"] == 2
+        assert t["input_tokens"] == 10
+        assert t["output_tokens"] == 10  # 5 + 5

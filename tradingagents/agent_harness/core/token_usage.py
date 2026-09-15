@@ -60,30 +60,64 @@ _active_surface: ContextVar[str] = ContextVar(
 
 @dataclass
 class UsageBucket:
-    """Token totals for one (agent, surface) tuple."""
+    """Token totals for one (agent, surface) tuple.
+
+    spec R5 (roadmap §3.3): disjoint 6 字段。
+    input / output / cache_read / cache_write / reasoning / total
+    + 调用计数 calls / 错误计数 errors。
+
+    Disjoint = cache_read / cache_write 是 input 的子集(从 prompt 扣出来),
+    reasoning 是 output 的子集(o-series 思考 token)。但账面上 6 个分开
+    报数,让前端/审计能精确知道 cache 命中率、reasoning 占比。
+    """
     input_tokens: int = 0
     output_tokens: int = 0
+    cache_read_tokens: int = 0
+    cache_write_tokens: int = 0
+    reasoning_tokens: int = 0
     total_tokens: int = 0
     calls: int = 0
     errors: int = 0
 
     def add(
-        self, *, input_tokens: int, output_tokens: int, total_tokens: int | None = None,
+        self,
+        *,
+        input_tokens: int = 0,
+        output_tokens: int = 0,
+        cache_read_tokens: int = 0,
+        cache_write_tokens: int = 0,
+        reasoning_tokens: int = 0,
+        total_tokens: int | None = None,
         errored: bool = False,
     ) -> None:
+        """Accumulate disjoint fields.
+
+        ``total_tokens`` 如果 provider 没给,默认从 6 个分量相加。
+        """
         self.input_tokens += input_tokens
         self.output_tokens += output_tokens
+        self.cache_read_tokens += cache_read_tokens
+        self.cache_write_tokens += cache_write_tokens
+        self.reasoning_tokens += reasoning_tokens
         if total_tokens is None:
-            total_tokens = input_tokens + output_tokens
+            total_tokens = (
+                input_tokens + output_tokens
+                + cache_read_tokens + cache_write_tokens
+                + reasoning_tokens
+            )
         self.total_tokens += total_tokens
         self.calls += 1
         if errored:
             self.errors += 1
 
     def to_dict(self) -> dict:
+        """spec: 6 disjoint 字段 + 2 计数 字段(calls / errors) = 8 字段。"""
         return {
             "input_tokens": self.input_tokens,
             "output_tokens": self.output_tokens,
+            "cache_read_tokens": self.cache_read_tokens,
+            "cache_write_tokens": self.cache_write_tokens,
+            "reasoning_tokens": self.reasoning_tokens,
             "total_tokens": self.total_tokens,
             "calls": self.calls,
             "errors": self.errors,
@@ -110,8 +144,11 @@ class TokenUsageStore:
         self,
         agent: str,
         *,
-        input_tokens: int,
-        output_tokens: int,
+        input_tokens: int = 0,
+        output_tokens: int = 0,
+        cache_read_tokens: int = 0,
+        cache_write_tokens: int = 0,
+        reasoning_tokens: int = 0,
         total_tokens: int | None = None,
         surface: str = DEFAULT_SURFACE,
         errored: bool = False,
@@ -124,6 +161,9 @@ class TokenUsageStore:
         bucket.add(
             input_tokens=input_tokens,
             output_tokens=output_tokens,
+            cache_read_tokens=cache_read_tokens,
+            cache_write_tokens=cache_write_tokens,
+            reasoning_tokens=reasoning_tokens,
             total_tokens=total_tokens,
             errored=errored,
         )
@@ -137,10 +177,15 @@ class TokenUsageStore:
         for (agent, _surface), bucket in self._buckets.items():
             row = agg.setdefault(agent, {
                 "input_tokens": 0, "output_tokens": 0,
-                "total_tokens": 0, "calls": 0, "errors": 0,
+                "cache_read_tokens": 0, "cache_write_tokens": 0,
+                "reasoning_tokens": 0, "total_tokens": 0,
+                "calls": 0, "errors": 0,
             })
             row["input_tokens"] += bucket.input_tokens
             row["output_tokens"] += bucket.output_tokens
+            row["cache_read_tokens"] += bucket.cache_read_tokens
+            row["cache_write_tokens"] += bucket.cache_write_tokens
+            row["reasoning_tokens"] += bucket.reasoning_tokens
             row["total_tokens"] += bucket.total_tokens
             row["calls"] += bucket.calls
             row["errors"] += bucket.errors
@@ -151,10 +196,15 @@ class TokenUsageStore:
         for (_agent, surface), bucket in self._buckets.items():
             row = agg.setdefault(surface, {
                 "input_tokens": 0, "output_tokens": 0,
-                "total_tokens": 0, "calls": 0, "errors": 0,
+                "cache_read_tokens": 0, "cache_write_tokens": 0,
+                "reasoning_tokens": 0, "total_tokens": 0,
+                "calls": 0, "errors": 0,
             })
             row["input_tokens"] += bucket.input_tokens
             row["output_tokens"] += bucket.output_tokens
+            row["cache_read_tokens"] += bucket.cache_read_tokens
+            row["cache_write_tokens"] += bucket.cache_write_tokens
+            row["reasoning_tokens"] += bucket.reasoning_tokens
             row["total_tokens"] += bucket.total_tokens
             row["calls"] += bucket.calls
             row["errors"] += bucket.errors
@@ -164,12 +214,18 @@ class TokenUsageStore:
         """Single aggregate across all agents and surfaces."""
         input_t = sum(b.input_tokens for b in self._buckets.values())
         output_t = sum(b.output_tokens for b in self._buckets.values())
+        cache_r = sum(b.cache_read_tokens for b in self._buckets.values())
+        cache_w = sum(b.cache_write_tokens for b in self._buckets.values())
+        reasoning = sum(b.reasoning_tokens for b in self._buckets.values())
         total_t = sum(b.total_tokens for b in self._buckets.values())
         calls = sum(b.calls for b in self._buckets.values())
         errors = sum(b.errors for b in self._buckets.values())
         return {
             "input_tokens": input_t,
             "output_tokens": output_t,
+            "cache_read_tokens": cache_r,
+            "cache_write_tokens": cache_w,
+            "reasoning_tokens": reasoning,
             "total_tokens": total_t,
             "calls": calls,
             "errors": errors,

@@ -123,9 +123,45 @@ class OpenAICompatibleProvider(LLMProvider):
 
         usage_meta = getattr(response, "response_metadata", {}) or {}
         token_usage = usage_meta.get("token_usage", {}) or {}
+        # spec R5: disjoint 6 字段。
+        # OpenAI / Anthropic / Gemini 共用的 nested 子对象:
+        #   prompt_tokens_details.cached_tokens           → cache_read
+        #   cache_creation_input_tokens (Anthropic)       → cache_write
+        #   completion_tokens_details.reasoning_tokens    → reasoning
+        # 同时支持 Anthropic 顶层字段:
+        #   cache_read_input_tokens / cache_creation_input_tokens
+        prompt_details = token_usage.get("prompt_tokens_details", {}) or {}
+        completion_details = token_usage.get("completion_tokens_details", {}) or {}
+        cache_read = int(
+            prompt_details.get("cached_tokens", 0)
+            or token_usage.get("cache_read_input_tokens", 0)
+            or 0
+        )
+        cache_write = int(
+            token_usage.get("cache_creation_input_tokens", 0) or 0
+        )
+        reasoning = int(
+            completion_details.get("reasoning_tokens", 0) or 0
+        )
+        # spec R5:6 字段。兼容 OpenAI / Anthropic 字段约定:
+        #   OpenAI:   prompt_tokens / completion_tokens
+        #   Anthropic: input_tokens  / output_tokens
+        input_t = int(
+            token_usage.get("prompt_tokens", 0)
+            or token_usage.get("input_tokens", 0)
+            or 0
+        )
+        output_t = int(
+            token_usage.get("completion_tokens", 0)
+            or token_usage.get("output_tokens", 0)
+            or 0
+        )
         usage = {
-            "input_tokens": int(token_usage.get("prompt_tokens", 0) or 0),
-            "output_tokens": int(token_usage.get("completion_tokens", 0) or 0),
+            "input_tokens": input_t,
+            "output_tokens": output_t,
+            "cache_read_tokens": cache_read,
+            "cache_write_tokens": cache_write,
+            "reasoning_tokens": reasoning,
             "total_tokens": int(token_usage.get("total_tokens", 0) or 0),
         }
         # Record into active TokenUsageStore (if attached by caller).
@@ -138,6 +174,9 @@ class OpenAICompatibleProvider(LLMProvider):
                 get_active_agent(),
                 input_tokens=usage["input_tokens"],
                 output_tokens=usage["output_tokens"],
+                cache_read_tokens=usage["cache_read_tokens"],
+                cache_write_tokens=usage["cache_write_tokens"],
+                reasoning_tokens=usage["reasoning_tokens"],
                 total_tokens=usage["total_tokens"] or None,
                 surface=get_active_surface(),
             )
