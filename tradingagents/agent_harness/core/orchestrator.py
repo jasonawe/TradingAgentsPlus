@@ -186,6 +186,11 @@ class Orchestrator:
         # ``harness.orchestrator.lifecycle.register(name, cb)``.
         from tradingagents.agent_harness.core.lifecycle import LifecycleHooks
         self.lifecycle: LifecycleHooks = LifecycleHooks()
+        # §7.3 #6: PlanTemplateCache — skip LLM plan when an identical
+        # user_message was planned within the last 5 minutes (N65 fix).
+        # Defaults: TTL 5min, max 256 entries.
+        from tradingagents.agent_harness.core.plan_template import PlanTemplateCache
+        self.plan_cache: PlanTemplateCache = PlanTemplateCache()
 
     # ------------------------------------------------------------------
     # Public streaming entry
@@ -650,11 +655,21 @@ class Orchestrator:
         The plan is a list of ``{"step": int, "action": tool_name, "args": {...}}``.
         LLM-backed when ``llm_factory`` is wired; falls back to a heuristic
         plan when no LLM is available so the harness remains testable.
+
+        §7.3 #6 (N65 fix): before any LLM call, consult
+        ``PlanTemplateCache`` — an identical normalised user_message
+        within the last 5 minutes short-circuits the LLM and returns the
+        cached plan.  The cache is also populated by every successful
+        generation (LLM or heuristic) so the next hit is free.
         """
+        cached = self.plan_cache.get(state.user_message)
+        if cached is not None:
+            return cached
         if self.llm_factory is not None:
             try:
                 plan = await self._llm_plan(state)
                 if plan:
+                    self.plan_cache.put(state.user_message, plan)
                     return plan
             except Exception as e:
                 LOGGER.warning("LLM plan failed, falling back to heuristic: %s", e)
@@ -663,7 +678,7 @@ class Orchestrator:
         # quote calls run concurrently (one group, no dependencies).
         # Single-symbol path keeps the legacy sequential shape.
         if len(state.symbols) >= 2:
-            return {
+            ptc_plan = {
                 "mode": "ptc",
                 "groups": [{
                     "id": "g1",
@@ -673,6 +688,9 @@ class Orchestrator:
                     ],
                 }],
             }
+            # Cache the PTC program so a repeat query reuses it.
+            self.plan_cache.put(state.user_message, ptc_plan)
+            return ptc_plan
 
         # Single-symbol heuristic: 1 quote step (+ optional fundamentals).
         plan: list[dict[str, Any]] = []
@@ -684,6 +702,9 @@ class Orchestrator:
                 "action": "get_fundamentals",
                 "args": {"symbol": state.symbols[0]},
             })
+        # Cache the heuristic plan so the next identical query reuses it
+        # without going through _plan again.
+        self.plan_cache.put(state.user_message, plan)
         return plan
 
     def _kick_off_prefetch(

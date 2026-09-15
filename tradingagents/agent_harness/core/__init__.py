@@ -10,6 +10,7 @@ Holds:
 """
 from .context import ContextPriority, Layer
 from .orchestrator import Orchestrator, OrchestratorState
+from .plan_template import PlanTemplateCache, normalize_message
 from .retry import CircuitBreaker, CircuitState, RetryPolicy, retry_async
 from .short_circuit import ShortCircuit
 from .tier import Tier, classify_intent, fast_route
@@ -23,6 +24,8 @@ __all__ = [
     "Layer",
     "Orchestrator",
     "OrchestratorState",
+    "PlanTemplateCache",
+    "normalize_message",
     "CircuitBreaker",
     "RetryPolicy",
     "retry_async",
