@@ -455,6 +455,30 @@ def create_app(
         # event and exits immediately.
         from tradingagents.agent_harness.core.session_lock import SessionLockManager
         app.state.session_lock = SessionLockManager()
+        # P1-7 crash recovery: persist per-session state so a restarted
+        # server (or recovered client SSE) can resume from the last
+        # checkpoint via /api/harness/chat/resume.
+        from tradingagents.agent_harness.core.harness_checkpoint import (
+            HarnessCheckpointStore,
+        )
+        ckpt_store = HarnessCheckpointStore(app.state.repositories["settings"])
+        try:
+            purged = ckpt_store.purge_stale()
+            if purged:
+                LOGGER.info("purged %d stale harness checkpoints at startup", purged)
+        except Exception:
+            LOGGER.debug("checkpoint purge failed", exc_info=True)
+        # Wire the store into the orchestrator inside the harness so
+        # stream_chat persists checkpoints automatically.
+        if hasattr(app.state.harness, "set_checkpoint_store"):
+            app.state.harness.set_checkpoint_store(ckpt_store)
+        else:
+            # Fallback: mutate the underlying orchestrator (the harness
+            # exposes it via .orchestrator in some versions).
+            orch = getattr(app.state.harness, "orchestrator", None)
+            if orch is not None and hasattr(orch, "_checkpoint_store"):
+                orch._checkpoint_store = ckpt_store
+        app.state.checkpoint_store = ckpt_store
         LOGGER.info(
             "harness mounted (agents=%d, tools=%d, enable_l3=%s)",
             len(app.state.harness.agent_registry.list()),
@@ -484,6 +508,29 @@ def create_app(
                         yield f"event: {event}\ndata: {_json.dumps(payload, ensure_ascii=False, default=str)}\n\n"
                 except Exception as e:
                     LOGGER.exception("harness chat failed")
+                    yield f"event: error\ndata: {_json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
+
+            return StreamingResponse(
+                _event_stream(),
+                media_type="text/event-stream",
+                headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+            )
+
+        # P1-7 crash recovery: resume a crashed session. Replays buffered
+        # events from the last checkpoint + yields resume_complete.
+        @app.post("/api/harness/chat/resume")
+        async def _harness_resume(body: dict) -> StreamingResponse:
+            import json as _json
+            session_id = body.get("session_id") or ""
+            if not session_id:
+                raise _error(status.HTTP_400_BAD_REQUEST, "session_id is required")
+
+            async def _event_stream():
+                try:
+                    async for event, payload in app.state.harness.resume(session_id):
+                        yield f"event: {event}\ndata: {_json.dumps(payload, ensure_ascii=False, default=str)}\n\n"
+                except Exception as e:
+                    LOGGER.exception("harness resume failed")
                     yield f"event: error\ndata: {_json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
 
             return StreamingResponse(

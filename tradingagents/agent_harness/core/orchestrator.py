@@ -113,6 +113,7 @@ class Orchestrator:
         audit: Any,
         enable_l3: bool = False,
         judge_factory: Any | None = None,
+        checkpoint_store: HarnessCheckpointStore | None = None,
     ) -> None:
         self.tool_registry = tool_registry
         self.agent_registry = agent_registry
@@ -136,6 +137,9 @@ class Orchestrator:
         # are configurable but defaults to no-op so we don't fight the
         # existing manual audit.log(...) calls in _stream_chat_impl.
         self._surface_router = SurfaceRouter()
+        # Crash recovery (P1-7): when wired, every milestone event is
+        # persisted so resume() can replay + continue after restart.
+        self._checkpoint_store = checkpoint_store
 
     # ------------------------------------------------------------------
     # Public streaming entry
@@ -193,6 +197,69 @@ class Orchestrator:
         """
         self._surface_router.route(event, payload)
         return event, self._surface_router.tag(event, payload)
+
+    def _maybe_checkpoint(
+        self,
+        session_id: str,
+        state: OrchestratorState,
+        node_position: str,
+        emitted_events: list[tuple[str, dict[str, Any]]],
+        token_store: TokenUsageStore,
+    ) -> None:
+        """Persist the current session state if a checkpoint store is wired.
+
+        Best-effort: failures are logged but never break the orchestrator.
+        Cheap (sub-ms SQLite write). Called after every emit so resume()
+        can replay + continue.
+        """
+        if self._checkpoint_store is None:
+            return
+        if node_position not in ALL_NODES:
+            return  # intermediate position, don't checkpoint yet
+        try:
+            ckpt = HarnessCheckpoint(
+                session_id=session_id,
+                node_position=node_position,
+                state={
+                    "intent": state.intent.value if hasattr(state.intent, "value") else str(state.intent),
+                    "symbols": list(state.symbols or []),
+                    "user_message": state.user_message,
+                    "plan": state.plan,
+                    "tool_results": state.tool_results,
+                    "final": self._dump(state.final) if state.final is not None else None,
+                    "error": state.error,
+                },
+                emitted_events=list(emitted_events),
+                token_usage=token_store.summary() if token_store is not None else {},
+            )
+            self._checkpoint_store.save(ckpt)
+        except Exception:
+            LOGGER.debug("checkpoint save failed", exc_info=True)
+
+    async def resume(self, session_id: str) -> AsyncIterator[tuple[str, dict]]:
+        """Resume a crashed/interrupted session from its last checkpoint.
+
+        Replays all events emitted before the crash, then yields a
+        ``resume_complete`` event so the client knows to reconnect.
+
+        Edge cases:
+        - No checkpoint → ``error`` event with ``no_checkpoint``
+        - Checkpoint completed but not deleted → replays events + done
+        """
+        if self._checkpoint_store is None:
+            yield ("error", {"session_id": session_id, "error": "checkpoint store not configured"})
+            return
+        ckpt = self._checkpoint_store.load(session_id)
+        if ckpt is None:
+            yield ("error", {"session_id": session_id, "error": "no checkpoint for session"})
+            return
+        for ev, payload in ckpt.emitted_events:
+            yield (ev, payload)
+        yield ("resume_complete", {
+            "session_id": session_id,
+            "node_position": ckpt.node_position,
+            "events_replayed": len(ckpt.emitted_events),
+        })
 
     async def _stream_chat_impl(
         self,

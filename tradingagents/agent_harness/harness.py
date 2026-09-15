@@ -175,6 +175,25 @@ class Harness:
         ):
             yield event
 
+    def set_checkpoint_store(self, store) -> None:
+        """Wire a ``HarnessCheckpointStore`` into the underlying orchestrator.
+
+        After this call, every ``stream_chat`` invocation will persist
+        per-session checkpoints so a crashed session can be resumed via
+        ``resume(session_id)``.
+        """
+        self.orchestrator._checkpoint_store = store
+
+    async def resume(
+        self, session_id: str,
+    ) -> AsyncIterator[tuple[str, dict]]:
+        """Resume a crashed/interrupted session from its last checkpoint.
+
+        See ``Orchestrator.resume`` for details.
+        """
+        async for event in self.orchestrator.resume(session_id):
+            yield event
+
     def get_tool(self, name: str):
         return self.tool_registry.get(name)
 
