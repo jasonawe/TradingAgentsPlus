@@ -55,12 +55,20 @@ class Harness:
         self.tool_registry = ToolRegistry()
         install_builtin_tools(self.tool_registry)
 
+        # W3-D6 R8: AppIdentity User-Agent 强制
+        # 全进程共享一个 identity(harness 自己持有),所有通过
+        # llm_factory.make() 创建的 provider 都会自动注入 identity
+        # headers 到 ChatOpenAI.default_headers。
+        from tradingagents.agent_harness.llm import default_app_identity
+        self.app_identity = default_app_identity()
+
         # 4. llm_factory — wraps tradingagents/llm_clients (v3 spec §3 llm/).
         # Built BEFORE agents so we can inject it into them.
         from tradingagents.agent_harness.llm import LLMFactory
         self.llm_factory = LLMFactory(
             default_provider=self.config.llm_provider,
             default_model=self.config.llm_model,
+            identity=self.app_identity,
         )
 
         # 4b. judge_factory — L3 LLM-judge 模型 (spec §D6 N89 fix: judge
@@ -139,6 +147,20 @@ class Harness:
         self.event_log = EventLog(
             db_path=str(Path(self.config.data_dir) / "event_log.sqlite"),
         )
+
+        # W3-D6 R9: 把 L1 history 滚动归档接到 EventLog。
+        # 长会话超出 archive_threshold 的消息推到
+        # ``type=archive/legacy_history``(surface=audit-only,不进 LLM context),
+        # 不再静默丢。callback 由 L1 内部异常隔离,主流程不阻塞。
+        from tradingagents.agent_harness.memory.l1_session import SqliteSessionMemory
+        if isinstance(self.memory.l1, SqliteSessionMemory):
+            self.memory.l1._archive_callback = (
+                lambda session_id, msgs: self.event_log.append(
+                    session_id,
+                    "archive/legacy_history",
+                    {"archived_count": len(msgs), "messages": msgs},
+                )
+            )
 
         # 7. audit (P7)
         from tradingagents.agent_harness.observability import AuditLogger

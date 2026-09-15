@@ -5,6 +5,7 @@ import logging
 import os
 from typing import Any
 
+from .app_identity import AppIdentity, default_app_identity
 from .openai_provider import OpenAICompatibleProvider
 
 LOGGER = logging.getLogger(__name__)
@@ -18,10 +19,14 @@ class LLMFactory:
         default_provider: str | None = None,
         default_model: str | None = None,
         cache: "LLMResponseCache | None" = None,
+        identity: AppIdentity | None = None,
     ) -> None:
         self.default_provider = default_provider or os.environ.get("TRADINGAGENTS_LLM_PROVIDER", "")
         self.default_model = default_model or os.environ.get("TRADINGAGENTS_LLM_MODEL", "")
         self.cache = cache
+        # W3-D6 R8: process-wide identity, defaulted lazily so tests can
+        # override env vars before the first call.
+        self.identity = identity
 
     def make(
         self,
@@ -42,6 +47,9 @@ class LLMFactory:
                 "LLM provider/model not configured; set TRADINGAGENTS_LLM_PROVIDER + "
                 "TRADINGAGENTS_LLM_MODEL env vars, or pass explicitly"
             )
+        # W3-D6 R8: forward the harness-level identity unless caller
+        # supplied its own identity kwarg.
+        kwargs.setdefault("identity", self.identity or default_app_identity())
         return OpenAICompatibleProvider(p, m, base_url=base_url, cache=self.cache, **kwargs)
 
     def is_configured(self) -> bool:

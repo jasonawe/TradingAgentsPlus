@@ -19,6 +19,7 @@ from typing import Iterable
 
 from tradingagents.llm_clients.factory import create_llm_client
 
+from .app_identity import AppIdentity, default_app_identity
 from .base import ChatMessage, LLMProvider, LLMResponse
 from .failure import classify_llm_error
 from .cache import LLMResponseCache, make_cache_key
@@ -49,6 +50,15 @@ class OpenAICompatibleProvider(LLMProvider):
     ) -> None:
         self._provider_name = provider
         self._model = model
+        # W3-D6 R8: AppIdentity User-Agent 强制
+        # 自动注入 identity headers 到 ChatOpenAI 的 default_headers,
+        # provider 侧日志能按我们 app + 版本归因流量。
+        # 调用方可以在 kwargs 里显式传 default_headers 完全覆盖;
+        # 也可以传 identity=AppIdentity(...) 自定义身份。
+        identity: AppIdentity = kwargs.pop("identity", None) or default_app_identity()
+        if "default_headers" not in kwargs:
+            kwargs["default_headers"] = identity.headers()
+        self._identity = identity
         self._client = create_llm_client(provider, model, base_url=base_url, **kwargs)
         # Optional response cache (P2-LLM cache): same prompt → same response
         self._cache = cache
@@ -65,6 +75,11 @@ class OpenAICompatibleProvider(LLMProvider):
     @property
     def name(self) -> str:
         return self._provider_name
+
+    @property
+    def identity(self) -> AppIdentity:
+        # W3-D6 R8: expose the AppIdentity this provider was constructed with
+        return self._identity
 
     def complete(
         self,

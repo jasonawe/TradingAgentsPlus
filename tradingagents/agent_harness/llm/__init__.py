@@ -10,18 +10,21 @@ LLM integration is optional: when ``llm_factory=None`` (default), the
 orchestrator / agents fall back to heuristic placeholders. Setting
 ``HarnessConfig.llm_provider="openai"`` (etc.) wires real LLM calls.
 """
+from .app_identity import AppIdentity, default_app_identity
 from .base import ChatMessage, LLMProvider, LLMResponse, StreamChunk, STREAM_KINDS
 from .factory import LLMFactory
 from .openai_provider import OpenAICompatibleProvider
 from .registry import LLM_REGISTRY, get_default_provider_name, set_default_provider
 
 __all__ = [
+    "AppIdentity",
     "ChatMessage",
     "LLMProvider",
     "LLMResponse",
     "LLMFactory",
     "OpenAICompatibleProvider",
     "LLM_REGISTRY",
+    "default_app_identity",
     "get_default_provider_name",
     "set_default_provider",
 ]

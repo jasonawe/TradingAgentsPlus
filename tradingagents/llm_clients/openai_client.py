@@ -173,6 +173,9 @@ class MinimaxChatOpenAI(NormalizedChatOpenAI):
 _PASSTHROUGH_KWARGS = (
     "timeout", "max_retries", "reasoning_effort", "temperature",
     "api_key", "callbacks", "http_client", "http_async_client",
+    # W3-D6 R8: AppIdentity 用户标识头 — Provider 侧日志按 UA 归因
+    # 我们自己的 app + 版本;不影响 ChatOpenAI 主流程,只是 HTTP header。
+    "default_headers",
 )
 
 # OpenAI's ``reasoning_effort`` is only accepted by reasoning models — the GPT-5
