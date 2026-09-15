@@ -96,10 +96,15 @@ class OrchestratorState:
     user_message: str
     intent: Intent = Intent.UNKNOWN
     symbols: list[str] = field(default_factory=list)
-    plan: list[dict[str, Any]] = field(default_factory=list)
+    plan: list[dict[str, Any]] | dict[str, Any] = field(default_factory=list)
     tool_results: list[dict[str, Any]] = field(default_factory=list)
     final: Any = None
     error: str | None = None
+    # §7.3 #9 Prefetcher: created by ``_plan`` after the plan is known;
+    # ``_execute`` awaits ``drain()`` and consults ``lookup()`` for cache
+    # hits so tool calls fired in parallel between plan and execute
+    # short-circuit the actual ``tool.invoke``.
+    prefetcher: Any = None  # tradingagents.agent_harness.core.prefetch.Prefetcher
 
 
 class Orchestrator:
@@ -376,6 +381,10 @@ class Orchestrator:
             yield await _emit("plan_started", {"intent": route.intent.value})
             plan = await self._plan(state, context)
             state.plan = plan
+            # §7.3 #9: schedule parallel tool calls now that the plan is final.
+            # ``_execute`` / ``_execute_ptc`` will await the drain and use the
+            # cache for any tool whose result is already in flight.
+            self._kick_off_prefetch(state, context)
             # Detect PTC program shape: {"mode": "ptc", "groups": [...]}
             is_ptc = isinstance(plan, dict) and plan.get("mode") == "ptc"
             ev_name = "plan_ready_ptc" if is_ptc else "plan_ready"
@@ -468,6 +477,32 @@ class Orchestrator:
                 "args": {"symbol": state.symbols[0]},
             })
         return plan
+
+    def _kick_off_prefetch(
+        self, state: OrchestratorState, context: ToolContext,
+    ) -> None:
+        """§7.3 #9 — schedule parallel tool invocations after plan is known.
+
+        Called by ``stream_chat`` after ``_plan`` populates ``state.plan``.
+        Failures / missing tools / unsupported plan shapes are silently
+        skipped — pre-fetch is a latency optimisation, never a correctness
+        gate.
+        """
+        if not state.plan:
+            return
+        try:
+            from tradingagents.agent_harness.core.prefetch import Prefetcher
+            pf = Prefetcher()
+            n = pf.kick_off(
+                plan=state.plan,
+                context=context,
+                tool_registry=self.tool_registry,
+            )
+            state.prefetcher = pf
+            if n:
+                LOGGER.debug("prefetch kicked off: %d calls", n)
+        except Exception:
+            LOGGER.debug("prefetch kick_off failed", exc_info=True)
 
     async def _execute(
         self,
@@ -564,6 +599,12 @@ class Orchestrator:
         PTC failures don't short-circuit the orch (each failure is a per-tool
         result entry; downstream Observe/Verify nodes consume them).
         """
+        # §7.3 #9: drain prefetcher before PTC dispatch.
+        if state.prefetcher is not None:
+            try:
+                await state.prefetcher.drain(timeout=5.0)
+            except Exception:
+                LOGGER.debug("prefetch drain failed", exc_info=True)
         if not isinstance(state.plan, dict):
             # Defensive — caller should have routed via stream_chat dispatch
             return [{"name": "ptc", "error": "state.plan is not a PTC program"}]

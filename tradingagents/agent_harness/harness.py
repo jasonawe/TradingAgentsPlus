@@ -195,7 +195,9 @@ class Harness:
         from tradingagents.agent_harness.plugins.builtin import (
             AlertPlugin, NewsPlugin, QuantPlugin,
         )
-        self.plugin_registry = PluginRegistry(self)
+        # §7.3 #7: lazy_plugin_load 决定 PluginRegistry 是否在启动时 import
+        # 第三方 plugin。启用时仅在 ``registry.get(name)`` 首次访问才 load。
+        self.plugin_registry = PluginRegistry(self, lazy=self.config.lazy_plugin_load)
         for cls in (QuantPlugin, NewsPlugin, AlertPlugin):
             self.plugin_registry.register(cls())
         self.plugin_registry.discover_entry_points()

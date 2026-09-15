@@ -31,6 +31,11 @@ class HarnessConfig(BaseModel):
     judge_model: str = ""
     enable_l3: bool = False  # L3 LLM-judge 总开关 (UI toggle 同步)
 
+    # §7.3 #7 lazy_plugin_load: 启用时 PluginRegistry 不在启动时 import /
+    # install entry_points 注册的第三方 plugin,只在首次 ``get(name)`` 时才
+    # 加载 — 缩短 Harness 冷启动时间,避免坏插件阻塞 boot。
+    lazy_plugin_load: bool = False
+
     @classmethod
     def from_env(cls) -> "HarnessConfig":
         return cls(
