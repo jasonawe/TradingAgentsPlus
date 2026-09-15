@@ -105,7 +105,16 @@ class HarnessCheckpointStore:
     """
 
     def __init__(self, store: Any, *, ttl_hours: int = 24) -> None:
-        self._store = store
+        """Wrap any object that can yield a raw sqlite3 connection.
+
+        Accepts:
+        - ``SQLiteStore`` directly (has ``_connect()``)
+        - Any repository with a ``.store`` attribute pointing at a SQLiteStore
+        """
+        if hasattr(store, "store") and hasattr(store.store, "_connect"):
+            self._store = store.store
+        else:
+            self._store = store
         self._ttl = timedelta(hours=ttl_hours)
 
     # ------------------------------------------------------------------

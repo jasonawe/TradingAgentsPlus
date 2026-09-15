@@ -257,3 +257,34 @@ class TestSetTitle:
 
     def test_set_title_returns_false_for_missing(self, store):
         assert store.set_title("harness-ghost", "x") is False
+
+
+# --------------------------------------------------------------------------
+# SettingsRepository-wrapping backend (matches web/app.py wiring)
+# --------------------------------------------------------------------------
+class TestSettingsRepositoryBackend:
+    """The real wiring in web/app.py passes
+    ``app.state.repositories["settings"]`` (a SettingsRepository),
+    not a raw SQLiteStore. Make sure SessionStore unwraps it.
+
+    Regression test for the bug where the A2 wire-up crashed at
+    runtime with ``AttributeError: 'SettingsRepository' object has no
+    attribute '_connect'``.
+    """
+
+    def test_settings_repository_unwrapped(self, tmp_path):
+        from web.repositories import SettingsRepository
+        from web.storage import SQLiteStore
+
+        settings = SQLiteStore(tmp_path / "rep.db")
+        repo = SettingsRepository(settings)
+        # Pass the repo (not the raw store) — should still work
+        store = SessionStore(repo)
+        store.upsert(Session(id="s_repo", title="via repo"))
+        assert store.get("s_repo").title == "via repo"
+        sessions = store.list_sessions()
+        assert [s.id for s in sessions] == ["s_repo"]
+        # And delete works through the wrapper too
+        deleted = store.delete("s_repo")
+        assert deleted["sessions"] == 1
+        assert store.get("s_repo") is None

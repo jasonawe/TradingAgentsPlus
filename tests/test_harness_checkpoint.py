@@ -262,3 +262,28 @@ class TestHelpers:
     def test_make_session_id_custom_prefix(self):
         sid = make_session_id(prefix="user-xyz")
         assert sid.startswith("user-xyz-")
+
+
+
+# --------------------------------------------------------------------------
+# SettingsRepository-wrapping backend — same regression as test_session_store
+# --------------------------------------------------------------------------
+class TestSettingsRepositoryBackend:
+    def test_settings_repository_unwrapped(self, tmp_path):
+        from web.repositories import SettingsRepository
+        from web.storage import SQLiteStore
+
+        settings = SQLiteStore(tmp_path / "ckpt.db")
+        repo = SettingsRepository(settings)
+        # Pass repo, not raw store
+        store = HarnessCheckpointStore(repo)
+        ckpt = HarnessCheckpoint(
+            session_id="ckpt_repo",
+            node_position=NODE_PLANNING,
+            state={"intent": "analysis"},
+            emitted_events=[],
+        )
+        store.save(ckpt)
+        loaded = store.load("ckpt_repo")
+        assert loaded is not None
+        assert loaded.session_id == "ckpt_repo"

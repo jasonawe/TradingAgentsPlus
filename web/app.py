@@ -16,7 +16,7 @@ from typing import Annotated, Any
 from langchain_core.messages import AIMessage
 from langchain_core.runnables import Runnable
 
-from fastapi import FastAPI, Header, HTTPException, Query, Request, status
+from fastapi import Body, FastAPI, Header, HTTPException, Query, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -483,7 +483,10 @@ def create_app(
         # A2 SessionStore: per-session metadata + lifecycle. Wired into
         # the orchestrator so stream_chat auto-creates / touches rows.
         # Cascade-cleaned by DELETE /api/agent/sessions/{id} (A3).
-        from tradingagents.agent_harness.core.session_store import SessionStore
+        from tradingagents.agent_harness.core.session_store import (
+            Session,
+            SessionStore,
+        )
         session_store = SessionStore(app.state.repositories["settings"])
         if hasattr(app.state.harness, "set_session_store"):
             app.state.harness.set_session_store(session_store)
@@ -1772,12 +1775,27 @@ def create_app(
     @app.post(
         "/api/agent/sessions", status_code=status.HTTP_201_CREATED,
     )
-    def create_agent_session() -> dict[str, Any]:
-        """创建新的 chat session,返回 session_id。"""
+    def create_agent_session(body: dict[str, Any] = Body(default_factory=dict)) -> dict[str, Any]:
+        """创建新的 chat session,返回 session_id。
+
+        If a ``session_store`` is wired, pre-creates the row so the
+        session appears in ``GET /api/agent/sessions`` immediately
+        (rather than waiting for first ``stream_chat``).
+        """
         import uuid
         sid = f"s_{uuid.uuid4().hex[:16]}"
+        title = (body or {}).get("title")
+        store = getattr(app.state, "session_store", None)
+        if store is not None:
+            try:
+                store.upsert(Session(id=sid, title=title))
+            except Exception:
+                LOGGER.debug("session create-upsert failed", exc_info=True)
+        sess = store.get(sid) if store is not None else None
+        if sess is not None:
+            return sess.to_dict()
         return {
-            "session_id": sid,
+            "id": sid,
             "created_at": datetime.utcnow().isoformat() + "Z",
         }
 

@@ -112,7 +112,18 @@ class SessionStore:
     """
 
     def __init__(self, store: Any) -> None:
-        self._store = store
+        """Wrap any object that can yield a raw sqlite3 connection.
+
+        Accepts:
+        - ``SQLiteStore`` (has ``_connect()`` returning ``sqlite3.Connection``)
+        - ``SettingsRepository`` or any repo with a ``.store`` attribute
+          pointing at a ``SQLiteStore``
+        """
+        if hasattr(store, "store") and hasattr(store.store, "_connect"):
+            # SettingsRepository-style wrapper
+            self._store = store.store
+        else:
+            self._store = store
 
     # ------------------------------------------------------------------
     # Write
