@@ -21,6 +21,7 @@ from tradingagents.llm_clients.factory import create_llm_client
 
 from .base import ChatMessage, LLMProvider, LLMResponse
 from .failure import classify_llm_error
+from .cache import LLMResponseCache, make_cache_key
 from tradingagents.agent_harness.core.token_usage import (
     get_active_agent,
     get_active_store,
@@ -38,11 +39,14 @@ class OpenAICompatibleProvider(LLMProvider):
         provider: str,
         model: str,
         base_url: str | None = None,
+        cache: "LLMResponseCache | None" = None,
         **kwargs,
     ) -> None:
         self._provider_name = provider
         self._model = model
         self._client = create_llm_client(provider, model, base_url=base_url, **kwargs)
+        # Optional response cache (P2-LLM cache): same prompt → same response
+        self._cache = cache
 
     @property
     def name(self) -> str:
@@ -56,6 +60,21 @@ class OpenAICompatibleProvider(LLMProvider):
         max_tokens: int | None = None,
         stop: list[str] | None = None,
     ) -> LLMResponse:
+        # LLM response cache (P2): short-circuit identical requests
+        if self._cache is not None:
+            key = make_cache_key(
+                messages, system=None,
+                temperature=temperature, max_tokens=max_tokens, model=self._model,
+            )
+            cached = self._cache.get(key)
+            if cached is not None:
+                # Mark this as a cache hit so token accounting sees zero real tokens
+                cached_copy = cached.model_copy()
+                cached_copy.usage = {
+                    **(cached.usage or {}),
+                    "cached": True,
+                }
+                return cached_copy
         llm = self._client.get_llm()
         langchain_msgs = [{"role": m.role, "content": m.content} for m in messages]
         payload: list = []
@@ -122,12 +141,18 @@ class OpenAICompatibleProvider(LLMProvider):
                 total_tokens=usage["total_tokens"] or None,
                 surface=get_active_surface(),
             )
-        return LLMResponse(
+        response = LLMResponse(
             content=content or "",
             provider=self._provider_name,
             model=self._model,
             usage=usage,
         )
+        if self._cache is not None:
+            try:
+                self._cache.put(key, response)
+            except Exception:
+                LOGGER.debug("cache store failed", exc_info=True)
+        return response
 
 
 # Registry helper — let callers pre-register this provider for any name.

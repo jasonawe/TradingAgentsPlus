@@ -479,6 +479,16 @@ def create_app(
             if orch is not None and hasattr(orch, "_checkpoint_store"):
                 orch._checkpoint_store = ckpt_store
         app.state.checkpoint_store = ckpt_store
+
+        # P2 LLM response cache: short-circuit identical LLM calls.
+        from tradingagents.agent_harness.llm.cache import LLMResponseCache
+        cache = LLMResponseCache(ttl_seconds=3600)
+        # Wire into all LLM factories the harness exposes
+        for factory_name in ("llm_factory", "judge_factory"):
+            factory = getattr(app.state.harness, factory_name, None)
+            if factory is not None and hasattr(factory, "cache"):
+                factory.cache = cache
+        app.state.llm_cache = cache
         LOGGER.info(
             "harness mounted (agents=%d, tools=%d, enable_l3=%s)",
             len(app.state.harness.agent_registry.list()),
@@ -539,8 +549,81 @@ def create_app(
                 headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
             )
 
+        # P1-8 Batch mode: synchronous JSON response. Useful for CLI
+        # scripts, scheduled jobs, and clients that can't keep an SSE
+        # connection open. Runs the full 5-node state machine and
+        # returns the captured events + final state.
+        @app.post("/api/harness/chat/batch")
+        async def _harness_chat_batch(body: dict) -> dict:
+            session_id = body.get("session_id") or f"harness-{__import__('uuid').uuid4().hex[:8]}"
+            message = body.get("message") or ""
+            if not message:
+                raise _error(status.HTTP_400_BAD_REQUEST, "message is required")
+            events: list[dict[str, Any]] = []
+            final: Any = None
+            token_usage: dict[str, Any] = {}
+            error: str | None = None
+            try:
+                async for event, payload in app.state.harness.stream_chat(
+                    session_id=session_id, user_message=message
+                ):
+                    events.append({"event": event, "payload": payload})
+                    if event == "agent_final":
+                        final = payload.get("result")
+                    elif event == "usage_summary":
+                        token_usage = payload
+                    elif event == "error":
+                        error = payload.get("error") or payload.get("failure", {}).get("message")
+            except Exception as e:
+                LOGGER.exception("harness batch failed")
+                raise _error(status.HTTP_500_INTERNAL_SERVER_ERROR, str(e))
+            return {
+                "session_id": session_id,
+                "events": events,
+                "event_count": len(events),
+                "final": final,
+                "token_usage": token_usage,
+                "error": error,
+            }
+
+        # P1-8 Poll mode: client passes the session_id + last-seen
+        # event index, returns events that occurred since then. Backed
+        # by the same HarnessCheckpointStore used by /chat/resume.
+        @app.get("/api/harness/chat/{session_id}/events")
+        async def _harness_chat_poll(session_id: str, since: int = 0) -> dict:
+            """Return events after index ``since`` for ``session_id``.
+
+            Polling clients can call repeatedly with ``since=<last_index+1>``
+            to incrementally drain a session. Returns 404 if the session
+            has no checkpoint (already completed and cleaned up).
+            """
+            ckpt_store = getattr(app.state, "checkpoint_store", None)
+            if ckpt_store is None:
+                raise _error(status.HTTP_503_SERVICE_UNAVAILABLE, "checkpoint store not configured")
+            ckpt = ckpt_store.load(session_id)
+            if ckpt is None:
+                raise _error(status.HTTP_404_NOT_FOUND, f"no checkpoint for session {session_id}")
+            events = ckpt.emitted_events
+            since_idx = max(0, int(since))
+            slice_ = events[since_idx:]
+            return {
+                "session_id": session_id,
+                "events": [{"event": ev, "payload": p} for ev, p in slice_],
+                "event_count": len(slice_),
+                "next_since": len(events),
+                "done": ckpt.node_position == "done",
+            }
+
         # P8 L3 verification status endpoint — exposes judge_factory
         # wiring + per-agent LLM state so we can curl-verify L3 is wired.
+        @app.get("/api/harness/cache/stats")
+        async def _harness_cache_stats() -> dict:
+            """Return LLM cache hit/miss rates for the running process."""
+            cache = getattr(app.state, "llm_cache", None)
+            if cache is None:
+                return {"configured": False}
+            return {"configured": True, **cache.stats}
+
         @app.get("/api/harness/status")
         async def _harness_status() -> dict:
             h = app.state.harness

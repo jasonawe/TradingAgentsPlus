@@ -13,9 +13,15 @@ LOGGER = logging.getLogger(__name__)
 class LLMFactory:
     """Build :class:`LLMProvider` instances from (provider, model) pairs."""
 
-    def __init__(self, default_provider: str | None = None, default_model: str | None = None) -> None:
+    def __init__(
+        self,
+        default_provider: str | None = None,
+        default_model: str | None = None,
+        cache: "LLMResponseCache | None" = None,
+    ) -> None:
         self.default_provider = default_provider or os.environ.get("TRADINGAGENTS_LLM_PROVIDER", "")
         self.default_model = default_model or os.environ.get("TRADINGAGENTS_LLM_MODEL", "")
+        self.cache = cache
 
     def make(
         self,
@@ -36,7 +42,7 @@ class LLMFactory:
                 "LLM provider/model not configured; set TRADINGAGENTS_LLM_PROVIDER + "
                 "TRADINGAGENTS_LLM_MODEL env vars, or pass explicitly"
             )
-        return OpenAICompatibleProvider(p, m, base_url=base_url, **kwargs)
+        return OpenAICompatibleProvider(p, m, base_url=base_url, cache=self.cache, **kwargs)
 
     def is_configured(self) -> bool:
         return bool(self.default_provider and self.default_model)
