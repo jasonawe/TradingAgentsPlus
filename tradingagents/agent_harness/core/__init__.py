@@ -11,6 +11,9 @@ Holds:
 from .context import ContextPriority, Layer
 from .orchestrator import Orchestrator, OrchestratorState
 from .plan_template import PlanTemplateCache, normalize_message
+from .rate_limiter import (
+    PROVIDER_RATE_LIMITS, RateLimiter, get_rate_limiter, register_provider_rate_limit,
+)
 from .retry import CircuitBreaker, CircuitState, RetryPolicy, retry_async
 from .short_circuit import ShortCircuit
 from .tier import Tier, classify_intent, fast_route
@@ -26,6 +29,10 @@ __all__ = [
     "OrchestratorState",
     "PlanTemplateCache",
     "normalize_message",
+    "RateLimiter",
+    "PROVIDER_RATE_LIMITS",
+    "get_rate_limiter",
+    "register_provider_rate_limit",
     "CircuitBreaker",
     "RetryPolicy",
     "retry_async",
