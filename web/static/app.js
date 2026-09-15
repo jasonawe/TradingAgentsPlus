@@ -56,7 +56,7 @@
   function showLibrary() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; switchView("library"); setConnection("ready"); renderLibrary(); loadLibraryPage(); }
   function showScheduled() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("scheduled"); setConnection("ready"); }
   function showScheduledHistory() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("scheduled-history"); setConnection("ready"); ta("TradingAgentsScheduledHistory")?.refresh?.(); }
-  async function showSettings() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("settings"); setConnection("ready"); try { const [settings, providers] = await Promise.all([api("/api/settings"), api("/api/providers/market-data")]); const fields = settings.fields || {}; $("settings-fields").innerHTML = Object.entries(fields).map(([key, value]) => `<div><dt>${escapeHtml(t(`settings.${key}`))}</dt><dd>${escapeHtml(typeof value === "object" ? `${i18n.displayValue(value.value)}（${t("settings.source", { value: i18n.displayValue(value.source, t("settings.unknownSource")) })}）` : i18n.displayValue(value))}</dd></div>`).join(""); $("provider-status-list").innerHTML = (providers.providers || []).map((item) => `<div class="provider-status"><strong>${escapeHtml(item.label || item.id)}</strong><span class="status-chip ${item.status}">${escapeHtml(i18n.label("provider_status", item.status))}</span></div>`).join("") || `<p class="muted">${escapeHtml(t("settings.noProviders"))}</p>`; renderQuoteStrategySelector(settings); renderNotifierConfig(settings); } catch (_) { $("settings-fields").innerHTML = `<p class="muted">${escapeHtml(t("settings.unavailable"))}</p>`; } }
+  async function showSettings() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("settings"); setConnection("ready"); try { const [settings, providers] = await Promise.all([api("/api/settings"), api("/api/providers/market-data")]); const fields = settings.fields || {}; $("settings-fields").innerHTML = Object.entries(fields).map(([key, value]) => `<div><dt>${escapeHtml(t(`settings.${key}`))}</dt><dd>${escapeHtml(typeof value === "object" ? `${i18n.displayValue(value.value)}（${t("settings.source", { value: i18n.displayValue(value.source, t("settings.unknownSource")) })}）` : i18n.displayValue(value))}</dd></div>`).join(""); $("provider-status-list").innerHTML = (providers.providers || []).map((item) => `<div class="provider-status"><strong>${escapeHtml(item.label || item.id)}</strong><span class="status-chip ${item.status}">${escapeHtml(i18n.label("provider_status", item.status))}</span></div>`).join("") || `<p class="muted">${escapeHtml(t("settings.noProviders"))}</p>`; renderDataProviderSelector(settings, providers); renderQuoteStrategySelector(settings); renderNotifierConfig(settings); } catch (_) { $("settings-fields").innerHTML = `<p class="muted">${escapeHtml(t("settings.unavailable"))}</p>`; } }
   function showAlerts() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("alerts"); setConnection("ready"); if (ta("TradingAgentsAlerts")?.mountAll) ta("TradingAgentsAlerts").mountAll($("alerts-all-list")); }
   function showNotes() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("notes"); setConnection("ready"); if (ta("TradingAgentsNotes")?.mountAll) ta("TradingAgentsNotes").mountAll($("notes-all-list")); }
   function showAgentAudit() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("agent-audit"); setConnection("ready"); loadAgentAuditPage(); }
@@ -163,7 +163,54 @@
       }
     });
   }
-  async function renderQuoteStrategySelector(settings) {
+  async function renderDataProviderSelector(settings, providers) {
+    const container = $("data-provider-selector");
+    const list = $("data-provider-options");
+    const status = $("data-provider-status");
+    if (!container || !list) return;
+    container.hidden = false;
+    const currentName = settings?.fields?.active_data_provider?.value;
+    const all = providers?.providers || [];
+    if (!all.length) { container.hidden = true; return; }
+    list.innerHTML = all.map((p) => {
+      const checked = p.id === currentName ? "checked" : "";
+      const label = escapeHtml(p.label || p.id);
+      const statusChip = p.status
+        ? `<span class="status-chip ${escapeHtml(p.status)}">${escapeHtml(i18n.label("provider_status", p.status))}</span>`
+        : "";
+      return `<label class="data-provider-option" data-provider-id="${escapeHtml(p.id)}">
+        <input type="radio" name="data-provider" value="${escapeHtml(p.id)}" ${checked} />
+        <span class="data-provider-body">
+          <strong>${label}</strong>
+          ${statusChip}
+        </span>
+      </label>`;
+    }).join("");
+    list.querySelectorAll('input[name="data-provider"]').forEach((input) => {
+      input.addEventListener("change", async (event) => {
+        const providerName = event.target.value;
+        if (!providerName || providerName === currentName) return;
+        status.textContent = t("settings.dataProviderSaving");
+        try {
+          await api("/api/settings/data-provider", {
+            method: "PATCH",
+            body: JSON.stringify({ provider: providerName }),
+            headers: { "Content-Type": "application/json" },
+          });
+          status.textContent = t("settings.dataProviderSaved");
+          // Refresh settings view to reflect new active provider + provider health
+          await showSettings();
+          // Bust the watchlist quote cache so the user sees fresh data on the new source
+          ta("TradingAgentsQuotes")?.reset?.();
+        } catch (error) {
+          status.textContent = t("settings.dataProviderSaveFailed", {
+            error: localizeError(error.message),
+          });
+        }
+      });
+    });
+  }
+    async function renderQuoteStrategySelector(settings) {
     const container = $("quote-strategy-selector");
     const list = $("quote-strategy-options");
     const status = $("quote-strategy-status");

@@ -30,6 +30,7 @@ from .retry import CircuitBreaker, RetryPolicy, retry_async
 from web.market_models import ProviderError
 from tradingagents.agent_harness.llm.failure import LlmFailure, LlmFailureKind
 from .token_usage import TokenUsageStore, attach_store, track_agent
+from .surface import SurfaceRouter
 from .short_circuit import ShortCircuit
 from .tier import Intent, RouteResult, Tier, fast_route
 from .verification import VerificationLevel, Verifier
@@ -130,6 +131,11 @@ class Orchestrator:
         self._ptc_executor = PTCExecutor(tool_registry, pipeline=self._tool_pipeline)
         # Verifier gets its own judge_factory (N89 fix: judge model != main LLM)
         self._verifier = Verifier(judge_factory=judge_factory)
+        # Surface router (P0-4): tags every event with surface (ui/audit/
+        # debug/internal). Debug events go to logger.debug; audit sinks
+        # are configurable but defaults to no-op so we don't fight the
+        # existing manual audit.log(...) calls in _stream_chat_impl.
+        self._surface_router = SurfaceRouter()
 
     # ------------------------------------------------------------------
     # Public streaming entry
@@ -153,8 +159,8 @@ class Orchestrator:
 
         # Tier 1 short-circuit when route lands on it.
         if route.tier == Tier.DIRECT and route.symbols:
-            async for ev in self._short_circuit.run(route, user_message, context):
-                yield ev
+            async for ev, payload in self._short_circuit.run(route, user_message, context):
+                yield await self._emit(ev, payload)
             return
 
         # Token accounting: every LLM call inside stream_chat records
@@ -166,7 +172,7 @@ class Orchestrator:
             with attach_store(store):
                 async for ev in self._stream_chat_impl(state, context, route):
                     yield ev
-            yield ("usage_summary", store.summary())
+            yield await self._emit("usage_summary", store.summary())
         except Exception as e:
             LOGGER.exception("orchestrator failed")
             state.error = str(e)
@@ -174,9 +180,19 @@ class Orchestrator:
             if isinstance(e, LlmFailure):
                 err_payload["failure"] = e.to_dict()
             err_payload["usage"] = store.summary()
-            yield ("error", err_payload)
+            yield await self._emit("error", err_payload)
             return
         return
+
+    async def _emit(self, event: str, payload: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+        """Surface-tag an event before yielding it.
+
+        Side-effects: dispatch to audit/debug sinks via ``SurfaceRouter``.
+        Returns the (event, payload) tuple with ``surface`` added to
+        payload (or the caller's pre-set surface preserved).
+        """
+        self._surface_router.route(event, payload)
+        return event, self._surface_router.tag(event, payload)
 
     async def _stream_chat_impl(
         self,
@@ -189,20 +205,20 @@ class Orchestrator:
         Refactored from the original monolithic stream_chat so the
         TokenUsageStore lifetime is explicit. All LLM calls inside
         (plan, synthesize, L3 judge, sub-agents via track_agent) end
-        up in the active store.
+        up in the active store.  Every yielded event is also tagged
+        with its ``surface`` (P0-4) via the ``_emit`` closure defined
+        in ``stream_chat`` (above).
         """
         # Tier 2: 5-node state machine.
         try:
-            yield ("plan_started", {"intent": route.intent.value})
+            yield await self._emit("plan_started", {"intent": route.intent.value})
             plan = await self._plan(state, context)
             state.plan = plan
             # Detect PTC program shape: {"mode": "ptc", "groups": [...]}
             is_ptc = isinstance(plan, dict) and plan.get("mode") == "ptc"
-            yield (
-                ("plan_ready_ptc", {"groups": plan.get("groups", [])})
-                if is_ptc
-                else ("plan_ready", {"steps": plan})
-            )
+            ev_name = "plan_ready_ptc" if is_ptc else "plan_ready"
+            ev_payload = {"groups": plan.get("groups", [])} if is_ptc else {"steps": plan}
+            yield await self._emit(ev_name, ev_payload)
 
             if is_ptc:
                 results = await self._execute_ptc(state, context)
@@ -210,24 +226,24 @@ class Orchestrator:
                 results = await self._execute(state, context)
             state.tool_results = results
             for r in results:
-                yield ("tool_result", r)
+                yield await self._emit("tool_result", r)
 
             observations = self._observe(state)
-            yield ("observed", observations)
+            yield await self._emit("observed", observations)
 
             # L1 + L2 first (can short-circuit via plan mutation).
             verification = await self._verify(state)
-            yield ("verified", {"ok": verification.ok, "level": int(verification.level)})
+            yield await self._emit("verified", {"ok": verification.ok, "level": int(verification.level)})
 
             final = await self._synthesize(state)
             state.final = final
-            yield ("agent_final", {"tier": int(Tier.PLAN_EXECUTE), "result": self._dump(final)})
+            yield await self._emit("agent_final", {"tier": int(Tier.PLAN_EXECUTE), "result": self._dump(final)})
 
             # L3 LLM-judge (spec §D6) — runs AFTER synthesize. Extracted
             # into `_run_l3_judge` so it's directly testable without
             # spinning up the full 5-node state machine.
-            async for ev in self._run_l3_judge(state):
-                yield ev
+            async for ev, payload in self._run_l3_judge(state):
+                yield await self._emit(ev, payload)
 
             if self.audit is not None and hasattr(self.audit, "log"):
                 try:
