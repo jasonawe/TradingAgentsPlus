@@ -480,6 +480,19 @@ def create_app(
                 orch._checkpoint_store = ckpt_store
         app.state.checkpoint_store = ckpt_store
 
+        # A2 SessionStore: per-session metadata + lifecycle. Wired into
+        # the orchestrator so stream_chat auto-creates / touches rows.
+        # Cascade-cleaned by DELETE /api/agent/sessions/{id} (A3).
+        from tradingagents.agent_harness.core.session_store import SessionStore
+        session_store = SessionStore(app.state.repositories["settings"])
+        if hasattr(app.state.harness, "set_session_store"):
+            app.state.harness.set_session_store(session_store)
+        else:
+            orch = getattr(app.state.harness, "orchestrator", None)
+            if orch is not None and hasattr(orch, "_session_store"):
+                orch._session_store = session_store
+        app.state.session_store = session_store
+
         # P2 LLM response cache: short-circuit identical LLM calls.
         from tradingagents.agent_harness.llm.cache import LLMResponseCache
         cache = LLMResponseCache(ttl_seconds=3600)
@@ -1769,11 +1782,92 @@ def create_app(
         }
 
     @app.get("/api/agent/sessions")
-    def list_agent_sessions() -> list[dict[str, Any]]:
-        """列出所有 L1 短期对话 sessions。"""
-        from tradingagents.agents.general.memory import list_session_ids
-        sids = list_session_ids(_stage_c_data_dir())
-        return [{"session_id": sid, "last_active": None} for sid in sids]
+    def list_agent_sessions(
+        include_archived: bool = False,
+        limit: int = 100,
+    ) -> dict[str, Any]:
+        """列出所有 L1 短期对话 sessions (A2/A3 list endpoint).
+
+        Returns the canonical session list from ``SessionStore`` —
+        ``last_active`` / ``message_count`` / ``token_total`` are now
+        real values (the previous stub hardcoded ``None``).
+        """
+        store = getattr(app.state, "session_store", None)
+        if store is None:
+            # Fallback: legacy LangGraph SqliteSaver IDs (defensive)
+            from tradingagents.agents.general.memory import list_session_ids
+            sids = list_session_ids(_stage_c_data_dir())
+            return {
+                "sessions": [
+                    {"session_id": sid, "last_active": None, "message_count": 0}
+                    for sid in sids
+                ],
+                "total": len(sids),
+            }
+        sessions = store.list_sessions(
+            status=None if include_archived else "active",
+            limit=min(limit, 500),
+        )
+        return {
+            "sessions": [s.to_dict() for s in sessions],
+            "total": store.count(
+                status=None if include_archived else "active",
+            ),
+        }
+
+    @app.get("/api/agent/sessions/{session_id}/detail")
+    def get_agent_session_detail(session_id: str) -> dict[str, Any]:
+        """Get full session metadata from SessionStore (A2 detail)."""
+        store = getattr(app.state, "session_store", None)
+        if store is None:
+            raise _error(status.HTTP_503_SERVICE_UNAVAILABLE, "session store not configured")
+        sess = store.get(session_id)
+        if sess is None:
+            raise _error(status.HTTP_404_NOT_FOUND, f"no session {session_id}")
+        return sess.to_dict()
+
+    @app.patch("/api/agent/sessions/{session_id}")
+    def patch_agent_session(session_id: str, body: dict[str, Any]) -> dict[str, Any]:
+        """Update session metadata (rename / archive)."""
+        store = getattr(app.state, "session_store", None)
+        if store is None:
+            raise _error(status.HTTP_503_SERVICE_UNAVAILABLE, "session store not configured")
+        if "title" in body:
+            store.set_title(session_id, body["title"])
+        if body.get("archive"):
+            store.archive(session_id)
+        sess = store.get(session_id)
+        if sess is None:
+            raise _error(status.HTTP_404_NOT_FOUND, f"no session {session_id}")
+        return sess.to_dict()
+
+    @app.delete("/api/agent/sessions/{session_id}")
+    def delete_agent_session(session_id: str) -> dict[str, Any]:
+        """Hard-delete session + cascade cleanup (roadmap A3).
+
+        Cascade drops:
+        - ``sessions`` row (always)
+        - ``harness_checkpoints`` row (if checkpoint_store wired)
+
+        Returns the audit payload so callers can log it.
+        """
+        store = getattr(app.state, "session_store", None)
+        if store is None:
+            raise _error(status.HTTP_503_SERVICE_UNAVAILABLE, "session store not configured")
+        deleted = store.delete(session_id)
+        # Drop in-memory cache references too so a follow-up /chat on the
+        # same id starts fresh (idempotent).
+        ckpt_store = getattr(app.state, "checkpoint_store", None)
+        if ckpt_store is not None:
+            try:
+                ckpt_store.delete(session_id)
+            except Exception:
+                LOGGER.debug("checkpoint cleanup for %s failed", session_id, exc_info=True)
+        LOGGER.info("session deleted via A3 endpoint: %s (%s)", session_id, deleted)
+        return {
+            "session_id": session_id,
+            "deleted": deleted,
+        }
 
     @app.get("/api/agent/sessions/{session_id}")
     def get_agent_session(session_id: str) -> dict[str, Any]:

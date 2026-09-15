@@ -184,6 +184,16 @@ class Harness:
         """
         self.orchestrator._checkpoint_store = store
 
+    def set_session_store(self, store) -> None:
+        """Wire a ``SessionStore`` into the underlying orchestrator (A2).
+
+        After this call, every ``stream_chat`` invocation will
+        auto-create / touch the session row so the front-end can list
+        active sessions with real ``last_active`` / ``message_count``.
+        DELETE /api/agent/sessions/{id} also relies on this wiring.
+        """
+        self.orchestrator._session_store = store
+
     async def resume(
         self, session_id: str,
     ) -> AsyncIterator[tuple[str, dict]]:
