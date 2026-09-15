@@ -56,7 +56,7 @@
   function showLibrary() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; switchView("library"); setConnection("ready"); renderLibrary(); loadLibraryPage(); }
   function showScheduled() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("scheduled"); setConnection("ready"); }
   function showScheduledHistory() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("scheduled-history"); setConnection("ready"); ta("TradingAgentsScheduledHistory")?.refresh?.(); }
-  async function showSettings() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("settings"); setConnection("ready"); try { const [settings, providers] = await Promise.all([api("/api/settings"), api("/api/providers/market-data")]); const fields = settings.fields || {}; $("settings-fields").innerHTML = Object.entries(fields).map(([key, value]) => `<div><dt>${escapeHtml(t(`settings.${key}`))}</dt><dd>${escapeHtml(typeof value === "object" ? `${i18n.displayValue(value.value)}（${t("settings.source", { value: i18n.displayValue(value.source, t("settings.unknownSource")) })}）` : i18n.displayValue(value))}</dd></div>`).join(""); $("provider-status-list").innerHTML = (providers.providers || []).map((item) => `<div class="provider-status"><strong>${escapeHtml(item.label || item.id)}</strong><span class="status-chip ${item.status}">${escapeHtml(i18n.label("provider_status", item.status))}</span></div>`).join("") || `<p class="muted">${escapeHtml(t("settings.noProviders"))}</p>`; renderDataProviderSelector(settings, providers); renderQuoteStrategySelector(settings); renderNotifierConfig(settings); } catch (_) { $("settings-fields").innerHTML = `<p class="muted">${escapeHtml(t("settings.unavailable"))}</p>`; } }
+  async function showSettings() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("settings"); setConnection("ready"); try { const [settings, providers] = await Promise.all([api("/api/settings"), api("/api/providers/market-data")]); const fields = settings.fields || {}; $("settings-fields").innerHTML = Object.entries(fields).map(([key, value]) => `<div><dt>${escapeHtml(t(`settings.${key}`))}</dt><dd>${escapeHtml(typeof value === "object" ? `${i18n.displayValue(value.value)}（${t("settings.source", { value: i18n.displayValue(value.source, t("settings.unknownSource")) })}）` : i18n.displayValue(value))}</dd></div>`).join(""); $("provider-status-list").innerHTML = (providers.providers || []).map((item) => `<div class="provider-status"><strong>${escapeHtml(item.label || item.id)}</strong><span class="status-chip ${item.status}">${escapeHtml(i18n.label("provider_status", item.status))}</span></div>`).join("") || `<p class="muted">${escapeHtml(t("settings.noProviders"))}</p>`; renderDataProviderSelector(settings, providers); renderQuoteStrategySelector(settings); renderAuxProviderSelector(settings, "news_provider", "news", "news"); renderAuxProviderSelector(settings, "alpha_provider", "alpha", "alpha"); renderNotifierConfig(settings); } catch (_) { $("settings-fields").innerHTML = `<p class="muted">${escapeHtml(t("settings.unavailable"))}</p>`; } }
   function showAlerts() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("alerts"); setConnection("ready"); if (ta("TradingAgentsAlerts")?.mountAll) ta("TradingAgentsAlerts").mountAll($("alerts-all-list")); }
   function showNotes() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("notes"); setConnection("ready"); if (ta("TradingAgentsNotes")?.mountAll) ta("TradingAgentsNotes").mountAll($("notes-all-list")); }
   function showAgentAudit() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("agent-audit"); setConnection("ready"); loadAgentAuditPage(); }
@@ -99,6 +99,48 @@
     });
   }
 
+  // W3-D2 E1 polish: generic renderer for the news / alpha provider
+  // selectors. Pulls the option list from settings.fields[field].options
+  // and POSTs to the matching /api/settings/{slug}-provider PATCH endpoint.
+  async function renderAuxProviderSelector(settings, fieldKey, i18nPrefix, slug) {
+    const container = $(`${slug}-provider-selector`);
+    const list = $(`${slug}-provider-options`);
+    const status = $(`${slug}-provider-status`);
+    if (!container || !list) return;
+    const field = settings?.fields?.[`active_${fieldKey}`];
+    if (!field) { container.hidden = true; return; }
+    container.hidden = false;
+    const currentName = field.value;
+    const options = field.options || [];
+    if (!options.length) { container.hidden = true; return; }
+    list.innerHTML = options.map((p) => {
+      const checked = p === currentName ? "checked" : "";
+      return `<label class="data-provider-option">
+        <input type="radio" name="${slug}-provider" value="${escapeHtml(p)}" ${checked} />
+        <span class="data-provider-body"><strong>${escapeHtml(p)}</strong></span>
+      </label>`;
+    }).join("");
+    list.querySelectorAll(`input[name="${slug}-provider"]`).forEach((input) => {
+      input.addEventListener("change", async (event) => {
+        const providerName = event.target.value;
+        if (!providerName || providerName === currentName) return;
+        status.textContent = t(`settings.${i18nPrefix}ProviderSaving`);
+        try {
+          await api(`/api/settings/${slug}-provider`, {
+            method: "PATCH",
+            body: JSON.stringify({ provider: providerName }),
+            headers: { "Content-Type": "application/json" },
+          });
+          status.textContent = t(`settings.${i18nPrefix}ProviderSaved`);
+          await showSettings();
+        } catch (error) {
+          status.textContent = t(`settings.${i18nPrefix}ProviderSaveFailed`, {
+            error: localizeError(error.message),
+          });
+        }
+      });
+    });
+  }
   function renderNotifierConfig(settings) {
     const fields = (settings && settings.fields) || {};
     const status = $("notifier-status");
@@ -638,11 +680,99 @@
   function renderPhases() { $("phase-timeline").innerHTML = state.phases.map((phase) => `<li class="is-${phase.status}"><span class="phase-dot"></span><div><span class="phase-name">${escapeHtml(t(`phase.${phase.key}`))}</span><span class="phase-status">${escapeHtml(t(`status.${phase.status}`))}</span></div></li>`).join(""); }
   function addActivity(title, summary, timestamp) { const feed = $("activity-feed"); const entry = document.createElement("article"); entry.className = "activity-entry"; entry.innerHTML = `<time>${escapeHtml(new Date(timestamp || Date.now()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }))}</time><strong>${escapeHtml(translateDynamic(title))}</strong><p>${escapeHtml(summary)}</p>`; feed.appendChild(entry); feed.scrollTop = feed.scrollHeight; $("event-count").textContent = t("run.events", { count: feed.children.length }); }
   function updatePhase(name) { const key = PHASE_NAME_KEYS[name]?.replace("phase.", "") || name; const index = PHASE_KEYS.indexOf(key); if (index < 0) return; state.phases = state.phases.map((phase, i) => ({ key: phase.key, status: i < index ? "done" : i === index ? "in_progress" : "pending" })); renderPhases(); }
-  function processEvent(envelope) { if (!envelope || envelope.run_id !== state.runId) return; const payload = envelope.payload || {}; if (envelope.event === "run_snapshot") { if (payload.run) syncRecord(payload.run); state.lastSeq = Number(payload.snapshot_seq) || 0; state.seen = new Set(); return; } if (state.seen.has(envelope.seq)) return; state.seen.add(envelope.seq); state.lastSeq = Math.max(state.lastSeq, Number(envelope.seq) || 0); switch (envelope.event) { case "run_started": setConnection("live"); startElapsed(state.runRecord?.started_at || envelope.timestamp); addActivity("run.deskStarted", t("run.analystsAssigned", { count: payload.analysts?.length || 0 }), envelope.timestamp); break; case "phase_changed": updatePhase(payload.phase); addActivity(payload.phase, payload.status === "in_progress" ? t("run.phaseStarted") : t(`status.${payload.status}`), envelope.timestamp); break; case "agent_status": if (payload.status === "in_progress") $("current-agent").textContent = translateDynamic(payload.agent); addActivity(payload.agent, t(`status.${payload.status}`), envelope.timestamp); break; case "progress": { const percent = Math.round((Number(payload.progress) || 0) * 100); $("progress-bar").style.width = `${percent}%`; $("progress-label").textContent = `${percent}%`; if (payload.current_agent) $("current-agent").textContent = translateDynamic(payload.current_agent); break; } case "message": addActivity(t("run.fieldNotes"), payload.text || "", envelope.timestamp); break; case "activity": addActivity(payload.name || t("run.graphUpdate"), payload.summary || "", envelope.timestamp); break; case "run_completed": completeRun(payload); break; case "run_failed": terminalRun("failed", localizeError(payload.error_message) || t("error.failed"), payload.retryable); break; case "run_cancelled": terminalRun("cancelled", t("error.cancelled"), payload.retryable); break; case "run_interrupted": terminalRun("interrupted", t("error.interrupted"), payload.retryable); break; case "run_timed_out": terminalRun("timed_out", t("error.timedOut"), payload.retryable); break; default: break; } }
+  // W3-D4 E8 — SSE Event Definition registration.
+  // Adding a new SSE event type = one ``registerSseEvent(name, handler)``
+  // call. The handler runs with ``(payload, envelope)`` after the
+  // run-id / seq bookkeeping in ``processEvent``. Mirrors backend's
+  // ``ConversationNodeDefinition`` pattern from dsh.
+  const SSE_EVENT_DEFS = Object.create(null);
+  function registerSseEvent(name, handler) {
+    if (typeof name !== "string" || !name) {
+      throw new TypeError("event name must be a non-empty string");
+    }
+    if (typeof handler !== "function") {
+      throw new TypeError(`handler for ${name} must be a function`);
+    }
+    if (Object.prototype.hasOwnProperty.call(SSE_EVENT_DEFS, name)) {
+      throw new Error(`SSE event ${name} already registered`);
+    }
+    SSE_EVENT_DEFS[name] = handler;
+    return handler;
+  }
+  function getSseEventHandler(name) {
+    return Object.prototype.hasOwnProperty.call(SSE_EVENT_DEFS, name) ? SSE_EVENT_DEFS[name] : null;
+  }
+  function listSseEventNames() {
+    return Object.keys(SSE_EVENT_DEFS);
+  }
+
+  // W3-D4 E8: ``run_snapshot`` is still handled inline (pre-seq bookkeeping),
+  // every other event is dispatched through ``SSE_EVENT_DEFS``. Adding a
+  // new event type no longer requires editing this function.
+  function processEvent(envelope) {
+    if (!envelope || envelope.run_id !== state.runId) return;
+    const payload = envelope.payload || {};
+    if (envelope.event === "run_snapshot") {
+      if (payload.run) syncRecord(payload.run);
+      state.lastSeq = Number(payload.snapshot_seq) || 0;
+      state.seen = new Set();
+      return;
+    }
+    if (state.seen.has(envelope.seq)) return;
+    state.seen.add(envelope.seq);
+    state.lastSeq = Math.max(state.lastSeq, Number(envelope.seq) || 0);
+    const handler = getSseEventHandler(envelope.event);
+    if (handler) {
+      try { handler(payload, envelope); } catch (err) { console.warn("SSE handler failed:", envelope.event, err); }
+    }
+  }
+
+  // W3-D4 E8: register the 11 built-in SSE event handlers. Each block
+  // is a 1:1 port of the old switch cases — same DOM mutations, same
+  // i18n keys, same activity-log entries.
+  registerSseEvent("run_started", (payload, env) => {
+    setConnection("live");
+    startElapsed(state.runRecord?.started_at || env.timestamp);
+    addActivity("run.deskStarted", t("run.analystsAssigned", { count: payload.analysts?.length || 0 }), env.timestamp);
+  });
+  registerSseEvent("phase_changed", (payload, env) => {
+    updatePhase(payload.phase);
+    addActivity(payload.phase, payload.status === "in_progress" ? t("run.phaseStarted") : t(`status.${payload.status}`), env.timestamp);
+  });
+  registerSseEvent("agent_status", (payload, env) => {
+    if (payload.status === "in_progress") $("current-agent").textContent = translateDynamic(payload.agent);
+    addActivity(payload.agent, t(`status.${payload.status}`), env.timestamp);
+  });
+  registerSseEvent("progress", (payload) => {
+    const percent = Math.round((Number(payload.progress) || 0) * 100);
+    $("progress-bar").style.width = `${percent}%`;
+    $("progress-label").textContent = `${percent}%`;
+    if (payload.current_agent) $("current-agent").textContent = translateDynamic(payload.current_agent);
+  });
+  registerSseEvent("message", (payload, env) => {
+    addActivity(t("run.fieldNotes"), payload.text || "", env.timestamp);
+  });
+  registerSseEvent("activity", (payload, env) => {
+    addActivity(payload.name || t("run.graphUpdate"), payload.summary || "", env.timestamp);
+  });
+  registerSseEvent("run_completed", (payload) => { completeRun(payload); });
+  registerSseEvent("run_failed", (payload) => {
+    terminalRun("failed", localizeError(payload.error_message) || t("error.failed"), payload.retryable);
+  });
+  registerSseEvent("run_cancelled", (payload) => {
+    terminalRun("cancelled", t("error.cancelled"), payload.retryable);
+  });
+  registerSseEvent("run_interrupted", (payload) => {
+    terminalRun("interrupted", t("error.interrupted"), payload.retryable);
+  });
+  registerSseEvent("run_timed_out", (payload) => {
+    terminalRun("timed_out", t("error.timedOut"), payload.retryable);
+  });
   function syncRecord(record) { state.runRecord = record; rememberActiveRun(record); syncRunSnapshot(record); if (record.started_at && !state.archived && ACTIVE_RUN_STATUSES.has(record.status)) startElapsed(record.started_at); if (record.status === "completed" && record.report_id) loadReport(record.report_id); else if (!ACTIVE_RUN_STATUSES.has(record.status)) terminalRun(record.status, record.status === "timed_out" ? t("error.timedOut") : record.error_message || t(`error.${record.status}`)); }
   function reconnectStatus() { if (!state.runId) return Promise.resolve(); return api(`/api/runs/${encodeURIComponent(state.runId)}`).then((record) => { syncRecord(record); return record; }).catch(() => null); }
   async function restoreActiveRun() { let record = null; const savedId = localStorage.getItem(ACTIVE_RUN_KEY); if (savedId) { try { record = await api(`/api/runs/${encodeURIComponent(savedId)}`); } catch (_) { localStorage.removeItem(ACTIVE_RUN_KEY); } } if (!record) { try { const _runs = (await api("/api/runs/active")).runs || []; record = pickActiveRun(_runs); } catch (_) {} } if (!record) return; if (!ACTIVE_RUN_STATUSES.has(record.status)) { rememberActiveRun(record); return; } const currentView = routeForPath(window.location.pathname)?.view; if (!currentView || currentView === "setup") setRoute("active", { replace: true }); if (currentView === "active" || !currentView) { resetRunState(); state.runId = record.run_id; state.archived = false; showRun(record); connectEvents(); } }
-  function connectEvents() { if (!state.runId) return; if (state.source) state.source.close(); const url = `/api/runs/${encodeURIComponent(state.runId)}/events?after_seq=${state.lastSeq}`; const source = new EventSource(url); state.source = source; source.onopen = () => setConnection("live"); source.onmessage = (event) => { try { processEvent(JSON.parse(event.data)); } catch (_) {} }; ["run_snapshot", "run_started", "phase_changed", "agent_status", "progress", "message", "activity", "run_completed", "run_failed", "run_cancelled", "run_interrupted", "run_timed_out"].forEach((name) => source.addEventListener(name, (event) => { try { processEvent(JSON.parse(event.data)); } catch (_) {} })); source.onerror = () => { setConnection("reconnecting"); reconnectStatus().then((record) => { if (record && !ACTIVE_RUN_STATUSES.has(record.status)) { source.close(); state.source = null; return; } if (source.readyState === EventSource.CLOSED) { source.close(); setTimeout(connectEvents, 1000); } }); }; }
+  function connectEvents() { if (!state.runId) return; if (state.source) state.source.close(); const url = `/api/runs/${encodeURIComponent(state.runId)}/events?after_seq=${state.lastSeq}`; const source = new EventSource(url); state.source = source; source.onopen = () => setConnection("live"); source.onmessage = (event) => { try { processEvent(JSON.parse(event.data)); } catch (_) {} }; // W3-D4 E8: enumerate the registered SSE events instead of hardcoding.
+  listSseEventNames().forEach((name) => source.addEventListener(name, (event) => { try { processEvent(JSON.parse(event.data)); } catch (_) {} })); source.onerror = () => { setConnection("reconnecting"); reconnectStatus().then((record) => { if (record && !ACTIVE_RUN_STATUSES.has(record.status)) { source.close(); state.source = null; return; } if (source.readyState === EventSource.CLOSED) { source.close(); setTimeout(connectEvents, 1000); } }); }; }
   function completeRun(payload) { rememberActiveRun({ run_id: state.runId, status: "completed" }); stopElapsed(); state.reportId = payload.report_id; $("cancel-run").hidden = true; $("new-analysis").hidden = false; $("progress-bar").style.width = "100%"; $("progress-label").textContent = "100%"; state.phases = state.phases.map((phase) => ({ ...phase, status: "done" })); renderPhases(); setConnection("complete"); const signal = formatRating(payload.signal); addActivity(t("run.briefingReady"), signal ? t("run.signal", { signal }) : t("run.reportGenerated"), Date.now()); loadReport(payload.report_id); api("/api/history").then(renderHistory).catch(() => {}); }
   function terminalRun(status, message, retryable) { const canRetry = retryable === true; rememberActiveRun({ run_id: state.runId, status }); stopElapsed(); $("cancel-run").hidden = true; $("new-analysis").hidden = false; $("run-grid").hidden = true; $("run-header").hidden = false; $("terminal-panel").hidden = false; const heading = escapeHtml(status === "failed" ? t("error.failed") : status === "interrupted" ? t("error.interrupted") : status === "timed_out" ? t("error.timedOut") : t("connection.cancelled")); const retryBlock = canRetry ? `<div class="terminal-actions"><button type="button" id="retry-run" class="button button-primary" data-retry-run="${escapeHtml(state.runId)}" title="${escapeHtml(t("actions.retryHint"))}">${escapeHtml(t("actions.retry"))}</button></div>` : ""; $("terminal-panel").innerHTML = `<h3>${heading}</h3><p>${escapeHtml(message)}</p>${retryBlock}`; setConnection(status === "timed_out" ? "failed" : status); state.runRecord && (state.runRecord.retryable = canRetry); }
   async function retryRun(runId) {

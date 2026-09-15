@@ -361,7 +361,9 @@ def test_client_snapshot_replay_and_future_terminal_status_fallback():
     assert '["queued", "running"].includes(record.status)' not in js
     assert "ACTIVE_RUN_STATUSES.has(active.status)" in js
     assert "ACTIVE_RUN_STATUSES.has(record.status)" in js
-    assert 'case "run_timed_out"' in js
+    # W3-D4 E8: the switch is gone, replaced by the SSE_EVENT_DEFS
+    # registry. run_timed_out is now registered via registerSseEvent.
+    assert 'registerSseEvent("run_timed_out"' in js
     assert '"error.timedOut": "分析超时"' in (STATIC / "i18n.js").read_text(encoding="utf-8")
 
 

@@ -259,6 +259,24 @@ def create_app(
         if not env_name:
             set_active_provider(persisted)
 
+    # W3-D2 polish: persisted news + alpha provider choices.
+    from tradingagents.data.providers.news_registry import (
+        NEWS_PROVIDERS as _NEWS_PROVIDERS,
+        set_active_news_provider as _set_active_news,
+    )
+    from tradingagents.data.providers.alpha_registry import (
+        ALPHA_PROVIDERS as _ALPHA_PROVIDERS,
+        set_active_alpha_provider as _set_active_alpha,
+    )
+    _persisted_news = (settings_repo.get("active_news_provider") or {}).get("value")
+    if isinstance(_persisted_news, str) and _persisted_news in _NEWS_PROVIDERS:
+        if not os.environ.get("TRADINGAGENTS_NEWS_PROVIDER"):
+            _set_active_news(_persisted_news)
+    _persisted_alpha = (settings_repo.get("active_alpha_provider") or {}).get("value")
+    if isinstance(_persisted_alpha, str) and _persisted_alpha in _ALPHA_PROVIDERS:
+        if not os.environ.get("TRADINGAGENTS_ALPHA_PROVIDER"):
+            _set_active_alpha(_persisted_alpha)
+
     active_manager.set_report_root(Path(active_config.get("results_dir") or ".") / "web_reports")
     active_history = history or ReportHistory(
         results_dir=active_config.get("results_dir"),
@@ -1121,9 +1139,29 @@ def create_app(
         fields["notifier_monitor_interval_seconds"] = {"value": str(monitor_status.get("interval_seconds") or 60), "source": "sqlite"}
         fields["notifier_monitor_running"] = {"value": "true" if monitor_status.get("running") else "false", "source": "sqlite"}
         from tradingagents.data.providers.registry import get_active_provider_name
+        from tradingagents.data.providers.news_registry import get_active_news_provider_name
+        from tradingagents.data.providers.alpha_registry import get_active_alpha_provider_name
         persisted_provider = (settings_repo.get("active_data_provider") or {}).get("value")
         current_provider = persisted_provider or get_active_provider_name()
         fields["active_data_provider"] = {"value": current_provider, "source": "sqlite" if persisted_provider else "env"}
+
+        # W3-D2 polish: expose news + alpha active providers.
+        from tradingagents.data.providers.news_registry import NEWS_PROVIDERS
+        from tradingagents.data.providers.alpha_registry import ALPHA_PROVIDERS
+        persisted_news = (settings_repo.get("active_news_provider") or {}).get("value")
+        current_news = persisted_news or get_active_news_provider_name()
+        fields["active_news_provider"] = {
+            "value": current_news,
+            "source": "sqlite" if persisted_news else "env",
+            "options": sorted(NEWS_PROVIDERS),
+        }
+        persisted_alpha = (settings_repo.get("active_alpha_provider") or {}).get("value")
+        current_alpha = persisted_alpha or get_active_alpha_provider_name()
+        fields["active_alpha_provider"] = {
+            "value": current_alpha,
+            "source": "sqlite" if persisted_alpha else "env",
+            "options": sorted(ALPHA_PROVIDERS),
+        }
         return {"schema_version": 1, "fields": fields, "strategies": [{"id": k, "providers": v["providers"], "available": next((s["available"] for s in catalog["strategies"] if s["id"] == k), False)} for k, v in QUOTE_STRATEGIES.items()], "provider_health": {item["provider"]: item for item in provider_health_repo.list()}}
 
     @app.patch("/api/settings/quote-strategy")
@@ -1161,6 +1199,38 @@ def create_app(
         settings_repo.set("active_data_provider", name, source="sqlite")
         set_active_provider(name)
         return {"provider": name, "providers": sorted(PROVIDERS)}
+
+    @app.patch("/api/settings/news-provider")
+    def update_news_provider(payload: dict[str, Any]) -> dict[str, Any]:
+        """Switch the active news provider (stub/yfinance/alpha_vantage)."""
+        from tradingagents.data.providers.news_registry import (
+            NEWS_PROVIDERS, set_active_news_provider,
+        )
+        name = (payload or {}).get("provider")
+        if not isinstance(name, str) or name not in NEWS_PROVIDERS:
+            raise _error(
+                status.HTTP_400_BAD_REQUEST,
+                f"unknown news provider; known: {sorted(NEWS_PROVIDERS)}",
+            )
+        settings_repo.set("active_news_provider", name, source="sqlite")
+        set_active_news_provider(name)
+        return {"provider": name, "providers": sorted(NEWS_PROVIDERS)}
+
+    @app.patch("/api/settings/alpha-provider")
+    def update_alpha_provider(payload: dict[str, Any]) -> dict[str, Any]:
+        """Switch the active alpha provider (stub/yfinance/akshare)."""
+        from tradingagents.data.providers.alpha_registry import (
+            ALPHA_PROVIDERS, set_active_alpha_provider,
+        )
+        name = (payload or {}).get("provider")
+        if not isinstance(name, str) or name not in ALPHA_PROVIDERS:
+            raise _error(
+                status.HTTP_400_BAD_REQUEST,
+                f"unknown alpha provider; known: {sorted(ALPHA_PROVIDERS)}",
+            )
+        settings_repo.set("active_alpha_provider", name, source="sqlite")
+        set_active_alpha_provider(name)
+        return {"provider": name, "providers": sorted(ALPHA_PROVIDERS)}
 
     @app.patch("/api/settings/notifier")
     def update_notifier(payload: dict[str, Any]) -> dict[str, Any]:

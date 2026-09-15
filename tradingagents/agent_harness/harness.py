@@ -131,8 +131,14 @@ class Harness:
         self.data_registry = PROVIDERS
 
         # 6. memory — L1/L2/L3 facade (v3 spec §3 memory/)
-        from tradingagents.agent_harness.memory import MemoryManager
+        from tradingagents.agent_harness.memory import MemoryManager, EventLog
         self.memory = MemoryManager(data_dir=str(self.config.data_dir))
+        # W3-D5 R1: append-only event log (separate from L1 chat history).
+        # Plugins and orchestrator can append to ``harness.event_log``;
+        # the LLM chat history is derived from ``type='message'`` events.
+        self.event_log = EventLog(
+            db_path=str(Path(self.config.data_dir) / "event_log.sqlite"),
+        )
 
         # 7. audit (P7)
         from tradingagents.agent_harness.observability import AuditLogger
