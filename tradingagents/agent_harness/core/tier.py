@@ -173,3 +173,73 @@ def fast_route(message: str) -> RouteResult:
         intent=intent, tier=Tier.PLAN_EXECUTE, symbols=symbols,
         confidence=0.3, reason="no high-confidence keyword match → Tier 2 fallback",
     )
+
+
+def maybe_degrade_to_tier1(
+    route: RouteResult,
+    llm_factory: Any | None,
+    circuit_breaker: Any | None,
+) -> tuple[RouteResult, bool]:
+    """§7.2 #1 — degrade Tier 2/3 to Tier 1 when LLM is unavailable.
+
+    Returns ``(route, degraded)``:
+
+    - ``degraded=True``  → caller MUST route via ``ShortCircuit`` (0 LLM).
+      The returned route keeps the original ``symbols`` (so short_circuit
+      has something to query), and forces ``intent=QUOTE`` (the most
+      common Tier 1 fallback), ``tier=DIRECT``.
+    - ``degraded=False`` → caller keeps the original route and proceeds
+      with the Tier 2/3 StateGraph / workflow.
+
+    Degrade conditions (any one triggers):
+
+    1. ``llm_factory is None`` — no LLM wired at all.
+    2. ``llm_factory`` exposes ``is_configured()`` returning False.
+    3. ``circuit_breaker`` is provided and its state is ``OPEN``
+       (provider tripped).  ``circuit_breaker.state`` is the public
+       surface used elsewhere in the harness.
+
+    Tier 1 short-circuit needs at least one ticker symbol — queries
+    that have no ticker extracted are left alone (orchestrator
+    handles them with the "ask user for ticker" prompt).
+    """
+    # Already Tier 1 — nothing to degrade.
+    if route.tier == Tier.DIRECT:
+        return route, False
+
+    # No symbols → short_circuit cannot serve; keep original route so
+    # the orchestrator can ask the user for a ticker.
+    if not route.symbols:
+        return route, False
+
+    llm_ok = True
+    if llm_factory is None:
+        llm_ok = False
+    elif hasattr(llm_factory, "is_configured"):
+        try:
+            llm_ok = bool(llm_factory.is_configured())
+        except Exception:
+            llm_ok = False
+    if llm_ok and circuit_breaker is not None:
+        # ``CircuitState.OPEN`` is the spec name; tolerate string match.
+        state_name = getattr(circuit_breaker, "state", None)
+        if state_name is not None and str(state_name).endswith("OPEN"):
+            llm_ok = False
+
+    if llm_ok:
+        return route, False
+
+    # Build degraded route.  Keep symbols, force intent=QUOTE so the
+    # short-circuit knows which tool to invoke.
+    reason = route.reason or ""
+    if llm_factory is None:
+        suffix = "no LLM wired → Tier 1 fallback"
+    else:
+        suffix = "LLM circuit open → Tier 1 fallback"
+    return RouteResult(
+        intent=Intent.QUOTE,
+        tier=Tier.DIRECT,
+        symbols=list(route.symbols),
+        confidence=route.confidence,
+        reason=f"{reason} | {suffix}" if reason else suffix,
+    ), True

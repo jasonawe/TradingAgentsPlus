@@ -45,7 +45,7 @@ from .harness_checkpoint import (
     NODE_VERIFYING,
 )
 from .short_circuit import ShortCircuit
-from .tier import Intent, RouteResult, Tier, fast_route
+from .tier import Intent, RouteResult, Tier, fast_route, maybe_degrade_to_tier1
 from .verification import VerificationLevel, Verifier
 
 LOGGER = logging.getLogger(__name__)
@@ -204,7 +204,18 @@ class Orchestrator:
     ) -> AsyncIterator[tuple[str, dict]]:
         """Top-level orchestration. Yields SSE-shaped ``(event, payload)``."""
         route = fast_route(user_message)
+        # §7.2 #1: degrade Tier 2/3 → Tier 1 when LLM is unavailable
+        # (no factory wired, factory not configured, or circuit open).
+        # Keeps symbols so short_circuit can serve, forces intent=QUOTE.
+        route, degraded = maybe_degrade_to_tier1(
+            route, self.llm_factory, self.circuit_breaker,
+        )
         context = ToolContext(session_id=session_id)
+
+        # §7.2 #1: when degraded, emit a single visible "warning" event
+        # so the user / observability stack sees the fallback.  Emitted
+        # here (before the Tier 1 short-circuit runs) via _emit below.
+        degraded_reason: str | None = route.reason if degraded else None
 
         # Q6 / P2-9: session_start hook — plugins get a chance to set up
         # per-session state (load config, open DB cursors, etc.).
@@ -271,6 +282,14 @@ class Orchestrator:
 
         # Tier 1 short-circuit when route lands on it.
         if route.tier == Tier.DIRECT and route.symbols:
+            if degraded_reason:
+                # §7.2 #1: surface the LLM-unavailable fallback so users
+                # (and the audit log) know why we skipped Tier 2/3.
+                yield await _emit("warning", {
+                    "message": degraded_reason,
+                    "fallback": "tier1_short_circuit",
+                    "tier": int(route.tier),
+                })
             async for ev, payload in self._short_circuit.run(route, user_message, context):
                 yield await _emit(ev, payload)
             return
