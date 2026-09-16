@@ -210,7 +210,13 @@ class Orchestrator:
         route, degraded = maybe_degrade_to_tier1(
             route, self.llm_factory, self.circuit_breaker,
         )
-        context = ToolContext(session_id=session_id)
+        # §7.3 #4 — wire the process default cache into the per-session
+        # ToolContext so tool invocations during this turn benefit from
+        # cached results.  Default cache is a process-wide singleton
+        # (see data.cache.get_default_cache); reusing it across turns
+        # matches the spec's TTL-based invalidation model.
+        from tradingagents.agent_harness.data.cache import get_default_cache
+        context = ToolContext(session_id=session_id, tool_cache=get_default_cache())
 
         # §7.2 #1: when degraded, emit a single visible "warning" event
         # so the user / observability stack sees the fallback.  Emitted

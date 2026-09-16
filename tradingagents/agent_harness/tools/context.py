@@ -15,6 +15,11 @@ class ToolContext:
     tier: Optional[int] = None
     trace_id: Optional[str] = None
     extra: Optional[dict[str, Any]] = None
+    # §7.3 #4 — optional per-call tool result cache.  When set,
+    # FunctionTool uses this cache instead of the process default.
+    # The harness typically wires a fresh cache per session; tests
+    # pass an isolated cache for hermeticity.
+    tool_cache: Optional[Any] = None
 
     def kw(self) -> dict[str, Any]:
         """Dataclass → dict for ``**kwargs`` spread."""
