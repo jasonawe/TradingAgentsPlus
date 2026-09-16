@@ -233,6 +233,7 @@ class Harness:
             audit=self.audit,
             enable_l3=self.config.enable_l3,
             judge_factory=self.judge_factory,
+            memory=self.memory,
         )
 
         LOGGER.info(

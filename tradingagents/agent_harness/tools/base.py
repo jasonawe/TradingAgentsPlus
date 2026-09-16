@@ -31,6 +31,14 @@ class BaseTool(ABC):
         return self.schema.name
 
     @property
+    def description(self) -> str:
+        # Exposed so ToolSchemasLayerProvider (Layer.TOOLS context) can
+        # surface a human-readable description alongside the tool name.
+        # Without this, get_quote / add_to_watchlist / etc. all show
+        # up as empty strings and the LLM has no idea what each tool does.
+        return getattr(self.schema, "description", "") or ""
+
+    @property
     def permission(self) -> PermissionType:
         return PermissionType(self.schema.permission)
 

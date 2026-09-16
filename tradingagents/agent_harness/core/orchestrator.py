@@ -97,6 +97,11 @@ class OrchestratorState:
     user_message: str
     intent: Intent = Intent.UNKNOWN
     symbols: list[str] = field(default_factory=list)
+    # §P3-2 — symbols carried forward from the previous turn in this
+    # session because the current user_message has none. Distinct from
+    # ``symbols`` so the planner can choose to use only the explicit ones.
+    carry_symbols: list[str] = field(default_factory=list)
+    prior_user_msg: str | None = None
     plan: list[dict[str, Any]] | dict[str, Any] = field(default_factory=list)
     tool_results: list[dict[str, Any]] = field(default_factory=list)
     final: Any = None
@@ -137,6 +142,7 @@ class Orchestrator:
         judge_factory: Any | None = None,
         checkpoint_store: HarnessCheckpointStore | None = None,
         session_store: SessionStore | None = None,
+        memory: Any | None = None,
     ) -> None:
         self.tool_registry = tool_registry
         self.agent_registry = agent_registry
@@ -146,6 +152,12 @@ class Orchestrator:
         self.circuit_breaker = circuit_breaker
         self.audit = audit
         self.enable_l3 = enable_l3
+        # §P3-2 — per-turn memory persistence. Without this ref the
+        # ChatHistoryLayerProvider sees an empty L1 every turn, the
+        # planner has no cross-turn symbol carry-forward, and the LLM
+        # responds to "加入关注" with "请补充标的" even when the same
+        # session just discussed 600036.SS.
+        self.memory = memory
 
         self._short_circuit = ShortCircuit(tool_registry)
         # PTC executor: same tool registry, concurrent group dispatch
@@ -191,6 +203,70 @@ class Orchestrator:
         # Defaults: TTL 5min, max 256 entries.
         from tradingagents.agent_harness.core.plan_template import PlanTemplateCache
         self.plan_cache: PlanTemplateCache = PlanTemplateCache()
+
+    # ------------------------------------------------------------------
+    # §P3-2 — per-turn memory helpers
+    # ------------------------------------------------------------------
+    _SESSION_CTX_KEY = "__session_ctx__"
+
+    def _load_session_context(self, session_id: str) -> dict:
+        """Read previous-turn metadata from L2 (symbols / intent / user_msg).
+
+        Used at the top of :meth:`stream_chat` to carry forward symbols
+        when the current user_message has none (e.g. "加入关注" without
+        naming a ticker). Returns empty dict on no memory / no prior turn.
+        """
+        if self.memory is None or not session_id:
+            return {"symbols": [], "intent": None, "user_msg": None}
+        try:
+            entry = self.memory.l2.get(self._SESSION_CTX_KEY, session_id=session_id)
+        except Exception as e:
+            LOGGER.warning("load_session_context failed: %s", e)
+            return {"symbols": [], "intent": None, "user_msg": None}
+        if entry is None or entry.value is None:
+            return {"symbols": [], "intent": None, "user_msg": None}
+        if not isinstance(entry.value, dict):
+            return {"symbols": [], "intent": None, "user_msg": None}
+        return {
+            "symbols": list(entry.value.get("symbols") or []),
+            "intent": entry.value.get("intent"),
+            "user_msg": entry.value.get("user_msg"),
+        }
+
+    def _save_turn_summary(
+        self,
+        session_id: str,
+        *,
+        user_msg: str,
+        intent: Any,
+        symbols: list,
+        assistant_summary: str | None,
+    ) -> None:
+        """Persist chat history to L1 + per-turn metadata to L2.
+
+        L1 entries make the next turn's ChatHistoryLayerProvider.collect()
+        return non-empty history. L2 metadata enables carry-forward of
+        symbols / intent across turns in the same session.
+        """
+        if self.memory is None or not session_id:
+            return
+        try:
+            self.memory.l1.append_message(session_id, "user", user_msg or "")
+            if assistant_summary:
+                self.memory.l1.append_message(
+                    session_id, "assistant", str(assistant_summary)[:2000],
+                )
+            self.memory.l2.set(
+                self._SESSION_CTX_KEY,
+                {
+                    "symbols": list(symbols or []),
+                    "intent": getattr(intent, "value", str(intent) if intent else None),
+                    "user_msg": (user_msg or "")[:200],
+                },
+                session_id=session_id,
+            )
+        except Exception as e:
+            LOGGER.warning("save_turn_summary failed: %s", e)
 
     # ------------------------------------------------------------------
     # Public streaming entry
@@ -250,11 +326,29 @@ class Orchestrator:
             )
             user_message = f"{inject_block}\n\n{user_message}"
 
+        # §P3-2 — symbol carry-forward: if the current message has no
+        # ticker (e.g. "加入关注", "看一下估值", "分析这家"),") pull the
+        # last turn's symbols out of L2 so the planner / tier routing can
+        # still act on the implicit asset reference.
+        session_ctx = self._load_session_context(session_id)
+        carry_symbols: list[str] = []
+        if not route.symbols and session_ctx.get("symbols"):
+            carry_symbols = list(session_ctx["symbols"])
+            LOGGER.info(
+                "carry-forward symbols from previous turn: %s (session=%s)",
+                carry_symbols, session_id,
+            )
+        effective_symbols = list(route.symbols) + [
+            s for s in carry_symbols if s not in route.symbols
+        ]
+
         state = OrchestratorState(
             session_id=session_id,
             user_message=user_message,
             intent=route.intent,
-            symbols=route.symbols,
+            symbols=effective_symbols,
+            carry_symbols=carry_symbols,
+            prior_user_msg=session_ctx.get("user_msg"),
         )
 
         # Session lifecycle (roadmap A2): auto-create or update metadata.
@@ -345,6 +439,28 @@ class Orchestrator:
                         LOGGER.debug("session_end hook failed", exc_info=True)
             current_node = NODE_DONE
             yield await _emit("usage_summary", store.summary())
+            # §P3-2 — persist user message + assistant final so the next
+            # turn's ChatHistoryLayerProvider returns real history and
+            # the symbol carry-forward (L2 __session_ctx__) sees the
+            # assets discussed in this turn.
+            try:
+                final_payload = state.final
+                assistant_text = None
+                if isinstance(final_payload, dict):
+                    summary = final_payload.get("summary")
+                    if isinstance(summary, str):
+                        assistant_text = summary
+                    elif summary is None and isinstance(final_payload.get("result"), dict):
+                        assistant_text = final_payload["result"].get("summary")
+                self._save_turn_summary(
+                    session_id,
+                    user_msg=state.user_message,
+                    intent=state.intent,
+                    symbols=state.symbols,
+                    assistant_summary=assistant_text,
+                )
+            except Exception:
+                LOGGER.debug("save_turn_summary outer failed", exc_info=True)
             # Session accounting (A2): bump token_total on success.
             if self._session_store is not None:
                 try:
@@ -727,6 +843,21 @@ class Orchestrator:
                 "action": "get_fundamentals",
                 "args": {"symbol": state.symbols[0]},
             })
+        # §P3-2 — watchlist intent + symbols means the user wants the
+        # asset added (or removed). Pre-plan an add_to_watchlist step so
+        # the synthesizer can report the actual write result (the LLM
+        # synthesize path uses plain text completion and has no
+        # function-calling schema, so the write MUST run during _execute
+        # for the user to see persistence confirmation).
+        if state.intent == Intent.WATCHLIST and state.symbols:
+            insert_at = len(plan) + 1
+            for sym in state.symbols:
+                plan.append({
+                    "step": insert_at,
+                    "action": "add_to_watchlist",
+                    "args": {"symbol": sym, "asset_type": "stock"},
+                })
+                insert_at += 1
         # Cache the heuristic plan so the next identical query reuses it
         # without going through _plan again.
         self.plan_cache.put(state.user_message, plan)
@@ -1111,16 +1242,29 @@ class Orchestrator:
                 "calls — they'll run concurrently and finish in the time of "
                 "the slowest single call."
             )
+        carry_hint = ""
+        if state.carry_symbols:
+            carry_hint = (
+                f"\nNote: these symbols were carried forward from the "
+                f"previous turn (the current message did not name an "
+                f"asset explicitly). The user is almost certainly asking "
+                f"about them: {state.carry_symbols}.\n"
+                f"Prior turn user message: {state.prior_user_msg!r}\n"
+            )
         return (
             f"User message: {state.user_message}\n\n"
             f"Current date: 2026-09-14 (东八区时间 周一)\n"
-            f"Detected symbols: {state.symbols}\n"
-            f"Detected intent: {state.intent.value}\n\n"
+            f"Detected symbols (current): {state.symbols}\n"
+            f"Detected symbols (carry-forward from previous turn): {state.carry_symbols}\n"
+            f"Detected intent: {state.intent.value}\n"
+            f"{carry_hint}\n"
             "Available agents:\n" + "\n".join(agent_caps) +
             ptc_hint +
             "\n\nChoose SEQUENTIAL or PTC mode (see system prompt). "
             "For A-class questions (date/weekday/concept), return [] and "
-            "the synthesizer will answer directly."
+            "the synthesizer will answer directly. If the user refers to "
+            "\"this asset\" / \"the company\" / \"加入关注\" without a "
+            "ticker, the carry-forward symbols are your anchor."
         )
 
     @staticmethod
