@@ -536,8 +536,12 @@
         appendReasoningDelta(`🧑‍⚖️ L3 judge: ${payload.ok ? "grounded" : "ungrounded"} (score=${(payload.details?.score ?? 0).toFixed(2)})\n`);
         break;
       case "confirm_request":
-        // HITL: write tool requires user approval. Show modal.
+        // HITL: write tool requires user approval. Show BOTH the
+        // modal (primary UX) and the inline banner (fallback when
+        // CSS is stale or the modal is dismissed). Both call the
+        // same /confirm endpoint.
         showHarnessConfirmDialog(payload);
+        showHarnessConfirmInline(payload);
         break;
       case "audit_decision":
         // Approval / rejection recorded by /api/harness/sessions/.../confirm.
@@ -647,6 +651,83 @@
     return String(s)
       .replace(/&/g, "&amp;").replace(/</g, "&lt;")
       .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  // §P3-3+ — inline approval banner shown IN the chat (alongside
+  // the modal). The modal is the primary UX; this is the fallback
+  // for when CSS doesn't load or the modal is dismissed. The user
+  // can click 批准 / 拒绝 directly in the chat stream.
+  function showHarnessConfirmInline(payload) {
+    const toolName = payload?.tool_name || "(tool)";
+    const toolArgs = payload?.args || {};
+    const impact = payload?.impact || {};
+    const sessionId = ensureSession();
+    const banner = document.createElement("div");
+    banner.className = "harness-confirm-inline";
+    banner.innerHTML = `
+      <div class="harness-confirm-inline-header">
+        ⚠️ 写操作需要你确认 <small>(${escapeHtml(toolName)})</small>
+      </div>
+      <pre class="harness-confirm-inline-args">${escapeHtml(JSON.stringify(toolArgs, null, 2))}</pre>
+      ${impact.reason ? `<div class="harness-confirm-inline-impact">${escapeHtml(impact.reason)}</div>` : ""}
+      <div class="harness-confirm-inline-buttons">
+        <button type="button" class="harness-confirm-inline-cancel">拒绝</button>
+        <button type="button" class="harness-confirm-inline-ok">批准</button>
+      </div>
+    `;
+    // Insert at the end of the chat assistant bubble
+    const chat = document.querySelector("#chat-log, .chat-log, #messages, .messages, .assistant-bubble, .chat-container");
+    if (chat) {
+      chat.appendChild(banner);
+    } else {
+      document.body.appendChild(banner);
+    }
+    scrollToBottom();
+
+    const decide = async (approve) => {
+      banner.querySelectorAll("button").forEach(b => b.disabled = true);
+      banner.classList.add(approve ? "harness-confirm-inline-approved" : "harness-confirm-inline-rejected");
+      const labelEl = banner.querySelector(".harness-confirm-inline-header small");
+      if (labelEl) labelEl.textContent = `${escapeHtml(toolName)} · ${approve ? "已批准" : "已拒绝"}`;
+      try {
+        const resp = await fetch(
+          `/api/harness/sessions/${encodeURIComponent(sessionId)}/confirm`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              tool_name: toolName,
+              tool_args: toolArgs,
+              approve,
+              user_message: state.lastUserMessage || "",
+              audit_id: payload?.audit_id,
+            }),
+          }
+        );
+        if (!resp.ok || !resp.body) {
+          appendError(`审批请求失败 (HTTP ${resp.status})`);
+          return;
+        }
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let buf = "";
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buf += decoder.decode(value, { stream: true });
+          let idx;
+          while ((idx = buf.indexOf("\n\n")) !== -1) {
+            const block = buf.slice(0, idx);
+            buf = buf.slice(idx + 2);
+            handleSseBlock(block, assistant);
+          }
+        }
+      } catch (e) {
+        appendError(`审批流错误: ${e.message}`);
+      }
+    };
+    banner.querySelector(".harness-confirm-inline-cancel").onclick = () => decide(false);
+    banner.querySelector(".harness-confirm-inline-ok").onclick = () => decide(true);
   }
 
   function setBusy(busy) {

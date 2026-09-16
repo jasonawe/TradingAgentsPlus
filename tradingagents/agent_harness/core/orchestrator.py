@@ -2139,12 +2139,38 @@ class Orchestrator:
         if not focus_lines:
             focus_lines.append("- No symbols detected; tool results cover all assets")
         focus_block = "\n".join(focus_lines)
+        # §P3-3+ — detect pending_approval in tool_results so the
+        # synthesizer can tell the user the UI is handling the
+        # confirmation, not to type it as a chat message.
+        pending_approvals = [
+            r for r in (state.tool_results or [])
+            if isinstance(r, dict)
+            and isinstance(r.get("result"), dict)
+            and r["result"].get("status") == "pending_approval"
+        ]
+        pending_note = ""
+        if pending_approvals:
+            tools = sorted({
+                r["result"].get("tool_name", "?")
+                for r in pending_approvals
+            })
+            pending_note = (
+                "\n\nIMPORTANT: One or more write tools returned "
+                "``pending_approval``. The UI is ALREADY showing a "
+                "confirmation dialog (centered modal) with 批准/拒绝 "
+                "buttons. Tell the user explicitly: \"\u9875\u9762\u5df2 "
+                "\u5f39\u51fa\u5ba1\u6279\u5bf9\u8bdd\u6846\uff0c\u8bf7\u70b9\u51fb "
+                "\u6279\u51c6 \u6216 \u62d2\u7edd \u6309\u94ae\u3002\" Do NOT ask "
+                "the user to type \"\u786e\u8ba4\u5220\u9664\" or similar "
+                "phrases \u2014 the confirmation is a UI action, not a chat "
+                "message. The pending tools are: " + ", ".join(tools) + "."
+            )
         return (
             f"Current date: {self._format_now_cst()}\n\n"
             f"User message: {state.user_message}\n\n"
             f"Detected intent: {intent_value}\n"
             f"Focus assets for this turn:\n{focus_block}\n\n"
-            f"Tool results: {results_dump}\n\n"
+            f"Tool results: {results_dump}{pending_note}\n\n"
             "Follow the structure in your system prompt: "
             "\u6570\u636e\u4e8b\u5b9e / \u884c\u4e3a\u9762\u89c2\u5bdf / "
             "\u65b9\u5411\u6027\u5efa\u8bae. "
@@ -2156,6 +2182,12 @@ class Orchestrator:
             "section to that symbol; mention other assets only as "
             "\"out of scope\". Do NOT ask the user to clarify the ticker "
             "when the focus-asset hint already names it \u2014 that is the answer."
+            + ("" if not pending_approvals else
+               "\n\nFor pending_approval results: just acknowledge "
+               "the dialog is showing \u2014 do NOT enumerate the data "
+               "fields or repeat the args. The user will click \u6279\u51c6 "
+               "(Approve) or \u62d2\u7edd (Reject) in the modal."
+              )
         )
 
     # ------------------------------------------------------------------

@@ -1230,3 +1230,129 @@ table.data .num { font-family: var(--mono); font-weight: 600; text-align: right;
     .harness-confirm-cancel { background: #334155; color: #e2e8f0; border-color: #475569; }
     .harness-confirm-cancel:hover:not(:disabled) { background: #475569; }
 }
+
+
+/* §P3-3+ — inline approval banner (fallback when modal CSS is stale
+   or the modal is dismissed). Shows in the chat itself. */
+.harness-confirm-inline {
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    border-left: 4px solid #dc2626;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    color: #7f1d1d;
+    font-size: 14px;
+    line-height: 1.55;
+}
+.harness-confirm-inline-header {
+    font-weight: 600;
+    color: #b91c1c;
+    margin-bottom: 10px;
+    font-size: 15px;
+}
+.harness-confirm-inline-header small {
+    font-weight: 400;
+    color: #991b1b;
+    background: #fee2e2;
+    padding: 1px 8px;
+    border-radius: 4px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    margin-left: 4px;
+    font-size: 12.5px;
+}
+.harness-confirm-inline-args {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    max-height: 160px;
+    overflow: auto;
+    margin: 0 0 10px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+.harness-confirm-inline-impact {
+    color: #b91c1c;
+    font-size: 13px;
+    margin: 0 0 12px;
+}
+.harness-confirm-inline-buttons {
+    display: flex;
+    gap: 8px;
+}
+.harness-confirm-inline-buttons button {
+    padding: 7px 16px;
+    border-radius: 5px;
+    border: 1px solid transparent;
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.12s ease;
+}
+.harness-confirm-inline-buttons button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+.harness-confirm-inline-cancel {
+    background: #ffffff;
+    color: #7f1d1d;
+    border-color: #fca5a5;
+}
+.harness-confirm-inline-cancel:hover:not(:disabled) {
+    background: #fee2e2;
+}
+.harness-confirm-inline-ok {
+    background: #dc2626;
+    color: #ffffff;
+    border-color: #b91c1c;
+}
+.harness-confirm-inline-ok:hover:not(:disabled) {
+    background: #b91c1c;
+}
+.harness-confirm-inline-approved {
+    background: #f0fdf4;
+    border-color: #86efac;
+    border-left-color: #16a34a;
+    color: #166534;
+}
+.harness-confirm-inline-approved .harness-confirm-inline-header {
+    color: #15803d;
+}
+.harness-confirm-inline-approved .harness-confirm-inline-header small {
+    color: #166534;
+    background: #dcfce7;
+}
+.harness-confirm-inline-rejected {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    border-left-color: #6b7280;
+    color: #4b5563;
+    opacity: 0.85;
+}
+.harness-confirm-inline-rejected .harness-confirm-inline-header {
+    color: #4b5563;
+}
+.harness-confirm-inline-rejected .harness-confirm-inline-header small {
+    color: #4b5563;
+    background: #e5e7eb;
+}
+@media (prefers-color-scheme: dark) {
+    .harness-confirm-inline {
+        background: #450a0a;
+        border-color: #b91c1c;
+        color: #fecaca;
+    }
+    .harness-confirm-inline-header { color: #fca5a5; }
+    .harness-confirm-inline-header small {
+        background: #7f1d1d; color: #fecaca;
+    }
+    .harness-confirm-inline-cancel {
+        background: #1f2937; color: #fecaca; border-color: #991b1b;
+    }
+    .harness-confirm-inline-approved {
+        background: #052e16; border-color: #16a34a; color: #bbf7d0;
+    }
+}
