@@ -104,21 +104,114 @@ def test_builtin_plugins_register_via_harness() -> None:
 
 
 def test_quant_plugin_provides_alpha_prompt() -> None:
+    """§7.1 #7: QuantPlugin.prompts() injects as WaterfallSection."""
     h = Harness(HarnessConfig.from_env())
-    assert hasattr(h, "_prompt_alpha_explanation")
-    assert "IC" in h._prompt_alpha_explanation
+    section = h.system_prompt_waterfall.get("plugin:quant:alpha_explanation")
+    assert section is not None
+    assert section.source == "quant"
+    assert "IC" in section.resolve({})
 
 
 def test_news_plugin_provides_news_prompt() -> None:
+    """§7.1 #7: NewsPlugin.prompts() injects as WaterfallSection."""
     h = Harness(HarnessConfig.from_env())
-    assert hasattr(h, "_prompt_news_summary")
-    assert "舆情" in h._prompt_news_summary or "情绪" in h._prompt_news_summary
+    section = h.system_prompt_waterfall.get("plugin:news:news_summary")
+    assert section is not None
+    assert section.source == "news"
+    body = section.resolve({})
+    assert "舆情" in body or "情绪" in body
 
 
 def test_alert_plugin_provides_alert_template() -> None:
+    """§7.1 #7: AlertPlugin.prompts() injects as WaterfallSection."""
     h = Harness(HarnessConfig.from_env())
-    assert hasattr(h, "_prompt_alert_template")
-    assert "{symbol}" in h._prompt_alert_template
+    section = h.system_prompt_waterfall.get("plugin:alert:alert_template")
+    assert section is not None
+    assert section.source == "alert"
+    assert "{symbol}" in section.resolve({})
+
+# ---------------------------------------------------------------------------
+# §7.1 #7 — Plugin.prompts() must reach the final system prompt
+# ---------------------------------------------------------------------------
+
+
+def test_plugin_prompts_appear_in_waterfall_build() -> None:
+    """Quant / News / Alert prompts end up in the rendered system prompt."""
+    h = Harness(HarnessConfig.from_env())
+    rendered = h.system_prompt_waterfall.build({})
+    assert "alpha" in rendered.lower()
+    assert "舆情" in rendered
+    assert "{symbol}" in rendered  # alert template
+
+
+def test_prompt_priority_override_pushes_section_higher() -> None:
+    """A plugin that overrides prompt_priority() places its section above
+    a default-priority peer."""
+
+    class LoudPlugin(Plugin):
+        name = "loud"
+        version = "0.0.1"
+
+        def tools(self):
+            return []
+
+        def prompts(self):
+            return {"scream": "I AM LOUD"}
+
+        def prompt_priority(self) -> int:
+            return 99
+
+        def install(self, harness):
+            super().install(harness)
+
+    class QuietPlugin(Plugin):
+        name = "quiet"
+        version = "0.0.1"
+
+        def tools(self):
+            return []
+
+        def prompts(self):
+            return {"whisper": "i am quiet"}
+
+        def install(self, harness):
+            super().install(harness)
+
+    h = Harness(HarnessConfig.from_env())
+    h.plugin_registry.register(LoudPlugin())
+    h.plugin_registry.register(QuietPlugin())
+    rendered = h.system_prompt_waterfall.build({})
+    assert rendered.index("I AM LOUD") < rendered.index("i am quiet")
+
+
+def test_plugin_reinstall_refreshes_section_content() -> None:
+    """Re-running install() with a plugin that changed its prompts()
+    output must update the waterfall section in place (not leave the stale
+    version behind)."""
+
+    class MutablePlugin(Plugin):
+        name = "mut"
+        version = "0.0.1"
+
+        def tools(self):
+            return []
+
+        def prompts(self):
+            return {"txt": self._text}
+
+        def install(self, harness):
+            super().install(harness)
+
+    h = Harness(HarnessConfig.from_env())
+    p1 = MutablePlugin()
+    p1._text = "version-1"
+    h.plugin_registry.register(p1)
+    assert "version-1" in h.system_prompt_waterfall.build({})
+    p1._text = "version-2"
+    p1.install(h)
+    assert "version-2" in h.system_prompt_waterfall.build({})
+    assert "version-1" not in h.system_prompt_waterfall.build({})
+
 
 
 def test_plugin_installation_is_idempotent_for_agents() -> None:
