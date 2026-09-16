@@ -14,6 +14,8 @@ both shapes — see ``tradingagents.llm_clients/factory.py``.
 """
 from __future__ import annotations
 
+import asyncio
+import concurrent.futures
 import logging
 from typing import Iterable
 
@@ -139,13 +141,18 @@ class OpenAICompatibleProvider(LLMProvider):
         # complete() is sync (LLMProvider ABC); we drive the async
         # enforcer via asyncio.run() so wait_for can fire on a worker
         # thread.  Safe because callers already block on this method.
-        import asyncio as _a
+        #
+        # Defensive: when invoked from inside a running event loop
+        # (FastAPI handler, asyncio Task), bare asyncio.run() raises
+        # RuntimeError.  Detect that case and run the coroutine on a
+        # fresh worker thread with its own loop.  Adds one thread hop
+        # per call but keeps the sync ABC intact.
         budget = (
             self._timeout_enforcer.default_timeout_seconds
             if timeout_seconds is None
             else float(timeout_seconds)
         )
-        return _a.run(self._timeout_enforcer.enforce_sync(
+        return _run_coro_sync(self._timeout_enforcer.enforce_sync(
             lambda: retry_resolved_sync(
                 lambda: self._do_complete(
                     messages, temperature=temperature,
@@ -294,3 +301,28 @@ class OpenAICompatibleProvider(LLMProvider):
 # Registry helper — let callers pre-register this provider for any name.
 def make_openai_compatible(provider: str, model: str, **kwargs) -> OpenAICompatibleProvider:
     return OpenAICompatibleProvider(provider, model, **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# Sync → async bridge (works from inside a running event loop)
+# ---------------------------------------------------------------------------
+def _run_coro_sync(coro):
+    """Run *coro* to completion and return its result, even when called
+    from inside a running event loop.
+
+    - No running loop: behave like ``asyncio.run(coro)``.
+    - Already inside a running loop: spin up a single-use worker thread
+      with its own event loop and call ``asyncio.run`` there.  We pay
+      one thread hop per call, but keep the sync ``LLMProvider.complete``
+      ABC contract intact (no ``await`` needed at the call site).
+    """
+    try:
+        asyncio.get_running_loop()
+        in_loop = True
+    except RuntimeError:
+        in_loop = False
+    if not in_loop:
+        return asyncio.run(coro)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
+        future = ex.submit(asyncio.run, coro)
+        return future.result()
