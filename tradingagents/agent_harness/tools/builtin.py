@@ -475,6 +475,17 @@ class DeleteAlertsForSymbolArgs(BaseModel):
     asset_type: Literal["stock", "crypto"] = "stock"
 
 
+class BulkSymbolArgs(BaseModel):
+    """§P3-3+ — generic (symbol, asset_type) args for bulk-by-symbol
+    operations: delete_notes_for_symbol,
+    delete_scheduled_tasks_for_symbol.  Mirrors
+    DeleteAlertsForSymbolArgs so the dispatch layer can use a
+    consistent schema across the 3 bulk delete tools.
+    """
+    symbol: str
+    asset_type: Literal["stock", "crypto"] = "stock"
+
+
 class CreateNoteArgs(BaseModel):
     symbol: str
     body_md: str
@@ -845,6 +856,48 @@ async def delete_alerts_for_symbol(args: DeleteAlertsForSymbolArgs, context=None
     return await _invoke_bridge(
         bridge,
         {"symbol": args.symbol, "asset_type": args.asset_type},
+        context,
+    )
+
+
+async def delete_notes_for_symbol(args, context=None):
+    """§P3-3+ — bulk soft-delete every note for a given symbol.
+    One HITL dialog for the whole batch (handled by the bridge).
+    """
+    from tradingagents.agents.general.tools_bridge import delete_notes_for_symbol as bridge
+    if isinstance(args, dict):
+        symbol = (args.get("symbol") or "").strip()
+        asset_type = (args.get("asset_type") or "stock").strip()
+    elif args is None:
+        symbol, asset_type = "", "stock"
+    else:
+        symbol = (getattr(args, "symbol", None) or "").strip()
+        asset_type = (getattr(args, "asset_type", None) or "stock").strip()
+    return await _invoke_bridge(
+        bridge,
+        {"symbol": symbol, "asset_type": asset_type},
+        context,
+    )
+
+
+async def delete_scheduled_tasks_for_symbol(args, context=None):
+    """§P3-3+ — bulk hard-delete every scheduled job for a given
+    symbol. One HITL dialog for the whole batch.
+    """
+    from tradingagents.agents.general.tools_bridge import (
+        delete_scheduled_tasks_for_symbol as bridge,
+    )
+    if isinstance(args, dict):
+        symbol = (args.get("symbol") or "").strip()
+        asset_type = (args.get("asset_type") or "stock").strip()
+    elif args is None:
+        symbol, asset_type = "", "stock"
+    else:
+        symbol = (getattr(args, "symbol", None) or "").strip()
+        asset_type = (getattr(args, "asset_type", None) or "stock").strip()
+    return await _invoke_bridge(
+        bridge,
+        {"symbol": symbol, "asset_type": asset_type},
         context,
     )
 
@@ -1434,6 +1487,24 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
     )(delete_alerts_for_symbol)
+
+    registry.register(
+        name="delete_notes_for_symbol",
+        description="Bulk-delete all notes for a symbol (list + soft_delete loop; "
+                    "single HITL gate; for '把这个资产的笔记都删了' requests).",
+        args_schema=BulkSymbolArgs,
+        result_schema=dict,
+        permission=PermissionType.WRITE,
+    )(delete_notes_for_symbol)
+
+    registry.register(
+        name="delete_scheduled_tasks_for_symbol",
+        description="Bulk-delete all scheduled jobs for a symbol (list + delete loop; "
+                    "single HITL gate; HARD delete; for '把这个资产的定时任务都删了' requests).",
+        args_schema=BulkSymbolArgs,
+        result_schema=dict,
+        permission=PermissionType.WRITE,
+    )(delete_scheduled_tasks_for_symbol)
 
     registry.register(
         name="create_note",

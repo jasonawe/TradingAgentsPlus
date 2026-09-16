@@ -593,6 +593,68 @@ def delete_note(
 
 
 @tool
+def delete_notes_for_symbol(
+    symbol: Annotated[str, "ticker (e.g. 600036.SS)"],
+    asset_type: Annotated[str, "stock / crypto"] = "stock",
+    config: Annotated[RunnableConfig, InjectedToolArg()] = None,
+) -> str:
+    """§P3-3+ — 批量删除某标的下的所有笔记(软删除,需确认)。
+
+    适用场景:用户说"把这个资产的笔记都删了" — 不需要逐条 note_id。
+    内部:list_for + soft_delete 循环,聚合结果返回。
+    HITL:整批走一次 _check_write_approval;任一 id 失败不会回滚已删除
+    的(软删除天然可恢复)。
+    """
+    import json as _json
+    session_id = _resolve_session_id(config)
+    args = {"symbol": symbol, "asset_type": asset_type}
+    gate = _check_write_approval(
+        session_id=session_id, tool_name="delete_notes_for_symbol",
+        tool_args=args,
+    )
+    if gate is not None:
+        return gate
+    try:
+        repo = _get_repo("notes")
+        notes = repo.list_for(symbol, asset_type=asset_type)
+    except Exception as e:
+        return f"ERROR: list_notes_for_bulk_delete failed - {type(e).__name__}: {e}"
+    if not notes:
+        return _json.dumps({
+            "symbol": symbol,
+            "asset_type": asset_type,
+            "matched": 0,
+            "deleted": 0,
+            "failed": 0,
+            "ids": [],
+            "errors": [],
+        }, ensure_ascii=False)
+    deleted: list[str] = []
+    errors: list[str] = []
+    for n in notes:
+        nid = n.get("id")
+        try:
+            repo.soft_delete(nid)
+            deleted.append(nid)
+        except KeyError:
+            errors.append(f"{nid}: not found")
+        except Exception as e:
+            errors.append(f"{nid}: {type(e).__name__}: {e}")
+    _after_execute(session_id, "delete_notes_for_symbol", {
+        **args, "deleted_count": len(deleted), "failed_count": len(errors),
+    })
+    return _json.dumps({
+        "symbol": symbol,
+        "asset_type": asset_type,
+        "matched": len(notes),
+        "deleted": len(deleted),
+        "failed": len(errors),
+        "ids": deleted,
+        "errors": errors,
+    }, ensure_ascii=False)
+
+
+@tool
 def create_alert(
     symbol: Annotated[str, "ticker 如 600036.SS"],
     kind: Annotated[str, "告警类型: price_above / price_below / change_pct / volume_spike 等"],
@@ -1332,6 +1394,75 @@ def delete_scheduled_task(
         return f"ERROR: delete_scheduled_task unexpected - {type(e).__name__}: {e}"
 
 
+@tool
+def delete_scheduled_tasks_for_symbol(
+    symbol: Annotated[str, "ticker (e.g. 600036.SS)"],
+    asset_type: Annotated[str, "stock / crypto"] = "stock",
+    config: Annotated[RunnableConfig, InjectedToolArg()] = None,
+) -> str:
+    """§P3-3+ — 批量删除某标的下的所有定时任务(硬删除,需确认)。
+
+    适用场景:用户说"把这个资产的定时任务都删了" — 不需要逐条 job_id。
+    内部:list + delete 循环,聚合结果返回。
+    HITL:整批走一次 _check_write_approval。硬删除不可恢复。
+    """
+    import json as _json
+    session_id = _resolve_session_id(config)
+    args = {"symbol": symbol, "asset_type": asset_type}
+    gate = _check_write_approval(
+        session_id=session_id, tool_name="delete_scheduled_tasks_for_symbol",
+        tool_args=args,
+    )
+    if gate is not None:
+        return gate
+    try:
+        repo = _get_repo("scheduled_jobs")
+        # ScheduledJobRepository.list returns all jobs (no symbol
+        # filter); filter by symbol in Python.
+        all_jobs = repo.list(enabled=None)
+        target = symbol.strip().upper()
+        jobs = [
+            j for j in all_jobs
+            if str(j.get("symbol", "")).upper() == target
+            and j.get("asset_type", "stock") == asset_type
+        ]
+    except Exception as e:
+        return f"ERROR: list_scheduled_for_bulk_delete failed - {type(e).__name__}: {e}"
+    if not jobs:
+        return _json.dumps({
+            "symbol": symbol,
+            "asset_type": asset_type,
+            "matched": 0,
+            "deleted": 0,
+            "failed": 0,
+            "ids": [],
+            "errors": [],
+        }, ensure_ascii=False)
+    deleted: list[str] = []
+    errors: list[str] = []
+    for j in jobs:
+        jid = j.get("id")
+        try:
+            repo.delete(jid)
+            deleted.append(jid)
+        except KeyError:
+            errors.append(f"{jid}: not found")
+        except Exception as e:
+            errors.append(f"{jid}: {type(e).__name__}: {e}")
+    _after_execute(session_id, "delete_scheduled_tasks_for_symbol", {
+        **args, "deleted_count": len(deleted), "failed_count": len(errors),
+    })
+    return _json.dumps({
+        "symbol": symbol,
+        "asset_type": asset_type,
+        "matched": len(jobs),
+        "deleted": len(deleted),
+        "failed": len(errors),
+        "ids": deleted,
+        "errors": errors,
+    }, ensure_ascii=False)
+
+
 ALL_TOOLS = [
     # Alpha158 × 3(B1 复用)
     list_alpha_factors,
@@ -1367,6 +1498,9 @@ ALL_TOOLS = [
     create_scheduled_task,
     update_scheduled_task,
     delete_scheduled_task,
+    # §P3-3+ — bulk delete by focused symbol (mirrors delete_alerts_for_symbol)
+    delete_notes_for_symbol,
+    delete_scheduled_tasks_for_symbol,
 ]
 
 

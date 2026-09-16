@@ -211,11 +211,20 @@ def _list_scheduled_tasks_args(state: Any) -> dict[str, Any]:
 
 
 def _note_create_args(state: Any) -> dict[str, Any]:
-    """create_note: pull (title, content) from the user message. For now
-    uses the raw message as the body and an empty title; LLM-backed plan
-    generation can refine these later."""
+    """§P3-3+ — create_note defaults the symbol to the focused one
+    (state.symbols[0] > state.carry_symbols[0]) so '建一个笔记' after
+    discussing 600036.SS auto-tags the note for 600036.SS.
+
+    body_md is the user message verbatim; LLM-backed plan refinement
+    can rewrite it later.  asset_type stays stock by default; for
+    crypto tickers the LLM plan can override.
+    """
     msg = state.user_message or ""
-    return {"symbol": "", "body_md": msg, "asset_type": "stock"}
+    return {
+        "symbol": _focused_symbol(state),
+        "body_md": msg,
+        "asset_type": "stock",
+    }
 
 
 def _note_id_args(state: Any) -> dict[str, Any]:
@@ -231,12 +240,14 @@ def _note_id_args(state: Any) -> dict[str, Any]:
 
 
 def _alert_create_args(state: Any) -> dict[str, Any]:
-    """create_alert: pull (symbol, kind, params) from state. Default to a
-    simple price alert on the first carry-forward symbol."""
-    syms = list(state.symbols or [])
-    sym = syms[0] if syms else ""
+    """§P3-3+ — create_alert defaults the symbol to the focused one
+    (state.symbols[0] > state.carry_symbols[0]). Pre-fix, only
+    state.symbols[0] was used which missed the carry-forward case
+    ('建一个 50 块的告警' on the second turn of a 600036 conversation
+    would lose the symbol).
+    """
     return {
-        "symbol": sym,
+        "symbol": _focused_symbol(state),
         "kind": "price",
         "params": {"threshold": 0.0},
         "asset_type": "stock",
@@ -269,14 +280,27 @@ def _alert_bulk_delete_args(state: Any) -> dict[str, Any]:
     }
 
 
-def _scheduled_create_args(state: Any) -> dict[str, Any]:
-    """create_scheduled_task: build minimal args from the message. Real
-    cron / symbol extraction is left to LLM-backed plan refinement."""
-    syms = list(state.symbols or [])
+def _bulk_by_symbol_args(state: Any) -> dict[str, Any]:
+    """§P3-3+ — generic (symbol, asset_type) factory for
+    ``delete_notes_for_symbol`` and ``delete_scheduled_tasks_for_symbol``.
+
+    Same carry-forward logic as :func:`_alert_bulk_delete_args`.
+    """
     return {
-        "symbol": syms[0] if syms else "",
+        "symbol": _focused_symbol(state),
         "asset_type": "stock",
-        "cron_expression": "0 9 * * 1-5",  # weekdays 09:00 — sensible default
+    }
+
+
+def _scheduled_create_args(state: Any) -> dict[str, Any]:
+    """§P3-3+ — create_scheduled_task defaults the symbol to the
+    focused one (state.symbols[0] > state.carry_symbols[0]). Cron
+    and timezone have sensible defaults; the LLM plan can override.
+    """
+    return {
+        "symbol": _focused_symbol(state),
+        "asset_type": "stock",
+        "cron_expression": "0 9 * * 1-5",  # weekdays 09:00
         "timezone": "Asia/Shanghai",
     }
 
@@ -291,9 +315,11 @@ def _scheduled_id_args(state: Any) -> dict[str, Any]:
 
 
 def _run_create_args(state: Any) -> dict[str, Any]:
-    syms = list(state.symbols or [])
+    """§P3-3+ — run_trading_agents_analysis defaults the symbol to
+    the focused one (state.symbols[0] > state.carry_symbols[0]).
+    """
     return {
-        "symbol": syms[0] if syms else "",
+        "symbol": _focused_symbol(state),
         "trade_date": "",
         "asset_type": "stock",
         "research_depth": 1,
@@ -1112,6 +1138,16 @@ class Orchestrator:
         (_Intent.ALERT, _Op.BULK_DELETE): (
             "delete_alerts_for_symbol",
             lambda s: _alert_bulk_delete_args(s),
+        ),
+        # §P3-3+ bulk delete for notes (mirror of alerts).
+        (_Intent.NOTE, _Op.BULK_DELETE): (
+            "delete_notes_for_symbol",
+            lambda s: _bulk_by_symbol_args(s),
+        ),
+        # §P3-3+ bulk delete for scheduled jobs (mirror of alerts).
+        (_Intent.SCHEDULED, _Op.BULK_DELETE): (
+            "delete_scheduled_tasks_for_symbol",
+            lambda s: _bulk_by_symbol_args(s),
         ),
         # scheduled: list / create / update / delete / run-now
         (_Intent.SCHEDULED, _Op.LIST):   ("list_scheduled_tasks",     lambda s: {}),

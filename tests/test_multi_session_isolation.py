@@ -1253,6 +1253,118 @@ class TestFocusedSymbol:
         assert r2.text is not None
 
 
+class TestCreateFactoriesUseFocusedSymbol:
+    """§P3-3+ — every create factory must default symbol to the
+    focused one (state.symbols[0] > state.carry_symbols[0]) so
+    'create X for this asset' works on the second turn without
+    re-stating the symbol.
+    """
+
+    def test_note_create_uses_focused_symbol(self):
+        from tradingagents.agent_harness.core.orchestrator import _note_create_args
+        class S:
+            symbols = []
+            carry_symbols = ["600036.SS"]
+            user_message = "今天涨了"
+        a = _note_create_args(S())
+        assert a["symbol"] == "600036.SS"
+        assert a["body_md"] == "今天涨了"
+
+    def test_alert_create_uses_focused_symbol(self):
+        from tradingagents.agent_harness.core.orchestrator import _alert_create_args
+        class S:
+            symbols = []
+            carry_symbols = ["600036.SS"]
+        a = _alert_create_args(S())
+        assert a["symbol"] == "600036.SS"
+        assert a["kind"] == "price"
+
+    def test_scheduled_create_uses_focused_symbol(self):
+        from tradingagents.agent_harness.core.orchestrator import _scheduled_create_args
+        class S:
+            symbols = []
+            carry_symbols = ["600036.SS"]
+        a = _scheduled_create_args(S())
+        assert a["symbol"] == "600036.SS"
+        assert a["cron_expression"]  # has a default
+
+    def test_run_create_uses_focused_symbol(self):
+        from tradingagents.agent_harness.core.orchestrator import _run_create_args
+        class S:
+            symbols = []
+            carry_symbols = ["600036.SS"]
+        a = _run_create_args(S())
+        assert a["symbol"] == "600036.SS"
+
+    def test_explicit_symbol_overrides_carry_in_create(self):
+        from tradingagents.agent_harness.core.orchestrator import (
+            _note_create_args, _alert_create_args,
+            _scheduled_create_args, _run_create_args,
+        )
+        class S:
+            symbols = ["NVDA"]
+            carry_symbols = ["600036.SS"]
+            user_message = "test"
+        assert _note_create_args(S())["symbol"] == "NVDA"
+        assert _alert_create_args(S())["symbol"] == "NVDA"
+        assert _scheduled_create_args(S())["symbol"] == "NVDA"
+        assert _run_create_args(S())["symbol"] == "NVDA"
+
+    def test_no_symbol_returns_empty_in_create(self):
+        from tradingagents.agent_harness.core.orchestrator import (
+            _note_create_args, _alert_create_args,
+            _scheduled_create_args, _run_create_args,
+        )
+        class S:
+            symbols = []
+            carry_symbols = []
+            user_message = "test"
+        assert _note_create_args(S())["symbol"] == ""
+        assert _alert_create_args(S())["symbol"] == ""
+        assert _scheduled_create_args(S())["symbol"] == ""
+        assert _run_create_args(S())["symbol"] == ""
+
+
+class TestBulkBySymbolArgsWiredInDispatch:
+    """§P3-3+ — (NOTE, BULK_DELETE) and (SCHEDULED, BULK_DELETE) entries
+    use the focused-symbol factory, same as alerts."""
+
+    def test_note_bulk_delete_wired(self):
+        from tradingagents.agent_harness.core import orchestrator as orch_mod
+        from tradingagents.agent_harness.core.tier import Intent, Op
+        spec = orch_mod.Orchestrator._CRUD_DISPATCH[(Intent.NOTE, Op.BULK_DELETE)]
+        assert spec[0] == "delete_notes_for_symbol"
+        # Verify the args factory actually pulls the focused symbol
+        class S:
+            symbols = []
+            carry_symbols = ["600036.SS"]
+        assert spec[1](S()) == {"symbol": "600036.SS", "asset_type": "stock"}
+
+    def test_scheduled_bulk_delete_wired(self):
+        from tradingagents.agent_harness.core import orchestrator as orch_mod
+        from tradingagents.agent_harness.core.tier import Intent, Op
+        spec = orch_mod.Orchestrator._CRUD_DISPATCH[(Intent.SCHEDULED, Op.BULK_DELETE)]
+        assert spec[0] == "delete_scheduled_tasks_for_symbol"
+        class S:
+            symbols = []
+            carry_symbols = ["600036.SS"]
+        assert spec[1](S()) == {"symbol": "600036.SS", "asset_type": "stock"}
+
+    def test_bulk_by_symbol_args_carry_forward(self):
+        from tradingagents.agent_harness.core.orchestrator import _bulk_by_symbol_args
+        class S:
+            symbols = []
+            carry_symbols = ["600036.SS"]
+        assert _bulk_by_symbol_args(S()) == {"symbol": "600036.SS", "asset_type": "stock"}
+
+    def test_bulk_by_symbol_args_no_focus(self):
+        from tradingagents.agent_harness.core.orchestrator import _bulk_by_symbol_args
+        class S:
+            symbols = []
+            carry_symbols = []
+        assert _bulk_by_symbol_args(S()) == {"symbol": "", "asset_type": "stock"}
+
+
 class TestReportsRunsScheduledArgsWiredInDispatch:
     """§P3-3+ — (REPORT, LIST), (RUN, LIST), (SCHEDULED, LIST/READ) use
     the focused-symbol factories (consistent with NOTE/ALERT)."""
