@@ -145,6 +145,39 @@ def _watchlist_crud_args(state: Any) -> dict[str, Any]:
     return {"symbol": syms[0], "asset_type": "stock"}
 
 
+
+
+def _focused_symbol(state: Any) -> str:
+    """§P3-3+ — resolve the focused symbol for read tools.
+
+    Order of preference:
+    1. ``state.symbols[0]`` (explicit in the current user message)
+    2. ``state.carry_symbols[0]`` (carry-forward from a prior turn)
+
+    Empty string if neither is set so the tool's optional ``symbol``
+    field stays ``None`` and the tool returns unfiltered data — the
+    case where the user really did ask for "all".
+    """
+    syms = list(getattr(state, "symbols", []) or [])
+    if not syms:
+        syms = list(getattr(state, "carry_symbols", []) or [])
+    return syms[0] if syms else ""
+
+
+def _list_notes_args(state: Any) -> dict[str, Any]:
+    """list_notes: when the focused symbol is known (current or carry-
+    forward), pass it as the filter so the tool returns scoped data.
+    When empty, returns {} so the tool returns all notes.
+    """
+    sym = _focused_symbol(state)
+    return {"symbol": sym} if sym else {}
+
+
+def _list_alerts_args(state: Any) -> dict[str, Any]:
+    """list_alerts: same scoping as ``_list_notes_args``."""
+    sym = _focused_symbol(state)
+    return {"symbol": sym} if sym else {}
+
 def _note_create_args(state: Any) -> dict[str, Any]:
     """create_note: pull (title, content) from the user message. For now
     uses the raw message as the body and an empty title; LLM-backed plan
@@ -1024,14 +1057,18 @@ class Orchestrator:
         (_Intent.WATCHLIST, _Op.CREATE): ("add_to_watchlist",      lambda s: _watchlist_crud_args(s)),
         (_Intent.WATCHLIST, _Op.DELETE): ("remove_from_watchlist", lambda s: _watchlist_crud_args(s)),
         # note: list / create / update / delete
-        (_Intent.NOTE, _Op.LIST):   ("list_notes",   lambda s: {}),
-        (_Intent.NOTE, _Op.READ):   ("list_notes",   lambda s: {}),
+        # §P3-3+ — list/read scoped to the focused symbol (carry-forward
+        # or explicit) so the tool returns data already filtered. LLM
+        # no longer has to manually pick "this asset's" rows out of
+        # global lists.
+        (_Intent.NOTE, _Op.LIST):   ("list_notes",   _list_notes_args),
+        (_Intent.NOTE, _Op.READ):   ("list_notes",   _list_notes_args),
         (_Intent.NOTE, _Op.CREATE): ("create_note",  lambda s: _note_create_args(s)),
         (_Intent.NOTE, _Op.UPDATE): ("update_note",  lambda s: _note_id_args(s)),
         (_Intent.NOTE, _Op.DELETE): ("delete_note",  lambda s: _note_id_args(s)),
         # alert: list / create / update / delete / bulk-delete
-        (_Intent.ALERT, _Op.LIST):   ("list_alerts",     lambda s: {}),
-        (_Intent.ALERT, _Op.READ):   ("list_alerts",     lambda s: {}),
+        (_Intent.ALERT, _Op.LIST):   ("list_alerts",     _list_alerts_args),
+        (_Intent.ALERT, _Op.READ):   ("list_alerts",     _list_alerts_args),
         (_Intent.ALERT, _Op.CREATE): ("create_alert",    lambda s: _alert_create_args(s)),
         (_Intent.ALERT, _Op.UPDATE): ("update_alert",    lambda s: _alert_id_args(s)),
         (_Intent.ALERT, _Op.DELETE): ("delete_alert",    lambda s: _alert_id_args(s)),

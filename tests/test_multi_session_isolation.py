@@ -1116,3 +1116,76 @@ class TestBulkDeleteEmitsConfirmRequestE2E:
             for _, p in events
             if _ == "tool_result"
         ), f"no pending_approval tool_result; events={events}"
+
+
+
+# ---------------------------------------------------------------------------
+# §P3-3+ — focused-symbol filtering on list_notes / list_alerts
+# ---------------------------------------------------------------------------
+
+
+class TestFocusedSymbol:
+    """list_notes / list_alerts args factories must inject the focused
+    symbol (explicit or carry-forward) so the tool returns scoped data
+    — not a global dump the LLM has to filter after the fact."""
+
+    def test_explicit_symbol_in_args(self):
+        from tradingagents.agent_harness.core.orchestrator import (
+            _list_notes_args, _list_alerts_args,
+        )
+        class S:
+            symbols = ["600036.SS"]
+            carry_symbols = []
+        assert _list_notes_args(S()) == {"symbol": "600036.SS"}
+        assert _list_alerts_args(S()) == {"symbol": "600036.SS"}
+
+    def test_carry_forward_symbol_in_args(self):
+        from tradingagents.agent_harness.core.orchestrator import (
+            _list_notes_args, _list_alerts_args,
+        )
+        class S:
+            symbols = []
+            carry_symbols = ["600036.SS"]
+        assert _list_notes_args(S()) == {"symbol": "600036.SS"}
+        assert _list_alerts_args(S()) == {"symbol": "600036.SS"}
+
+    def test_no_symbol_returns_empty_args(self):
+        """Without a focused symbol, args stay {} so list_notes /
+        list_alerts return ALL records (user genuinely asked for all)."""
+        from tradingagents.agent_harness.core.orchestrator import (
+            _list_notes_args, _list_alerts_args,
+        )
+        class S:
+            symbols = []
+            carry_symbols = []
+        assert _list_notes_args(S()) == {}
+        assert _list_alerts_args(S()) == {}
+
+    def test_explicit_overrides_carry(self):
+        from tradingagents.agent_harness.core.orchestrator import (
+            _focused_symbol,
+        )
+        class S:
+            symbols = ["NVDA"]
+            carry_symbols = ["600036.SS"]
+        assert _focused_symbol(S()) == "NVDA"
+
+
+class TestListArgsWiredInDispatch:
+    """(NOTE, LIST/READ) and (ALERT, LIST/READ) entries use the
+    focused-symbol factories."""
+
+    def test_note_list_uses_list_notes_args(self):
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        from tradingagents.agent_harness.core.tier import Intent, Op
+        spec = Orchestrator._CRUD_DISPATCH[(Intent.NOTE, Op.LIST)]
+        assert spec[0] == "list_notes"
+        # factory name (qualname) should be _list_notes_args
+        assert spec[1].__qualname__ == "_list_notes_args"
+
+    def test_alert_list_uses_list_alerts_args(self):
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        from tradingagents.agent_harness.core.tier import Intent, Op
+        spec = Orchestrator._CRUD_DISPATCH[(Intent.ALERT, Op.LIST)]
+        assert spec[0] == "list_alerts"
+        assert spec[1].__qualname__ == "_list_alerts_args"
