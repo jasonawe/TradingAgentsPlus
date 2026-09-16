@@ -228,6 +228,7 @@ web/state.db
 # Editor backups
 *.bak
 .ta_cache/
+.worktrees/
 
 # Local SQLite / runtime data (created by service)
 data/
