@@ -540,8 +540,8 @@
         // modal (primary UX) and the inline banner (fallback when
         // CSS is stale or the modal is dismissed). Both call the
         // same /confirm endpoint.
-        showHarnessConfirmDialog(payload);
-        showHarnessConfirmInline(payload);
+        showHarnessConfirmDialog(payload, assistant);
+        showHarnessConfirmInline(payload, assistant);
         break;
       case "audit_decision":
         // Approval / rejection recorded by /api/harness/sessions/.../confirm.
@@ -568,7 +568,7 @@
   }
 
   // HITL: write-tool confirm dialog
-  async function showHarnessConfirmDialog(payload) {
+  async function showHarnessConfirmDialog(payload, assistant) {
     if (harnessState.pendingConfirm) {
       appendError("已有待确认的写操作,请先处理");
       return;
@@ -657,7 +657,7 @@
   // the modal). The modal is the primary UX; this is the fallback
   // for when CSS doesn't load or the modal is dismissed. The user
   // can click 批准 / 拒绝 directly in the chat stream.
-  function showHarnessConfirmInline(payload) {
+  function showHarnessConfirmInline(payload, assistant) {
     const toolName = payload?.tool_name || "(tool)";
     const toolArgs = payload?.args || {};
     const impact = payload?.impact || {};
