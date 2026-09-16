@@ -19,6 +19,7 @@ import time
 import asyncio
 import json
 import logging
+import re
 from dataclasses import dataclass, field
 from typing import Any, AsyncIterator, Callable, Optional
 
@@ -147,6 +148,58 @@ def _watchlist_crud_args(state: Any) -> dict[str, Any]:
 
 
 
+def _should_promote_to_bulk_delete(state: Any) -> bool:
+    """§P3-3+ — decide if a single-record DELETE should be promoted
+    to BULK_DELETE because the user said 'this asset's X' without
+    a specific ID and a focused symbol is available.
+
+    Returns True when ALL of:
+    - op is DELETE
+    - intent is a CRUD entity that supports BULK_DELETE
+      (NOTE / ALERT / SCHEDULED; RUN is excluded because
+      cancel_analysis_run is single-record)
+    - The user message has no specific ID pattern (note-xxx /
+      alert-xxx / job-xxx)
+    - A focused symbol is available (explicit or carry-forward)
+    - The message has an asset-scoping phrase ('这个资产的',
+      '该资产的', '它的', '此资产的', 'all of this', 'its', etc.)
+      OR the message just says "删除 X" with no other content
+
+    Pre-fix, the user had to say '都删' / '全部删除' for bulk to
+    fire. Now '删除这个资产的笔记' also routes to bulk when a
+    focused symbol is in scope.
+    """
+    op = getattr(state, "op", None)
+    intent = getattr(state, "intent", None)
+    if op != Op.DELETE:
+        return False
+    if intent not in (Intent.NOTE, Intent.ALERT, Intent.SCHEDULED):
+        return False
+    if not _focused_symbol(state):
+        return False
+    msg = (getattr(state, "user_message", "") or "").lower()
+    # If the message contains a specific ID pattern, the user
+    # clearly means a single record — don't promote.
+    if re.search(r"(note|alert|job|run)-[a-z0-9_-]+", msg):
+        return False
+    # Asset-scoping phrases that imply "all of this asset's X"
+    asset_scoping = [
+        "这个资产的", "该资产的", "此资产的", "它的", "此标的的",
+        "这个标的的", "该标的的", "本资产的",
+        "for this asset", "for the asset", "all of this",
+    ]
+    has_scope_phrase = any(p in msg for p in asset_scoping)
+    # Also promote if the message is just "删除 X" with no
+    # specific identifier — the user clearly means "all of them
+    # for this asset".
+    short_delete = (
+        len(msg) <= 30
+        and "删除" in msg
+        and not re.search(r"\d", msg)  # no specific number/ID
+    )
+    return has_scope_phrase or short_delete
+
+
 def _focused_symbol(state: Any) -> str:
     """§P3-3+ — resolve the focused symbol for read tools.
 
@@ -233,7 +286,7 @@ def _note_id_args(state: Any) -> dict[str, Any]:
     empty string so the tool reports its own error."""
     import re as _re
     msg = state.user_message or ""
-    m = _re.search(r"note-[A-Za-z0-9_-]+", msg)
+    m = re.search(r"note-[A-Za-z0-9_-]+", msg)
     if m:
         return {"note_id": m.group(0)}
     return {"note_id": ""}
@@ -257,7 +310,7 @@ def _alert_create_args(state: Any) -> dict[str, Any]:
 def _alert_id_args(state: Any) -> dict[str, Any]:
     import re as _re
     msg = state.user_message or ""
-    m = _re.search(r"alert-[A-Za-z0-9_-]+", msg)
+    m = re.search(r"alert-[A-Za-z0-9_-]+", msg)
     if m:
         return {"alert_id": m.group(0)}
     return {"alert_id": ""}
@@ -308,7 +361,7 @@ def _scheduled_create_args(state: Any) -> dict[str, Any]:
 def _scheduled_id_args(state: Any) -> dict[str, Any]:
     import re as _re
     msg = state.user_message or ""
-    m = _re.search(r"job-[A-Za-z0-9_-]+", msg)
+    m = re.search(r"job-[A-Za-z0-9_-]+", msg)
     if m:
         return {"job_id": m.group(0)}
     return {"job_id": ""}
@@ -329,7 +382,7 @@ def _run_create_args(state: Any) -> dict[str, Any]:
 def _run_id_args(state: Any) -> dict[str, Any]:
     import re as _re
     msg = state.user_message or ""
-    m = _re.search(r"run-[A-Za-z0-9_-]+", msg)
+    m = re.search(r"run-[A-Za-z0-9_-]+", msg)
     if m:
         return {"run_id": m.group(0)}
     return {"run_id": ""}
@@ -338,7 +391,7 @@ def _run_id_args(state: Any) -> dict[str, Any]:
 def _report_id_args(state: Any) -> dict[str, Any]:
     import re as _re
     msg = state.user_message or ""
-    m = _re.search(r"report-[A-Za-z0-9_-]+", msg)
+    m = re.search(r"report-[A-Za-z0-9_-]+", msg)
     if m:
         return {"report_id": m.group(0)}
     return {"report_id": ""}
@@ -1191,10 +1244,24 @@ class Orchestrator:
         staticmethod so tests can call it without instantiating the
         full Orchestrator (which has heavy collaborators). The dispatch
         table is class-level so the function doesn't need ``self``.
+
+        §P3-3+ — promote single-record DELETE to BULK_DELETE when the
+        user said 'this asset's X' with no specific ID and a focused
+        symbol is available. Pre-fix the user had to say '都删' /
+        '全部删除' for bulk to fire; now '删除这个资产的笔记' also
+        routes correctly without explicit bulk markers.
         """
         if state.op is None or state.intent is None:
             return []
-        key = (state.intent, state.op)
+        # Promote DELETE -> BULK_DELETE when no ID + focused symbol
+        op = state.op
+        if _should_promote_to_bulk_delete(state):
+            LOGGER.info(
+                "promote DELETE -> BULK_DELETE for %s (focused=%s, msg=%r)",
+                state.intent, _focused_symbol(state), state.user_message,
+            )
+            op = Op.BULK_DELETE
+        key = (state.intent, op)
         spec = Orchestrator._CRUD_DISPATCH.get(key)
         if spec is None:
             return []
@@ -1229,6 +1296,27 @@ class Orchestrator:
             pairs = [primary] + pairs
         if not pairs:
             return None
+
+        # §P3-3+ — promote single-record DELETE to BULK_DELETE in the
+        # multi-CRUD path too. The helper checks the user message and
+        # the focused symbol so '把这个资产的笔记删了' (multi-intent
+        # with NOTE+DELETE) lands on delete_notes_for_symbol.
+        effective_op = state.op
+        if _should_promote_to_bulk_delete(state):
+            LOGGER.info(
+                "multi-CRUD: promote DELETE -> BULK_DELETE for %s (focused=%s)",
+                state.intent, _focused_symbol(state),
+            )
+            effective_op = Op.BULK_DELETE
+            # rewrite the primary pair in the pairs list
+            pairs = [(i, o if i != state.intent or o != state.op else effective_op)
+                     for (i, o) in pairs]
+            # also rewrite the primary if it's in the list
+            pairs = [
+                (i, effective_op) if (i == state.intent and o == state.op)
+                else (i, o)
+                for (i, o) in pairs
+            ]
 
         calls: list[dict[str, Any]] = []
         for intent, op in pairs:

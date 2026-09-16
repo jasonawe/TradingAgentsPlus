@@ -1104,3 +1104,129 @@ table.data .num { font-family: var(--mono); font-weight: 600; text-align: right;
     color: white;
   }
 }
+
+
+/* §P3-3+ — HITL confirm dialog for harness write tools
+   (delete_notes_for_symbol, delete_alerts_for_symbol,
+   create_scheduled_task, etc.).  Centered modal with
+   backdrop so the user can clearly see the pending approval. */
+.harness-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(2px);
+    animation: harness-confirm-fade 0.15s ease-out;
+}
+@keyframes harness-confirm-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.harness-confirm-dialog {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 24px 28px;
+    max-width: 540px;
+    width: calc(100% - 48px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    color: #0f172a;
+    font-size: 14px;
+    line-height: 1.55;
+    animation: harness-confirm-pop 0.18s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+@keyframes harness-confirm-pop {
+    from { transform: scale(0.92); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+.harness-confirm-dialog h3 {
+    margin: 0 0 12px;
+    font-size: 18px;
+    color: #b91c1c;
+}
+.harness-confirm-tool {
+    margin: 0 0 8px;
+    color: #475569;
+}
+.harness-confirm-tool code {
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color: #0f172a;
+}
+.harness-confirm-args {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    max-height: 220px;
+    overflow: auto;
+    margin: 0 0 12px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+.harness-confirm-impact {
+    color: #b91c1c;
+    background: #fef2f2;
+    border-left: 3px solid #b91c1c;
+    padding: 8px 12px;
+    margin: 0 0 16px;
+    border-radius: 0 4px 4px 0;
+    font-size: 13px;
+}
+.harness-confirm-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+.harness-confirm-buttons button {
+    padding: 9px 20px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.12s ease;
+}
+.harness-confirm-buttons button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.harness-confirm-cancel {
+    background: #f1f5f9;
+    color: #334155;
+    border-color: #cbd5e1;
+}
+.harness-confirm-cancel:hover:not(:disabled) {
+    background: #e2e8f0;
+}
+.harness-confirm-ok {
+    background: #dc2626;
+    color: #ffffff;
+    border-color: #b91c1c;
+}
+.harness-confirm-ok:hover:not(:disabled) {
+    background: #b91c1c;
+}
+@media (prefers-color-scheme: dark) {
+    .harness-confirm-dialog {
+        background: #1e293b;
+        color: #e2e8f0;
+    }
+    .harness-confirm-dialog h3 { color: #fca5a5; }
+    .harness-confirm-tool { color: #94a3b8; }
+    .harness-confirm-tool code { background: #334155; color: #e2e8f0; }
+    .harness-confirm-impact {
+        background: #450a0a;
+        border-left-color: #ef4444;
+        color: #fecaca;
+    }
+    .harness-confirm-cancel { background: #334155; color: #e2e8f0; border-color: #475569; }
+    .harness-confirm-cancel:hover:not(:disabled) { background: #475569; }
+}

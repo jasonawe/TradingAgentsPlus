@@ -1325,6 +1325,142 @@ class TestCreateFactoriesUseFocusedSymbol:
         assert _run_create_args(S())["symbol"] == ""
 
 
+class TestShouldPromoteToBulkDelete:
+    """§P3-3+ — '删除这个资产的笔记' / '删除该资产的告警' should
+    promote to BULK_DELETE when a focused symbol is in scope, even
+    without explicit '都删' / '全部删除' markers.
+    """
+
+    def test_promote_with_focused_symbol_and_asset_scoping_phrase(self):
+        from tradingagents.agent_harness.core.orchestrator import (
+            _should_promote_to_bulk_delete,
+        )
+        from tradingagents.agent_harness.core.tier import Intent, Op
+        class S:
+            intent = Intent.NOTE
+            op = Op.DELETE
+            symbols = []
+            carry_symbols = ["600036.SS"]
+            user_message = "删除这个资产的笔记"
+        assert _should_promote_to_bulk_delete(S()) is True
+
+    def test_promote_alerts_with_asset_scoping(self):
+        from tradingagents.agent_harness.core.orchestrator import (
+            _should_promote_to_bulk_delete,
+        )
+        from tradingagents.agent_harness.core.tier import Intent, Op
+        class S:
+            intent = Intent.ALERT
+            op = Op.DELETE
+            symbols = []
+            carry_symbols = ["600036.SS"]
+            user_message = "把这个资产的所有告警都删了"
+        assert _should_promote_to_bulk_delete(S()) is True
+
+    def test_promote_scheduled_with_asset_scoping(self):
+        from tradingagents.agent_harness.core.orchestrator import (
+            _should_promote_to_bulk_delete,
+        )
+        from tradingagents.agent_harness.core.tier import Intent, Op
+        class S:
+            intent = Intent.SCHEDULED
+            op = Op.DELETE
+            symbols = []
+            carry_symbols = ["600036.SS"]
+            user_message = "删除该资产的定时任务"
+        assert _should_promote_to_bulk_delete(S()) is True
+
+    def test_no_promote_with_specific_note_id(self):
+        """If the user gives a specific note_id, they want a single
+        delete — must NOT promote to bulk."""
+        from tradingagents.agent_harness.core.orchestrator import (
+            _should_promote_to_bulk_delete,
+        )
+        from tradingagents.agent_harness.core.tier import Intent, Op
+        class S:
+            intent = Intent.NOTE
+            op = Op.DELETE
+            symbols = []
+            carry_symbols = ["600036.SS"]
+            user_message = "删除 note-abc123def 这个资产下的笔记"
+        assert _should_promote_to_bulk_delete(S()) is False
+
+    def test_no_promote_without_focused_symbol(self):
+        from tradingagents.agent_harness.core.orchestrator import (
+            _should_promote_to_bulk_delete,
+        )
+        from tradingagents.agent_harness.core.tier import Intent, Op
+        class S:
+            intent = Intent.NOTE
+            op = Op.DELETE
+            symbols = []
+            carry_symbols = []
+            user_message = "删除这个资产的笔记"
+        assert _should_promote_to_bulk_delete(S()) is False
+
+    def test_no_promote_for_run_intent(self):
+        """cancel_analysis_run is single-record, never bulk."""
+        from tradingagents.agent_harness.core.orchestrator import (
+            _should_promote_to_bulk_delete,
+        )
+        from tradingagents.agent_harness.core.tier import Intent, Op
+        class S:
+            intent = Intent.RUN
+            op = Op.DELETE
+            symbols = []
+            carry_symbols = ["600036.SS"]
+            user_message = "删除这个资产的 run"
+        assert _should_promote_to_bulk_delete(S()) is False
+
+    def test_no_promote_for_create_op(self):
+        from tradingagents.agent_harness.core.orchestrator import (
+            _should_promote_to_bulk_delete,
+        )
+        from tradingagents.agent_harness.core.tier import Intent, Op
+        class S:
+            intent = Intent.NOTE
+            op = Op.CREATE
+            symbols = []
+            carry_symbols = ["600036.SS"]
+            user_message = "删除这个资产的笔记"
+        assert _should_promote_to_bulk_delete(S()) is False
+
+    def test_no_promote_for_list_op(self):
+        from tradingagents.agent_harness.core.orchestrator import (
+            _should_promote_to_bulk_delete,
+        )
+        from tradingagents.agent_harness.core.tier import Intent, Op
+        class S:
+            intent = Intent.NOTE
+            op = Op.LIST
+            symbols = []
+            carry_symbols = ["600036.SS"]
+            user_message = "删除这个资产的笔记"
+        assert _should_promote_to_bulk_delete(S()) is False
+
+    def test_crud_plan_promotion_in_action(self):
+        """End-to-end: the dispatch table should pick
+        delete_notes_for_symbol when state has the right shape."""
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        from tradingagents.agent_harness.core.tier import Intent, Op
+        from dataclasses import dataclass
+        @dataclass
+        class S:
+            session_id: str = "s"
+            user_message: str = "删除这个资产的笔记"
+            intent: Intent = Intent.NOTE
+            symbols: list = None
+            carry_symbols: list = None
+            prior_user_msg: str = None
+            op: Op = Op.DELETE
+            extra_crud_dispatch: list = None
+        s = S(symbols=[], carry_symbols=["600036.SS"], extra_crud_dispatch=[])
+        plan = Orchestrator._crud_plan_for_state(s)
+        assert plan is not None
+        assert plan[0]["action"] == "delete_notes_for_symbol"
+        assert plan[0]["args"] == {"symbol": "600036.SS", "asset_type": "stock"}
+
+
 class TestBulkBySymbolArgsWiredInDispatch:
     """§P3-3+ — (NOTE, BULK_DELETE) and (SCHEDULED, BULK_DELETE) entries
     use the focused-symbol factory, same as alerts."""
