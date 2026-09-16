@@ -434,6 +434,18 @@ def maybe_degrade_to_tier1(
     if route.tier == Tier.DIRECT:
         return route, False
 
+    # §P3-3+ — never degrade CRUD intents. CRUD writes (delete / update
+    # / create / bulk_delete / etc.) need the orchestrator's plan layer
+    # to dispatch via _CRUD_DISPATCH; the Tier 1 short-circuit only
+    # knows read-only data queries (get_quote / get_news / ...) and
+    # would silently fall through to a wrong tool (``maybe_degrade_to_tier1``
+    # sets intent=QUOTE which short-circuits to get_quote).
+    if route.intent in {
+        Intent.WATCHLIST, Intent.NOTE, Intent.ALERT,
+        Intent.SCHEDULED, Intent.RUN, Intent.REPORT,
+    }:
+        return route, False
+
     # No symbols → short_circuit cannot serve; keep original route so
     # the orchestrator can ask the user for a ticker.
     if not route.symbols:

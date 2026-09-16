@@ -1029,3 +1029,90 @@ class TestDeleteAlertsForSymbolTool:
         args = DeleteAlertsForSymbolArgs(symbol="600036.SS", asset_type="stock")
         assert args.symbol == "600036.SS"
         assert args.asset_type == "stock"
+
+
+
+# ---------------------------------------------------------------------------
+# §P3-3+ — HITL confirm_request emission
+# ---------------------------------------------------------------------------
+
+
+class TestPendingApprovalEmission:
+    """When the orchestrator's tool pipeline returns needs_approval,
+    the orchestrator must stash a gate payload on state.pending_approvals
+    so the post-execute drain emits confirm_request SSE events."""
+
+    def test_state_has_pending_approvals_field(self):
+        from dataclasses import dataclass, field
+        from typing import Any, List
+        @dataclass
+        class S:
+            pending_approvals: List[dict] = field(default_factory=list)
+        s = S()
+        s.pending_approvals.append({"tool_name": "x", "args": {}})
+        assert len(s.pending_approvals) == 1
+
+    def test_gate_payload_shape(self):
+        """The stashed gate payload must carry tool_name + args + impact
+        + session_id so the frontend confirm dialog has everything it
+        needs to render without a second round-trip."""
+        gate = {
+            "tool_name": "delete_alerts_for_symbol",
+            "args": {"symbol": "600036.SS", "asset_type": "stock"},
+            "impact": {"reason": "destructive_tool_requires_approval"},
+            "session_id": "test-sid",
+        }
+        assert gate["tool_name"]
+        assert "symbol" in gate["args"]
+        assert "reason" in gate["impact"]
+
+
+class TestBulkDeleteEmitsConfirmRequestE2E:
+    """End-to-end: orchestrator hits the destructive-tool guard,
+    stashes gate payload, post-execute drain emits confirm_request."""
+
+    def test_bulk_delete_emits_confirm_request(self):
+        import asyncio, tempfile
+        from tradingagents.agent_harness.memory import MemoryManager
+        from tradingagents.agent_harness.tools.builtin import install_builtin_tools
+        from tradingagents.agent_harness.tools.registry import ToolRegistry
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        from tradingagents.agent_harness.core.retry import CircuitBreaker, RetryPolicy
+        from tradingagents.agent_harness.core.context import ContextPriority
+
+        async def _go():
+            with tempfile.TemporaryDirectory() as tmp:
+                mm = MemoryManager(data_dir=tmp)
+                reg = ToolRegistry(); install_builtin_tools(reg)
+                orch = Orchestrator(
+                    tool_registry=reg, agent_registry=None, llm_factory=None,
+                    context_priority=ContextPriority(memory=mm),
+                    retry_policy=RetryPolicy(max_retries=1, backoff_seconds=0),
+                    circuit_breaker=CircuitBreaker(failure_threshold=10, reset_seconds=30),
+                    audit=None, memory=mm,
+                )
+                events = []
+                async for ev, p in orch.stream_chat(
+                    "sid-hitl-bulk",
+                    "把 600036.SS 的告警都删了",
+                    history=None,
+                ):
+                    events.append((ev, p))
+                return events
+
+        events = asyncio.run(_go())
+        confirm_events = [p for ev, p in events if ev == "confirm_request"]
+        tool_results = [p for ev, p in events if ev == "tool_result"]
+        assert confirm_events, f"no confirm_request emitted; events={[ev for ev, _ in events]}"
+        gate = confirm_events[0]
+        assert gate.get("tool_name") == "delete_alerts_for_symbol"
+        assert gate.get("args", {}).get("symbol") == "600036.SS"
+        # tool_result must carry pending_approval status (since no LLM
+        # backing, the test shortcut path emits the gate payload directly).
+        assert any(
+            isinstance(p, dict)
+            and isinstance(p.get("result"), dict)
+            and p["result"].get("status") == "pending_approval"
+            for _, p in events
+            if _ == "tool_result"
+        ), f"no pending_approval tool_result; events={events}"

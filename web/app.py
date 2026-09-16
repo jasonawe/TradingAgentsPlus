@@ -591,6 +591,150 @@ def create_app(
                 headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
             )
 
+        # §P3-3+ HITL: harness-path approval endpoint. Mirrors
+        # /api/agent/sessions/{sid}/confirm but targets the harness
+        # orchestrator. Body:
+        #   { tool_name, tool_args, approve, user_message }
+        # approve=True -> grant_approval() + re-run stream_chat()
+        # approve=False -> grant_approval is skipped; emit rejection
+        # audit decision so the frontend closes the dialog.
+        @app.post("/api/harness/sessions/{session_id}/confirm")
+        async def _harness_confirm(
+            session_id: str,
+            body: dict,
+        ) -> StreamingResponse:
+            from tradingagents.agents.general.approval import (
+                grant_approval, revoke_session,
+            )
+            import json as _json
+            tool_name = body.get("tool_name") or ""
+            tool_args = dict(body.get("tool_args") or {})
+            approve = bool(body.get("approve", False))
+            user_message = body.get("user_message") or ""
+            audit_id = body.get("audit_id")
+
+            if not tool_name:
+                raise _error(
+                    status.HTTP_400_BAD_REQUEST,
+                    "tool_name is required",
+                )
+
+            async def _event_stream():
+                # 1) record the audit decision (best-effort)
+                # ``audit_id`` from the outer scope; the in-function
+                # ``if audit_id is None: audit_id = log_write(...)``
+                # below would otherwise make Python treat it as local
+                # and UnboundLocalError on the read. Use a separate
+                # local variable name to avoid the issue.
+                nonlocal audit_id
+                try:
+                    from tradingagents.agents.general.audit import (
+                        log_write, update_write_status,
+                    )
+                    if audit_id is None:
+                        audit_id = log_write(
+                            tool_name=tool_name,
+                            tool_args=tool_args,
+                            status="pending",
+                        )
+                    update_write_status(
+                        None, audit_id,
+                        status="confirmed" if approve else "rejected",
+                        confirmed_by="user",
+                    )
+                except Exception as e:
+                    LOGGER.warning("audit update failed: %s", e)
+
+                # 2) emit audit_decision so the frontend closes the dialog
+                yield (
+                    f"event: audit_decision\n"
+                    f"data: {_json.dumps({'audit_id': audit_id, 'approved': approve, 'tool_name': tool_name}, ensure_ascii=False)}\n\n"
+                )
+
+                if not approve:
+                    # Nothing to re-run; the rejection is recorded.
+                    yield (
+                        f"event: done\n"
+                        f"data: {_json.dumps({'rejected': tool_name}, ensure_ascii=False)}\n\n"
+                    )
+                    return
+
+                # 3) grant approval so the next stream_chat() finds it
+                grant_approval(session_id, tool_name, tool_args)
+
+                # 4) directly invoke the gated tool through the harness
+                #    tool registry (NOT via stream_chat — a fresh chat
+                #    turn wouldn't know about this tool, and forcing
+                #    approval + replay only confuses the LLM). Mirror
+                #    the /api/agent confirm path: invoke the tool,
+                #    emit tool_call / tool_result / agent_final SSE
+                #    events so the frontend's reasoning trace + bubble
+                #    update cleanly. consume_approval after success so
+                #    the same (tool, args) tuple can't replay twice.
+                try:
+                    from tradingagents.agent_harness.tools import ToolContext
+                    from tradingagents.agents.general.approval import (
+                        consume_approval,
+                    )
+                    registry = app.state.harness.tool_registry
+                    tool = registry.get(tool_name)
+                    args_schema = tool.schema.args_schema
+                    if hasattr(args_schema, "model_validate"):
+                        validated = args_schema.model_validate(tool_args)
+                    else:
+                        validated = tool_args
+                    # Build ToolContext (consumers of the bridge tools
+                    # extract session_id from RunnableConfig; for the
+                    # harness tool registry we use ToolContext directly).
+                    ctx = ToolContext(session_id=session_id)
+                    # Surface the tool_call event so the UI's reasoning
+                    # trace shows the action.
+                    yield (
+                        f"event: tool_call\n"
+                        f"data: {_json.dumps({'name': tool_name, 'args': tool_args}, ensure_ascii=False, default=str)}\n\n"
+                    )
+                    tool_result_obj = await tool.invoke(validated, ctx)
+                    # Normalise dict-like / Pydantic responses.
+                    if hasattr(tool_result_obj, "model_dump"):
+                        tool_result_dict = tool_result_obj.model_dump()
+                    elif isinstance(tool_result_obj, dict):
+                        tool_result_dict = tool_result_obj
+                    else:
+                        tool_result_dict = {"value": str(tool_result_obj)}
+                    yield (
+                        f"event: tool_result\n"
+                        f"data: {_json.dumps({'name': tool_name, 'ok': True, 'result': tool_result_dict}, ensure_ascii=False, default=str)}\n\n"
+                    )
+                    # Emit agent_final so the assistant bubble shows
+                    # the tool output (renderer falls back to
+                    # formatRawResult when result.summary is empty).
+                    yield (
+                        f"event: agent_final\n"
+                        f"data: {_json.dumps({'tier': 1, 'result': tool_result_dict}, ensure_ascii=False, default=str)}\n\n"
+                    )
+                    # Success: consume so the same (tool, args) can't replay.
+                    try:
+                        consume_approval(session_id, tool_name, tool_args)
+                    except Exception:
+                        pass
+                except Exception as e:
+                    LOGGER.exception("harness confirm tool invoke failed")
+                    yield (
+                        f"event: error\n"
+                        f"data: {_json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
+                    )
+                finally:
+                    yield (
+                        f"event: done\n"
+                        f"data: {_json.dumps({}, ensure_ascii=False)}\n\n"
+                    )
+
+            return StreamingResponse(
+                _event_stream(),
+                media_type="text/event-stream",
+                headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+            )
+
         # P1-8 Batch mode: synchronous JSON response. Useful for CLI
         # scripts, scheduled jobs, and clients that can't keep an SSE
         # connection open. Runs the full 5-node state machine and

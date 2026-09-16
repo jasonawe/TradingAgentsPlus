@@ -932,6 +932,16 @@ class Orchestrator:
             current_node = NODE_OBSERVING
             for r in results:
                 yield await _emit("tool_result", r)
+            # §P3-3+ HITL: drain pending approvals and emit
+            # ``confirm_request`` SSE events so the frontend shows a
+            # confirm dialog. One event per gated tool. The frontend
+            # POSTs to /api/harness/sessions/{sid}/confirm to grant
+            # approval; subsequent stream_chat() runs find
+            # is_approved()=True and execute the tool.
+            pending = list(getattr(state, "pending_approvals", []) or [])
+            for gate in pending:
+                yield await _emit("confirm_request", gate)
+            state.pending_approvals = []  # consumed
 
             async for _ev in _step_start("observing"):
                 yield _ev
@@ -1275,12 +1285,28 @@ class Orchestrator:
             except Exception as e:
                 return {"name": name, "error": f"args coerce failed: {e}"}
 
-            if not self.llm_factory and name in {"create_alert", "update_alert", "delete_alert"}:
+            if (
+                not self.llm_factory
+                and name in {"create_alert", "update_alert", "delete_alert",
+                             "delete_alerts_for_symbol"}
+            ):
                 # Write tools require LLM-backed approval in production; in
-                # tests we surface the HITL payload directly.
+                # tests we surface the HITL payload directly. Stash the
+                # gate payload on state so the post-execute hook emits a
+                # ``confirm_request`` SSE event.
+                gate_payload = {
+                    "tool_name": name,
+                    "args": self._dump(args),
+                    "impact": {"reason": "destructive_tool_requires_approval"},
+                    "session_id": context.session_id,
+                }
+                try:
+                    state.pending_approvals.append(gate_payload)
+                except AttributeError:
+                    state.pending_approvals = [gate_payload]
                 return {
                     "name": name,
-                    "result": {"status": "pending_approval", "args": args},
+                    "result": {"status": "pending_approval", "args": self._dump(args), "tool_name": name},
                 }
 
             # Funnel through the 5-stage pipeline (pre/guard/exec/post/result).
@@ -1336,11 +1362,31 @@ class Orchestrator:
                 self.circuit_breaker.record_success()
                 return {"name": name, "result": self._dump(pipe_result.result)}
             if pipe_result.needs_approval:
-                # HITL: dangerous tool requires approval. Preserve existing
-                # payload shape so frontend / approval endpoints stay unchanged.
+                # HITL: dangerous tool requires approval. Stash a
+                # gate_payload on state so the post-execute drain
+                # emits a ``confirm_request`` SSE event for the
+                # frontend. Existing pending_approval result shape
+                # preserved for backward compat with callers that
+                # pattern-match on it.
+                gate_payload = {
+                    "tool_name": name,
+                    "args": self._dump(args),
+                    "impact": getattr(
+                        pipe_result, "ask_payload", None,
+                    ) or {"reason": "destructive_tool_requires_approval"},
+                    "session_id": context.session_id,
+                }
+                try:
+                    state.pending_approvals.append(gate_payload)
+                except AttributeError:
+                    state.pending_approvals = [gate_payload]
                 return {
                     "name": name,
-                    "result": {"status": "pending_approval", "args": args},
+                    "result": {
+                        "status": "pending_approval",
+                        "args": self._dump(args),
+                        "tool_name": name,
+                    },
                 }
             # denied or error
             self.circuit_breaker.record_failure()
