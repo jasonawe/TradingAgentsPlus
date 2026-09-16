@@ -621,7 +621,11 @@ def delete_notes_for_symbol(
     except Exception as e:
         return f"ERROR: list_notes_for_bulk_delete failed - {type(e).__name__}: {e}"
     if not notes:
+        # matched=0:简洁短回复,告诉 LLM (和 UI) 当前已经没东西可删 —
+        # 避免 LLM 看到 matched=0 之后还在 plan 同一工具导致重复弹窗。
         return _json.dumps({
+            "status": "noop",
+            "summary": f"资产 {symbol} 当前没有活跃笔记可删除(可能之前已全部删除)",
             "symbol": symbol,
             "asset_type": asset_type,
             "matched": 0,
@@ -644,7 +648,13 @@ def delete_notes_for_symbol(
     _after_execute(session_id, "delete_notes_for_symbol", {
         **args, "deleted_count": len(deleted), "failed_count": len(errors),
     })
+    summary = (
+        f"资产 {symbol} 的笔记已删除:{len(deleted)}/{len(notes)} 条成功"
+        + (f",{len(errors)} 条失败" if errors else "")
+    )
     return _json.dumps({
+        "status": "ok",
+        "summary": summary,
         "symbol": symbol,
         "asset_type": asset_type,
         "matched": len(notes),
@@ -772,6 +782,8 @@ def delete_alerts_for_symbol(
         return f"ERROR: list_alerts_for_bulk_delete failed - {type(e).__name__}: {e}"
     if not alerts:
         return _json.dumps({
+            "status": "noop",
+            "summary": f"资产 {symbol} 当前没有活跃告警可删除(可能之前已全部删除或禁用)",
             "symbol": symbol,
             "asset_type": asset_type,
             "matched": 0,
@@ -794,7 +806,13 @@ def delete_alerts_for_symbol(
     _after_execute(session_id, "delete_alerts_for_symbol", {
         **args, "deleted_count": len(deleted), "failed_count": len(errors),
     })
+    summary = (
+        f"资产 {symbol} 的告警已删除:{len(deleted)}/{len(alerts)} 条成功"
+        + (f",{len(errors)} 条失败" if errors else "")
+    )
     return _json.dumps({
+        "status": "ok",
+        "summary": summary,
         "symbol": symbol,
         "asset_type": asset_type,
         "matched": len(alerts),

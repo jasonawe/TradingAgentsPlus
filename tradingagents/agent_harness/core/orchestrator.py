@@ -49,6 +49,76 @@ from .short_circuit import ShortCircuit
 from .tier import Intent, Op, RouteResult, Tier, fast_route, fast_route_with_op, maybe_degrade_to_tier1
 from .verification import VerificationLevel, Verifier
 
+# ════════════════════════════════════════════════════════════════════
+# §P3-3+ §7.3 — short-window dedupe for destructive tool calls.
+# ════════════════════════════════════════════════════════════════════
+# Symptom: LLM 会在一次 chat 里反复 call 同一个 (tool, args) 对 ——
+# 第一次 execute 成功(matched=1, deleted=1),第二次又来(matched=0,
+# deleted=0),第三次又来触发 approval dialog,UI 看着像"撤销了"。本质
+# 是 LLM 的 plan 行为问题,我们在 orchestrator 层加 TTL 60s 的缓存:
+# 同一 session 内,同一 (tool, args) 已成功 execute,直接返回上次
+# result + 标记 _deduped=True,跳过 approve / invoke / 弹窗。
+from collections import OrderedDict
+
+_DEDUPE_WINDOW_SECONDS = 60.0
+_DEDUPE_MAX_ENTRIES = 256
+
+_recent_tool_results: "OrderedDict[tuple[str, str, str], tuple[float, dict]]" = OrderedDict()
+
+
+def _dedupe_key(name: str, args: Any) -> str:
+    """稳定 hash:同 (name, args) → 同 key,不依赖 dict 顺序。"""
+    try:
+        s = json.dumps(_dump_for_dedupe(args), sort_keys=True, ensure_ascii=False, default=str)
+    except Exception:
+        s = repr(args)
+    import hashlib
+    return hashlib.sha1(s.encode("utf-8")).hexdigest()
+
+
+def _dump_for_dedupe(obj: Any) -> Any:
+    """Pydantic / dataclass 友好的序列化。"""
+    if obj is None or isinstance(obj, (str, int, float, bool)):
+        return obj
+    if isinstance(obj, dict):
+        return {str(k): _dump_for_dedupe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple, set)):
+        return [_dump_for_dedupe(v) for v in obj]
+    if hasattr(obj, "model_dump"):
+        try:
+            return _dump_for_dedupe(obj.model_dump())
+        except Exception:
+            pass
+    if hasattr(obj, "__dict__"):
+        return _dump_for_dedupe(vars(obj))
+    return str(obj)
+
+
+def _dedupe_lookup(session_id: str, name: str, args: Any) -> dict | None:
+    """60s 内已成功执行过 → 返回 cached result(含 _deduped 标记);否则 None。"""
+    import time as _t
+    key = (session_id, name, _dedupe_key(name, args))
+    cached = _recent_tool_results.get(key)
+    if cached is None:
+        return None
+    ts, result = cached
+    if _t.time() - ts > _DEDUPE_WINDOW_SECONDS:
+        _recent_tool_results.pop(key, None)
+        return None
+    # hit → 移到末尾(LRU 语义)
+    _recent_tool_results.move_to_end(key)
+    return {**result, "_deduped": True, "_cached_age_s": round(_t.time() - ts, 1)}
+
+
+def _dedupe_record(session_id: str, name: str, args: Any, result: dict) -> None:
+    """成功执行后写入缓存;满了就 LRU 驱逐最旧的。"""
+    import time as _t
+    key = (session_id, name, _dedupe_key(name, args))
+    _recent_tool_results[key] = (_t.time(), result)
+    _recent_tool_results.move_to_end(key)
+    while len(_recent_tool_results) > _DEDUPE_MAX_ENTRIES:
+        _recent_tool_results.popitem(last=False)
+
 LOGGER = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
@@ -1467,6 +1537,14 @@ class Orchestrator:
             name, agent_name = self._resolve_action(step)
             args = step.get("args", {})
 
+            # §7.3 #10 dedupe: 同 session 60s 内同一 (tool, args) 成功过 → 直接
+            # 返回 cached result,跳过 approval / execute / pending_approval
+            # 弹窗。避免 LLM 反复 plan 同一 destructive tool 导致的"UI 看着
+            # 像撤销、其实早就成功"的混乱。
+            cached = _dedupe_lookup(context.session_id, name, args)
+            if cached is not None:
+                return {"name": name, "result": cached, "deduped": True}
+
             # Agents without tools (planner / verifier / synthesizer) are
             # handled by separate orchestrator nodes, not by ExecuteNode.
             # Treat their steps as no-op markers so they don't error.
@@ -1564,7 +1642,10 @@ class Orchestrator:
 
             if pipe_result.ok:
                 self.circuit_breaker.record_success()
-                return {"name": name, "result": self._dump(pipe_result.result)}
+                dumped = self._dump(pipe_result.result)
+                # dedupe: 缓存成功的 result,后续重复调用直接命中
+                _dedupe_record(context.session_id, name, args, dumped)
+                return {"name": name, "result": dumped}
             if pipe_result.needs_approval:
                 # HITL: dangerous tool requires approval. Stash a
                 # gate_payload on state so the post-execute drain
