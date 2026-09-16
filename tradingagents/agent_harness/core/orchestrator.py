@@ -380,6 +380,22 @@ class Orchestrator:
         except Exception as e:
             LOGGER.warning("save_turn_summary failed: %s", e)
 
+    @staticmethod
+    def _extract_assistant_summary(final: Any) -> str | None:
+        """Best-effort assistant summary extraction from a final payload.
+
+        Mirrors the inline extraction in stream_chat()'s success block
+        so the Tier 1 path can reuse it.
+        """
+        if not isinstance(final, dict):
+            return None
+        summary = final.get("summary")
+        if isinstance(summary, str):
+            return summary
+        if summary is None and isinstance(final.get("result"), dict):
+            return final["result"].get("summary")
+        return None
+
     # ------------------------------------------------------------------
     # Public streaming entry
     # ------------------------------------------------------------------
@@ -514,6 +530,13 @@ class Orchestrator:
             )
 
         # Tier 1 short-circuit when route lands on it.
+        # §P3-3 — even short-circuited turns must record L1 history so
+        # cross-session references / next-turn carry-forward see them.
+        # Previously this path returned early without touching
+        # ``_save_turn_summary`` (only Tier 2/3 did), which left L1
+        # empty for short-circuit turns (e.g. "600036.SS 多少钱" → no
+        # history recorded, the next session has no idea we discussed
+        # the stock).
         if route.tier == Tier.DIRECT and route.symbols:
             if degraded_reason:
                 # §7.2 #1: surface the LLM-unavailable fallback so users
@@ -523,8 +546,21 @@ class Orchestrator:
                     "fallback": "tier1_short_circuit",
                     "tier": int(route.tier),
                 })
+            # Capture the final payload so _save_turn_summary can write
+            # an assistant summary. The short-circuit always emits an
+            # ``agent_final`` event with ``result`` containing the
+            # tool output; we stash it in state.final.
             async for ev, payload in self._short_circuit.run(route, user_message, context):
+                if ev == "agent_final":
+                    state.final = payload
                 yield await _emit(ev, payload)
+            self._save_turn_summary(
+                session_id,
+                user_msg=user_message,
+                intent=route.intent,
+                symbols=list(route.symbols or []),
+                assistant_summary=self._extract_assistant_summary(state.final),
+            )
             return
 
         # Token accounting: every LLM call inside stream_chat records

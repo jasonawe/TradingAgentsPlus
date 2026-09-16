@@ -14,7 +14,7 @@ from .l1_session import SqliteSessionMemory
 from .event_log import Event, EventLog, SurfaceType, TYPE_TO_SURFACE, classify_surface
 from .l2_preferences import UserPreferencesMemory
 from .l3_references import AgentReferencesMemory
-from .manager import MemoryManager
+from .manager import MemoryManager, _SessionBoundManager
 
 __all__ = [
     "MemoryEntry",
@@ -24,4 +24,5 @@ __all__ = [
     "UserPreferencesMemory",
     "AgentReferencesMemory",
     "MemoryManager",
+    "_SessionBoundManager",
 ]
