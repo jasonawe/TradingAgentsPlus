@@ -1435,18 +1435,25 @@ class Orchestrator:
         cached = self.plan_cache.get(state.user_message)
         if cached is not None:
             return cached
-        # §P3-3+ — multi-intent CRUD dispatch BEFORE the LLM plan.
-        # The LLM doesn't know about list_notes / list_alerts / etc.
-        # (those are CRUD tools, not in the standard agent list), so
-        # for multi-intent CRUD queries ("看一下笔记和告警") the LLM
-        # would otherwise fall back to data_agent.get_quote and the
-        # user gets the wrong data. Check multi-CRUD first; if it
-        # resolves, return immediately so the LLM never sees this turn.
+        # §7.3 #12 — single-CRUD dispatch BEFORE LLM plan. The CRUD
+        # dispatch table maps (intent, op) -> write/read tool
+        # deterministically, so for write intents (create_note /
+        # create_alert / add_to_watchlist / ...) the LLM doesn't need
+        # to be consulted at all — it would only hallucinate "已添加"
+        # without dispatching the tool. Single-CRUD check first so the
+        # LLM never sees a CREATE / UPDATE / DELETE / BULK_DELETE op.
+        if state.intent is not None and state.op is not None:
+            crud_plan = self._crud_plan_for_state(state)
+            if crud_plan:
+                self.plan_cache.put(state.user_message, crud_plan)
+                return crud_plan
+        # §P3-3+ — multi-intent CRUD dispatch (e.g. "看一下笔记和告警").
         if getattr(state, "extra_crud_dispatch", None):
             multi_plan = self._multi_crud_plan(state)
             if multi_plan is not None:
                 self.plan_cache.put(state.user_message, multi_plan)
                 return multi_plan
+        # CRUD 未命中才让 LLM plan —— 只剩读类查询需要 LLM 决定 fan-out。
         if self.llm_factory is not None:
             try:
                 plan = await self._llm_plan(state)
@@ -1484,17 +1491,7 @@ class Orchestrator:
                 "action": "get_fundamentals",
                 "args": {"symbol": state.symbols[0]},
             })
-        # (multi-CRUD is now checked BEFORE the LLM plan; see top of _plan)
-        # §P3-3 — single CRUD dispatch (replaces the §P3-2 WATCHLIST
-        # special branch). If (state.intent, state.op) maps to a tool,
-        # return a one-step plan so the synthesizer reports the actual
-        # write result. Otherwise leave the data-only plan as-is.
-        crud_plan = self._crud_plan_for_state(state)
-        if crud_plan:
-            self.plan_cache.put(state.user_message, crud_plan)
-            return crud_plan
-        # Cache the heuristic plan so the next identical query reuses it
-        # without going through _plan again.
+        # CRUD 已在最前面派发;LLM 也未生成 — 退回 heuristic 兜底
         self.plan_cache.put(state.user_message, plan)
         return plan
 
@@ -1924,6 +1921,11 @@ class Orchestrator:
         "- Output of step 1 feeds into step 2 (rare for finance data)\n"
         "- Single data call (no parallelism to exploit)\n"
         "\n"
+        "Write intents (NOTE / WATCHLIST / ALERT / SCHEDULED create/update/delete) "
+        "are dispatched by the CRUD table BEFORE this planner runs — you should "
+        "NEVER see them here. If a user request somehow lands at this layer, "
+        "emit a data-only heuristic plan and let SynthesizeNode tell the user "
+        "to retry.\n"
         "For each call, use \"agent\" (preferred) — the executor maps agents "
         "to their first tool. Available agents and their primary tools are listed "
         "in the user prompt below."
@@ -1967,7 +1969,24 @@ class Orchestrator:
             "the synthesizer will answer directly. If the user refers to "
             "\"this asset\" / \"the company\" / \"加入关注\" without a "
             "ticker, the carry-forward symbols are your anchor."
+            "\n\n" + self._WRITE_TOOL_FALLBACK_CATALOG +
+            "\n\nIf the user asked for a write (note/alert/watchlist/scheduled), "
+            "the CRUD table (already consulted above) handles it — do NOT "
+            "re-emit a free-form plan for writes; leave the plan empty so "
+            "SynthesizeNode can surface the result."
         )
+
+    _WRITE_TOOL_FALLBACK_CATALOG = (
+        # §7.3 #12 — defensive fallback surfaced in _build_plan_prompt.
+        "Available write tools (HITL gated — orchestrator auto-prompts "
+        "the user for approval; never claim to have created/deleted "
+        "without dispatching the matching call):\n"
+        "- create_note / update_note / delete_note / delete_notes_for_symbol\n"
+        "- create_alert / update_alert / delete_alert / delete_alerts_for_symbol\n"
+        "- add_to_watchlist / remove_from_watchlist\n"
+        "- create_scheduled_task / update_scheduled_task / delete_scheduled_task / run_scheduled_task\n"
+        "Use ``{\"action\": \"<tool_name>\", \"args\": {...}}`` for these."
+    )
 
     _INTENT_AGENT_WHITELIST: dict[str, set[str]] = {
         # Map Intent.value -> allowed agent names. None means: no
@@ -1982,6 +2001,24 @@ class Orchestrator:
         "watchlist":  None, "note": None, "alert": None,
         "scheduled":  None, "run": None, "report": None,
     }
+
+    @staticmethod
+    def _is_write_tool(action: str) -> bool:
+        """§7.3 #12 — write tools bypass the intent whitelist. CRUD
+        dispatch is the primary handler; this lets the LLM emit them
+        when a write intent slips past the dispatch (classifier gap).
+        """
+        return action in {
+            "create_note", "update_note", "delete_note",
+            "delete_notes_for_symbol",
+            "create_alert", "update_alert", "delete_alert",
+            "delete_alerts_for_symbol",
+            "add_to_watchlist", "remove_from_watchlist",
+            "create_scheduled_task", "update_scheduled_task",
+            "delete_scheduled_task", "run_scheduled_task",
+            "delete_scheduled_tasks_for_symbol",
+            "cancel_analysis_run",
+        }
 
     @staticmethod
     def _agent_for_step(step: dict[str, Any]) -> str:
@@ -2036,6 +2073,11 @@ class Orchestrator:
             kept = []
             for step in plan:
                 agent = self._agent_for_step(step)
+                # §7.3 #12 — write tools are always allowed through.
+                step_action = (step.get("action") or step.get("name") or "").strip()
+                if self._is_write_tool(step_action):
+                    kept.append(step)
+                    continue
                 if not agent or agent in whitelist:
                     kept.append(step)
                 else:
