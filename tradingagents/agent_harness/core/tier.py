@@ -202,6 +202,53 @@ def classify(message: str) -> tuple[Intent, Op]:
     return legacy, Op.READ
 
 
+def classify_multi(message: str) -> list[tuple[Intent, Op]]:
+    """§P3-3 + — multi-intent classifier.
+
+    Returns *all* (entity, op) pairs the user message matches, ordered
+    by entity detection order (first hit wins for the primary intent).
+    Used when a user expresses multiple CRUD actions in one turn, e.g.
+    "看看这个资产的告警和笔记" -> [(NOTE, LIST), (ALERT, LIST)].
+
+    Detection rules:
+
+    1. For every :data:`_ENTITY_KW` entry, if the message contains any
+       keyword, emit a (intent, op) pair. The op is the verb detected
+       in the message (same rule as :func:`classify`); falls back to
+       the entity's default op when no verb is present.
+    2. If no entity matched, fall back to :func:`classify` and return
+       a single-element list -- preserving the legacy read-only intent
+       path (QUOTE / NEWS / ANALYSIS / ...).
+    3. Deduplicate on (intent, op) so a message saying "笔记和笔记"
+       does not produce duplicate tool calls.
+
+    Note: for v1 we only treat *different* entities as multi-intent.
+    Two reads against the same entity (e.g. "列出笔记 + 看一下笔记")
+    collapse to a single (entity, op) pair.
+    """
+    text = (message or "").lower()
+    pairs: list[tuple[Intent, Op]] = []
+    seen: set[tuple[Intent, Op]] = set()
+    for intent, (kws, default_op) in _ENTITY_KW.items():
+        if not any(kw in text for kw in kws):
+            continue
+        op = default_op
+        for vop, vkws in _OP_KW.items():
+            if any(vk in text for vk in vkws):
+                op = vop
+                break
+        key = (intent, op)
+        if key in seen:
+            continue
+        seen.add(key)
+        pairs.append(key)
+
+    if pairs:
+        return pairs
+    # Legacy single-intent fallback
+    return [classify(message)]
+
+
 def classify_intent(message: str) -> Intent:
     """Map ``message`` to an :class:`Intent` enum (best-effort keyword).
 

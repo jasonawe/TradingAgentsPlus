@@ -507,3 +507,181 @@ class TestCheckpointPerSession:
         assert ckpt_store.load("s_X") is None
         # s_Y untouched (no row existed, but listing would still work)
         assert sess_store.get("s_Y") is not None
+
+
+
+# ---------------------------------------------------------------------------
+# §P3-3+ — multi-intent CRUD dispatch ("看看告警和笔记")
+# ---------------------------------------------------------------------------
+
+
+class TestClassifyMulti:
+    """tier.classify_multi returns all (intent, op) pairs the message matches."""
+
+    def test_note_and_alert_in_one_message(self):
+        from tradingagents.agent_harness.core.tier import (
+            classify_multi, Intent, Op,
+        )
+        pairs = classify_multi("看看这个资产的告警和笔记")
+        keys = {(i, o) for i, o in pairs}
+        assert (Intent.NOTE, Op.LIST) in keys
+        assert (Intent.ALERT, Op.LIST) in keys
+
+    def test_only_notes_returns_single_pair(self):
+        from tradingagents.agent_harness.core.tier import (
+            classify_multi, Intent, Op,
+        )
+        pairs = classify_multi("看看我的笔记")
+        assert pairs == [(Intent.NOTE, Op.LIST)]
+
+    def test_only_alerts_returns_single_pair(self):
+        from tradingagents.agent_harness.core.tier import (
+            classify_multi, Intent, Op,
+        )
+        pairs = classify_multi("列出告警")
+        assert pairs == [(Intent.ALERT, Op.LIST)]
+
+    def test_legacy_quote_query_falls_back_to_single(self):
+        from tradingagents.agent_harness.core.tier import (
+            classify_multi, Intent, Op,
+        )
+        pairs = classify_multi("600036 现在多少钱")
+        assert len(pairs) == 1
+        i, o = pairs[0]
+        assert i == Intent.QUOTE
+        assert o == Op.READ
+
+    def test_dedup_same_pair(self):
+        from tradingagents.agent_harness.core.tier import classify_multi
+        pairs = classify_multi("我的笔记和我的笔记")
+        keys = list({(i, o) for i, o in pairs})
+        assert len(pairs) == len(keys)  # no duplicates
+
+
+class TestMultiIntentCRUDDispatch:
+    """OrchestratorState.extra_crud_dispatch + _multi_crud_plan."""
+
+    def _build_state(self, intent, op, extra, symbols=()):
+        from tradingagents.agent_harness.core.orchestrator import OrchestratorState
+        return OrchestratorState(
+            session_id="s", user_message="x",
+            intent=intent, op=op,
+            symbols=list(symbols),
+            extra_crud_dispatch=list(extra),
+        )
+
+    def test_multi_plan_returns_ptc_group(self):
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        from tradingagents.agent_harness.core.tier import Intent, Op
+        st = self._build_state(Intent.NOTE, Op.LIST,
+                               extra=[(Intent.ALERT, Op.LIST)])
+        plan = Orchestrator._multi_crud_plan(st)
+        assert plan is not None
+        assert plan["mode"] == "ptc"
+        names = [c["name"] for g in plan["groups"] for c in g["calls"]]
+        assert "list_notes" in names
+        assert "list_alerts" in names
+
+    def test_empty_extra_with_valid_primary_still_plans(self):
+        """When extra_crud_dispatch is empty but the primary (intent, op)
+        resolves in the dispatch table, _multi_crud_plan returns a
+        single-call PTC plan. plan() guards with ``if extra`` so this
+        branch is unused in practice, but the behaviour is well-defined
+        for callers that ask directly."""
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        from tradingagents.agent_harness.core.tier import Intent, Op
+        st = self._build_state(Intent.NOTE, Op.LIST, extra=[])
+        plan = Orchestrator._multi_crud_plan(st)
+        assert plan is not None
+        names = [c["name"] for g in plan["groups"] for c in g["calls"]]
+        assert names == ["list_notes"]
+
+    def test_unresolved_pair_returns_none(self):
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        # (Intent.COMPARE, Op.CREATE) is NOT in _CRUD_DISPATCH
+        from tradingagents.agent_harness.core.tier import Intent, Op
+        st = self._build_state(Intent.NOTE, Op.LIST,
+                               extra=[(Intent.COMPARE, Op.CREATE)])
+        assert Orchestrator._multi_crud_plan(st) is None
+
+    def test_symbols_inherited_in_args(self):
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        from tradingagents.agent_harness.core.tier import Intent, Op
+        st = self._build_state(Intent.WATCHLIST, Op.CREATE,
+                               extra=[(Intent.NOTE, Op.CREATE)],
+                               symbols=("600036.SS",))
+        plan = Orchestrator._multi_crud_plan(st)
+        assert plan is not None
+        # watchlist create should have symbol from state.symbols
+        for c in plan["groups"][0]["calls"]:
+            if c["name"] == "add_to_watchlist":
+                assert c["args"].get("symbol") == "600036.SS"
+
+
+class TestStreamChatMultiIntentE2E:
+    """End-to-end: stream_chat emits both list_notes and list_alerts."""
+
+    def test_fires_both_tools(self):
+        import asyncio, tempfile
+        from tradingagents.agent_harness.memory import MemoryManager
+        from tradingagents.agent_harness.tools.builtin import install_builtin_tools
+        from tradingagents.agent_harness.tools.registry import ToolRegistry
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        from tradingagents.agent_harness.core.retry import CircuitBreaker, RetryPolicy
+        from tradingagents.agent_harness.core.context import ContextPriority
+
+        async def _go():
+            with tempfile.TemporaryDirectory() as tmp:
+                mm = MemoryManager(data_dir=tmp)
+                reg = ToolRegistry(); install_builtin_tools(reg)
+                orch = Orchestrator(
+                    tool_registry=reg, agent_registry=None, llm_factory=None,
+                    context_priority=ContextPriority(memory=mm),
+                    retry_policy=RetryPolicy(max_retries=1, backoff_seconds=0),
+                    circuit_breaker=CircuitBreaker(failure_threshold=10, reset_seconds=30),
+                    audit=None, memory=mm,
+                )
+                called = []
+                async for ev, p in orch.stream_chat(
+                    "sess_multi_e2e", "看看这个资产的告警和笔记",
+                ):
+                    if ev == "tool_result" and isinstance(p, dict):
+                        called.append(p.get("name"))
+                return called
+
+        names = asyncio.run(_go())
+        assert "list_notes" in names, f"list_notes missing: {names}"
+        assert "list_alerts" in names, f"list_alerts missing: {names}"
+
+    def test_single_intent_still_works(self):
+        """Backward compat: a single-intent message must still resolve."""
+        import asyncio, tempfile
+        from tradingagents.agent_harness.memory import MemoryManager
+        from tradingagents.agent_harness.tools.builtin import install_builtin_tools
+        from tradingagents.agent_harness.tools.registry import ToolRegistry
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        from tradingagents.agent_harness.core.retry import CircuitBreaker, RetryPolicy
+        from tradingagents.agent_harness.core.context import ContextPriority
+
+        async def _go():
+            with tempfile.TemporaryDirectory() as tmp:
+                mm = MemoryManager(data_dir=tmp)
+                reg = ToolRegistry(); install_builtin_tools(reg)
+                orch = Orchestrator(
+                    tool_registry=reg, agent_registry=None, llm_factory=None,
+                    context_priority=ContextPriority(memory=mm),
+                    retry_policy=RetryPolicy(max_retries=1, backoff_seconds=0),
+                    circuit_breaker=CircuitBreaker(failure_threshold=10, reset_seconds=30),
+                    audit=None, memory=mm,
+                )
+                called = []
+                async for ev, p in orch.stream_chat(
+                    "sess_single_e2e", "看看我的笔记",
+                ):
+                    if ev == "tool_result" and isinstance(p, dict):
+                        called.append(p.get("name"))
+                return called
+
+        names = asyncio.run(_go())
+        assert names.count("list_notes") == 1, f"expected exactly 1 list_notes: {names}"
+        assert "list_alerts" not in names, f"single-intent should not call list_alerts: {names}"

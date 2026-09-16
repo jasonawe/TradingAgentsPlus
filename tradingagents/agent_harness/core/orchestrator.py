@@ -106,6 +106,13 @@ class OrchestratorState:
     # :func:`tier.classify`. Together they pin the user's CRUD action
     # down to a single (entity, op) cell in the _CRUD_DISPATCH table.
     op: Any | None = None  # tradingagents.agent_harness.core.tier.Op
+    # §P3-3+: when ``classify_multi`` detects 2+ CRUD entities in one
+    # turn (e.g. "看看告警和笔记" -> [(NOTE,LIST),(ALERT,LIST)]),
+    # ``extra_crud_dispatch`` carries the secondary pairs. The primary
+    # ``intent``/``op`` stay on the state for backward compat;
+    # ``_plan`` reads ``extra_crud_dispatch`` to expand the plan into
+    # a multi-step sequence.
+    extra_crud_dispatch: list[tuple[Any, Any]] = field(default_factory=list)
     plan: list[dict[str, Any]] | dict[str, Any] = field(default_factory=list)
     tool_results: list[dict[str, Any]] = field(default_factory=list)
     final: Any = None
@@ -419,9 +426,21 @@ class Orchestrator:
         # fast_route_with_op() routes READ/LIST → Tier 1 (short-circuit
         # works fine for those) and CREATE/UPDATE/DELETE/RUN → Tier 2
         # PLAN_EXECUTE so _plan() can dispatch via _CRUD_DISPATCH.
-        from .tier import classify as _classify, fast_route_with_op
+        from .tier import (
+            classify as _classify,
+            classify_multi as _classify_multi,
+            fast_route_with_op,
+        )
         intent, op = _classify(user_message)
         route, op_from_route = fast_route_with_op(user_message)
+        # §P3-3+: detect multi-intent CRUD queries ("看看告警和笔记")
+        # so the plan layer can fan out to multiple tools.
+        multi_pairs = _classify_multi(user_message)
+        if len(multi_pairs) >= 2:
+            primary = (intent, op)
+            extra = [pair for pair in multi_pairs if pair != primary]
+        else:
+            extra = []
         # Reconcile: state.op comes from classify() (more precise for
         # our 8-case vocabulary); the route's op matches but keep both
         # for backward compat with tests that inspect state.op directly.
@@ -498,6 +517,7 @@ class Orchestrator:
             carry_symbols=carry_symbols,
             prior_user_msg=session_ctx.get("user_msg"),
             op=op,
+            extra_crud_dispatch=extra,
         )
 
         # Session lifecycle (roadmap A2): auto-create or update metadata.
@@ -1034,6 +1054,57 @@ class Orchestrator:
             return []
         return [{"step": 1, "action": action, "args": dict(args)}]
 
+    @staticmethod
+    def _multi_crud_plan(state: OrchestratorState) -> dict[str, Any] | None:
+        """§P3-3+ — fan a multi-intent state into a PTC parallel plan.
+
+        Walks every (intent, op) pair in ``state.extra_crud_dispatch`` +
+        the primary (state.intent, state.op), looks each one up in the
+        CRUD dispatch table, and emits one ``get_*`` / ``list_*`` /
+        ``create_*`` call per pair. Tools that take the symbol argument
+        inherit it from ``state.symbols`` (carry-forward or explicit).
+
+        Returns ``None`` when at least one pair does not resolve to a
+        tool (so the caller falls back to single-CRUD or heuristic).
+        When all pairs resolve, returns a PTC plan with a single group
+        so the executor fires them concurrently.
+        """
+        pairs: list[tuple[Any, Any]] = list(
+            getattr(state, "extra_crud_dispatch", []) or []
+        )
+        primary = (state.intent, state.op) if state.op is not None else None
+        if primary and primary not in pairs:
+            pairs = [primary] + pairs
+        if not pairs:
+            return None
+
+        calls: list[dict[str, Any]] = []
+        for intent, op in pairs:
+            spec = Orchestrator._CRUD_DISPATCH.get((intent, op))
+            if spec is None:
+                return None  # fall back to single dispatch / heuristic
+            action, args_fn = spec
+            try:
+                args = args_fn(state) or {}
+            except Exception as e:
+                LOGGER.warning(
+                    "multi-CRUD args factory failed for %s: %s", (intent, op), e,
+                )
+                args = {}
+            calls.append({"name": action, "args": dict(args)})
+
+        if not calls:
+            return None
+        # Wrap into a single PTC group so the executor fires them all
+        # concurrently and the synthesizer aggregates the results.
+        return {
+            "mode": "ptc",
+            "groups": [{
+                "id": "g1",
+                "calls": calls,
+            }],
+        }
+
     async def _plan(self, state: OrchestratorState, context: ToolContext) -> list[dict[str, Any]]:
         """PlanNode — turn ``state.user_message`` into a JSON plan.
 
@@ -1091,6 +1162,14 @@ class Orchestrator:
                 "action": "get_fundamentals",
                 "args": {"symbol": state.symbols[0]},
             })
+        # §P3-3+ — multi-intent CRUD dispatch. When the user asks for
+        # 2+ entities ("看看告警和笔记", "列出笔记和关注"), expand to
+        # a parallel PTC plan so all read paths complete in one round.
+        if getattr(state, "extra_crud_dispatch", None):
+            multi_plan = self._multi_crud_plan(state)
+            if multi_plan is not None:
+                self.plan_cache.put(state.user_message, multi_plan)
+                return multi_plan
         # §P3-3 — single CRUD dispatch (replaces the §P3-2 WATCHLIST
         # special branch). If (state.intent, state.op) maps to a tool,
         # return a one-step plan so the synthesizer reports the actual
