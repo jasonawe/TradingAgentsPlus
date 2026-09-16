@@ -10,6 +10,9 @@ the orchestrator can dispatch without duplicating routing logic.
 """
 from __future__ import annotations
 
+import logging
+LOGGER = logging.getLogger(__name__)
+
 import re
 from dataclasses import dataclass, field
 from enum import Enum
@@ -88,9 +91,27 @@ def normalize_symbol(token: str) -> str:
     'AAPL'
     """
     s = (token or "").strip().upper()
-    if not s or "." in s:
+    if not s:
+        return s
+    if "." in s:
+        # Validate the digits portion so we don't silently accept
+        # malformed tickers like '00031.SS' (5 digits).
+        digits = s.split(".")[0]
+        if digits.isdigit() and len(digits) != 6:
+            LOGGER.warning(
+                "normalize_symbol: invalid A-share length %d for %r (expected 6)",
+                len(digits), s,
+            )
         return s
     if len(s) != 6 or not s.isdigit():
+        # 5-digit numeric tokens like '00031' almost certainly mean a
+        # typo'd 6-digit A-share code (user dropped a digit). Log a
+        # warning and return original so downstream can surface it.
+        if s.isdigit() and len(s) == 5:
+            LOGGER.warning(
+                "normalize_symbol: 5-digit ticker %r looks like a typo (A-shares are 6 digits)",
+                s,
+            )
         return s
     if s.startswith(_A_SHARE_SS_PREFIXES):
         return s + ".SS"
@@ -157,15 +178,21 @@ _ENTITY_KW: dict[Intent, tuple[set[str], Op]] = {
 _OP_KW: dict[Op, set[str]] = {
     Op.CREATE: {"新建", "创建", "添加", "加入", "新增", "写", "建", "create", "add",
                 "schedule", "安排", "新建一个", "建一个", "做一个",
+                # 口语化:"加一下 / 加个 / 加一条 / 加一个"
+                "加一下", "加一个", "加个", "加一条", "加个新的",
+                "记一下", "做个", "录入",
                 # '跑一下 / 启动 / 跑起来' for analysis-run start; the
                 # dispatch table maps (RUN, CREATE) to
                 # run_trading_agents_analysis so these belong here.
                 "跑一下", "跑起来", "跑个", "启动", "run-it", "开始"},
     Op.LIST:   {"查看", "列出", "显示", "看看", "show", "list", "有哪些", "有什么",
                 "全部的", "所有的", "列表"},
-    Op.UPDATE: {"更新", "修改", "改", "调整", "edit", "update", "改一下"},
+    Op.UPDATE: {"更新", "修改", "改", "调整", "edit", "update", "改一下",
+                "改一下", "改成", "换一下", "替换"},
     Op.DELETE: {"删除", "移除", "去掉", "删", "delete", "remove", "取消关注", "停用",
-                "关闭", "取消", "删掉"},
+                "关闭", "取消", "删掉",
+                # 口语化:"删一下 / 删了 / 删掉全部 / 清掉"
+                "删一下", "删了", "清掉", "清除", "清理"},
     Op.RUN:    {"立即触发", "立刻触发", "马上触发", "立即执行", "立刻执行",
                 "立刻", "马上", "现在跑", "now-run", "trigger", "fire"},
 }
