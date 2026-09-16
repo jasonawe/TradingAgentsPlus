@@ -116,6 +116,10 @@ class ShortCircuit:
 
     @staticmethod
     def _tool_for_intent(intent: Intent) -> str:
+        # §7.3 #12 — every read-capable intent gets a default Tier 1
+        # read tool so we never emit "no Tier 1 tool for intent=NOTE"
+        # warnings. Write intents still go through Tier 2 (CRUD
+        # dispatch → HITL gate) because they need approval.
         return {
             Intent.QUOTE: "get_quote",
             Intent.HISTORY: "get_history",
@@ -123,7 +127,11 @@ class ShortCircuit:
             Intent.NEWS: "get_news",
             Intent.ALPHA: "list_alpha_factors",
             Intent.WATCHLIST: "list_watchlist",
+            Intent.NOTE: "list_notes",
+            Intent.ALERT: "list_alerts",
             Intent.SCHEDULED: "list_scheduled_tasks",
+            Intent.RUN: "list_runs",
+            Intent.REPORT: "list_reports",
         }.get(intent, "")
 
     @staticmethod
