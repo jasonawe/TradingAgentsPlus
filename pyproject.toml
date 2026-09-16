@@ -61,6 +61,19 @@ web = [
 [project.scripts]
 tradingagents = "cli.main:app"
 
+# §7.1 #1 — high-extension entry-points. Each group lets a third-party
+# package ship its own impl via ``pip install``; the harness discovers
+# them at startup with importlib.metadata.
+[project.entry-points."tradingagents.context.providers"]
+builtin_explicit = "tradingagents.agent_harness.core.context:ExplicitLayerProvider"
+builtin_skills = "tradingagents.agent_harness.core.context:SkillsLayerProvider"
+builtin_tools = "tradingagents.agent_harness.core.context:ToolSchemasLayerProvider"
+builtin_files = "tradingagents.agent_harness.core.context:FilesLayerProvider"
+builtin_dashboard = "tradingagents.agent_harness.core.context:DashboardLayerProvider"
+builtin_chat = "tradingagents.agent_harness.core.context:ChatHistoryLayerProvider"
+builtin_global = "tradingagents.agent_harness.core.context:UserPreferencesLayerProvider"
+builtin_search = "tradingagents.agent_harness.core.context:SearchLayerProvider"
+
 [tool.setuptools.packages.find]
 include = ["tradingagents*", "cli*", "web*"]
 

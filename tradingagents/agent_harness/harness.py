@@ -185,6 +185,14 @@ class Harness:
 
         # 9. context priority — auto-injects memory L1/L2 (P8 Task 2)
         self.context_priority = ContextPriority(memory=self.memory)
+        # §D4 entry_points — discover the 8 builtin layer providers and
+        # wire live dependencies (memory + tool_registry). Third-party
+        # plugins shipping through the ``tradingagents.context.providers``
+        # entry-point group are appended automatically.
+        self.context_priority.discover_providers(
+            memory=self.memory,
+            tool_registry=self.tool_registry,
+        )
         # Q5 / P2-8: cooperative system-prompt waterfall. Plugins can
         # ``harness.system_prompt_waterfall.add(WaterfallSection(...))``
         # in ``install()`` to contribute sections at runtime. The
