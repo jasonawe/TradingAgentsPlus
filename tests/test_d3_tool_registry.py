@@ -118,14 +118,14 @@ def test_registry_function_tool_wraps_sync() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_install_builtin_tools_registers_17() -> None:
+def test_install_builtin_tools_registers_30() -> None:
     reg = ToolRegistry()
     install_builtin_tools(reg)
-    # 10 reads + 8 write tools (alerts/notes create+update+delete + watchlist
-    # add/remove) + 1 plugin auto = 18
-    # §P3-1 added add_to_watchlist / remove_from_watchlist on top of the
-    # earlier 6 writes (alerts/notes × create+update+delete).
-    assert len(reg.list_all()) == 18
+    # §P3-3 — 18 (10 reads + 8 writes) + 12 new (list_notes / list_alerts /
+    # list_runs / list_reports / get_report / run_trading_agents_analysis /
+    # get_analysis_status / cancel_analysis_run / run_scheduled_task +
+    # create_scheduled_task / update_scheduled_task / delete_scheduled_task) = 30.
+    assert len(reg.list_all()) == 30
 
 
 def test_builtin_tools_read_count() -> None:
@@ -143,6 +143,13 @@ def test_builtin_tools_read_count() -> None:
         "evaluate_alpha",
         "list_watchlist",
         "list_scheduled_tasks",
+        # §P3-3 — additional read tools
+        "list_notes",
+        "list_alerts",
+        "list_runs",
+        "list_reports",
+        "get_report",
+        "get_analysis_status",
     }
     assert expected_reads.issubset(reads), f"missing: {expected_reads - reads}"
 
@@ -162,6 +169,13 @@ def test_builtin_tools_write_count() -> None:
         # user's list, not just list it).
         "add_to_watchlist",
         "remove_from_watchlist",
+        # §P3-3 — scheduled task write tools + run/trigger tools.
+        "create_scheduled_task",
+        "update_scheduled_task",
+        "delete_scheduled_task",
+        "run_scheduled_task",
+        "run_trading_agents_analysis",
+        "cancel_analysis_run",
     }
 
 

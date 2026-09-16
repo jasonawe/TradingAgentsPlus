@@ -326,6 +326,10 @@ def create_app(
             # §P3-1 — wire watchlist repository so add_to_watchlist /
             # remove_from_watchlist tools can mutate the user's list.
             "watchlist": repositories["watchlist"],
+            # §P3-3 — wire scheduled_jobs repository so
+            # create_scheduled_task / update_scheduled_task /
+            # delete_scheduled_task tools can mutate the user's jobs.
+            "scheduled_jobs": repositories["scheduled_jobs"],
         })
         LOGGER.info("Stage C: repositories injected for write tools")
     except ImportError:

@@ -50,7 +50,8 @@ def set_repositories(repos: dict[str, Any]) -> None:
     """注入 write tools 需要的 repositories(notes / alerts)。
 
     由 web/app.py 启动时调用,这样写 tool 才能直接访问 NoteRepository /
-    AlertRepository 实例(跟 web API 用同一份,避免重复实现 CRUD)。
+    AlertRepository / ScheduledJobRepository 实例(跟 web API 用同一份,
+    避免重复实现 CRUD)。
     """
     with _repos_lock:
         _repos.clear()
@@ -896,7 +897,323 @@ def list_reports(
 
 # 写 tool 列表 — 之前由 create_note / update_note / delete_note / create_alert /
 # update_alert / delete_alert / update_preference 构成。
-# 现在 ALL_TOOLS 已经包含读 + alpha + 写 + Day 7 共 21 个。
+# 现在 ALL_TOOLS 已经包含读 + alpha + 写 + Day 7 + §P3-3 共 29 个。
+
+
+# ════════════════════════════════════════════════════════════════════
+# §P3-3 — read tools: list_notes / list_alerts / list_runs / get_report
+# (filling the gaps that the entity × op dispatch table references but
+# tools_bridge didn't yet expose).  cancel_analysis_run is also new —
+# it's a server-side write that doesn't go through HITL since
+# RunManager.request_cancel is itself idempotent + cooperative.
+# ════════════════════════════════════════════════════════════════════
+
+
+@tool
+def list_notes(
+    symbol: Annotated[str, "ticker 过滤,空 = 全部"] = "",
+    limit: Annotated[int, "最多返回几条,默认 50"] = 50,
+) -> str:
+    """列出当前用户的笔记(可选 ticker 过滤)。返回 markdown 表格。
+
+    返回格式(symbol 为空时列出所有;非空时仅匹配 symbol):
+        共 N 条笔记:
+        | id | symbol | asset_type | body 摘要 | created_at |
+    """
+    try:
+        repo = _get_repo("notes")
+    except RuntimeError as e:
+        return f"ERROR: list_notes - {e}"
+    try:
+        if symbol:
+            notes = repo.list_for(symbol)
+            total = len(notes)
+        else:
+            notes, total = repo.list_all(limit=max(1, min(limit, 200)))
+        if not notes:
+            return f"(无笔记,total={total})" if not symbol else f"(无 {symbol} 的笔记)"
+        lines = [
+            f"共 {total} 条笔记:",
+            "| id | symbol | asset_type | body 摘要 | created_at |",
+            "|---|---|---|---|---|",
+        ]
+        for n in notes[: max(1, min(limit, 200))]:
+            body = (n.get("body_md") or "").replace("\n", " ").strip()
+            body = body[:50] + ("..." if len(body) > 50 else "")
+            lines.append(
+                f"| {n.get('id', '')} | {n.get('symbol', '')} | "
+                f"{n.get('asset_type', '')} | {body} | {n.get('created_at', '')} |"
+            )
+        return "\n".join(lines)
+    except Exception as e:
+        return f"ERROR: list_notes - {type(e).__name__}: {e}"
+
+
+@tool
+def list_alerts(
+    symbol: Annotated[str, "ticker 过滤,空 = 全部"] = "",
+    include_disabled: Annotated[bool, "是否包含已禁用的告警"] = False,
+    limit: Annotated[int, "最多返回几条,默认 50"] = 50,
+) -> str:
+    """列出当前用户的告警(可选 ticker 过滤 + 是否含已禁用)。
+
+    返回格式:
+        共 N 条告警(启用 X 条):
+        | id | symbol | kind | params | cooldown_seconds | enabled |
+    """
+    try:
+        repo = _get_repo("alerts")
+    except RuntimeError as e:
+        return f"ERROR: list_alerts - {e}"
+    try:
+        if symbol:
+            alerts = repo.list_for_symbol(symbol)
+        elif include_disabled:
+            alerts, _ = repo.list_all()
+        else:
+            alerts = repo.list_active()
+        if not alerts:
+            return f"(无告警,filter={symbol or 'all'})"
+        enabled_count = sum(1 for a in alerts if a.get("enabled"))
+        lines = [
+            f"共 {len(alerts)} 条告警(启用 {enabled_count} 条):",
+            "| id | symbol | kind | params | cooldown_seconds | enabled |",
+            "|---|---|---|---|---|---|",
+        ]
+        for a in alerts[: max(1, min(limit, 200))]:
+            params = json.dumps(a.get("params") or {}, ensure_ascii=False)
+            params = params[:60] + ("..." if len(params) > 60 else "")
+            lines.append(
+                f"| {a.get('id', '')} | {a.get('symbol', '')} | "
+                f"{a.get('kind', '')} | {params} | "
+                f"{a.get('cooldown_seconds', '')} | {bool(a.get('enabled'))} |"
+            )
+        return "\n".join(lines)
+    except Exception as e:
+        return f"ERROR: list_alerts - {type(e).__name__}: {e}"
+
+
+@tool
+def list_runs(
+    status: Annotated[str, "状态过滤: queued / running / completed / failed / cancelled,空 = 全部"] = "",
+    limit: Annotated[int, "最多返回几条,默认 20"] = 20,
+) -> str:
+    """列出历史分析 run(可选 status 过滤)。返回 markdown 表格。
+
+    调用 RunManager.list_runs(status?, limit?) — 与 web/app.py /api/runs
+    同一份数据。
+    """
+    try:
+        manager = _get_active_runner()
+    except RuntimeError as e:
+        return f"ERROR: list_runs - {e}"
+    try:
+        records = manager.list_runs(status=status or None, limit=max(1, min(limit, 200)))
+        if not records:
+            return f"(无 run 记录,filter={status or 'all'})"
+        lines = [
+            f"共 {len(records)} 条 run:",
+            "| run_id | ticker | status | queued_at | finished_at |",
+            "|---|---|---|---|---|",
+        ]
+        for r in records[: max(1, min(limit, 200))]:
+            req = getattr(r, "request", None)
+            ticker = getattr(req, "ticker", "") if req else ""
+            lines.append(
+                f"| {getattr(r, 'run_id', '')} | {ticker} | "
+                f"{getattr(r, 'status', '')} | "
+                f"{getattr(r, 'queued_at', '')} | "
+                f"{getattr(r, 'finished_at', '') or '-'} |"
+            )
+        return "\n".join(lines)
+    except Exception as e:
+        return f"ERROR: list_runs - {type(e).__name__}: {e}"
+
+
+@tool
+def cancel_analysis_run(
+    run_id: Annotated[str, "run ID(run_trading_agents_analysis 返回)"],
+) -> str:
+    """取消正在运行 / 排队的分析 run。设置协作式 cancel flag,
+    不强制终止 — 已启动的阶段会自然完成。无需 HITL(idempotent)。"""
+    try:
+        manager = _get_active_runner()
+    except RuntimeError as e:
+        return f"ERROR: cancel_analysis_run - {e}"
+    try:
+        record = manager.request_cancel(run_id)
+        return json.dumps(
+            {
+                "status": getattr(record, "status", None),
+                "cancelled": getattr(record, "status", None) == "cancelled",
+                "run_id": run_id,
+            },
+            ensure_ascii=False, default=str,
+        )
+    except KeyError:
+        return f"ERROR: cancel_analysis_run - run_id={run_id} not found"
+    except Exception as e:
+        return f"ERROR: cancel_analysis_run - {type(e).__name__}: {e}"
+
+
+@tool
+def get_report(
+    report_id: Annotated[str, "report ID,list_reports 返回"],
+) -> str:
+    """读取单个分析报告的完整 markdown 内容 + 元数据。
+
+    返回格式:
+        REPORT: {report_id}
+        ---meta---
+        ticker: ...
+        status: completed
+        ---content---
+        <完整 complete_report.md 内容>
+    """
+    try:
+        history = _get_report_history()
+    except RuntimeError as e:
+        return f"ERROR: get_report - {e}"
+    try:
+        record = history.get_report(report_id)
+        meta = {k: v for k, v in record.items() if k not in ("body_md", "content")}
+        content = record.get("body_md") or record.get("content") or ""
+        header = (
+            "REPORT: " + report_id
+            + "\n---meta---\n"
+            + json.dumps(meta, ensure_ascii=False, default=str)
+            + "\n---content---\n"
+        )
+        if len(content) > 8000:
+            content = content[:8000] + "\n... (truncated)"
+        return header + content
+    except Exception as e:
+        return f"ERROR: get_report - {type(e).__name__}: {e}"
+
+
+# ════════════════════════════════════════════════════════════════════
+# §P3-3 — write tools: create / update / delete scheduled_task
+# (filling the gaps that the entity × op dispatch table references but
+# tools_bridge didn't yet expose — only run_scheduled_task existed).
+# ════════════════════════════════════════════════════════════════════
+
+
+@tool
+def create_scheduled_task(
+    symbol: Annotated[str, "ticker 如 600036.SS"],
+    asset_type: Annotated[str, "stock / crypto,默认 stock"] = "stock",
+    cron_expression: Annotated[str, "5 字段 cron,如 '0 9 * * 1-5'"] = "0 9 * * 1-5",
+    enabled: Annotated[bool, "是否启用,默认 True"] = True,
+    note: Annotated[str, "可选备注"] = "",
+    config: Annotated[RunnableConfig, InjectedToolArg()] = None,
+) -> str:
+    """创建定时分析任务(需用户确认)。
+
+    返回:
+      - "SCHEDULED_CREATED: {id: ..., symbol: ...}" 成功
+      - "AWAITING_CONFIRMATION: {...}" 需要前端确认
+      - "ERROR: ..." 失败
+    """
+    session_id = _resolve_session_id(config)
+    args = {
+        "symbol": symbol, "asset_type": asset_type,
+        "cron_expression": cron_expression, "enabled": bool(enabled),
+        "note": note,
+    }
+    gate = _check_write_approval(
+        session_id=session_id, tool_name="create_scheduled_task", tool_args=args,
+    )
+    if gate is not None:
+        return gate
+    try:
+        repo = _get_repo("scheduled_jobs")
+        job = repo.create(
+            symbol=symbol, asset_type=asset_type,
+            cron_expression=cron_expression, enabled=bool(enabled),
+            note=note or None,
+        )
+        _after_execute(session_id, "create_scheduled_task", args)
+        return (
+            "SCHEDULED_CREATED: "
+            + json.dumps(
+                {"id": job.get("id"), "symbol": job.get("symbol"),
+                 "cron": job.get("cron_expression")},
+                ensure_ascii=False,
+            )
+        )
+    except (ValueError, KeyError) as e:
+        return f"ERROR: create_scheduled_task - {e}"
+    except Exception as e:
+        return f"ERROR: create_scheduled_task unexpected - {type(e).__name__}: {e}"
+
+
+@tool
+def update_scheduled_task(
+    job_id: Annotated[str, "定时任务 ID,如 scheduled-job-..."],
+    cron_expression: Annotated[str, "新 cron,空 = 不变"] = "",
+    enabled: Annotated[bool, "是否启用,None 表示不变"] = None,
+    note: Annotated[str, "新备注,空 = 不变"] = "",
+    config: Annotated[RunnableConfig, InjectedToolArg()] = None,
+) -> str:
+    """修改定时任务(cron / enabled / note;需确认)。"""
+    session_id = _resolve_session_id(config)
+    args: dict[str, Any] = {"job_id": job_id}
+    if cron_expression:
+        args["cron_expression"] = cron_expression
+    if enabled is not None:
+        args["enabled"] = bool(enabled)
+    if note:
+        args["note"] = note
+    gate = _check_write_approval(
+        session_id=session_id, tool_name="update_scheduled_task", tool_args=args,
+    )
+    if gate is not None:
+        return gate
+    try:
+        repo = _get_repo("scheduled_jobs")
+        kwargs: dict[str, Any] = {}
+        if cron_expression:
+            kwargs["cron_expression"] = cron_expression
+        if enabled is not None:
+            kwargs["enabled"] = bool(enabled)
+        if note:
+            kwargs["note"] = note
+        job = repo.update(job_id, **kwargs)
+        _after_execute(session_id, "update_scheduled_task", args)
+        return (
+            "SCHEDULED_UPDATED: "
+            + json.dumps({"id": job.get("id"), "enabled": job.get("enabled")},
+                         ensure_ascii=False)
+        )
+    except (ValueError, KeyError) as e:
+        return f"ERROR: update_scheduled_task - {e}"
+    except Exception as e:
+        return f"ERROR: update_scheduled_task unexpected - {type(e).__name__}: {e}"
+
+
+@tool
+def delete_scheduled_task(
+    job_id: Annotated[str, "定时任务 ID"],
+    config: Annotated[RunnableConfig, InjectedToolArg()] = None,
+) -> str:
+    """删除定时任务(需确认;硬删除,不可恢复)。"""
+    session_id = _resolve_session_id(config)
+    args = {"job_id": job_id}
+    gate = _check_write_approval(
+        session_id=session_id, tool_name="delete_scheduled_task", tool_args=args,
+    )
+    if gate is not None:
+        return gate
+    try:
+        repo = _get_repo("scheduled_jobs")
+        repo.delete(job_id)
+        _after_execute(session_id, "delete_scheduled_task", args)
+        return f"SCHEDULED_DELETED: {job_id}"
+    except KeyError:
+        return f"ERROR: delete_scheduled_task - job not found: {job_id}"
+    except Exception as e:
+        return f"ERROR: delete_scheduled_task unexpected - {type(e).__name__}: {e}"
+
 
 ALL_TOOLS = [
     # Alpha158 × 3(B1 复用)
@@ -924,6 +1241,15 @@ ALL_TOOLS = [
     list_scheduled_tasks,
     run_scheduled_task,
     list_reports,
+    # §P3-3 — fill the gaps referenced by the entity × op dispatch table
+    list_notes,
+    list_alerts,
+    list_runs,
+    cancel_analysis_run,
+    get_report,
+    create_scheduled_task,
+    update_scheduled_task,
+    delete_scheduled_task,
 ]
 
 
@@ -949,6 +1275,15 @@ __all__ = [
     "list_scheduled_tasks",
     "run_scheduled_task",
     "list_reports",
+    # §P3-3
+    "list_notes",
+    "list_alerts",
+    "list_runs",
+    "cancel_analysis_run",
+    "get_report",
+    "create_scheduled_task",
+    "update_scheduled_task",
+    "delete_scheduled_task",
     "set_active_runner",
     "set_scheduler_service",
     "set_news_provider",

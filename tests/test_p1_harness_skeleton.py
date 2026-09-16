@@ -23,7 +23,8 @@ class TestP1Skeleton(unittest.TestCase):
         self.assertIsNotNone(h.config)
         self.assertIsNotNone(h.tool_registry)
         self.assertIsNotNone(h.agent_registry)
-        self.assertEqual(len(h.tool_registry.list_all()), 19)
+        # §P3-3 — 19 → 30 tools (10 read + 8 write + 12 new CRUD).
+        self.assertEqual(len(h.tool_registry.list_all()), 30)
         self.assertEqual(len(h.agent_registry.list()), 6)
         self.assertEqual(set(h.plugin_registry.list()), {"quant", "news", "alert"})
         self.assertIsNotNone(h.health)

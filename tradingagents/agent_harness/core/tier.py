@@ -28,11 +28,39 @@ class Intent(str, Enum):
     FUNDAMENTALS = "fundamentals"
     NEWS = "news"
     ALPHA = "alpha"
+    # §P3-3 — CRUD entities (entity-level). The actual verb
+    # (create / read / update / delete / list / run) is carried as a
+    # separate :class:`Op` discriminator so one entity doesn't need 5
+    # intent values per CRUD operation.
     WATCHLIST = "watchlist"
+    NOTE = "note"
+    ALERT = "alert"
     SCHEDULED = "scheduled"
+    RUN = "run"
+    REPORT = "report"
     COMPARE = "compare"
     ANALYSIS = "analysis"
     UNKNOWN = "unknown"
+
+
+class Op(str, Enum):
+    """Verb discriminator paired with :class:`Intent` (entity).
+
+    One entity enum value + one op value fully describes a CRUD action
+    (e.g. ``(Intent.NOTE, Op.CREATE)`` = "create a note"). The
+    orchestrator's _CRUD_DISPATCH table maps every (entity, op) pair to
+    a concrete tool invocation.
+
+    §P3-3: not every entity supports every op (watchlist has no UPDATE;
+    run has no CREATE-by-id, only RUN-by-ticker). The dispatch table
+    documents the supported subset.
+    """
+    CREATE = "create"
+    READ = "read"
+    UPDATE = "update"
+    DELETE = "delete"
+    LIST = "list"
+    RUN = "run"  # for scheduled (run-now) and analysis (start new run)
 
 
 _TICKER_RE = re.compile(r"\b[A-Z0-9]{1,6}(?:\.[A-Z]{2})?\b")
@@ -115,8 +143,72 @@ def _hit(keywords: Iterable[str], message: str) -> bool:
     return any(kw.lower() in lower for kw in keywords)
 
 
+# §P3-3 — entity × op keyword tables
+_ENTITY_KW: dict[Intent, tuple[set[str], Op]] = {
+    Intent.WATCHLIST: ({"关注", "自选", "watchlist"}, Op.LIST),
+    Intent.NOTE:      ({"笔记", "备注", "memo", "note"}, Op.LIST),
+    Intent.ALERT:     ({"告警", "提醒", "预警", "alert"}, Op.LIST),
+    Intent.SCHEDULED: ({"定时", "cron", "定时任务", "scheduled"}, Op.LIST),
+    Intent.RUN:       ({"分析任务", "运行", "跑一下", "analyse", "analyze", "analysis", "run"}, Op.LIST),
+    Intent.REPORT:    ({"分析报告", "报告", "report"}, Op.LIST),
+}
+
+_OP_KW: dict[Op, set[str]] = {
+    Op.CREATE: {"新建", "创建", "添加", "加入", "新增", "写", "建", "create", "add",
+                "schedule", "安排", "新建一个", "建一个", "做一个",
+                # '跑一下 / 启动 / 跑起来' for analysis-run start; the
+                # dispatch table maps (RUN, CREATE) to
+                # run_trading_agents_analysis so these belong here.
+                "跑一下", "跑起来", "跑个", "启动", "run-it", "开始"},
+    Op.LIST:   {"查看", "列出", "显示", "看看", "show", "list", "有哪些", "有什么",
+                "全部的", "所有的", "列表"},
+    Op.UPDATE: {"更新", "修改", "改", "调整", "edit", "update", "改一下"},
+    Op.DELETE: {"删除", "移除", "去掉", "删", "delete", "remove", "取消关注", "停用",
+                "关闭", "取消", "删掉"},
+    Op.RUN:    {"立即触发", "立刻触发", "马上触发", "立即执行", "立刻执行",
+                "立刻", "马上", "现在跑", "now-run", "trigger", "fire"},
+}
+
+
+def classify(message: str) -> tuple[Intent, Op]:
+    """§P3-3 — entity × op classifier.
+
+    Returns ``(intent, op)``. Order of detection:
+
+    1. Entity keywords (``笔记`` / ``关注`` / ``定时`` etc.) — wins over
+       the legacy read-only intent keywords (e.g. a message that says
+       "列出我的笔记" → NOTE/LIST, not QUOTE).
+    2. Op keywords inside the same message (``新建`` → CREATE,
+       ``删除`` → DELETE, ``跑`` → RUN, ...). If no verb matches,
+       falls back to the entity's default op (LIST for every CRUD
+       entity).
+    3. If no entity keyword matched, falls back to :func:`classify_intent`
+       (legacy QUOTE / NEWS / ANALYSIS / ... classifier) and pairs it
+       with ``Op.READ`` since the legacy intents are read-only.
+    """
+    text = (message or "").lower()
+
+    # 1. Entity detection
+    for intent, (kws, default_op) in _ENTITY_KW.items():
+        if any(kw in text for kw in kws):
+            # 2. Verb detection inside the entity match
+            for op, vkws in _OP_KW.items():
+                if any(vk in text for vk in vkws):
+                    return intent, op
+            return intent, default_op
+
+    # 3. Legacy fallback (read-only intents like QUOTE / NEWS / ANALYSIS)
+    legacy = classify_intent(message)
+    return legacy, Op.READ
+
+
 def classify_intent(message: str) -> Intent:
-    """Map ``message`` to an :class:`Intent` enum (best-effort keyword)."""
+    """Map ``message`` to an :class:`Intent` enum (best-effort keyword).
+
+    Kept for backward compatibility with callers that only want the
+    entity-level intent. New code should use :func:`classify` which
+    also returns the :class:`Op` discriminator.
+    """
     if _hit(_TIER1_KEYWORDS, message):
         return Intent.QUOTE
     if _hit({"新闻", "消息", "news"}, message):
@@ -134,6 +226,40 @@ def classify_intent(message: str) -> Intent:
     if _hit(_TIER2_KEYWORDS, message):
         return Intent.COMPARE
     return Intent.UNKNOWN
+
+
+def fast_route_with_op(message: str) -> tuple[RouteResult, Op]:
+    """Single-shot tier + entity/op. See :func:`fast_route` for the
+    entity-only variant. Adds Op to the result tuple so callers that
+    want CRUD verb awareness (orchestrator's _CRUD_DISPATCH) don't have
+    to re-parse the user message."""
+    intent, op = classify(message)
+    # §P3-3 — always pull symbols from the message so CRUD dispatch
+    # args factories (e.g. _watchlist_crud_args / _alert_create_args /
+    # _scheduled_create_args / _run_create_args) can populate their
+    # ``symbol`` field from the user message. Even when route.tier is
+    # DIRECT (CRUD reads/lists), the short_circuit may want to show
+    # which symbol(s) the user mentioned.
+    symbols = extract_symbols(message)
+    # Tier 1 short-circuit for read-only data queries + CRUD reads/lists.
+    # CRUD writes (CREATE/UPDATE/DELETE) need symbols/args from the
+    # user_message and are left to the orchestrator's plan layer.
+    if intent in (Intent.WATCHLIST, Intent.NOTE, Intent.ALERT,
+                  Intent.SCHEDULED, Intent.RUN, Intent.REPORT):
+        # Tier 1 read paths can be served by the short-circuit; write
+        # paths fall through to PLAN_EXECUTE where the dispatch table
+        # decides which tool to invoke.
+        if op in (Op.LIST, Op.READ):
+            return RouteResult(
+                intent=intent, tier=Tier.DIRECT, symbols=symbols,
+                confidence=0.85, reason=f"{intent.value}+{op.value} → Tier 1",
+            ), op
+        return RouteResult(
+            intent=intent, tier=Tier.PLAN_EXECUTE, symbols=symbols,
+            confidence=0.8, reason=f"{intent.value}+{op.value} → Tier 2",
+        ), op
+    # Fall through to the legacy single-shot route for the read-only intents.
+    return fast_route(message), op
 
 
 def fast_route(message: str) -> RouteResult:

@@ -45,7 +45,7 @@ from .harness_checkpoint import (
     NODE_VERIFYING,
 )
 from .short_circuit import ShortCircuit
-from .tier import Intent, RouteResult, Tier, fast_route, maybe_degrade_to_tier1
+from .tier import Intent, Op, RouteResult, Tier, fast_route, fast_route_with_op, maybe_degrade_to_tier1
 from .verification import VerificationLevel, Verifier
 
 LOGGER = logging.getLogger(__name__)
@@ -102,6 +102,10 @@ class OrchestratorState:
     # ``symbols`` so the planner can choose to use only the explicit ones.
     carry_symbols: list[str] = field(default_factory=list)
     prior_user_msg: str | None = None
+    # §P3-3 — verb discriminator paired with ``intent``. Set from
+    # :func:`tier.classify`. Together they pin the user's CRUD action
+    # down to a single (entity, op) cell in the _CRUD_DISPATCH table.
+    op: Any | None = None  # tradingagents.agent_harness.core.tier.Op
     plan: list[dict[str, Any]] | dict[str, Any] = field(default_factory=list)
     tool_results: list[dict[str, Any]] = field(default_factory=list)
     final: Any = None
@@ -115,6 +119,114 @@ class OrchestratorState:
     turn: Any = None
     current_step_id: int = 0
     current_step_started_at: float = 0.0
+
+
+# ---------------------------------------------------------------------------
+# §P3-3 — CRUD args factories
+# ---------------------------------------------------------------------------
+# These small functions take an OrchestratorState and return the args dict
+# for the tool that the _CRUD_DISPATCH table selects. They are module-level
+# (not methods) so they can be referenced from the dispatch dict literally
+# without binding ``self``.
+
+def _watchlist_crud_args(state: Any) -> dict[str, Any]:
+    """watchlist create/delete needs (symbol, asset_type). Use the first
+    explicit or carry-forward symbol."""
+    syms = list(state.symbols or [])
+    if not syms:
+        return {"symbol": "", "asset_type": "stock"}
+    return {"symbol": syms[0], "asset_type": "stock"}
+
+
+def _note_create_args(state: Any) -> dict[str, Any]:
+    """create_note: pull (title, content) from the user message. For now
+    uses the raw message as the body and an empty title; LLM-backed plan
+    generation can refine these later."""
+    msg = state.user_message or ""
+    return {"symbol": "", "body_md": msg, "asset_type": "stock"}
+
+
+def _note_id_args(state: Any) -> dict[str, Any]:
+    """update_note / delete_note: extract the first note_id-looking token
+    (``note-xxx`` or just digits) from the user message. Falls back to an
+    empty string so the tool reports its own error."""
+    import re as _re
+    msg = state.user_message or ""
+    m = _re.search(r"note-[A-Za-z0-9_-]+", msg)
+    if m:
+        return {"note_id": m.group(0)}
+    return {"note_id": ""}
+
+
+def _alert_create_args(state: Any) -> dict[str, Any]:
+    """create_alert: pull (symbol, kind, params) from state. Default to a
+    simple price alert on the first carry-forward symbol."""
+    syms = list(state.symbols or [])
+    sym = syms[0] if syms else ""
+    return {
+        "symbol": sym,
+        "kind": "price",
+        "params": {"threshold": 0.0},
+        "asset_type": "stock",
+    }
+
+
+def _alert_id_args(state: Any) -> dict[str, Any]:
+    import re as _re
+    msg = state.user_message or ""
+    m = _re.search(r"alert-[A-Za-z0-9_-]+", msg)
+    if m:
+        return {"alert_id": m.group(0)}
+    return {"alert_id": ""}
+
+
+def _scheduled_create_args(state: Any) -> dict[str, Any]:
+    """create_scheduled_task: build minimal args from the message. Real
+    cron / symbol extraction is left to LLM-backed plan refinement."""
+    syms = list(state.symbols or [])
+    return {
+        "symbol": syms[0] if syms else "",
+        "asset_type": "stock",
+        "cron_expression": "0 9 * * 1-5",  # weekdays 09:00 — sensible default
+        "timezone": "Asia/Shanghai",
+    }
+
+
+def _scheduled_id_args(state: Any) -> dict[str, Any]:
+    import re as _re
+    msg = state.user_message or ""
+    m = _re.search(r"job-[A-Za-z0-9_-]+", msg)
+    if m:
+        return {"job_id": m.group(0)}
+    return {"job_id": ""}
+
+
+def _run_create_args(state: Any) -> dict[str, Any]:
+    syms = list(state.symbols or [])
+    return {
+        "symbol": syms[0] if syms else "",
+        "trade_date": "",
+        "asset_type": "stock",
+        "research_depth": 1,
+    }
+
+
+def _run_id_args(state: Any) -> dict[str, Any]:
+    import re as _re
+    msg = state.user_message or ""
+    m = _re.search(r"run-[A-Za-z0-9_-]+", msg)
+    if m:
+        return {"run_id": m.group(0)}
+    return {"run_id": ""}
+
+
+def _report_id_args(state: Any) -> dict[str, Any]:
+    import re as _re
+    msg = state.user_message or ""
+    m = _re.search(r"report-[A-Za-z0-9_-]+", msg)
+    if m:
+        return {"report_id": m.group(0)}
+    return {"report_id": ""}
 
 
 class Orchestrator:
@@ -279,7 +391,27 @@ class Orchestrator:
         history: list | None = None,
     ) -> AsyncIterator[tuple[str, dict]]:
         """Top-level orchestration. Yields SSE-shaped ``(event, payload)``."""
-        route = fast_route(user_message)
+        # §P3-3 — use the entity × op classifier for tier routing too
+        # (not just for state.op).  Without this, fast_route() sees a
+        # CRUD entity keyword like '关注' / '笔记' / '定时' and forces
+        # Tier 1 DIRECT (because legacy classify_intent returns
+        # WATCHLIST/NOTE/SCHEDULED for those keywords), which means
+        # CRUD writes (add_to_watchlist / create_note / ...) never
+        # reach the dispatch table — they hit the short_circuit which
+        # only knows list_watchlist / list_scheduled_tasks.
+        #
+        # fast_route_with_op() routes READ/LIST → Tier 1 (short-circuit
+        # works fine for those) and CREATE/UPDATE/DELETE/RUN → Tier 2
+        # PLAN_EXECUTE so _plan() can dispatch via _CRUD_DISPATCH.
+        from .tier import classify as _classify, fast_route_with_op
+        intent, op = _classify(user_message)
+        route, op_from_route = fast_route_with_op(user_message)
+        # Reconcile: state.op comes from classify() (more precise for
+        # our 8-case vocabulary); the route's op matches but keep both
+        # for backward compat with tests that inspect state.op directly.
+        assert op == op_from_route or op_from_route in (Op.LIST, Op.READ) or op in (Op.LIST, Op.READ), \
+            f"classify vs fast_route_with_op disagree: {op} vs {op_from_route}"
+        del op_from_route
         # §7.2 #1: degrade Tier 2/3 → Tier 1 when LLM is unavailable
         # (no factory wired, factory not configured, or circuit open).
         # Keeps symbols so short_circuit can serve, forces intent=QUOTE.
@@ -349,6 +481,7 @@ class Orchestrator:
             symbols=effective_symbols,
             carry_symbols=carry_symbols,
             prior_user_msg=session_ctx.get("user_msg"),
+            op=op,
         )
 
         # Session lifecycle (roadmap A2): auto-create or update metadata.
@@ -790,6 +923,81 @@ class Orchestrator:
     # ------------------------------------------------------------------
     # 5 nodes
     # ------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    # §P3-3 — CRUD dispatch table
+    # ------------------------------------------------------------------
+    # Maps every (entity_intent, op) pair the orchestrator should be able
+    # to serve directly to (tool_name, args_factory). The args factory
+    # receives the OrchestratorState so it can pull symbols / carry-forward
+    # / user message into the tool's required args shape.
+    #
+    # Adding a new CRUD entity = add ONE line here + register the tool +
+    # extend _ENTITY_KW / _OP_KW in tier.py. No plan-layer changes.
+    from .tier import Intent as _Intent, Op as _Op
+    _CRUD_DISPATCH: dict[tuple[Any, Any], tuple[str, Any]] = {
+        # watchlist: no UPDATE — items are only added/removed/reordered
+        (_Intent.WATCHLIST, _Op.LIST):   ("list_watchlist",        lambda s: {}),
+        (_Intent.WATCHLIST, _Op.READ):   ("list_watchlist",        lambda s: {}),
+        (_Intent.WATCHLIST, _Op.CREATE): ("add_to_watchlist",      lambda s: _watchlist_crud_args(s)),
+        (_Intent.WATCHLIST, _Op.DELETE): ("remove_from_watchlist", lambda s: _watchlist_crud_args(s)),
+        # note: list / create / update / delete
+        (_Intent.NOTE, _Op.LIST):   ("list_notes",   lambda s: {}),
+        (_Intent.NOTE, _Op.READ):   ("list_notes",   lambda s: {}),
+        (_Intent.NOTE, _Op.CREATE): ("create_note",  lambda s: _note_create_args(s)),
+        (_Intent.NOTE, _Op.UPDATE): ("update_note",  lambda s: _note_id_args(s)),
+        (_Intent.NOTE, _Op.DELETE): ("delete_note",  lambda s: _note_id_args(s)),
+        # alert: list / create / update / delete
+        (_Intent.ALERT, _Op.LIST):   ("list_alerts",     lambda s: {}),
+        (_Intent.ALERT, _Op.READ):   ("list_alerts",     lambda s: {}),
+        (_Intent.ALERT, _Op.CREATE): ("create_alert",    lambda s: _alert_create_args(s)),
+        (_Intent.ALERT, _Op.UPDATE): ("update_alert",    lambda s: _alert_id_args(s)),
+        (_Intent.ALERT, _Op.DELETE): ("delete_alert",    lambda s: _alert_id_args(s)),
+        # scheduled: list / create / update / delete / run-now
+        (_Intent.SCHEDULED, _Op.LIST):   ("list_scheduled_tasks",     lambda s: {}),
+        (_Intent.SCHEDULED, _Op.READ):   ("list_scheduled_tasks",     lambda s: {}),
+        (_Intent.SCHEDULED, _Op.CREATE): ("create_scheduled_task",    lambda s: _scheduled_create_args(s)),
+        (_Intent.SCHEDULED, _Op.UPDATE): ("update_scheduled_task",    lambda s: _scheduled_id_args(s)),
+        (_Intent.SCHEDULED, _Op.DELETE): ("delete_scheduled_task",    lambda s: _scheduled_id_args(s)),
+        (_Intent.SCHEDULED, _Op.RUN):    ("run_scheduled_task",       lambda s: _scheduled_id_args(s)),
+        # run (analysis): create / list / read / cancel
+        (_Intent.RUN, _Op.LIST):   ("list_runs",              lambda s: {}),
+        (_Intent.RUN, _Op.READ):   ("get_analysis_status",    lambda s: _run_id_args(s)),
+        (_Intent.RUN, _Op.CREATE): ("run_trading_agents_analysis", lambda s: _run_create_args(s)),
+        (_Intent.RUN, _Op.DELETE): ("cancel_analysis_run",    lambda s: _run_id_args(s)),
+        # report: list / read
+        (_Intent.REPORT, _Op.LIST): ("list_reports", lambda s: {}),
+        (_Intent.REPORT, _Op.READ): ("get_report",   lambda s: _report_id_args(s)),
+    }
+
+    @staticmethod
+    def _crud_plan_for_state(state: OrchestratorState) -> list[dict[str, Any]]:
+        """§P3-3 — single dispatch entry for CRUD (entity, op) pairs.
+
+        Returns a one-step plan ``[{"step": 1, "action": <tool>, "args": ...}]``
+        when ``(state.intent, state.op)`` is in :pyattr:`_CRUD_DISPATCH`,
+        otherwise an empty list so the caller falls back to the legacy
+        data-only heuristic plan. The args factory has access to the
+        full OrchestratorState (carry_symbols, user_message, prior_turn)
+        so it can build the right arg shape per tool.
+
+        staticmethod so tests can call it without instantiating the
+        full Orchestrator (which has heavy collaborators). The dispatch
+        table is class-level so the function doesn't need ``self``.
+        """
+        if state.op is None or state.intent is None:
+            return []
+        key = (state.intent, state.op)
+        spec = Orchestrator._CRUD_DISPATCH.get(key)
+        if spec is None:
+            return []
+        action, args_fn = spec
+        try:
+            args = args_fn(state) or {}
+        except Exception as e:
+            LOGGER.warning("CRUD args factory failed for %s: %s", key, e)
+            return []
+        return [{"step": 1, "action": action, "args": dict(args)}]
+
     async def _plan(self, state: OrchestratorState, context: ToolContext) -> list[dict[str, Any]]:
         """PlanNode — turn ``state.user_message`` into a JSON plan.
 
@@ -802,6 +1010,10 @@ class Orchestrator:
         within the last 5 minutes short-circuits the LLM and returns the
         cached plan.  The cache is also populated by every successful
         generation (LLM or heuristic) so the next hit is free.
+
+        §P3-3: CRUD entities (WATCHLIST / NOTE / ALERT / SCHEDULED /
+        RUN / REPORT) with a recognised ``state.op`` are dispatched via
+        ``self._CRUD_DISPATCH`` (one place; no per-entity branches).
         """
         cached = self.plan_cache.get(state.user_message)
         if cached is not None:
@@ -843,21 +1055,14 @@ class Orchestrator:
                 "action": "get_fundamentals",
                 "args": {"symbol": state.symbols[0]},
             })
-        # §P3-2 — watchlist intent + symbols means the user wants the
-        # asset added (or removed). Pre-plan an add_to_watchlist step so
-        # the synthesizer can report the actual write result (the LLM
-        # synthesize path uses plain text completion and has no
-        # function-calling schema, so the write MUST run during _execute
-        # for the user to see persistence confirmation).
-        if state.intent == Intent.WATCHLIST and state.symbols:
-            insert_at = len(plan) + 1
-            for sym in state.symbols:
-                plan.append({
-                    "step": insert_at,
-                    "action": "add_to_watchlist",
-                    "args": {"symbol": sym, "asset_type": "stock"},
-                })
-                insert_at += 1
+        # §P3-3 — single CRUD dispatch (replaces the §P3-2 WATCHLIST
+        # special branch). If (state.intent, state.op) maps to a tool,
+        # return a one-step plan so the synthesizer reports the actual
+        # write result. Otherwise leave the data-only plan as-is.
+        crud_plan = self._crud_plan_for_state(state)
+        if crud_plan:
+            self.plan_cache.put(state.user_message, crud_plan)
+            return crud_plan
         # Cache the heuristic plan so the next identical query reuses it
         # without going through _plan again.
         self.plan_cache.put(state.user_message, plan)

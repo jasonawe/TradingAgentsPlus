@@ -486,6 +486,98 @@ class DeleteNoteArgs(BaseModel):
     note_id: str
 
 
+# §P3-3 — CRUD args schemas for the entities the dispatch table covers
+# (note / alert / scheduled / run / report).
+
+
+class ListNotesArgs(BaseModel):
+    symbol: Optional[str] = None
+    limit: int = 50
+
+
+class ListNotesResult(BaseModel):
+    text: str
+    count: int = 0
+
+
+class ListAlertsArgs(BaseModel):
+    symbol: Optional[str] = None
+    include_disabled: bool = False
+    limit: int = 50
+
+
+class ListAlertsResult(BaseModel):
+    text: str
+    count: int = 0
+
+
+class CreateScheduledTaskArgs(BaseModel):
+    symbol: str
+    asset_type: Literal["stock", "crypto"] = "stock"
+    cron_expression: str = "0 9 * * 1-5"
+    enabled: bool = True
+    note: Optional[str] = None
+    scope: str = "user"
+
+
+class UpdateScheduledTaskArgs(BaseModel):
+    job_id: str
+    cron_expression: Optional[str] = None
+    enabled: Optional[bool] = None
+    note: Optional[str] = None
+    scope: str = "user"
+
+
+class DeleteScheduledTaskArgs(BaseModel):
+    job_id: str
+    scope: str = "user"
+
+
+class RunScheduledTaskArgs(BaseModel):
+    job_id: str
+
+
+class RunTradingAgentsAnalysisArgs(BaseModel):
+    symbol: str
+    trade_date: Optional[str] = None
+    asset_type: Literal["stock", "crypto"] = "stock"
+    research_depth: int = 1
+    scope: str = "user"
+
+
+class GetAnalysisStatusArgs(BaseModel):
+    run_id: str
+
+
+class CancelAnalysisRunArgs(BaseModel):
+    run_id: str
+    scope: str = "user"
+
+
+class ListRunsArgs(BaseModel):
+    status: Optional[str] = None
+    limit: int = 20
+
+
+class ListRunsResult(BaseModel):
+    text: str
+    count: int = 0
+
+
+class ListReportsArgs(BaseModel):
+    symbol: Optional[str] = None
+    limit: int = 20
+
+
+class ListReportsResult(BaseModel):
+    text: str
+    count: int = 0
+
+
+class GetReportArgs(BaseModel):
+    report_id: str
+
+
 class AddToWatchlistArgs(BaseModel):
     """Schema for add_to_watchlist."""
 
@@ -889,6 +981,211 @@ async def list_scheduled_tasks(args=None, context=None):
     return ListScheduledTasksResult(text=text, count=count)
 
 
+# §P3-3 — wrapper functions for the 9 new builtin tools (entity × op
+# dispatch table references them; these wrap the LangChain @tool
+# implementations in tools_bridge so the ToolRegistry can invoke them
+# through the unified permission / pipeline path).
+
+
+async def list_notes(args: ListNotesArgs | None = None, context=None):
+    from tradingagents.agents.general.tools_bridge import list_notes as bridge
+    cfg = {"configurable": {"thread_id": context.session_id if context else "default"}}
+    payload = {} if args is None else {
+        "symbol": getattr(args, "symbol", None) or "",
+        "limit": getattr(args, "limit", 50) or 50,
+    }
+    try:
+        text = await bridge.ainvoke(payload, config=cfg)
+    except Exception as e:
+        return ListNotesResult(text=f"ERROR: {type(e).__name__}: {e}", count=0)
+    return ListNotesResult(text=text, count=_parse_count_from_text(text))
+
+
+async def list_alerts(args: ListAlertsArgs | None = None, context=None):
+    from tradingagents.agents.general.tools_bridge import list_alerts as bridge
+    cfg = {"configurable": {"thread_id": context.session_id if context else "default"}}
+    payload = {} if args is None else {
+        "symbol": getattr(args, "symbol", None) or "",
+        "include_disabled": bool(getattr(args, "include_disabled", False)),
+        "limit": getattr(args, "limit", 50) or 50,
+    }
+    try:
+        text = await bridge.ainvoke(payload, config=cfg)
+    except Exception as e:
+        return ListAlertsResult(text=f"ERROR: {type(e).__name__}: {e}", count=0)
+    return ListAlertsResult(text=text, count=_parse_count_from_text(text))
+
+
+async def list_runs(args: ListRunsArgs | None = None, context=None):
+    from tradingagents.agents.general.tools_bridge import list_runs as bridge
+    cfg = {"configurable": {"thread_id": context.session_id if context else "default"}}
+    payload = {} if args is None else {
+        "status": getattr(args, "status", None) or "",
+        "limit": getattr(args, "limit", 20) or 20,
+    }
+    try:
+        text = await bridge.ainvoke(payload, config=cfg)
+    except Exception as e:
+        return ListRunsResult(text=f"ERROR: {type(e).__name__}: {e}", count=0)
+    return ListRunsResult(text=text, count=_parse_count_from_text(text))
+
+
+async def list_reports(args: ListReportsArgs | None = None, context=None):
+    from tradingagents.agents.general.tools_bridge import list_reports as bridge
+    cfg = {"configurable": {"thread_id": context.session_id if context else "default"}}
+    payload = {} if args is None else {
+        "symbol": getattr(args, "symbol", None) or "",
+        "limit": getattr(args, "limit", 20) or 20,
+    }
+    try:
+        text = await bridge.ainvoke(payload, config=cfg)
+    except Exception as e:
+        return ListReportsResult(text=f"ERROR: {type(e).__name__}: {e}", count=0)
+    return ListReportsResult(text=text, count=_parse_count_from_text(text))
+
+
+async def get_report(args: GetReportArgs, context=None):
+    from tradingagents.agents.general.tools_bridge import get_report as bridge
+    cfg = {"configurable": {"thread_id": context.session_id if context else "default"}}
+    try:
+        text = await bridge.ainvoke({"report_id": args.report_id}, config=cfg)
+    except Exception as e:
+        return {"status": "error", "raw": f"ERROR: {type(e).__name__}: {e}"}
+    return {"status": "ok", "text": text}
+
+
+async def run_scheduled_task(args: RunScheduledTaskArgs, context=None):
+    """§Trigger a scheduled task immediately — bridge wrapper.
+
+    Note: this is a read-style 'fire-and-report' invocation, not a
+    mutation, so it does NOT go through HITL.
+    """
+    from tradingagents.agents.general.tools_bridge import run_scheduled_task as bridge
+    cfg = {"configurable": {"thread_id": context.session_id if context else "default"}}
+    try:
+        text = await bridge.ainvoke({"job_id": args.job_id}, config=cfg)
+    except Exception as e:
+        return {"status": "error", "raw": f"ERROR: {type(e).__name__}: {e}"}
+    return {"status": "ok", "text": text}
+
+
+async def run_trading_agents_analysis(args: RunTradingAgentsAnalysisArgs, context=None):
+    """Start a TradingAgents run — read-style fire-and-return."""
+    from tradingagents.agents.general.tools_bridge import run_trading_agents_analysis as bridge
+    payload = {
+        "symbol": args.symbol,
+        "trade_date": args.trade_date or "",
+        "asset_type": args.asset_type,
+        "research_depth": int(args.research_depth or 1),
+    }
+    try:
+        text = await bridge.ainvoke(payload)
+    except Exception as e:
+        return {"status": "error", "raw": f"ERROR: {type(e).__name__}: {e}"}
+    return {"status": "ok", "text": text}
+
+
+async def get_analysis_status(args: GetAnalysisStatusArgs, context=None):
+    from tradingagents.agents.general.tools_bridge import get_analysis_status as bridge
+    try:
+        text = await bridge.ainvoke({"run_id": args.run_id})
+    except Exception as e:
+        return {"status": "error", "raw": f"ERROR: {type(e).__name__}: {e}"}
+    return {"status": "ok", "text": text}
+
+
+async def cancel_analysis_run(args: CancelAnalysisRunArgs, context=None):
+    """Cancel a run — no HITL (idempotent, server-side cooperative flag)."""
+    from tradingagents.agents.general.tools_bridge import cancel_analysis_run as bridge
+    try:
+        text = await bridge.ainvoke({"run_id": args.run_id})
+    except Exception as e:
+        return {"status": "error", "raw": f"ERROR: {type(e).__name__}: {e}"}
+    return {"status": "ok", "text": text}
+
+
+# §P3-3 — write tools (HITL). Mirror the create_alert / update_alert /
+# delete_alert pattern: gate via _hitl_gate, mutate via the repository,
+# consume via _hitl_consume.
+
+async def create_scheduled_task(args: CreateScheduledTaskArgs, context):
+    """Create a scheduled task via ScheduledJobRepository + HITL gate."""
+    from tradingagents.agents.general.tools_bridge import _get_repo
+    import json as _json
+
+    tool_args = {
+        "symbol": args.symbol, "asset_type": args.asset_type,
+        "cron_expression": args.cron_expression,
+        "enabled": bool(args.enabled), "note": args.note or "",
+    }
+    gate = await _hitl_gate(context.session_id, "create_scheduled_task", tool_args)
+    if gate is not None:
+        return {
+            "status": "pending_approval",
+            "raw": "AWAITING_CONFIRMATION: " + _json.dumps(gate, ensure_ascii=False),
+            "gate": gate,
+        }
+    try:
+        repo = _get_repo("scheduled_jobs")
+        job = repo.create(
+            symbol=args.symbol, asset_type=args.asset_type,
+            cron_expression=args.cron_expression, enabled=bool(args.enabled),
+            note=args.note,
+        )
+        await _hitl_consume(context.session_id, "create_scheduled_task", tool_args)
+        return {
+            "status": "created",
+            "raw": "SCHEDULED_CREATED: " + _json.dumps(
+                {"id": job.get("id"), "symbol": job.get("symbol"),
+                 "cron": job.get("cron_expression")},
+                ensure_ascii=False,
+            ),
+        }
+    except Exception as e:
+        return {"status": "error", "raw": f"ERROR: {type(e).__name__}: {e}"}
+
+
+async def update_scheduled_task(args: UpdateScheduledTaskArgs, context):
+    """Update a scheduled task by ID — only non-None fields are applied."""
+    from tradingagents.agents.general.tools_bridge import update_scheduled_task as bridge
+    payload: dict = {"job_id": args.job_id}
+    if args.cron_expression is not None:
+        payload["cron_expression"] = args.cron_expression
+    if args.enabled is not None:
+        payload["enabled"] = bool(args.enabled)
+    if args.note is not None:
+        payload["note"] = args.note
+    return await _invoke_bridge(bridge, payload, context)
+
+
+async def delete_scheduled_task(args: DeleteScheduledTaskArgs, context):
+    from tradingagents.agents.general.tools_bridge import delete_scheduled_task as bridge
+    return await _invoke_bridge(bridge, {"job_id": args.job_id}, context)
+
+
+def _parse_count_from_text(text: str) -> int:
+    """Best-effort count extraction from a markdown-table response.
+
+    Looks for the '共 N 条/个' prefix and returns N. Falls back to 0
+    on any mismatch — callers should not rely on this for decisions,
+    only for surface-level telemetry.
+    """
+    if not text:
+        return 0
+    try:
+        import re as _re
+        m = _re.search(r"共\s+(\d+)", text)
+        if m:
+            return int(m.group(1))
+        # try JSON list
+        import json as _json
+        parsed = _json.loads(text)
+        if isinstance(parsed, list):
+            return len(parsed)
+    except Exception:
+        return 0
+    return 0
+
 
 # ----------------------------------------------------------------------
 # Tool registry — one place to wire every builtin tool
@@ -1071,5 +1368,117 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
     )(delete_note)
+
+    # §P3-3 — read tools that fill gaps in the entity × op dispatch
+    # (note / alert / scheduled / run / report).
+    registry.register(
+        name="list_notes",
+        description="List the user's notes (optional ticker filter).",
+        args_schema=ListNotesArgs,
+        result_schema=ListNotesResult,
+        permission=PermissionType.READ,
+    )(list_notes)
+
+    registry.register(
+        name="list_alerts",
+        description="List the user's alerts (optional ticker / disabled filter).",
+        args_schema=ListAlertsArgs,
+        result_schema=ListAlertsResult,
+        permission=PermissionType.READ,
+    )(list_alerts)
+
+    registry.register(
+        name="list_runs",
+        description="List historical analysis runs (optional status filter).",
+        args_schema=ListRunsArgs,
+        result_schema=ListRunsResult,
+        permission=PermissionType.READ,
+    )(list_runs)
+
+    registry.register(
+        name="list_reports",
+        description="List historical analysis reports (optional ticker filter).",
+        args_schema=ListReportsArgs,
+        result_schema=ListReportsResult,
+        permission=PermissionType.READ,
+    )(list_reports)
+
+    registry.register(
+        name="get_report",
+        description="Read one analysis report's full markdown + metadata by ID.",
+        args_schema=GetReportArgs,
+        result_schema=dict,
+        permission=PermissionType.READ,
+    )(get_report)
+
+    # §P3-3 — read-style 'fire-and-report' tools (no HITL; run returns
+    # run_id + initial status, doesn't block waiting for completion).
+    registry.register(
+        name="run_trading_agents_analysis",
+        description=(
+            "Start a TradingAgents analysis run. Returns run_id immediately "
+            "(does not block). Use get_analysis_status to poll progress and "
+            "list_reports once status=completed."
+        ),
+        args_schema=RunTradingAgentsAnalysisArgs,
+        result_schema=dict,
+        permission=PermissionType.WRITE,
+    )(run_trading_agents_analysis)
+
+    registry.register(
+        name="get_analysis_status",
+        description="Poll the status of one analysis run by ID.",
+        args_schema=GetAnalysisStatusArgs,
+        result_schema=dict,
+        permission=PermissionType.READ,
+    )(get_analysis_status)
+
+    registry.register(
+        name="cancel_analysis_run",
+        description=(
+            "Cooperative cancel of a queued/running analysis run. "
+            "Idempotent — no HITL required."
+        ),
+        args_schema=CancelAnalysisRunArgs,
+        result_schema=dict,
+        permission=PermissionType.WRITE,
+    )(cancel_analysis_run)
+
+    registry.register(
+        name="run_scheduled_task",
+        description="Immediately fire a scheduled task (do not wait for cron).",
+        args_schema=RunScheduledTaskArgs,
+        result_schema=dict,
+        permission=PermissionType.WRITE,
+    )(run_scheduled_task)
+
+    # §P3-3 — write tools (HITL). Mirror create_alert / update_alert /
+    # delete_alert.
+    registry.register(
+        name="create_scheduled_task",
+        description=(
+            "Create a scheduled analysis task (HITL; real impl via "
+            "tools_bridge)."
+        ),
+        args_schema=CreateScheduledTaskArgs,
+        result_schema=dict,
+        permission=PermissionType.WRITE,
+    )(create_scheduled_task)
+
+    registry.register(
+        name="update_scheduled_task",
+        description="Update an existing scheduled task by ID (HITL).",
+        args_schema=UpdateScheduledTaskArgs,
+        result_schema=dict,
+        permission=PermissionType.WRITE,
+    )(update_scheduled_task)
+
+    registry.register(
+        name="delete_scheduled_task",
+        description="Delete a scheduled task by ID (HITL; hard delete).",
+        args_schema=DeleteScheduledTaskArgs,
+        result_schema=dict,
+        permission=PermissionType.WRITE,
+    )(delete_scheduled_task)
 
 

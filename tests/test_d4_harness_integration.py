@@ -17,13 +17,18 @@ from tradingagents.agent_harness.harness import Harness  # noqa: E402
 from tradingagents.agent_harness.tools import PermissionType  # noqa: E402
 
 
-def test_harness_initializes_with_19_tools() -> None:
+def test_harness_initializes_with_30_tools() -> None:
+    # §P3-3 — 18 (10 read + 8 write) + 12 new (list_notes / list_alerts /
+    # list_runs / list_reports / get_report / get_analysis_status /
+    # run_trading_agents_analysis / cancel_analysis_run /
+    # run_scheduled_task + create_scheduled_task / update_scheduled_task /
+    # delete_scheduled_task) = 30 tools.
     h = Harness(HarnessConfig.from_env())
-    assert len(h.list_tools()) == 19
+    assert len(h.list_tools()) == 30
     reads = [t for t in h.list_tools() if t.permission == PermissionType.READ]
     writes = [t for t in h.list_tools() if t.permission == PermissionType.WRITE]
-    assert len(reads) == 10
-    assert len(writes) == 9
+    assert len(reads) == 16
+    assert len(writes) == 14
 
 
 def test_harness_get_tool() -> None:
