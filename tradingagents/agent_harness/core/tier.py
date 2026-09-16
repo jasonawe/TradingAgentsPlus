@@ -279,7 +279,16 @@ def fast_route_with_op(message: str) -> tuple[RouteResult, Op]:
     """Single-shot tier + entity/op. See :func:`fast_route` for the
     entity-only variant. Adds Op to the result tuple so callers that
     want CRUD verb awareness (orchestrator's _CRUD_DISPATCH) don't have
-    to re-parse the user message."""
+    to re-parse the user message.
+
+    §P3-3+: when ``classify_multi`` detects 2+ CRUD pairs in the same
+    message (e.g. "看看告警和笔记", "列出笔记和关注"), the single-tool
+    Tier 1 short-circuit cannot serve them all — ShortCircuit only
+    knows one tool per (intent, op) and silently drops the rest
+    ("no Tier 1 tool for intent=NOTE" warning, no tool_call emitted).
+    We force PLAN_EXECUTE in that case so the orchestrator's plan_node
+    fans out via ``_multi_crud_plan``.
+    """
     intent, op = classify(message)
     # §P3-3 — always pull symbols from the message so CRUD dispatch
     # args factories (e.g. _watchlist_crud_args / _alert_create_args /
@@ -288,9 +297,19 @@ def fast_route_with_op(message: str) -> tuple[RouteResult, Op]:
     # DIRECT (CRUD reads/lists), the short_circuit may want to show
     # which symbol(s) the user mentioned.
     symbols = extract_symbols(message)
+    multi_pairs = classify_multi(message)
+    multi_intent = len({(p[0], p[1]) for p in multi_pairs}) >= 2
     # Tier 1 short-circuit for read-only data queries + CRUD reads/lists.
     # CRUD writes (CREATE/UPDATE/DELETE) need symbols/args from the
     # user_message and are left to the orchestrator's plan layer.
+    # §P3-3+ — multi-intent CRUD queries skip Tier 1 entirely.
+    if multi_intent:
+        # Keep intent/op as the primary pair; tier bumps to PLAN_EXECUTE
+        # so _multi_crud_plan in _plan() can fan out to every pair.
+        return RouteResult(
+            intent=intent, tier=Tier.PLAN_EXECUTE, symbols=symbols,
+            confidence=0.85, reason=f"multi-intent ({len(multi_pairs)} pairs) -> Tier 2",
+        ), op
     if intent in (Intent.WATCHLIST, Intent.NOTE, Intent.ALERT,
                   Intent.SCHEDULED, Intent.RUN, Intent.REPORT):
         # Tier 1 read paths can be served by the short-circuit; write

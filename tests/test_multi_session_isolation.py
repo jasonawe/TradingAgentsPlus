@@ -685,3 +685,171 @@ class TestStreamChatMultiIntentE2E:
         names = asyncio.run(_go())
         assert names.count("list_notes") == 1, f"expected exactly 1 list_notes: {names}"
         assert "list_alerts" not in names, f"single-intent should not call list_alerts: {names}"
+
+
+
+# ---------------------------------------------------------------------------
+# §P3-3+ — intent whitelist hard-enforcement + focus-asset in synth prompt
+# ---------------------------------------------------------------------------
+
+
+class TestIntentWhitelistHardEnforcement:
+    """When LLM plan includes calls outside the intent's agent whitelist,
+    _enforce_intent_whitelist must strip them so the user doesn't get
+    noisy tools called (e.g. news/alpha on a valuation-only query)."""
+
+    def _orchestrator(self):
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        return Orchestrator.__new__(Orchestrator)
+
+    def _state(self, intent_value):
+        from dataclasses import dataclass, field
+        from typing import Any, List
+        @dataclass
+        class S:
+            intent: Any = None
+            symbols: List[str] = field(default_factory=list)
+            carry_symbols: List[str] = field(default_factory=list)
+        s = S()
+        s.intent = type("I", (), {"value": intent_value})()
+        return s
+
+    def test_analysis_intent_strips_news_and_alpha(self):
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        from tradingagents.agent_harness.core.tier import Intent
+        orch = self._orchestrator()
+        state = self._state("analysis")
+        state.intent = Intent.ANALYSIS
+        plan = {
+            "mode": "ptc",
+            "groups": [{
+                "id": "g1",
+                "calls": [
+                    {"agent": "data_agent", "args": {"symbol": "600036.SS"}},
+                    {"agent": "news_agent", "args": {"symbol": "600036.SS"}},
+                    {"agent": "alpha_agent", "args": {"symbol": "600036.SS"}},
+                ],
+            }],
+        }
+        out = orch._enforce_intent_whitelist(plan, state)
+        names = [c.get("agent") for c in out["groups"][0]["calls"]]
+        assert names == ["data_agent"], names
+
+    def test_compare_intent_keeps_data_agent_only(self):
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        from tradingagents.agent_harness.core.tier import Intent
+        orch = self._orchestrator()
+        state = self._state("compare")
+        state.intent = Intent.COMPARE
+        plan = [
+            {"step": 1, "action": "get_quote", "args": {"symbol": "600036.SS"}},
+            {"step": 2, "agent": "news_agent", "args": {"symbol": "600036.SS"}},
+        ]
+        out = orch._enforce_intent_whitelist(plan, state)
+        assert len(out) == 1
+        assert out[0]["action"] == "get_quote"
+
+    def test_news_intent_keeps_news_agent(self):
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        from tradingagents.agent_harness.core.tier import Intent
+        orch = self._orchestrator()
+        state = self._state("news")
+        state.intent = Intent.NEWS
+        plan = {
+            "mode": "ptc",
+            "groups": [{
+                "id": "g1",
+                "calls": [
+                    {"agent": "news_agent", "args": {"symbol": "600036.SS"}},
+                    {"agent": "alpha_agent", "args": {"symbol": "600036.SS"}},
+                ],
+            }],
+        }
+        out = orch._enforce_intent_whitelist(plan, state)
+        agents = [c.get("agent") for c in out["groups"][0]["calls"]]
+        assert agents == ["news_agent"]
+
+    def test_crud_intent_returns_plan_unchanged(self):
+        """CRUD intents (note / alert / watchlist / ...) have no
+        whitelist — dispatch table owns the routing."""
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        from tradingagents.agent_harness.core.tier import Intent
+        orch = self._orchestrator()
+        state = self._state("note")
+        state.intent = Intent.NOTE
+        plan = [{"step": 1, "action": "list_notes", "args": {}}]
+        out = orch._enforce_intent_whitelist(plan, state)
+        assert out == plan
+
+    def test_empty_group_after_strip_returns_empty_list(self):
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        from tradingagents.agent_harness.core.tier import Intent
+        orch = self._orchestrator()
+        state = self._state("quote")
+        state.intent = Intent.QUOTE
+        plan = {
+            "mode": "ptc",
+            "groups": [{
+                "id": "g1",
+                "calls": [
+                    {"agent": "news_agent", "args": {}},
+                    {"agent": "alpha_agent", "args": {}},
+                ],
+            }],
+        }
+        out = orch._enforce_intent_whitelist(plan, state)
+        assert out == []
+
+
+class TestSynthPromptFocusAssets:
+    """_build_synthesize_prompt must include the focus-asset block so the
+    LLM knows which symbol to scope list_notes / list_alerts to."""
+
+    def _state(self, symbols=(), carry=(), intent_value="note"):
+        from dataclasses import dataclass, field
+        from typing import Any, List
+        @dataclass
+        class S:
+            intent: Any = None
+            symbols: List[str] = field(default_factory=list)
+            carry_symbols: List[str] = field(default_factory=list)
+            user_message: str = "x"
+            tool_results: list = field(default_factory=list)
+        s = S()
+        s.intent = type("I", (), {"value": intent_value})()
+        s.symbols = list(symbols)
+        s.carry_symbols = list(carry)
+        s.user_message = "test"
+        return s
+
+    def test_carry_symbols_in_prompt(self):
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        orch = Orchestrator.__new__(Orchestrator)
+        state = self._state(carry=("600036.SS",), intent_value="note")
+        prompt = orch._build_synthesize_prompt(state)
+        assert "600036.SS" in prompt
+        assert "Carry-forward" in prompt or "carry" in prompt.lower()
+
+    def test_no_symbols_yields_placeholder(self):
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        orch = Orchestrator.__new__(Orchestrator)
+        state = self._state()
+        prompt = orch._build_synthesize_prompt(state)
+        assert "No symbols detected" in prompt
+
+    def test_explicit_symbol_in_prompt(self):
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        orch = Orchestrator.__new__(Orchestrator)
+        state = self._state(symbols=("NVDA",), intent_value="quote")
+        prompt = orch._build_synthesize_prompt(state)
+        assert "NVDA" in prompt
+        assert "Current-turn" in prompt
+
+    def test_prompt_instructs_not_to_ask_for_clarification(self):
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        orch = Orchestrator.__new__(Orchestrator)
+        state = self._state(carry=("600036.SS",), intent_value="note")
+        prompt = orch._build_synthesize_prompt(state)
+        # The synthesizer should NOT ask the user to clarify when the
+        # focus-asset hint already names the ticker.
+        assert "Do NOT ask the user to clarify" in prompt

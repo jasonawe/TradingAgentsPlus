@@ -1125,6 +1125,18 @@ class Orchestrator:
         cached = self.plan_cache.get(state.user_message)
         if cached is not None:
             return cached
+        # §P3-3+ — multi-intent CRUD dispatch BEFORE the LLM plan.
+        # The LLM doesn't know about list_notes / list_alerts / etc.
+        # (those are CRUD tools, not in the standard agent list), so
+        # for multi-intent CRUD queries ("看一下笔记和告警") the LLM
+        # would otherwise fall back to data_agent.get_quote and the
+        # user gets the wrong data. Check multi-CRUD first; if it
+        # resolves, return immediately so the LLM never sees this turn.
+        if getattr(state, "extra_crud_dispatch", None):
+            multi_plan = self._multi_crud_plan(state)
+            if multi_plan is not None:
+                self.plan_cache.put(state.user_message, multi_plan)
+                return multi_plan
         if self.llm_factory is not None:
             try:
                 plan = await self._llm_plan(state)
@@ -1162,14 +1174,7 @@ class Orchestrator:
                 "action": "get_fundamentals",
                 "args": {"symbol": state.symbols[0]},
             })
-        # §P3-3+ — multi-intent CRUD dispatch. When the user asks for
-        # 2+ entities ("看看告警和笔记", "列出笔记和关注"), expand to
-        # a parallel PTC plan so all read paths complete in one round.
-        if getattr(state, "extra_crud_dispatch", None):
-            multi_plan = self._multi_crud_plan(state)
-            if multi_plan is not None:
-                self.plan_cache.put(state.user_message, multi_plan)
-                return multi_plan
+        # (multi-CRUD is now checked BEFORE the LLM plan; see top of _plan)
         # §P3-3 — single CRUD dispatch (replaces the §P3-2 WATCHLIST
         # special branch). If (state.intent, state.op) maps to a tool,
         # return a one-step plan so the synthesizer reports the actual
@@ -1501,6 +1506,12 @@ class Orchestrator:
             response = provider.complete_text(prompt=prompt, system=self._PLAN_SYSTEM, temperature=0.0)
             content = getattr(response, "content", response)
             plan = self._parse_plan(content, state)
+            # §P3-3+ — hard-enforce intent whitelist. The system prompt
+            # encourages multi-source fan-out for B-class queries, so
+            # soft hints in the user prompt are routinely ignored. Strip
+            # any call whose agent / action is not in the whitelist
+            # computed by _build_plan_prompt before normalising.
+            plan = self._enforce_intent_whitelist(plan, state)
             # Normalise PTC so the executor doesn't need to (state.plan
             # and the consumed plan stay in sync).
             if isinstance(plan, dict) and plan.get("mode") == "ptc":
@@ -1586,6 +1597,105 @@ class Orchestrator:
             "\"this asset\" / \"the company\" / \"加入关注\" without a "
             "ticker, the carry-forward symbols are your anchor."
         )
+
+    _INTENT_AGENT_WHITELIST: dict[str, set[str]] = {
+        # Map Intent.value -> allowed agent names. None means: no
+        # whitelist (CRUD intents use the dispatch table, not agents).
+        "quote":      {"data_agent"},
+        "fundamentals": {"data_agent"},
+        "history":    {"data_agent"},
+        "news":       {"news_agent"},
+        "alpha":      {"alpha_agent"},
+        "compare":    {"data_agent"},
+        "analysis":   {"data_agent"},
+        "watchlist":  None, "note": None, "alert": None,
+        "scheduled":  None, "run": None, "report": None,
+    }
+
+    @staticmethod
+    def _agent_for_step(step: dict[str, Any]) -> str:
+        """Resolve the agent that would handle a plan step.
+
+        Returns the agent name string if the step has ``agent=...``,
+        else the action's owning agent (looked up via the inverse of
+        ``_resolve_action``'s first-tool mapping). Empty string when
+        neither resolves.
+        """
+        agent = (step.get("agent") or "").strip()
+        if agent:
+            return agent
+        action = (step.get("action") or step.get("name") or "").strip()
+        action_to_agent = {
+            "get_quote": "data_agent",
+            "get_history": "data_agent",
+            "get_fundamentals": "data_agent",
+            "get_news": "news_agent",
+            "list_alpha_factors": "alpha_agent",
+        }
+        return action_to_agent.get(action, "")
+
+    def _enforce_intent_whitelist(
+        self,
+        plan: Any,
+        state: OrchestratorState,
+    ) -> Any:
+        """Strip calls outside the intent's agent whitelist.
+
+        Returns the plan unchanged when:
+
+        - the intent has no whitelist (None), or
+        - the plan is empty / not a list / not a PTC dict.
+
+        For a sequential list, drops offending steps. For PTC, drops
+        offending calls within each group; if every call in a group is
+        dropped, the group is removed. Returns the (possibly smaller)
+        plan. Logged at INFO so the user / audit log sees what was
+        stripped.
+        """
+        intent_value = (
+            state.intent.value
+            if hasattr(state.intent, "value") else str(state.intent)
+        )
+        whitelist = self._INTENT_AGENT_WHITELIST.get(intent_value)
+        if whitelist is None:
+            return plan
+        if not plan:
+            return plan
+        if isinstance(plan, list):
+            kept = []
+            for step in plan:
+                agent = self._agent_for_step(step)
+                if not agent or agent in whitelist:
+                    kept.append(step)
+                else:
+                    LOGGER.info(
+                        "intent-whitelist stripped step agent=%s action=%s intent=%s",
+                        agent, step.get("action") or step.get("name"),
+                        intent_value,
+                    )
+            return kept
+        if isinstance(plan, dict) and plan.get("mode") == "ptc":
+            groups = list(plan.get("groups") or [])
+            new_groups = []
+            for group in groups:
+                calls = list(group.get("calls") or [])
+                kept_calls = []
+                for call in calls:
+                    agent = self._agent_for_step(call)
+                    if not agent or agent in whitelist:
+                        kept_calls.append(call)
+                    else:
+                        LOGGER.info(
+                            "intent-whitelist stripped ptc call agent=%s action=%s intent=%s",
+                            agent, call.get("action") or call.get("name"),
+                            intent_value,
+                        )
+                if kept_calls:
+                    new_groups.append({**group, "calls": kept_calls})
+            if not new_groups:
+                return []
+            return {**plan, "groups": new_groups}
+        return plan
 
     @staticmethod
     def _parse_plan(content: str, state: OrchestratorState):
@@ -1714,15 +1824,48 @@ class Orchestrator:
     def _build_synthesize_prompt(self, state: OrchestratorState) -> str:
         import json as _json
         results_dump = _json.dumps(state.tool_results, ensure_ascii=False, default=str)[:6000]
+        # §P3-3+ — surface focus-asset hint to the synthesizer. Without
+        # this, list_notes / list_alerts (which return ALL records) are
+        # interpreted as "user didn't specify a ticker" and the
+        # synthesizer asks the user to clarify even when the carry-
+        # forward symbols are obviously the focus. Inject both
+        # ``state.symbols`` (current turn) and ``state.carry_symbols``
+        # (previous-turn anchor) so the synthesizer can scope the
+        # results to the asset the user actually meant.
+        intent_value = (
+            state.intent.value
+            if hasattr(state.intent, "value") else str(state.intent)
+        )
+        focus_lines: list[str] = []
+        if state.symbols:
+            focus_lines.append(
+                f"- Current-turn symbols: {state.symbols} (explicit in user message)"
+            )
+        if state.carry_symbols:
+            focus_lines.append(
+                f"- Carry-forward symbols: {state.carry_symbols} "
+                f"(previous turn's asset; current message has no explicit ticker)"
+            )
+        if not focus_lines:
+            focus_lines.append("- No symbols detected; tool results cover all assets")
+        focus_block = "\n".join(focus_lines)
         return (
             f"Current date: 2026-09-14 (东八区时间 周一)\n\n"
             f"User message: {state.user_message}\n\n"
+            f"Detected intent: {intent_value}\n"
+            f"Focus assets for this turn:\n{focus_block}\n\n"
             f"Tool results: {results_dump}\n\n"
             "Follow the structure in your system prompt: "
             "\u6570\u636e\u4e8b\u5b9e / \u884c\u4e3a\u9762\u89c2\u5bdf / "
             "\u65b9\u5411\u6027\u5efa\u8bae. "
             "For A-class questions (date/weekday/concept) where tool_results "
-            "is empty, answer directly from your own knowledge."
+            "is empty, answer directly from your own knowledge. "
+            "When tool results are for ALL assets (e.g. list_notes / "
+            "list_alerts return global lists) but the focus-asset hint "
+            "names a specific symbol, scope the \u6570\u636e\u4e8b\u5b9e "
+            "section to that symbol; mention other assets only as "
+            "\"out of scope\". Do NOT ask the user to clarify the ticker "
+            "when the focus-asset hint already names it \u2014 that is the answer."
         )
 
     # ------------------------------------------------------------------
