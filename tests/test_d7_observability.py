@@ -126,9 +126,11 @@ def test_health_check_all_returns_expected_keys() -> None:
     # evaluate_alpha, list_watchlist) + list_scheduled_tasks = 10.
     # Writes: 6 (alerts/notes × create/update/delete, scheduled_task
     # writes were dropped — see test_d3_tool_registry for reasons).
-    assert payload["tools"]["total"] == 16
+    # §P3-1 — harness now exposes 18 tools (10 read + 8 write),
+    # up from 16 (10 read + 6 write) after watchlist write tools.
+    assert payload["tools"]["total"] == 18
     assert payload["tools"]["read"] == 10
-    assert payload["tools"]["write"] == 6
+    assert payload["tools"]["write"] == 8  # §P3-1 added 2 watchlist writes
     assert len(payload["agents"]) == 6
     assert {"quant", "news", "alert"}.issubset(payload["plugins"])
 
@@ -149,7 +151,9 @@ def test_health_endpoint_helper_attaches_route() -> None:
     assert resp.status_code == 200
     body = resp.json()
     assert body["ok"] is True
-    assert body["tools"]["total"] == 16
+    # §P3-1 — same as the contract test above (18 tools total: 10 read + 8 write).
+    assert body["tools"]["total"] == 18
+    assert body["tools"]["write"] == 8
 
 
 # ---------------------------------------------------------------------------

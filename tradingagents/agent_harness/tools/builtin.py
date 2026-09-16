@@ -28,6 +28,7 @@ from tradingagents.data.responses import DataResponse
 from tradingagents.data.providers.registry import get_active_provider, get_active_provider_name, get_provider
 from tradingagents.agent_harness.observability.failover import ProviderFailover
 
+from .context import ToolContext
 from .permission import PermissionType
 from .schema import ToolSchema
 
@@ -485,6 +486,38 @@ class DeleteNoteArgs(BaseModel):
     note_id: str
 
 
+class AddToWatchlistArgs(BaseModel):
+    """Schema for add_to_watchlist."""
+
+    symbol: str = Field(min_length=1)
+    asset_type: Literal["stock", "crypto"] = "stock"
+    note: Optional[str] = None
+
+
+class AddToWatchlistResult(BaseModel):
+    """Result of add_to_watchlist."""
+
+    status: str  # "created" | "duplicate" | "error"
+    symbol: str
+    asset_type: str
+    raw: str = ""
+
+
+class RemoveFromWatchlistArgs(BaseModel):
+    """Schema for remove_from_watchlist."""
+
+    symbol: str = Field(min_length=1)
+    asset_type: Literal["stock", "crypto"] = "stock"
+
+
+class RemoveFromWatchlistResult(BaseModel):
+    """Result of remove_from_watchlist."""
+
+    status: str  # "deleted" | "not_found" | "error"
+    symbol: str
+    raw: str = ""
+
+
 class ListWatchlistResult(BaseModel):
     """Markdown-formatted watchlist (from tools_bridge.list_watchlist)."""
 
@@ -732,6 +765,112 @@ async def list_watchlist(args=None, context=None):
     return ListWatchlistResult(text=text, count=count)
 
 
+async def add_to_watchlist(args: AddToWatchlistArgs, context: ToolContext | None = None):
+    """Add a symbol to the user's default watchlist.
+
+    Delegates to :class:`WatchlistRepository.add_item` so the harness
+    write path matches the web UI's mutation semantics (canonical
+    ticker normalisation, UNIQUE index dedupe, version bump for
+    optimistic concurrency).
+    """
+    import json as _json
+    from tradingagents.agents.general.tools_bridge import _get_repo
+
+    try:
+        repo = _get_repo("watchlist")
+    except RuntimeError as e:
+        return AddToWatchlistResult(
+            status="error", symbol=args.symbol, asset_type=args.asset_type,
+            raw=f"ERROR: {e}",
+        )
+
+    try:
+        item = repo.add_item(
+            symbol=args.symbol,
+            asset_type=args.asset_type,
+            note=args.note,
+            watchlist_id="default",
+        )
+        return AddToWatchlistResult(
+            status="created", symbol=args.symbol,
+            asset_type=args.asset_type,
+            raw="ADDED: " + _json.dumps(
+                {"id": item.get("id"), "symbol": item.get("symbol")},
+                ensure_ascii=False,
+            ),
+        )
+    except ValueError as e:
+        # duplicate symbol or validation failure
+        msg = str(e)
+        if "duplicate" in msg.lower():
+            return AddToWatchlistResult(
+                status="duplicate", symbol=args.symbol,
+                asset_type=args.asset_type,
+                raw=f"DUPLICATE: {args.symbol}",
+            )
+        return AddToWatchlistResult(
+            status="error", symbol=args.symbol, asset_type=args.asset_type,
+            raw=f"ERROR: {e}",
+        )
+    except Exception as e:
+        return AddToWatchlistResult(
+            status="error", symbol=args.symbol, asset_type=args.asset_type,
+            raw=f"ERROR: {type(e).__name__}: {e}",
+        )
+
+
+async def remove_from_watchlist(args: RemoveFromWatchlistArgs, context: ToolContext | None = None):
+    """Remove a symbol from the user's default watchlist.
+
+    Uses list_items to look up the item_id, then delete_item with
+    ``expected_version`` for optimistic concurrency.  Returns
+    ``not_found`` when the symbol isn't on the list (so the LLM can
+    phrase the answer correctly without needing to parse a stack trace).
+    """
+    from tradingagents.agents.general.tools_bridge import _get_repo
+
+    try:
+        repo = _get_repo("watchlist")
+    except RuntimeError as e:
+        return RemoveFromWatchlistResult(
+            status="error", symbol=args.symbol,
+            raw=f"ERROR: {e}",
+        )
+
+    try:
+        # Need the watchlist's current version for optimistic locking
+        # in delete_item (UPDATE ... WHERE version=?).  ``get()``
+        # initialises the default row on first access so this is
+        # always safe to call.
+        wl = repo.get(watchlist_id="default")
+        wl_version = wl.get("version", 0)
+        items = repo.list_items(watchlist_id="default")
+        target = next(
+            (it for it in items
+             if it.get("symbol") == args.symbol
+             and it.get("asset_type") == args.asset_type),
+            None,
+        )
+        if target is None:
+            return RemoveFromWatchlistResult(
+                status="not_found", symbol=args.symbol,
+                raw=f"NOT_FOUND: {args.symbol} not in watchlist",
+            )
+        repo.delete_item(
+            item_id=target["id"],
+            expected_version=wl_version,
+        )
+        return RemoveFromWatchlistResult(
+            status="deleted", symbol=args.symbol,
+            raw=f"REMOVED: {args.symbol}",
+        )
+    except Exception as e:
+        return RemoveFromWatchlistResult(
+            status="error", symbol=args.symbol,
+            raw=f"ERROR: {type(e).__name__}: {e}",
+        )
+
+
 async def list_scheduled_tasks(args=None, context=None):
     from tradingagents.agents.general.tools_bridge import list_scheduled_tasks as bridge
     config = {"configurable": {"thread_id": context.session_id if context else "default"}}
@@ -850,6 +989,35 @@ def install_builtin_tools(registry) -> None:
         result_schema=ListWatchlistResult,
         permission=PermissionType.READ,
     )(list_watchlist)
+
+    # §P3-1 — write-side watchlist tools.  Required so the LLM agent
+    # can answer "add this asset to my watchlist" with a real mutation
+    # instead of just describing what it would do.  HITL gate is
+    # enforced at the orchestrator level (stream_chat layers a confirm
+    # for write tools); tool itself is permissive.
+    registry.register(
+        name="add_to_watchlist",
+        description=(
+            "Add a symbol to the user's default watchlist.  Required "
+            "args: symbol (string, 6 digits for A-share or AAPL-style "
+            "ticker), asset_type ('stock' | 'crypto'), optional note."
+        ),
+        args_schema=AddToWatchlistArgs,
+        result_schema=AddToWatchlistResult,
+        permission=PermissionType.WRITE,
+    )(add_to_watchlist)
+
+    registry.register(
+        name="remove_from_watchlist",
+        description=(
+            "Remove a symbol from the user's default watchlist by "
+            "symbol + asset_type.  Returns not_found if the symbol is "
+            "not on the list."
+        ),
+        args_schema=RemoveFromWatchlistArgs,
+        result_schema=RemoveFromWatchlistResult,
+        permission=PermissionType.WRITE,
+    )(remove_from_watchlist)
 
     registry.register(
         name="list_scheduled_tasks",

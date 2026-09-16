@@ -121,8 +121,11 @@ def test_registry_function_tool_wraps_sync() -> None:
 def test_install_builtin_tools_registers_17() -> None:
     reg = ToolRegistry()
     install_builtin_tools(reg)
-    # 9 reads + 6 write tools (alerts/notes create+update+delete) + 1 plugin auto = 16
-    assert len(reg.list_all()) == 16
+    # 10 reads + 8 write tools (alerts/notes create+update+delete + watchlist
+    # add/remove) + 1 plugin auto = 18
+    # §P3-1 added add_to_watchlist / remove_from_watchlist on top of the
+    # earlier 6 writes (alerts/notes × create+update+delete).
+    assert len(reg.list_all()) == 18
 
 
 def test_builtin_tools_read_count() -> None:
@@ -155,6 +158,10 @@ def test_builtin_tools_write_count() -> None:
         "create_note",
         "update_note",
         "delete_note",
+        # §P3-1 — watchlist write tools (harness can now mutate the
+        # user's list, not just list it).
+        "add_to_watchlist",
+        "remove_from_watchlist",
     }
 
 

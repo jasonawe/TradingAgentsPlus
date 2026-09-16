@@ -323,6 +323,9 @@ def create_app(
         set_repositories({
             "notes": repositories["notes"],
             "alerts": repositories["alerts"],
+            # §P3-1 — wire watchlist repository so add_to_watchlist /
+            # remove_from_watchlist tools can mutate the user's list.
+            "watchlist": repositories["watchlist"],
         })
         LOGGER.info("Stage C: repositories injected for write tools")
     except ImportError:
