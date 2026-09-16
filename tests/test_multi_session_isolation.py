@@ -906,3 +906,126 @@ class TestFormatNowCst:
         # Should contain a CST date in YYYY-MM-DD format
         import re
         assert re.search(r"\d{4}-\d{2}-\d{2}", prompt), prompt[:200]
+
+
+
+# ---------------------------------------------------------------------------
+# §P3-3+ — bulk delete intent detection + dispatch routing
+# ---------------------------------------------------------------------------
+
+
+class TestBulkDeleteIntent:
+    """is_bulk_delete_intent and classify route 'delete all' requests
+    to (entity, Op.BULK_DELETE) instead of (entity, Op.DELETE)."""
+
+    def test_all_keyword_with_alert(self):
+        from tradingagents.agent_harness.core.tier import is_bulk_delete_intent
+        assert is_bulk_delete_intent("把这个资产的告警都删了")
+        assert is_bulk_delete_intent("全部删除告警")
+        assert is_bulk_delete_intent("告警全部清空")
+
+    def test_all_keyword_with_note(self):
+        from tradingagents.agent_harness.core.tier import is_bulk_delete_intent
+        assert is_bulk_delete_intent("这个资产的笔记都删了")
+        assert is_bulk_delete_intent("清空所有笔记")
+
+    def test_specific_id_is_not_bulk(self):
+        from tradingagents.agent_harness.core.tier import is_bulk_delete_intent
+        assert not is_bulk_delete_intent("删除告警 alert-abc123")
+        assert not is_bulk_delete_intent("删除这条告警")
+
+    def test_bare_all_without_entity_is_not_bulk(self):
+        """Conservative: missing entity keyword → not bulk (avoids
+        mis-firing on '全部 PE 都多少' or similar analysis queries)."""
+        from tradingagents.agent_harness.core.tier import is_bulk_delete_intent
+        assert not is_bulk_delete_intent("全部数据")
+        assert not is_bulk_delete_intent("列出全部的指标")
+
+    def test_classify_routes_to_bulk_delete(self):
+        from tradingagents.agent_harness.core.tier import (
+            classify, Intent, Op,
+        )
+        cases = [
+            ("把这个资产的告警都删了", Intent.ALERT, Op.BULK_DELETE),
+            ("全部删除笔记", Intent.NOTE, Op.BULK_DELETE),
+            ("告警全部清空", Intent.ALERT, Op.BULK_DELETE),
+        ]
+        for msg, exp_intent, exp_op in cases:
+            i, o = classify(msg)
+            assert i == exp_intent, f"{msg!r}: intent={i.value}"
+            assert o == exp_op, f"{msg!r}: op={o.value}"
+
+    def test_classify_keeps_delete_for_specific_id(self):
+        from tradingagents.agent_harness.core.tier import (
+            classify, Intent, Op,
+        )
+        i, o = classify("删除告警 alert-abc123")
+        assert i == Intent.ALERT
+        assert o == Op.DELETE  # not BULK_DELETE
+
+
+class TestBulkDeleteDispatch:
+    """CRUD dispatch routes (ALERT, BULK_DELETE) to delete_alerts_for_symbol."""
+
+    def test_bulk_delete_dispatches_to_bulk_tool(self):
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        from tradingagents.agent_harness.core.tier import Intent, Op
+        spec = Orchestrator._CRUD_DISPATCH.get((Intent.ALERT, Op.BULK_DELETE))
+        assert spec is not None
+        tool_name, args_factory = spec
+        assert tool_name == "delete_alerts_for_symbol"
+
+    def test_args_factory_pulls_carry_symbol(self):
+        from tradingagents.agent_harness.core.orchestrator import (
+            _alert_bulk_delete_args,
+        )
+        class S:
+            user_message = "把这个资产的告警都删了"
+            symbols = []
+            carry_symbols = ["600036.SS"]
+        args = _alert_bulk_delete_args(S())
+        assert args == {"symbol": "600036.SS", "asset_type": "stock"}
+
+    def test_args_factory_pulls_explicit_symbol(self):
+        from tradingagents.agent_harness.core.orchestrator import (
+            _alert_bulk_delete_args,
+        )
+        class S:
+            user_message = "把 600036.SS 的告警都删了"
+            symbols = ["600036.SS"]
+            carry_symbols = []
+        args = _alert_bulk_delete_args(S())
+        assert args["symbol"] == "600036.SS"
+
+    def test_args_factory_empty_when_no_symbol(self):
+        from tradingagents.agent_harness.core.orchestrator import (
+            _alert_bulk_delete_args,
+        )
+        class S:
+            user_message = "告警都删了"
+            symbols = []
+            carry_symbols = []
+        args = _alert_bulk_delete_args(S())
+        # Empty symbol = tool reports its own validation error.
+        assert args == {"symbol": "", "asset_type": "stock"}
+
+
+class TestDeleteAlertsForSymbolTool:
+    """The bulk tool itself is registered and callable."""
+
+    def test_tool_registered(self):
+        from tradingagents.agent_harness.tools.builtin import install_builtin_tools
+        from tradingagents.agent_harness.tools.registry import ToolRegistry
+        reg = ToolRegistry()
+        install_builtin_tools(reg)
+        tool = reg.get("delete_alerts_for_symbol")
+        assert tool is not None
+        assert str(tool.schema.permission).lower() in ("write", "permissiontype.write")
+
+    def test_tool_has_symbol_arg_schema(self):
+        from tradingagents.agent_harness.tools.builtin import (
+            DeleteAlertsForSymbolArgs,
+        )
+        args = DeleteAlertsForSymbolArgs(symbol="600036.SS", asset_type="stock")
+        assert args.symbol == "600036.SS"
+        assert args.asset_type == "stock"

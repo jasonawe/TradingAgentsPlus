@@ -121,11 +121,11 @@ def test_registry_function_tool_wraps_sync() -> None:
 def test_install_builtin_tools_registers_30() -> None:
     reg = ToolRegistry()
     install_builtin_tools(reg)
-    # §P3-3 — 18 (10 reads + 8 writes) + 12 new (list_notes / list_alerts /
+    # §P3-3+ — 30 (16 reads + 14 writes) + 1 bulk (delete_alerts_for_symbol) = 31.
     # list_runs / list_reports / get_report / run_trading_agents_analysis /
     # get_analysis_status / cancel_analysis_run / run_scheduled_task +
     # create_scheduled_task / update_scheduled_task / delete_scheduled_task) = 30.
-    assert len(reg.list_all()) == 30
+    assert len(reg.list_all()) == 31
 
 
 def test_builtin_tools_read_count() -> None:
@@ -176,6 +176,8 @@ def test_builtin_tools_write_count() -> None:
         "run_scheduled_task",
         "run_trading_agents_analysis",
         "cancel_analysis_run",
+        # §P3-3+ — bulk delete tool.
+        "delete_alerts_for_symbol",
     }
 
 

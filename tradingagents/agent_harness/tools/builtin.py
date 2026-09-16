@@ -470,6 +470,11 @@ class DeleteAlertArgs(BaseModel):
     alert_id: str
 
 
+class DeleteAlertsForSymbolArgs(BaseModel):
+    symbol: str
+    asset_type: Literal["stock", "crypto"] = "stock"
+
+
 class CreateNoteArgs(BaseModel):
     symbol: str
     body_md: str
@@ -818,6 +823,17 @@ async def update_alert(args, context):
 async def delete_alert(args, context):
     from tradingagents.agents.general.tools_bridge import delete_alert as bridge
     return await _invoke_bridge(bridge, {"alert_id": args.alert_id}, context)
+
+
+async def delete_alerts_for_symbol(args: DeleteAlertsForSymbolArgs, context=None):
+    from tradingagents.agents.general.tools_bridge import (
+        delete_alerts_for_symbol as bridge,
+    )
+    return await _invoke_bridge(
+        bridge,
+        {"symbol": args.symbol, "asset_type": args.asset_type},
+        context,
+    )
 
 
 async def create_note(args, context):
@@ -1346,6 +1362,15 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
     )(delete_alert)
+
+    registry.register(
+        name="delete_alerts_for_symbol",
+        description="Bulk-delete all alerts for a symbol (list + soft_delete loop; "
+                    "single HITL gate; for '把这个资产的告警都删了' requests).",
+        args_schema=DeleteAlertsForSymbolArgs,
+        result_schema=dict,
+        permission=PermissionType.WRITE,
+    )(delete_alerts_for_symbol)
 
     registry.register(
         name="create_note",

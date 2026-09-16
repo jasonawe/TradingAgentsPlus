@@ -104,6 +104,7 @@ EXPECTED_DISPATCH = {
     (Intent.ALERT, Op.CREATE):     "create_alert",
     (Intent.ALERT, Op.UPDATE):     "update_alert",
     (Intent.ALERT, Op.DELETE):     "delete_alert",
+    (Intent.ALERT, Op.BULK_DELETE): "delete_alerts_for_symbol",
     (Intent.SCHEDULED, Op.LIST):   "list_scheduled_tasks",
     (Intent.SCHEDULED, Op.READ):   "list_scheduled_tasks",
     (Intent.SCHEDULED, Op.CREATE): "create_scheduled_task",
@@ -143,7 +144,7 @@ class TestCrudDispatchTable:
     def test_total_entries_count(self):
         """Sanity: we promise exactly N pairs. If you add/remove one,
         update both this test and EXPECTED_DISPATCH."""
-        assert len(Orchestrator._CRUD_DISPATCH) == 26
+        assert len(Orchestrator._CRUD_DISPATCH) == 27
 
 
 # ---------------------------------------------------------------------------

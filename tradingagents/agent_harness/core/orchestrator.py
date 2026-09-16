@@ -187,6 +187,23 @@ def _alert_id_args(state: Any) -> dict[str, Any]:
     return {"alert_id": ""}
 
 
+def _alert_bulk_delete_args(state: Any) -> dict[str, Any]:
+    """§P3-3+ — args for ``delete_alerts_for_symbol``.
+
+    Prefers ``state.symbols[0]`` (current-turn explicit); falls back
+    to ``state.carry_symbols[0]`` (previous-turn anchor). Empty string
+    if neither is available so the tool reports its own validation
+    error rather than silently deleting nothing.
+    """
+    syms = list(getattr(state, "symbols", []) or [])
+    if not syms:
+        syms = list(getattr(state, "carry_symbols", []) or [])
+    return {
+        "symbol": syms[0] if syms else "",
+        "asset_type": "stock",
+    }
+
+
 def _scheduled_create_args(state: Any) -> dict[str, Any]:
     """create_scheduled_task: build minimal args from the message. Real
     cron / symbol extraction is left to LLM-backed plan refinement."""
@@ -1002,12 +1019,21 @@ class Orchestrator:
         (_Intent.NOTE, _Op.CREATE): ("create_note",  lambda s: _note_create_args(s)),
         (_Intent.NOTE, _Op.UPDATE): ("update_note",  lambda s: _note_id_args(s)),
         (_Intent.NOTE, _Op.DELETE): ("delete_note",  lambda s: _note_id_args(s)),
-        # alert: list / create / update / delete
+        # alert: list / create / update / delete / bulk-delete
         (_Intent.ALERT, _Op.LIST):   ("list_alerts",     lambda s: {}),
         (_Intent.ALERT, _Op.READ):   ("list_alerts",     lambda s: {}),
         (_Intent.ALERT, _Op.CREATE): ("create_alert",    lambda s: _alert_create_args(s)),
         (_Intent.ALERT, _Op.UPDATE): ("update_alert",    lambda s: _alert_id_args(s)),
         (_Intent.ALERT, _Op.DELETE): ("delete_alert",    lambda s: _alert_id_args(s)),
+        # §P3-3+ bulk delete: list+soft_delete loop under one HITL gate.
+        # Args factory pulls focus symbol from state.symbols (carry-
+        # forward or explicit). When no symbol is available, leaves
+        # it empty so the tool reports its own validation error rather
+        # than silently deleting nothing.
+        (_Intent.ALERT, _Op.BULK_DELETE): (
+            "delete_alerts_for_symbol",
+            lambda s: _alert_bulk_delete_args(s),
+        ),
         # scheduled: list / create / update / delete / run-now
         (_Intent.SCHEDULED, _Op.LIST):   ("list_scheduled_tasks",     lambda s: {}),
         (_Intent.SCHEDULED, _Op.READ):   ("list_scheduled_tasks",     lambda s: {}),

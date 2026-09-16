@@ -61,6 +61,7 @@ class Op(str, Enum):
     DELETE = "delete"
     LIST = "list"
     RUN = "run"  # for scheduled (run-now) and analysis (start new run)
+    BULK_DELETE = "bulk_delete"  # delete-all-for-target: requires symbol, not id
 
 
 _TICKER_RE = re.compile(r"\b[A-Z0-9]{1,6}(?:\.[A-Z]{2})?\b")
@@ -192,6 +193,11 @@ def classify(message: str) -> tuple[Intent, Op]:
     for intent, (kws, default_op) in _ENTITY_KW.items():
         if any(kw in text for kw in kws):
             # 2. Verb detection inside the entity match
+            # §P3-3+: bulk-delete verbs (BULK_DELETE) override the
+            # default verb so the dispatch table can pick the bulk
+            # tool. Only meaningful for DELETE-family intents.
+            if is_bulk_delete_intent(message):
+                return intent, Op.BULK_DELETE
             for op, vkws in _OP_KW.items():
                 if any(vk in text for vk in vkws):
                     return intent, op
@@ -247,6 +253,35 @@ def classify_multi(message: str) -> list[tuple[Intent, Op]]:
         return pairs
     # Legacy single-intent fallback
     return [classify(message)]
+
+
+_BULK_KEYWORDS: set[str] = {
+    "都删", "都删除", "全删", "全部删除", "全部删", "清空", "清掉",
+    "all", "delete-all", "delete_all", "purge", "wipe",
+    "连同", "以及",
+}
+
+# Require a CRUD entity keyword alongside the bulk marker so a stray
+# "全部" in an analysis question does not mis-fire. Conservative on
+# purpose — false negatives fall through to single-record delete;
+# false positives would route to bulk when the user wanted specific.
+_BULK_INTENT_REQUIRED_ENTITIES: set[str] = {
+    "告警", "笔记", "备注", "提醒", "预警",
+    "alert", "note", "memo",
+}
+
+
+def is_bulk_delete_intent(message: str) -> bool:
+    """§P3-3+ -- detect 'delete all for this asset' style requests.
+
+    Returns True when the message contains both a bulk marker
+    ('都删', '全部删除', 'all', 'purge', ...) AND a CRUD entity
+    keyword ('告警', '笔记', 'alert', 'note', ...).
+    """
+    text = (message or "").lower()
+    has_bulk = any(kw in text for kw in _BULK_KEYWORDS)
+    has_entity = any(kw in text for kw in _BULK_INTENT_REQUIRED_ENTITIES)
+    return has_bulk and has_entity
 
 
 def classify_intent(message: str) -> Intent:

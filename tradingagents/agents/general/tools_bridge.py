@@ -678,6 +678,70 @@ def update_alert(
         return f"ERROR: update_alert unexpected - {type(e).__name__}: {e}"
 
 
+
+
+@tool
+def delete_alerts_for_symbol(
+    symbol: Annotated[str, "ticker (e.g. 600036.SS)"],
+    asset_type: Annotated[str, "stock / crypto"] = "stock",
+    config: Annotated[RunnableConfig, InjectedToolArg()] = None,
+) -> str:
+    """批量删除某标的下的所有告警(软删除,需确认)。
+
+    适用场景:用户说"把这个资产的告警都删了" — 不需要逐条 alert_id。
+    内部:list_for_symbol + soft_delete 循环,聚合结果返回。
+    HITL:整批走一次 _check_write_approval,任一 id 失败不会回滚已删除的
+    (软删除天然可恢复,通过 SQL UPDATE 设置 deleted_at 即可)。
+    """
+    import json as _json
+    session_id = _resolve_session_id(config)
+    args = {"symbol": symbol, "asset_type": asset_type}
+    gate = _check_write_approval(
+        session_id=session_id, tool_name="delete_alerts_for_symbol",
+        tool_args=args,
+    )
+    if gate is not None:
+        return gate
+    try:
+        repo = _get_repo("alerts")
+        alerts = repo.list_for_symbol(symbol, asset_type=asset_type)
+    except Exception as e:
+        return f"ERROR: list_alerts_for_bulk_delete failed - {type(e).__name__}: {e}"
+    if not alerts:
+        return _json.dumps({
+            "symbol": symbol,
+            "asset_type": asset_type,
+            "matched": 0,
+            "deleted": 0,
+            "failed": 0,
+            "ids": [],
+            "errors": [],
+        }, ensure_ascii=False)
+    deleted: list[str] = []
+    errors: list[str] = []
+    for a in alerts:
+        aid = a.get("id")
+        try:
+            repo.soft_delete(aid)
+            deleted.append(aid)
+        except KeyError:
+            errors.append(f"{aid}: not found")
+        except Exception as e:
+            errors.append(f"{aid}: {type(e).__name__}: {e}")
+    _after_execute(session_id, "delete_alerts_for_symbol", {
+        **args, "deleted_count": len(deleted), "failed_count": len(errors),
+    })
+    return _json.dumps({
+        "symbol": symbol,
+        "asset_type": asset_type,
+        "matched": len(alerts),
+        "deleted": len(deleted),
+        "failed": len(errors),
+        "ids": deleted,
+        "errors": errors,
+    }, ensure_ascii=False)
+
+
 @tool
 def delete_alert(
     alert_id: Annotated[str, "告警 ID"],
