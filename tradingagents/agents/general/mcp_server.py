@@ -70,14 +70,11 @@ from web.repositories import (
 
 def _setup_infrastructure() -> None:
     """构造 MCP server 需要的 db store + repos + quote service。"""
-    results_dir = DEFAULT_CONFIG.get("results_dir") or "."
-    run_db_path = (
-        DEFAULT_CONFIG.get("web_runs_db")
-        or (Path(results_dir) / "web_runs.sqlite3")
-    )
-    # 转成 ~/.tradingagents/web_runs.sqlite3(对齐 web/app.py 默认行为)
-    if not run_db_path.is_absolute():
-        run_db_path = Path.home() / ".tradingagents" / "web_runs.sqlite3"
+    # 单一真实源:跟 web/app.py 同一个 DB(之前写错路径,导致 MCP 工具读到
+    # 的笔记/告警/关注列表跟前端不一致)。用 default_config.web_runs_db_path()
+    # 兜底,任何对 results_dir / web_runs_db 的配置变更都会自动同步。
+    from tradingagents.default_config import web_runs_db_path
+    run_db_path = web_runs_db_path()
 
     store = SQLiteStore(run_db_path)
 

@@ -31,9 +31,16 @@ def agent_data_dir(data_dir: str | Path) -> Path:
 
 
 def agent_memory_db_path(data_dir: str | Path) -> Path:
-    """L2/L3 共用的 SQLite DB 路径(在 web_runs.sqlite3 同一文件,通过表名区分)。"""
+    """L2/L3 共用的 SQLite DB 路径(在 web_runs.sqlite3 同一文件,通过表名区分)。
+
+    默认值走 default_config.web_runs_db_path() —— 跟 web/app.py 解析顺序完全
+    一致,避免 LLM 工具/审计日志/MCP server 写到 / 读到错误的旧 DB。
+    """
     # 沿用 web/storage.py 的设计:L2/L3 表跟 web_runs 同 DB
     # 但调用方可以从 web/storage 拿 db_path,这里只返回默认值
+    if data_dir is None:
+        from tradingagents.default_config import web_runs_db_path
+        return web_runs_db_path()
     return Path(data_dir) / "web_runs.sqlite3"
 
 

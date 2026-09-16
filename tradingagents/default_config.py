@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 _TRADINGAGENTS_HOME = os.path.join(os.path.expanduser("~"), ".tradingagents")
 
@@ -172,3 +173,22 @@ DEFAULT_CONFIG = _apply_env_overrides({
         "":     "SPY",         # default for US-listed tickers (no suffix)
     },
 })
+
+def web_runs_db_path() -> Path:
+    """返回 web_runs.sqlite3 的绝对路径(单一真实源)。
+
+    与 ``web/app.py:create_app()`` 完全相同的解析顺序,确保 L2/L3 工具、
+    audit log、MCP server、memory 全部指向同一个 DB 文件 —— 避免「页面
+    看到 N 条、LLM 工具看到 1 条」这种数据分叉的诡异 bug。
+
+    解析顺序:
+      1. ``DEFAULT_CONFIG['web_runs_db']``(若设置且为绝对路径)
+      2. ``<results_dir>/web_runs.sqlite3``(默认 ``~/.tradingagents/logs/``)
+    """
+    explicit = DEFAULT_CONFIG.get("web_runs_db")
+    if explicit:
+        p = Path(explicit)
+        if p.is_absolute():
+            return p
+    results_dir = DEFAULT_CONFIG.get("results_dir") or "."
+    return Path(results_dir) / "web_runs.sqlite3"

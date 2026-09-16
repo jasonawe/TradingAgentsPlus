@@ -170,8 +170,9 @@ from tradingagents.dataflows.stockstats_utils import load_ohlcv
 # ════════════════════════════════════════════════════════
 
 def _default_db_path() -> Path:
-    """L2/L3/watchlist 都在 web_runs.sqlite3。"""
-    return Path.home() / ".tradingagents" / "web_runs.sqlite3"
+    """L2/L3/watchlist 都在 web_runs.sqlite3(共享 default_config 解析)。"""
+    from tradingagents.default_config import web_runs_db_path
+    return web_runs_db_path()
 
 
 # ════════════════════════════════════════════════════════
@@ -848,7 +849,7 @@ def update_preference(
     try:
         # L2 user_preferences 在 agent_memory_db 里
         from tradingagents.agents.general.memory import set_preference
-        db_path = agent_memory_db_path(Path.home() / ".tradingagents")
+        db_path = agent_memory_db_path(None)  # 走 default_config.web_runs_db_path()
         # value 需要 JSON parse 存进去
         try:
             parsed = json.loads(value)

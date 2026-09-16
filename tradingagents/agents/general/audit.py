@@ -23,7 +23,9 @@ from typing import Any
 # ════════════════════════════════════════════════════════
 
 def _default_db_path() -> Path:
-    return Path.home() / ".tradingagents" / "web_runs.sqlite3"
+    """L2/L3 共享:走 default_config.web_runs_db_path() 拿到跟 web app 一致的路径。"""
+    from tradingagents.default_config import web_runs_db_path
+    return web_runs_db_path()
 
 
 # ════════════════════════════════════════════════════════

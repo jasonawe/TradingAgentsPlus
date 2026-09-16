@@ -227,7 +227,11 @@ def create_app(
     _setup_langsmith_tracing()
 
     active_config = copy.deepcopy(config if config is not None else DEFAULT_CONFIG)
-    run_db_path = active_config.get("web_runs_db") or (Path(active_config.get("results_dir") or ".") / "web_runs.sqlite3")
+    # Day N+: web_runs.sqlite3 路径单一真实源,跟 L2/L3 工具、audit log、
+    # MCP server、memory 全部共用 tradingagents.default_config.web_runs_db_path()
+    # —— 避免「页面看到 8 条、LLM 工具看到 1 条」这种数据分叉 bug。
+    from tradingagents.default_config import web_runs_db_path as _default_web_runs_db_path
+    run_db_path = active_config.get("web_runs_db") or _default_web_runs_db_path()
     if manager is not None and getattr(manager, "_store", None) is not None:
         store = manager._store
     elif manager is not None and getattr(manager, "_db_path", None) is not None:
