@@ -562,6 +562,10 @@ class CancelAnalysisRunArgs(BaseModel):
 class ListRunsArgs(BaseModel):
     status: Optional[str] = None
     limit: int = 20
+    # §P3-3+ — focused symbol injection (carry-forward or explicit).
+    # When set, the bridge uses RunManager.list_runs_for_ticker;
+    # when empty, falls back to list_active_runs().
+    symbol: Optional[str] = None
 
 
 class ListRunsResult(BaseModel):
@@ -620,6 +624,15 @@ class ListWatchlistResult(BaseModel):
 
     text: str
     count: int = 0
+
+
+class ListScheduledTasksArgs(BaseModel):
+    """§P3-3+ — focused symbol injection (carry-forward or explicit).
+
+    When set, the bridge filters scheduler jobs by ticker; when
+    empty, returns every job.
+    """
+    symbol: Optional[str] = None
 
 
 class ListScheduledTasksResult(BaseModel):
@@ -982,18 +995,32 @@ async def remove_from_watchlist(args: RemoveFromWatchlistArgs, context: ToolCont
 async def list_scheduled_tasks(args=None, context=None):
     from tradingagents.agents.general.tools_bridge import list_scheduled_tasks as bridge
     config = {"configurable": {"thread_id": context.session_id if context else "default"}}
+    # §P3-3+ — focused symbol injection (carry-forward or explicit).
+    # When set, the bridge filters scheduler jobs by ticker in
+    # Python; when empty, returns all jobs.
+    # Accept either a Pydantic args instance (post-coercion) or a raw
+    # dict (pre-coercion paths) so this works through every dispatch
+    # route (single CRUD, multi-CRUD, PTC, direct invoke).
+    if isinstance(args, dict):
+        sym = (args.get("symbol") or "").strip()
+    elif args is None:
+        sym = ""
+    else:
+        sym = (getattr(args, "symbol", None) or "").strip()
+    payload = {} if not sym else {"symbol": sym}
     try:
-        text = await bridge.ainvoke({}, config=config)
+        text = await bridge.ainvoke(payload, config=config)
     except Exception as e:
         return ListScheduledTasksResult(text=f"ERROR: {type(e).__name__}: {e}", count=0)
+    # The bridge now returns markdown; parse the count from the
+    # "共 N 个定时任务:" header so the result object stays correct.
+    import re as _re
     count = 0
-    try:
-        import json as _json
-        parsed = _json.loads(text)
-        if isinstance(parsed, list):
-            count = len(parsed)
-    except Exception:
-        pass
+    m = _re.search(r"共\s*(\d+)\s*个定时任务", text)
+    if m:
+        count = int(m.group(1))
+    elif "无定时任务" in text:
+        count = 0
     return ListScheduledTasksResult(text=text, count=count)
 
 
@@ -1006,10 +1033,17 @@ async def list_scheduled_tasks(args=None, context=None):
 async def list_notes(args: ListNotesArgs | None = None, context=None):
     from tradingagents.agents.general.tools_bridge import list_notes as bridge
     cfg = {"configurable": {"thread_id": context.session_id if context else "default"}}
-    payload = {} if args is None else {
-        "symbol": getattr(args, "symbol", None) or "",
-        "limit": getattr(args, "limit", 50) or 50,
-    }
+    # Accept either a Pydantic args instance (post-coercion) or a raw
+    # dict (pre-coercion paths).
+    if isinstance(args, dict):
+        symbol = (args.get("symbol") or "")
+        limit = args.get("limit") or 50
+    elif args is None:
+        symbol, limit = "", 50
+    else:
+        symbol = (getattr(args, "symbol", None) or "")
+        limit = getattr(args, "limit", 50) or 50
+    payload = {"symbol": symbol, "limit": limit}
     try:
         text = await bridge.ainvoke(payload, config=cfg)
     except Exception as e:
@@ -1020,11 +1054,19 @@ async def list_notes(args: ListNotesArgs | None = None, context=None):
 async def list_alerts(args: ListAlertsArgs | None = None, context=None):
     from tradingagents.agents.general.tools_bridge import list_alerts as bridge
     cfg = {"configurable": {"thread_id": context.session_id if context else "default"}}
-    payload = {} if args is None else {
-        "symbol": getattr(args, "symbol", None) or "",
-        "include_disabled": bool(getattr(args, "include_disabled", False)),
-        "limit": getattr(args, "limit", 50) or 50,
-    }
+    # Accept either a Pydantic args instance (post-coercion) or a raw
+    # dict (pre-coercion paths).
+    if isinstance(args, dict):
+        symbol = (args.get("symbol") or "")
+        include_disabled = bool(args.get("include_disabled", False))
+        limit = args.get("limit") or 50
+    elif args is None:
+        symbol, include_disabled, limit = "", False, 50
+    else:
+        symbol = (getattr(args, "symbol", None) or "")
+        include_disabled = bool(getattr(args, "include_disabled", False))
+        limit = getattr(args, "limit", 50) or 50
+    payload = {"symbol": symbol, "include_disabled": include_disabled, "limit": limit}
     try:
         text = await bridge.ainvoke(payload, config=cfg)
     except Exception as e:
@@ -1035,10 +1077,24 @@ async def list_alerts(args: ListAlertsArgs | None = None, context=None):
 async def list_runs(args: ListRunsArgs | None = None, context=None):
     from tradingagents.agents.general.tools_bridge import list_runs as bridge
     cfg = {"configurable": {"thread_id": context.session_id if context else "default"}}
-    payload = {} if args is None else {
-        "status": getattr(args, "status", None) or "",
-        "limit": getattr(args, "limit", 20) or 20,
-    }
+    # Accept either a Pydantic args instance (post-coercion) or a raw
+    # dict (pre-coercion paths) so this works through every dispatch
+    # route (single CRUD, multi-CRUD, PTC, direct invoke).
+    if isinstance(args, dict):
+        status = (args.get("status") or "")
+        limit = args.get("limit") or 20
+        symbol = (args.get("symbol") or "")
+    elif args is None:
+        status, limit, symbol = "", 20, ""
+    else:
+        status = (getattr(args, "status", None) or "")
+        limit = getattr(args, "limit", 20) or 20
+        # §P3-3+ — focused symbol injection (carry-forward or
+        # explicit). When set, the bridge uses
+        # RunManager.list_runs_for_ticker and returns ticker-scoped
+        # results; when empty, falls back to list_active_runs().
+        symbol = (getattr(args, "symbol", None) or "")
+    payload = {"status": status, "limit": limit, "symbol": symbol}
     try:
         text = await bridge.ainvoke(payload, config=cfg)
     except Exception as e:
@@ -1049,10 +1105,17 @@ async def list_runs(args: ListRunsArgs | None = None, context=None):
 async def list_reports(args: ListReportsArgs | None = None, context=None):
     from tradingagents.agents.general.tools_bridge import list_reports as bridge
     cfg = {"configurable": {"thread_id": context.session_id if context else "default"}}
-    payload = {} if args is None else {
-        "symbol": getattr(args, "symbol", None) or "",
-        "limit": getattr(args, "limit", 20) or 20,
-    }
+    # Accept either a Pydantic args instance (post-coercion) or a raw
+    # dict (pre-coercion paths).
+    if isinstance(args, dict):
+        symbol = (args.get("symbol") or "")
+        limit = args.get("limit") or 20
+    elif args is None:
+        symbol, limit = "", 20
+    else:
+        symbol = (getattr(args, "symbol", None) or "")
+        limit = getattr(args, "limit", 20) or 20
+    payload = {"symbol": symbol, "limit": limit}
     try:
         text = await bridge.ainvoke(payload, config=cfg)
     except Exception as e:
@@ -1334,8 +1397,8 @@ def install_builtin_tools(registry) -> None:
 
     registry.register(
         name="list_scheduled_tasks",
-        description="List the user's scheduled tasks.",
-        args_schema=type(None),
+        description="List the user's scheduled tasks (optional ticker filter).",
+        args_schema=ListScheduledTasksArgs,
         result_schema=ListScheduledTasksResult,
         permission=PermissionType.READ,
     )(list_scheduled_tasks)
@@ -1414,7 +1477,7 @@ def install_builtin_tools(registry) -> None:
 
     registry.register(
         name="list_runs",
-        description="List historical analysis runs (optional status filter).",
+        description="List analysis runs (optional status / ticker filter).",
         args_schema=ListRunsArgs,
         result_schema=ListRunsResult,
         permission=PermissionType.READ,

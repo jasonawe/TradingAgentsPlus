@@ -178,6 +178,38 @@ def _list_alerts_args(state: Any) -> dict[str, Any]:
     sym = _focused_symbol(state)
     return {"symbol": sym} if sym else {}
 
+
+def _list_reports_args(state: Any) -> dict[str, Any]:
+    """list_reports: scope to the focused symbol when one is known
+    (explicit ``state.symbols[0]`` or carry-forward ``state.carry_symbols[0]``).
+
+    Empty args when no focused symbol — preserves "all reports" behaviour.
+    """
+    sym = _focused_symbol(state)
+    return {"symbol": sym} if sym else {}
+
+
+def _list_runs_args(state: Any) -> dict[str, Any]:
+    """list_runs: scope to the focused symbol when one is known.
+
+    Same carry-forward semantics as :func:`_list_notes_args`; empty
+    args when no focused symbol is set so ``manager.list_runs`` is
+    used (unfiltered) instead of ``list_runs_for_ticker``.
+    """
+    sym = _focused_symbol(state)
+    return {"symbol": sym} if sym else {}
+
+
+def _list_scheduled_tasks_args(state: Any) -> dict[str, Any]:
+    """list_scheduled_tasks: scope to the focused symbol when one is known.
+
+    Each scheduler job carries a ``symbol`` field; the bridge tool
+    filters ``items`` in Python when ``symbol`` is non-empty.
+    """
+    sym = _focused_symbol(state)
+    return {"symbol": sym} if sym else {}
+
+
 def _note_create_args(state: Any) -> dict[str, Any]:
     """create_note: pull (title, content) from the user message. For now
     uses the raw message as the body and an empty title; LLM-backed plan
@@ -1088,13 +1120,24 @@ class Orchestrator:
         (_Intent.SCHEDULED, _Op.UPDATE): ("update_scheduled_task",    lambda s: _scheduled_id_args(s)),
         (_Intent.SCHEDULED, _Op.DELETE): ("delete_scheduled_task",    lambda s: _scheduled_id_args(s)),
         (_Intent.SCHEDULED, _Op.RUN):    ("run_scheduled_task",       lambda s: _scheduled_id_args(s)),
+        # scheduled: list / create / update / delete / run-now
+        # §P3-3+ — list scoped to focused symbol (carry-forward or
+        # explicit) so the user gets the jobs for the asset they're
+        # currently looking at, not every job in the system.
+        (_Intent.SCHEDULED, _Op.LIST):   ("list_scheduled_tasks",     _list_scheduled_tasks_args),
+        (_Intent.SCHEDULED, _Op.READ):   ("list_scheduled_tasks",     _list_scheduled_tasks_args),
         # run (analysis): create / list / read / cancel
-        (_Intent.RUN, _Op.LIST):   ("list_runs",              lambda s: {}),
+        # §P3-3+ — list scoped to focused symbol via the same
+        # carry-forward path. Uses RunManager.list_runs_for_ticker
+        # when symbol is set, falls back to list_runs() otherwise.
+        (_Intent.RUN, _Op.LIST):   ("list_runs",              _list_runs_args),
         (_Intent.RUN, _Op.READ):   ("get_analysis_status",    lambda s: _run_id_args(s)),
         (_Intent.RUN, _Op.CREATE): ("run_trading_agents_analysis", lambda s: _run_create_args(s)),
         (_Intent.RUN, _Op.DELETE): ("cancel_analysis_run",    lambda s: _run_id_args(s)),
         # report: list / read
-        (_Intent.REPORT, _Op.LIST): ("list_reports", lambda s: {}),
+        # §P3-3+ — list scoped to focused symbol (list_reports
+        # already takes symbol; just need to wire it).
+        (_Intent.REPORT, _Op.LIST): ("list_reports", _list_reports_args),
         (_Intent.REPORT, _Op.READ): ("get_report",   lambda s: _report_id_args(s)),
     }
 

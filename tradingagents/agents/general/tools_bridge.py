@@ -920,12 +920,36 @@ def get_news(
 
 
 @tool
-def list_scheduled_tasks() -> str:
-    """列出所有定时分析任务(每条包含 id / symbol / cron / 上次/下次运行时间 / enabled)。"""
+def list_scheduled_tasks(
+    symbol: Annotated[str, "ticker 过滤,空 = 全部"] = "",
+) -> str:
+    """列出所有定时分析任务(symbol 可选过滤)。
+
+    返回 markdown 表格:id / symbol / cron / 上次/下次运行时间 / enabled。
+    当 ``symbol`` 非空时,只返回该 ticker 的任务(忽略大小写);空时返回全部。
+    """
     svc = _get_scheduler_service()
     try:
         result = svc.list_jobs()
-        return json.dumps(result, ensure_ascii=False, default=str) or "(no scheduled tasks)"
+        items = result.get("items", []) if isinstance(result, dict) else []
+        if symbol:
+            target = symbol.strip().upper()
+            items = [j for j in items if str(j.get("symbol", "")).upper() == target]
+        if not items:
+            return f"(无定时任务,filter={symbol or 'all'})"
+        lines = [
+            f"共 {len(items)} 个定时任务(filter={symbol or 'all'}):",
+            "| id | symbol | cron | enabled | last_run_at | next_run_at |",
+            "|---|---|---|---|---|---|",
+        ]
+        for j in items:
+            lines.append(
+                f"| {j.get('id','')} | {j.get('symbol','')} | "
+                f"{j.get('cron_expression', j.get('cron',''))} | "
+                f"{j.get('enabled','')} | {j.get('last_run_at') or '-'} | "
+                f"{j.get('next_run_at') or '-'} |"
+            )
+        return "\n".join(lines)
     except Exception as e:
         return f"ERROR: list_scheduled_tasks - {type(e).__name__}: {e}"
 
@@ -946,7 +970,11 @@ def list_reports(
     symbol: Annotated[str, "ticker 过滤,空 = 全部"] = "",
     limit: Annotated[int, "最多返回几条,默认 20"] = 20,
 ) -> str:
-    """列出历史分析报告(symbol 可选过滤)。返回 [{report_id, ticker, status, started_at, ...}]。"""
+    """列出历史分析报告(symbol 可选过滤)。
+
+    返回 markdown 表格:report_id / ticker / status / started_at / finished_at。
+    当 ``symbol`` 非空时,只返回该 ticker 的报告(忽略大小写);空时返回全部。
+    """
     history = _get_report_history()
     try:
         records = history.list_reports()
@@ -954,7 +982,20 @@ def list_reports(
             target = symbol.strip().upper()
             records = [r for r in records if str(r.get("ticker", "")).upper() == target]
         records = records[: max(1, min(limit, 200))]
-        return json.dumps(records, ensure_ascii=False, default=str)
+        if not records:
+            return f"(无报告,filter={symbol or 'all'})"
+        lines = [
+            f"共 {len(records)} 份报告(filter={symbol or 'all'}):",
+            "| report_id | ticker | status | started_at | finished_at |",
+            "|---|---|---|---|---|",
+        ]
+        for r in records:
+            lines.append(
+                f"| {r.get('report_id','')} | {r.get('ticker','')} | "
+                f"{r.get('status','')} | {r.get('started_at','')} | "
+                f"{r.get('finished_at','') or '-'} |"
+            )
+        return "\n".join(lines)
     except Exception as e:
         return f"ERROR: list_reports - {type(e).__name__}: {e}"
 
@@ -1061,20 +1102,32 @@ def list_alerts(
 def list_runs(
     status: Annotated[str, "状态过滤: queued / running / completed / failed / cancelled,空 = 全部"] = "",
     limit: Annotated[int, "最多返回几条,默认 20"] = 20,
+    symbol: Annotated[str, "ticker 过滤,空 = 全部"] = "",
 ) -> str:
-    """列出历史分析 run(可选 status 过滤)。返回 markdown 表格。
+    """列出分析 run(可选 status / symbol 过滤)。返回 markdown 表格。
 
-    调用 RunManager.list_runs(status?, limit?) — 与 web/app.py /api/runs
-    同一份数据。
+    当 ``symbol`` 非空时,使用 :py:meth:`RunManager.list_runs_for_ticker`
+    走 ticker 索引(包含该 ticker 所有状态的 run);空时回退到
+    :py:meth:`RunManager.list_active_runs` — 只返回当前在跑的 run
+    (系统不保留完整历史 run 列表,这是设计如此;要看历史报告请用
+    ``list_reports``)。
     """
     try:
         manager = _get_active_runner()
     except RuntimeError as e:
         return f"ERROR: list_runs - {e}"
     try:
-        records = manager.list_runs(status=status or None, limit=max(1, min(limit, 200)))
+        if symbol:
+            records = manager.list_runs_for_ticker(
+                symbol, limit=max(1, min(limit, 200))
+            )
+            filter_label = symbol.strip().upper()
+        else:
+            records = manager.list_active_runs()
+            records = records[: max(1, min(limit, 200))]
+            filter_label = status or "active"
         if not records:
-            return f"(无 run 记录,filter={status or 'all'})"
+            return f"(无 run 记录,filter={filter_label})"
         lines = [
             f"共 {len(records)} 条 run:",
             "| run_id | ticker | status | queued_at | finished_at |",
