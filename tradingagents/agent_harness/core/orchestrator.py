@@ -1521,6 +1521,20 @@ class Orchestrator:
             LOGGER.warning("LLM plan failed: %s", e)
             return []
 
+    @staticmethod
+    def _format_now_cst() -> str:
+        """Return current wall-clock as 'YYYY-MM-DD (东八区时间 周X)'.
+
+        Used by plan + synthesize prompts so the LLM sees the real
+        current date instead of a frozen literal. Weekday is rendered
+        in Chinese to match the surrounding prompt style.
+        """
+        from datetime import datetime, timezone, timedelta
+        cst = timezone(timedelta(hours=8))
+        now = datetime.now(cst)
+        weekday_cn = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"][now.weekday()]
+        return f"{now.strftime('%Y-%m-%d')} (东八区时间 {weekday_cn})"
+
     _PLAN_SYSTEM = (
         "You are a finance research planner. Reply ONLY with valid JSON. "
         "No commentary, no markdown fences.\n"
@@ -1584,7 +1598,7 @@ class Orchestrator:
             )
         return (
             f"User message: {state.user_message}\n\n"
-            f"Current date: 2026-09-14 (东八区时间 周一)\n"
+            f"Current date: {self._format_now_cst()}\n"
             f"Detected symbols (current): {state.symbols}\n"
             f"Detected symbols (carry-forward from previous turn): {state.carry_symbols}\n"
             f"Detected intent: {state.intent.value}\n"
@@ -1850,7 +1864,7 @@ class Orchestrator:
             focus_lines.append("- No symbols detected; tool results cover all assets")
         focus_block = "\n".join(focus_lines)
         return (
-            f"Current date: 2026-09-14 (东八区时间 周一)\n\n"
+            f"Current date: {self._format_now_cst()}\n\n"
             f"User message: {state.user_message}\n\n"
             f"Detected intent: {intent_value}\n"
             f"Focus assets for this turn:\n{focus_block}\n\n"

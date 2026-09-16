@@ -853,3 +853,56 @@ class TestSynthPromptFocusAssets:
         # The synthesizer should NOT ask the user to clarify when the
         # focus-asset hint already names the ticker.
         assert "Do NOT ask the user to clarify" in prompt
+
+
+
+class TestFormatNowCst:
+    """Dynamic date helper replaces hardcoded '2026-09-14' in prompts."""
+
+    def test_returns_today_in_cst(self):
+        from datetime import datetime, timezone, timedelta
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        s = Orchestrator._format_now_cst()
+        cst = timezone(timedelta(hours=8))
+        expected_date = datetime.now(cst).strftime("%Y-%m-%d")
+        assert expected_date in s
+        assert "东八区时间" in s
+        assert "周" in s  # weekday marker
+
+    def test_no_frozen_2026_09_14_anywhere(self):
+        """After the fix the hardcoded literal must be gone."""
+        from pathlib import Path
+        src = Path(
+            "tradingagents/agent_harness/core/orchestrator.py"
+        ).read_text(encoding="utf-8")
+        assert "2026-09-14 (东八区时间 周一)" not in src, (
+            "hardcoded date still present in orchestrator.py"
+        )
+
+    def test_plan_prompt_uses_dynamic_date(self):
+        """_build_plan_prompt embeds the dynamic date."""
+        from dataclasses import dataclass, field
+        from tradingagents.agent_harness.core.orchestrator import Orchestrator
+        from tradingagents.agent_harness.core.tier import Intent
+        @dataclass
+        class S:
+            intent: object = None
+            symbols: list = field(default_factory=list)
+            carry_symbols: list = field(default_factory=list)
+            user_message: str = "test"
+            tool_results: list = field(default_factory=list)
+            prior_user_msg: str | None = None
+        s = S()
+        s.intent = Intent.QUOTE
+        orch = Orchestrator.__new__(Orchestrator)
+        # The orch needs an agent_registry.list() -> []. Mock it.
+        class _AR:
+            def list(self): return []
+            def get(self, n): return None
+        orch.agent_registry = _AR()
+        prompt = orch._build_plan_prompt(s)
+        # Should NOT contain the frozen literal
+        assert "2026-09-14 (东八区时间 周一)" not in prompt
+        # Should contain a CST date in YYYY-MM-DD format
+        import re
+        assert re.search(r"\d{4}-\d{2}-\d{2}", prompt), prompt[:200]
