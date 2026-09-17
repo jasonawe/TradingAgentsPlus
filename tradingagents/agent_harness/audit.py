@@ -151,6 +151,11 @@ VALID_WRITE_STATUSES: set[str] = {
     "pending", "confirmed", "rejected", "executed", "failed",
 }
 
+# Source status required to claim. Confirmed/rejected rows can be
+# transitioned further (to executed/failed) by the same caller, but
+# can't be re-claimed — prevents the double-execute race.
+_CLAIM_FROM_STATUS = "pending"
+
 
 def update_write_status(
     db_path: Path | None,
@@ -195,9 +200,96 @@ def update_write_status(
         conn.close()
 
 
+def get_write_status(
+    db_path: Path | None,
+    audit_id: int,
+) -> str | None:
+    """Return the current status of an audit row, or None if missing.
+
+    Read-only — safe to call before claim_write_audit to surface the
+    current state to a losing caller.
+    """
+    if db_path is None:
+        db_path = _default_db_path()
+    conn = sqlite3.connect(str(db_path))
+    try:
+        row = conn.execute(
+            "SELECT status FROM write_audit_log WHERE id = ?",
+            (audit_id,),
+        ).fetchone()
+        return str(row[0]) if row else None
+    finally:
+        conn.close()
+
+
+def claim_write_audit(
+    db_path: Path | None,
+    audit_id: int,
+    *,
+    action: str = "confirmed",
+    confirmed_by: str | None = None,
+) -> bool:
+    """Atomically transition an audit row from pending → ``action``.
+
+    Returns ``True`` iff this caller won the race (the row was pending
+    and is now ``action``). Returns ``False`` when:
+
+      - the row is missing
+      - the row is in any non-pending status (someone else already
+        confirmed/rejected it, OR the tool already executed/failed)
+      - SQLite UPDATE rowcount was 0 for any other reason
+
+    Why this exists
+    ---------------
+    ``/api/harness/sessions/{sid}/confirm`` used to call
+    ``update_write_status(... "confirmed")`` then ``tool.invoke(...)``
+    directly, with no protection against concurrent calls. Double-click
+    on the confirm dialog (or a network retry) caused the destructive
+    tool to run twice. ``claim_write_audit`` gives us a single
+    atomic gate: only the caller that wins the
+    ``UPDATE ... WHERE status = 'pending'`` race proceeds to
+    ``tool.invoke``; losers emit an idempotent response.
+
+    Note: this is a CAS-style UPDATE, not a transaction. SQLite's
+    default journal mode serialises writes, so two concurrent
+    UPDATEs cannot both see rowcount=1.
+
+    Args:
+        db_path: SQLite path (default = web_runs.sqlite3)
+        audit_id: row id from ``log_write``
+        action: must be ``"confirmed"`` or ``"rejected"``
+        confirmed_by: actor label recorded with the transition
+
+    Raises:
+        ValueError: if ``action`` is not in {confirmed, rejected}
+    """
+    if action not in {"confirmed", "rejected"}:
+        raise ValueError(
+            f"action must be 'confirmed' or 'rejected', got {action!r}"
+        )
+
+    if db_path is None:
+        db_path = _default_db_path()
+
+    conn = sqlite3.connect(str(db_path))
+    try:
+        cur = conn.execute(
+            "UPDATE write_audit_log "
+            "SET status = ?, confirmed_by = ? "
+            "WHERE id = ? AND status = ?",
+            (action, confirmed_by, audit_id, _CLAIM_FROM_STATUS),
+        )
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
+
+
 __all__ = [
     "log_write",
     "list_writes",
+    "get_write_status",
+    "claim_write_audit",
     "update_write_status",
     "VALID_WRITE_STATUSES",
 ]

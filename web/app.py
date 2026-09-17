@@ -624,30 +624,92 @@ def create_app(
                 )
 
             async def _event_stream():
-                # 1) record the audit decision (best-effort)
+                # Race fix (A) — atomic claim before invoking the tool.
+                # ``/confirm`` used to call ``update_write_status(...)``
+                # then ``tool.invoke(...)`` directly with no protection
+                # against concurrent calls. Double-click on the confirm
+                # dialog (or a network retry) caused the destructive
+                # tool to run twice. Now we CAS the audit row from
+                # pending → confirmed/rejected atomically; only the
+                # winning request proceeds to invoke the tool.
+                #
                 # ``audit_id`` from the outer scope; the in-function
                 # ``if audit_id is None: audit_id = log_write(...)``
                 # below would otherwise make Python treat it as local
                 # and UnboundLocalError on the read. Use a separate
                 # local variable name to avoid the issue.
                 nonlocal audit_id
+                claimed = False
                 try:
                     from tradingagents.agent_harness.audit import (
                         log_write, update_write_status,
+                        get_write_status, claim_write_audit,
                     )
                     if audit_id is None:
+                        # Legacy / missing-id path: create the row and
+                        # claim in one go. Still racy against
+                        # concurrent legacy callers, but they all share
+                        # the same audit_id path so the worst case is
+                        # "another request created audit_id=N+1" which
+                        # is a separate write.
                         audit_id = log_write(
                             tool_name=tool_name,
                             tool_args=tool_args,
                             status="pending",
                         )
-                    update_write_status(
-                        None, audit_id,
-                        status="confirmed" if approve else "rejected",
-                        confirmed_by="user",
-                    )
+                        claimed = claim_write_audit(
+                            None, audit_id,
+                            action="confirmed" if approve else "rejected",
+                            confirmed_by="user",
+                        )
+                    else:
+                        # Atomic CAS — the fix.
+                        claimed = claim_write_audit(
+                            None, audit_id,
+                            action="confirmed" if approve else "rejected",
+                            confirmed_by="user",
+                        )
                 except Exception as e:
-                    LOGGER.warning("audit update failed: %s", e)
+                    LOGGER.warning(
+                        "audit claim failed (continuing best-effort): %s", e,
+                    )
+                    # If claim raised (DB unavailable), don't re-invoke
+                    # — return idempotent error so the user retries.
+                    yield (
+                        f"event: error\n"
+                        f"data: {_json.dumps({'error': f'audit_unavailable: {e}'}, ensure_ascii=False)}\n\n"
+                    )
+                    yield (
+                        f"event: done\n"
+                        f"data: {_json.dumps({}, ensure_ascii=False)}\n\n"
+                    )
+                    return
+
+                if not claimed:
+                    # Lost the race — surface current status so the
+                    # client knows whether to treat this as already-
+                    # done (executed/failed/rejected) or in-flight
+                    # (confirmed). Either way, NEVER re-invoke.
+                    current = None
+                    if audit_id is not None:
+                        try:
+                            current = get_write_status(None, audit_id)
+                        except Exception:
+                            pass
+                    LOGGER.info(
+                        "/confirm idempotent skip: audit_id=%s already %s "
+                        "(double-click or retry; tool NOT re-invoked)",
+                        audit_id, current,
+                    )
+                    yield (
+                        f"event: audit_decision\n"
+                        f"data: {_json.dumps({'audit_id': audit_id, 'approved': approve, 'tool_name': tool_name, 'audit_status': current, 'idempotent': True}, ensure_ascii=False)}\n\n"
+                    )
+                    yield (
+                        f"event: done\n"
+                        f"data: {_json.dumps({'idempotent': True, 'audit_status': current}, ensure_ascii=False)}\n\n"
+                    )
+                    return
 
                 # 2) emit audit_decision so the frontend closes the dialog
                 yield (
