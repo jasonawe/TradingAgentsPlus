@@ -655,16 +655,17 @@ class ListScheduledTasksResult(BaseModel):
 
 _BRIDGE_PREFIXES = (
     "AWAITING_CONFIRMATION:",
-    "NOTE_CREATED:",
-    "NOTE_UPDATED:",
-    "NOTE_DELETED:",
-    "ALERT_CREATED:",
-    "ALERT_UPDATED:",
-    "ALERT_DELETED:",
-    "ERROR:",
-    "NO_DATA:",
-    "(no scheduled tasks)",
-    "(\u7528\u6237\u5173\u6ce8\u5217\u8868\u4e3a\u7a7a)",
+    # notes
+    "NOTE_CREATED:", "NOTE_UPDATED:", "NOTE_DELETED:",
+    # alerts
+    "ALERT_CREATED:", "ALERT_UPDATED:", "ALERT_DELETED:",
+    # scheduled jobs (§12.1 — was missing, fell back to status=ok)
+    "SCHEDULED_CREATED:", "SCHEDULED_UPDATED:", "SCHEDULED_DELETED:",
+    # watchlist (§12.1 — ADDED/REMOVED/DUPLICATE from builtin.py:942+)
+    "ADDED:", "REMOVED:", "DUPLICATE:",
+    # generic
+    "ERROR:", "NO_DATA:",
+    "(no scheduled tasks)", "(\u7528\u6237\u5173\u6ce8\u5217\u8868\u4e3a\u7a7a)",
 )
 
 
@@ -688,13 +689,36 @@ def _parse_bridge_text(text):
                 "ALERT_CREATED:": "created",
                 "ALERT_UPDATED:": "updated",
                 "ALERT_DELETED:": "deleted",
+                "SCHEDULED_CREATED:": "created",
+                "SCHEDULED_UPDATED:": "updated",
+                "SCHEDULED_DELETED:": "deleted",
+                "ADDED:": "created",
+                "REMOVED:": "deleted",
+                "DUPLICATE:": "duplicate",
                 "ERROR:": "error",
                 "NO_DATA:": "no_data",
                 "(no scheduled tasks)": "empty",
                 "(\u7528\u6237\u5173\u6ce8\u5217\u8868\u4e3a\u7a7a)": "empty",
             }
-            return {"status": status_map[prefix], "raw": text}
-    return {"status": "ok", "raw": text}
+            parsed = {"status": status_map[prefix], "raw": text}
+            break
+    else:
+        parsed = {"status": "ok", "raw": text}
+
+    # §3.2 — attach user-facing summary so downstream renderers
+    # (orchestrator._trivial_crud_summary + /confirm SSE emit) don't
+    # have to re-parse raw. result_formatter is the single source of
+    # truth for status → 中文短句 mapping.
+    try:
+        from tradingagents.agent_harness.core.result_formatter import summarize_tool_result
+        summary = summarize_tool_result(parsed)
+        if summary:
+            parsed["summary"] = summary
+    except Exception:
+        # result_formatter is best-effort; never break tool invocation
+        # because the formatter can't classify a new status.
+        pass
+    return parsed
 
 
 async def _invoke_bridge(tool, kwargs, context):
