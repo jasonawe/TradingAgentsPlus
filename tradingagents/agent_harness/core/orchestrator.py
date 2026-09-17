@@ -1,3 +1,4 @@
+
 """Tier 2 orchestrator — 5-node state machine (v2 spec D5, N20 fix).
 
 Top-level nodes: PlanNode → ExecuteNode → ObserveNode → VerifyNode → SynthesizeNode.
@@ -1846,7 +1847,18 @@ class Orchestrator:
             LOGGER.warning("L3 verification (post-synth) failed: %s", e)
 
     async def _synthesize(self, state: OrchestratorState) -> Any:
-        """SynthesizeNode — turn tool results into a final answer."""
+        """SynthesizeNode — turn tool results into a final answer.
+
+        Fast-path: if every tool result is a trivial CRUD ack
+        (``status in {ok, created, updated, deleted, duplicate, pending_approval}``
+        with no real data worth analysing), skip the LLM round-trip and
+        return a templated summary. This is the common case for short
+        imperative messages ("删掉这条笔记", "建一个告警") where the LLM
+        would just regurgitate the ack string.
+        """
+        fast = self._trivial_crud_summary(state.tool_results)
+        if fast is not None:
+            return fast
         if self.llm_factory is not None:
             try:
                 return await self._llm_synthesize(state)
@@ -1856,6 +1868,38 @@ class Orchestrator:
             "intent": state.intent.value,
             "symbols": state.symbols,
             "results": state.tool_results,
+        }
+
+    @staticmethod
+    def _trivial_crud_summary(tool_results: list) -> dict | None:
+        """Return a templated summary if every result is a CRUD ack.
+
+        Returns ``None`` if any result carries meaningful data (quotes,
+        news items, fundamentals, factor values, etc.) and therefore
+        needs an LLM to phrase the answer.
+        """
+        if not tool_results:
+            return None
+        # Statuses we treat as trivial. Anything else (quote, news,
+        # fundamentals, factor list) needs the LLM.
+        trivial_statuses = {"ok", "created", "updated", "deleted", "duplicate", "pending_approval", "empty"}
+        for r in tool_results:
+            if not isinstance(r, dict):
+                return None
+            status = r.get("status")
+            if status not in trivial_statuses:
+                return None
+            # ``ok`` may carry real data (e.g. a quote snapshot). Detect
+            # by presence of typical data-bearing fields.
+            if status == "ok":
+                if any(r.get(k) for k in ("price", "items", "factors", "alerts", "notes", "rows")):
+                    return None
+        summary = _format_trivial_summary(tool_results)
+        return {
+            "intent": "crud",
+            "symbols": [],
+            "results": tool_results,
+            "summary": summary,
         }
 
     # ------------------------------------------------------------------
@@ -2369,3 +2413,50 @@ class Orchestrator:
         }
         first_tool = agent_to_first_tool.get(agent_name, "")
         return first_tool, agent_name
+
+
+def _format_trivial_summary(tool_results):
+    """Render a one-line summary for a batch of CRUD acks.
+
+    Pure templating — never invokes the LLM. Used by Orchestrator._synthesize
+    as a fast-path when every tool result is a trivial CRUD ack (no real
+    data to analyse, just a "yes it was created / deleted / updated" string).
+    """
+    if not tool_results:
+        return ""
+    parts = []
+    pending = False
+    for r in tool_results:
+        if not isinstance(r, dict):
+            return ""
+        status = r.get("status")
+        raw = r.get("raw") or ""
+        symbol = r.get("symbol")
+        if status == "created" and "NOTE_CREATED" in raw:
+            parts.append(f"笔记已保存{symbol_part(symbol)}")
+        elif status == "updated" and "NOTE_UPDATED" in raw:
+            parts.append(f"笔记已更新{symbol_part(symbol)}")
+        elif status == "deleted" and "NOTE_DELETED" in raw:
+            parts.append(f"笔记已删除{symbol_part(symbol)}")
+        elif status == "created" and "ALERT_CREATED" in raw:
+            parts.append(f"告警已创建{symbol_part(symbol)}")
+        elif status == "deleted" and "ALERT_DELETED" in raw:
+            parts.append(f"告警已删除{symbol_part(symbol)}")
+        elif status == "duplicate":
+            parts.append(f"{symbol or ''} 已在关注列表中,无需重复添加".strip())
+        elif status == "pending_approval":
+            pending = True
+        elif status == "ok" and "PREFERENCE_UPDATED" in raw:
+            parts.append("偏好已更新")
+        elif status == "ok" and "added" in raw.lower():
+            parts.append(f"{symbol or ''} 已加入关注".strip())
+        elif status == "ok":
+            parts.append("操作成功")
+    if pending:
+        parts.append("等待你确认")
+    return "\n".join(parts)
+
+
+def symbol_part(symbol):
+    """Return 'symbol' or '' for templating."""
+    return f" ({symbol})" if symbol else ""
