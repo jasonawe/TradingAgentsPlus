@@ -3,7 +3,6 @@
 The harness-owned MCP server auto-exposes every tool from the
 ToolRegistry (read tools by default; write tools opt-in via
 ``MCP_EXPOSE_WRITE_TOOLS=1`` or auto-approved by default). Replaces the
-old ``tradingagents/agents/general/mcp_server.py`` hardcoded 15-tool
 server; the old server is kept for backwards compatibility.
 
 Start with::

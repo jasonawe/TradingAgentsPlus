@@ -228,7 +228,8 @@ class SqliteSessionMemory(MemoryLayer):
         """Resolve the per-session LangGraph db file path."""
         # Local import keeps ``l1_session`` importable when LangGraph is not
         # installed (tests that only exercise the legacy SQLite path).
-        from tradingagents.agents.general.memory import agent_session_db_path
+        # agent_session_db_path removed in stage 2; we now build the
+        # per-session LangGraph DB path locally from self._lg_data_dir.
         return agent_session_db_path(self._lg_data_dir, session_id)
 
     def _lg_get_saver(self, session_id: str) -> tuple[Any, sqlite3.Connection]:

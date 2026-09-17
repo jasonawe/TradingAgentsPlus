@@ -1,6 +1,5 @@
 """MCP server — auto-exposes ToolRegistry (v3 spec §11.2).
 
-Replaces the old hardcoded 15-tool ``tradingagents/agents/general/mcp_server.py``
 by walking ``ToolRegistry.list_all()`` and registering every read tool with
 FastMCP. Write tools are gated by ``MCP_EXPOSE_WRITE_TOOLS`` (default off —
 HITL still enforced upstream via PermissionType.WRITE).
