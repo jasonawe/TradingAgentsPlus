@@ -617,6 +617,22 @@
     return JSON.stringify(result, null, 2);
   }
 
+  function intentHeading(intent) {
+    return ({
+      note: "📋 笔记",
+      alert: "🔔 告警",
+      watchlist: "⭐ 关注",
+      scheduled: "⏰ 定时任务",
+      run: "📊 分析记录",
+      report: "📑 报告",
+      quote: "💰 行情",
+      fundamentals: "💼 基本面",
+      news: "📰 新闻",
+      alpha: "🔢 因子",
+      history: "📈 K线",
+    })[intent] || `📦 ${intent}`;
+  }
+
   function dispatchEvent(name, payload, assistant) {
     // Surface filter: only UI-scoped events render into the chat panel.
     // DEBUG / AUDIT events still arrive via SSE (useful for the
@@ -660,6 +676,26 @@
         break;
       case "agent_final": {
         const result = payload.result || {};
+        // §N2 — multi-intent Tier 1 short-circuit returns
+        // {multi: [{intent, op, tool, result}, ...], count: N}.
+        // Render each section with a heading + formatRawResult output
+        // instead of one combined LLM-synthesized blob.
+        if (Array.isArray(result.multi) && result.multi.length >= 1) {
+          const sections = result.multi
+            .map((s) => {
+              const text = formatRawResult(s.result || {}, payload.tier);
+              const heading = intentHeading(s.intent);
+              return `<section class="harness-multi-section">
+  <h4>${heading}</h4>
+  <div class="harness-multi-body">${text}</div>
+</section>`;
+            })
+            .join("");
+          assistant.bubble.innerHTML = sections || "(空)";
+          appendReasoningDelta(`💡 SynthesizeNode 完成 (multi-intent Tier 1, ${result.multi.length} sections)\n`);
+          scrollToBottom();
+          return;
+        }
         // Tier 1 short-circuit paths skip the LLM synthesizer, so
         // result.summary is empty — fall back to client-side formatting.
         // For list_* tools that return ``{text: <markdown table>, count}``

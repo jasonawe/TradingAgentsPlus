@@ -772,3 +772,32 @@ details[open] .agent-reasoning-summary::before {
 .harness-form button {
   flex: 0 0 auto;
 }
+
+/* §N2 — multi-intent Tier 1 short-circuit (e.g. "笔记和告警" →
+ * 2 sections in one bubble). Compact stacked layout, no separator
+ * boxes to avoid visual heaviness. */
+.harness-multi-section {
+  margin: 0.6rem 0;
+}
+.harness-multi-section:first-child {
+  margin-top: 0;
+}
+.harness-multi-section:last-child {
+  margin-bottom: 0;
+}
+.harness-multi-section h4 {
+  margin: 0 0 0.3rem 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink, #1f2933);
+  letter-spacing: 0.01em;
+}
+.harness-multi-body {
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--ink, #1f2933);
+}
+.harness-multi-body pre,
+.harness-multi-body .harness-md-table {
+  margin: 0.2rem 0;
+}
