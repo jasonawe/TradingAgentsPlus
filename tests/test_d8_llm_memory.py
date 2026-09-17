@@ -222,10 +222,11 @@ def test_l3_references_list_by_kind(tmp_path: Path) -> None:
 def test_memory_manager_dispatch_by_scope(tmp_path: Path) -> None:
     mgr = MemoryManager(data_dir=str(tmp_path))
     mgr.set("foo", "L1", session_id="s1", scope=MemoryScope.SESSION)
-    mgr.set("foo", "L2", session_id="s1", scope=MemoryScope.PREFERENCES)
+    # L2 is user-scoped (not session-scoped) — pass user_id explicitly.
+    mgr.set("foo", "L2", user_id="u1", scope=MemoryScope.PREFERENCES)
     mgr.set("foo", "L3", session_id="s1", scope=MemoryScope.REFERENCES)
     assert mgr.get("foo", session_id="s1", scope=MemoryScope.SESSION).value == "L1"
-    assert mgr.get("foo", session_id="s1", scope=MemoryScope.PREFERENCES).value == "L2"
+    assert mgr.get("foo", user_id="u1", scope=MemoryScope.PREFERENCES).value == "L2"
     assert mgr.get("foo", session_id="s1", scope=MemoryScope.REFERENCES).value == "L3"
 
 

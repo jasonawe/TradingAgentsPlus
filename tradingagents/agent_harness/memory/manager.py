@@ -39,8 +39,21 @@ class MemoryManager:
     # ------------------------------------------------------------------
     # Convenience pass-throughs (default to L1 session scope)
     # ------------------------------------------------------------------
-    def get(self, key: str, *, session_id: str | None = None, scope: MemoryScope | None = None) -> MemoryEntry | None:
-        return self.get_layer(scope or MemoryScope.SESSION).get(key, session_id=session_id)
+    def get(
+        self,
+        key: str,
+        *,
+        session_id: str | None = None,
+        user_id: str | None = None,
+        scope: MemoryScope | None = None,
+    ) -> MemoryEntry | None:
+        # user_id is meaningful for L2 (preferences); L1 ignores it.
+        # Only forward user_id when the target layer is L2 — otherwise
+        # L1 raises TypeError on the unknown kwarg.
+        layer = self.get_layer(scope or MemoryScope.SESSION)
+        if scope is MemoryScope.PREFERENCES:
+            return layer.get(key, session_id=session_id, user_id=user_id)
+        return layer.get(key, session_id=session_id)
 
     def set(
         self,
@@ -48,12 +61,22 @@ class MemoryManager:
         value: Any,
         *,
         session_id: str | None = None,
+        user_id: str | None = None,
         ttl_seconds: int | None = None,
         scope: MemoryScope | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> MemoryEntry:
-        return self.get_layer(scope or MemoryScope.SESSION).set(
-            key, value, session_id=session_id, ttl_seconds=ttl_seconds, metadata=metadata,
+        layer = self.get_layer(scope or MemoryScope.SESSION)
+        if scope is MemoryScope.PREFERENCES:
+            return layer.set(
+                key, value,
+                session_id=session_id, user_id=user_id,
+                ttl_seconds=ttl_seconds, metadata=metadata,
+            )
+        return layer.set(
+            key, value,
+            session_id=session_id,
+            ttl_seconds=ttl_seconds, metadata=metadata,
         )
 
     def append_message(self, session_id: str, role: str, content: str) -> MemoryEntry:

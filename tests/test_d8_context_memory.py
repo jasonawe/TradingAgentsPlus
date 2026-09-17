@@ -53,8 +53,8 @@ def test_context_injects_chat_history_from_memory(tmp_memory: MemoryManager) -> 
 
 def test_context_injects_global_prefs_from_memory(tmp_memory: MemoryManager) -> None:
     """Layer 7 auto-populates from L2 user prefs when memory is set."""
-    tmp_memory.set("locale", "zh-CN", session_id="u1", scope=__import__("tradingagents.agent_harness.memory", fromlist=["MemoryScope"]).MemoryScope.PREFERENCES)
-    tmp_memory.set("theme", "dark", session_id="u1", scope=__import__("tradingagents.agent_harness.memory", fromlist=["MemoryScope"]).MemoryScope.PREFERENCES)
+    tmp_memory.set("locale", "zh-CN", user_id="u1", scope=__import__("tradingagents.agent_harness.memory", fromlist=["MemoryScope"]).MemoryScope.PREFERENCES)
+    tmp_memory.set("theme", "dark", user_id="u1", scope=__import__("tradingagents.agent_harness.memory", fromlist=["MemoryScope"]).MemoryScope.PREFERENCES)
 
     cp = ContextPriority(memory=tmp_memory)
     out = cp.assemble(user_id="u1")
@@ -100,7 +100,8 @@ def test_context_injects_both_chat_and_global(tmp_memory: MemoryManager) -> None
     from tradingagents.agent_harness.memory import MemoryScope
 
     tmp_memory.append_message("sess", "user", "hi")
-    tmp_memory.set("locale", "en-US", session_id="u1", scope=MemoryScope.PREFERENCES)
+    # L2 is user-scoped; pass user_id (not session_id) for PREFERENCES.
+    tmp_memory.set("locale", "en-US", user_id="u1", scope=MemoryScope.PREFERENCES)
 
     cp = ContextPriority(memory=tmp_memory)
     out = cp.assemble(session_id="sess", user_id="u1")
