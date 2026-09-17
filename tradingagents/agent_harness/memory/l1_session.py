@@ -36,6 +36,31 @@ LOGGER = logging.getLogger(__name__)
 
 
 
+def _safe_id(session_id: str) -> str:
+    """Sanitised session id used as LangGraph DB filename.
+
+    Stage 2 deleted ``agent_session_db_path``; reconstructing it locally
+    keeps the langgraph checkpointer backend working without re-importing
+    the legacy Stage C module.
+    """
+    from tradingagents.dataflows.utils import safe_ticker_component
+    return safe_ticker_component(f"agent_{session_id}")
+
+
+def _lg_data_dir(data_dir: str | Path | None) -> Path:
+    """Return the directory that holds per-session LG checkpoint files.
+
+    Mirrors the old ``agent_data_dir`` helper but takes a path that may
+    already be the data_dir root or already be agent_data_dir.
+    """
+    p = Path(data_dir).expanduser() if data_dir else Path(".ta_cache")
+    if p.name == "agent_general":
+        return p
+    agent_dir = p / "agent_general"
+    agent_dir.mkdir(parents=True, exist_ok=True)
+    return agent_dir
+
+
 def _safe_msgpack_default(obj: Any) -> Any:
     """msgpack fallback for non-primitive values (datetime etc.)."""
     if isinstance(obj, datetime):
@@ -226,11 +251,13 @@ class SqliteSessionMemory(MemoryLayer):
     # ------------------------------------------------------------------
     def _lg_db_path(self, session_id: str) -> Path:
         """Resolve the per-session LangGraph db file path."""
-        # Local import keeps ``l1_session`` importable when LangGraph is not
-        # installed (tests that only exercise the legacy SQLite path).
-        # agent_session_db_path removed in stage 2; we now build the
-        # per-session LangGraph DB path locally from self._lg_data_dir.
-        return agent_session_db_path(self._lg_data_dir, session_id)
+        if self._lg_data_dir is None:
+            # Defensive: __init__ raises when use_langgraph_checkpointer=True
+            # without data_dir, so this branch shouldn't fire in practice.
+            raise RuntimeError("L1 langgraph backend requires data_dir")
+        d = _lg_data_dir(self._lg_data_dir) / "sessions"
+        d.mkdir(parents=True, exist_ok=True)
+        return d / f"{_safe_id(session_id)}.db"
 
     def _lg_get_saver(self, session_id: str) -> tuple[Any, sqlite3.Connection]:
         """Return (SqliteSaver, Connection) for ``session_id``, opening lazily."""
