@@ -10,8 +10,6 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
-from pydantic import BaseModel
-
 if TYPE_CHECKING:
     from tradingagents.agent_harness.agents.base import BaseAgent
     from tradingagents.agent_harness.harness import Harness
@@ -34,10 +32,6 @@ class Plugin(ABC):
     def prompts(self) -> dict[str, str]:
         """Optional: override default prompts (name → content)."""
         return {}
-
-    def config_schema(self) -> type[BaseModel] | None:
-        """Optional: plugin config schema validated by HarnessConfig."""
-        return None
 
     def install(self, harness: "Harness") -> None:
         """Install hook — called by ``PluginRegistry.register(p)``.
