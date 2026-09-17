@@ -13,6 +13,7 @@
     sendBtn: null,
     formEl: null,
     clearBtn: null,
+    grantAllBox: null,
     busy: false,
     sessionId: null,
     // 当前累积的 reasoning trace(下一个 tool_call/answer_verified 触发时收尾)
@@ -54,8 +55,14 @@
         sendMessage();
       }
     });
+    state.grantAllBox = document.getElementById("harness-grant-all");
     if (state.clearBtn) {
       state.clearBtn.addEventListener("click", clearConversation);
+    }
+    if (state.grantAllBox) {
+      state.grantAllBox.addEventListener("change", onGrantAllChange);
+      // restore from server (so refreshes don't reset the toggle)
+      syncGrantAllFromServer();
     }
 
     renderWelcome();
@@ -214,6 +221,34 @@
     requestAnimationFrame(() => {
       state.messagesEl.scrollTop = state.messagesEl.scrollHeight;
     });
+  }
+
+  async function onGrantAllChange(event) {
+    const checked = !!event.target.checked;
+    const sessionId = state.sessionId || ensureSession();
+    const path = checked
+      ? `/api/harness/sessions/${encodeURIComponent(sessionId)}/grant_all`
+      : `/api/harness/sessions/${encodeURIComponent(sessionId)}/revoke_all`;
+    try {
+      const resp = await fetch(path, { method: "POST" });
+      if (!resp.ok) {
+        event.target.checked = !checked;
+        appendReasoningDelta(`⚠️ 全权限切换失败: ${resp.status} ${await resp.text()}\n`);
+      }
+    } catch (e) {
+      event.target.checked = !checked;
+      appendReasoningDelta(`⚠️ 全权限切换失败: ${e.message || e}\n`);
+    }
+  }
+
+  async function syncGrantAllFromServer() {
+    const sessionId = state.sessionId || ensureSession();
+    try {
+      const resp = await fetch(`/api/harness/sessions/${encodeURIComponent(sessionId)}/grant_all`);
+      if (!resp.ok) return;
+      const data = await resp.json();
+      if (state.grantAllBox) state.grantAllBox.checked = !!data.is_granted;
+    } catch (_) { /* silent — toggle is non-critical */ }
   }
 
   function renderWelcome() {
@@ -589,6 +624,7 @@
     const toolName = payload?.tool_name || "(tool)";
     const toolArgs = payload?.args || {};
     const impact = payload?.impact || {};
+    // (debug log removed)
     const sessionId = ensureSession();
     const banner = document.createElement("div");
     banner.className = "harness-confirm-inline";
@@ -608,14 +644,26 @@
         <button type="button" class="harness-confirm-inline-ok">批准</button>
       </div>
     `;
-    // Insert at the end of the chat assistant bubble
-    const chat = document.querySelector("#chat-log, .chat-log, #messages, .messages, .assistant-bubble, .chat-container");
-    if (chat) {
-      chat.appendChild(banner);
+    // Insert the banner AFTER the assistant message element (not inside
+    // the bubble). The ``agent_final`` handler replaces
+    // ``assistant.bubble.innerHTML`` with the LLM synthesis markdown,
+    // which would destroy anything we put inside the bubble. Anchoring
+    // to the chat root and inserting the banner as a sibling of
+    // ``assistant.el`` keeps it visible through that overwrite.
+    const chatRoot = state.messagesEl || document.querySelector("#harness-messages");
+    if (chatRoot && assistant && assistant.el) {
+      // insertAdjacentElement("afterend", el) puts banner directly after assistant.el
+      assistant.el.insertAdjacentElement("afterend", banner);
+    } else if (chatRoot) {
+      chatRoot.appendChild(banner);
     } else {
       document.body.appendChild(banner);
     }
     scrollToBottom();
+
+    // Diagnostic logs removed (debug session). The banner is now a
+    // sibling of assistant.el in the chat root, so the agent_final
+    // innerHTML overwrite doesn't destroy it.
 
     const decide = async (approve) => {
       banner.querySelectorAll("button").forEach(b => b.disabled = true);

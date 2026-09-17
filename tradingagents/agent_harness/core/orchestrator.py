@@ -1668,6 +1668,30 @@ class Orchestrator:
                 dumped = self._dump(pipe_result.result)
                 # dedupe: 缓存成功的 result,后续重复调用直接命中
                 _dedupe_record(context.session_id, name, args, dumped)
+                # §P3-3+ HITL via tool-internal gate: when a write tool
+                # itself returns ``{"status": "pending_approval", "gate": {...}}``
+                # (the bridge path used by create_note / update_note /
+                # create_alert etc.), the pipeline sees a successful
+                # invocation (pipe_result.ok=True) so the needs_approval
+                # branch below never fires and the ``confirm_request`` SSE
+                # event is never emitted. Detect this case explicitly and
+                # stash the gate_payload so the post-execute drain in
+                # ``stream_chat`` emits ``confirm_request`` for the UI banner.
+                if isinstance(dumped, dict) and dumped.get("status") == "pending_approval":
+                    gate_payload = {
+                        "tool_name": name,
+                        "args": self._dump(args),
+                        "impact": (dumped.get("gate") or {}).get("impact")
+                            or {"reason": "destructive_tool_requires_approval"},
+                        "session_id": context.session_id,
+                    }
+                    if "gate" in dumped:
+                        gate_payload["gate"] = dumped["gate"]
+                    try:
+                        state.pending_approvals.append(gate_payload)
+                    except AttributeError:
+                        state.pending_approvals = [gate_payload]
+                    return {"name": name, "result": dumped}
                 return {"name": name, "result": dumped}
             if pipe_result.needs_approval:
                 # HITL: dangerous tool requires approval. Stash a

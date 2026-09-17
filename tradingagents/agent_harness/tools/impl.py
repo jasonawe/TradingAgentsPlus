@@ -427,6 +427,14 @@ def _check_write_approval(
         # 已被批准,允许执行(后续由具体工具 consume_approval 清除)
         return None
 
+    # session-level grant-all 开启 → 自动放行所有写工具(无 audit 不阻塞)
+    try:
+        from tradingagents.agent_harness.hitl import is_session_grant_all
+        if is_session_grant_all(session_id):
+            return None
+    except ImportError:
+        pass
+
     # 未批准 → 返回 AWAITING_CONFIRMATION
     is_write, impact = validate_write_intent(tool_name, tool_args)
     payload = {

@@ -472,6 +472,141 @@ details[open] .agent-reasoning-summary::before {
   border-radius: 4px;
 }
 
+.harness-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.harness-grant-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--muted-color, #666);
+  cursor: pointer;
+  user-select: none;
+}
+
+.harness-grant-all input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+/* HITL inline confirmation banner (replaces the dropped centred modal).
+   Lives inline in the chat stream so the user stays in context and
+   can't click approval twice via parallel UI surfaces. */
+.harness-confirm-inline {
+  margin: 0.75rem 0;
+  padding: 0.85rem 1rem;
+  background: rgba(255, 193, 7, 0.10);
+  border: 1px solid rgba(255, 193, 7, 0.55);
+  border-left: 4px solid #ffc107;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.harness-confirm-inline-header {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.5rem;
+}
+
+.harness-confirm-inline-icon {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.harness-confirm-inline-title {
+  font-weight: 600;
+  color: #b45309;
+}
+
+.harness-confirm-inline-tool {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.78rem;
+  padding: 0.1rem 0.4rem;
+  background: rgba(180, 83, 9, 0.10);
+  border: 1px solid rgba(180, 83, 9, 0.30);
+  border-radius: 3px;
+  color: #b45309;
+}
+
+.harness-confirm-inline-impact {
+  margin-bottom: 0.5rem;
+  color: var(--muted-color, #555);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.harness-confirm-inline-details {
+  margin-bottom: 0.6rem;
+  font-size: 0.82rem;
+}
+
+.harness-confirm-inline-details summary {
+  cursor: pointer;
+  color: var(--muted-color, #666);
+  user-select: none;
+}
+
+.harness-confirm-inline-args {
+  margin: 0.4rem 0 0;
+  padding: 0.6rem;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.78rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.harness-confirm-inline-buttons {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: flex-end;
+}
+
+.harness-confirm-inline-buttons button {
+  padding: 0.35rem 0.95rem;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.harness-confirm-inline-cancel {
+  background: transparent;
+  border-color: rgba(0, 0, 0, 0.18);
+  color: var(--muted-color, #555);
+}
+
+.harness-confirm-inline-cancel:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.harness-confirm-inline-ok {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.harness-confirm-inline-ok:hover {
+  background: #1d4ed8;
+}
+
+.harness-confirm-inline-approved {
+  opacity: 0.65;
+}
+
+.harness-confirm-inline-rejected {
+  opacity: 0.55;
+  border-left-color: #9ca3af;
+}
+
 .harness-messages {
   flex: 1 1 auto;
   overflow-y: auto;

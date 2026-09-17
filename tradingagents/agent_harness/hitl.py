@@ -27,6 +27,11 @@ _lock = threading.RLock()
 # session_id -> set of (tool_name, args_json)
 _approved: dict[str, set[tuple[str, str]]] = {}
 
+# session_id -> bool. When True, _check_write_approval short-circuits to None
+# (approved) for ALL write tools in this session, bypassing the per-call
+# confirm dialog. Toggle via /api/harness/sessions/{sid}/grant_all.
+_session_grant_all: dict[str, bool] = {}
+
 
 def _key_of(tool_name: str, tool_args: dict[str, Any]) -> tuple[str, str]:
     """生成稳定的 approval key(deterministic JSON 序列化)。"""
@@ -85,3 +90,27 @@ __all__ = [
     "revoke_session",
     "list_pending",
 ]
+
+def is_session_grant_all(session_id: str) -> bool:
+    """True iff the user enabled "auto-approve all writes" for this session."""
+    with _lock:
+        return bool(_session_grant_all.get(session_id, False))
+
+
+def grant_session_all(session_id: str) -> None:
+    """Turn on auto-approve-all for this session (sticky for the session lifetime)."""
+    with _lock:
+        _session_grant_all[session_id] = True
+
+
+def revoke_session_grant_all(session_id: str) -> None:
+    """Turn off auto-approve-all (subsequent write tools will gate again)."""
+    with _lock:
+        _session_grant_all.pop(session_id, None)
+
+
+def list_session_grants() -> dict[str, bool]:
+    """Debug snapshot of session-level grant flags."""
+    with _lock:
+        return dict(_session_grant_all)
+

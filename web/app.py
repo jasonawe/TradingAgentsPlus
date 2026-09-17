@@ -824,6 +824,45 @@ def create_app(
                 headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
             )
 
+        # P2-12: session-level "auto-approve all writes" toggle.
+        # When enabled, the next write tool call in this session
+        # skips the HITL gate (returns None from
+        # _check_write_approval). Sticky for the session lifetime
+        # until revoked; survives across multiple chat turns.
+        @app.post("/api/harness/sessions/{session_id}/grant_all")
+        async def _harness_grant_all(session_id: str) -> dict:
+            from tradingagents.agent_harness.hitl import (
+                grant_session_all, is_session_grant_all,
+            )
+            grant_session_all(session_id)
+            return {
+                "session_id": session_id,
+                "grant_all": True,
+                "is_granted": is_session_grant_all(session_id),
+            }
+
+        @app.post("/api/harness/sessions/{session_id}/revoke_all")
+        async def _harness_revoke_all(session_id: str) -> dict:
+            from tradingagents.agent_harness.hitl import (
+                revoke_session_grant_all, is_session_grant_all,
+            )
+            revoke_session_grant_all(session_id)
+            return {
+                "session_id": session_id,
+                "grant_all": False,
+                "is_granted": is_session_grant_all(session_id),
+            }
+
+        @app.get("/api/harness/sessions/{session_id}/grant_all")
+        async def _harness_grant_all_status(session_id: str) -> dict:
+            from tradingagents.agent_harness.hitl import (
+                is_session_grant_all,
+            )
+            return {
+                "session_id": session_id,
+                "is_granted": is_session_grant_all(session_id),
+            }
+
         # P1-8 Batch mode: synchronous JSON response. Useful for CLI
         # scripts, scheduled jobs, and clients that can't keep an SSE
         # connection open. Runs the full 5-node state machine and

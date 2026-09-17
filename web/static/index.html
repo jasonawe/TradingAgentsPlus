@@ -18,7 +18,7 @@
       })();
     </script>
     <link rel="stylesheet" href="/static/styles.css?v=20260911-styles-1" />
-    <link rel="stylesheet" href="/static/agent.css?v=20260917-agent-1" />
+    <link rel="stylesheet" href="/static/agent.css?v=20260917-agent-3" />
   </head>
   <body>
     <div class="app-shell">
@@ -414,7 +414,13 @@
         <div class="harness-page">
           <div class="harness-toolbar">
             <span class="harness-banner" data-i18n="harness.banner">P8 harness · LLM + 6 agents + L3 judge · 与 WebRunRunner 并行</span>
-            <button type="button" id="harness-clear-btn" class="text-button" data-i18n="actions.clear">清空</button>
+            <div class="harness-toolbar-actions">
+              <label class="harness-grant-all" title="开启后所有写操作自动放行,关闭后恢复逐条审批">
+                <input type="checkbox" id="harness-grant-all" />
+                <span>全权限</span>
+              </label>
+              <button type="button" id="harness-clear-btn" class="text-button" data-i18n="actions.clear">清空</button>
+            </div>
           </div>
           <div id="harness-messages" class="harness-messages" aria-live="polite"></div>
           <form id="harness-form" class="harness-form" autocomplete="off">
@@ -447,7 +453,7 @@
     <script src="/static/scheduled-history.js?v=20260909-scheduled-history-1" defer></script>
     <script src="/static/notes.js?v=20260910-notes-5" defer></script>
     <script src="/static/alerts.js?v=20260910-alerts-5" defer></script>
-    <script src="/static/harness.js?v=20260916-harness-2" defer></script>
+    <script src="/static/harness.js?v=20260917-harness-6" defer></script>
     <script src="/static/app.js?v=20260917-app-syntaxfix" defer></script>
     <svg width="0" height="0" style="position:absolute" aria-hidden="true">
       <defs>
