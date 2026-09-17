@@ -896,7 +896,11 @@ def update_preference(
             parsed = json.loads(value)
         except json.JSONDecodeError:
             parsed = value
-        mem.set(key, parsed, session_id=session_id)
+        # L2 preferences are user-scoped (not session-scoped). Until
+        # user auth lands, every tool call writes to the global
+        # 'default' user — the old session_id-as-user_id behaviour
+        # silently made prefs session-local.
+        mem.set(key, parsed, user_id="default")
         _after_execute(session_id, "update_preference", args)
         return f"PREFERENCE_UPDATED: {key}"
     except Exception as e:

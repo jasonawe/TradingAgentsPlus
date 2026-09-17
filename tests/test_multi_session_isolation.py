@@ -293,9 +293,14 @@ class TestCrossSessionL1Isolation:
             # B doesn't see A's content
             assert not any("600036.SS" in m for m in msgs_b)
 
-            # __session_ctx__ per turn is also partitioned
-            ctx_a = fresh_mm.l2.get("__session_ctx__", session_id="sess_A")
-            ctx_b = fresh_mm.l2.get("__session_ctx__", session_id="sess_B")
+            # __session_ctx__ per turn is also partitioned (namespaced
+            # by session_id since L2 is now user-scoped, not session-scoped)
+            ctx_a = fresh_mm.l2.get(
+                f"__session_ctx__:sess_A", user_id="default",
+            )
+            ctx_b = fresh_mm.l2.get(
+                f"__session_ctx__:sess_B", user_id="default",
+            )
             assert ctx_a is not None and ctx_b is not None
             assert "600036.SS" in ctx_a.value["symbols"]
             assert "513880.SS" in ctx_b.value["symbols"]

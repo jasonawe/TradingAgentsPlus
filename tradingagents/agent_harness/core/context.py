@@ -269,7 +269,7 @@ class UserPreferencesLayerProvider(ContextLayerProvider):
             return {}
         uid = user_id or session_id or "default"
         try:
-            prefs = self._memory.l2.list(session_id=uid)
+            prefs = self._memory.l2.list(user_id=uid)
         except Exception as e:  # pragma: no cover
             _LOGGER.warning("UserPreferencesLayerProvider.collect failed: %s", e)
             return {}
@@ -535,7 +535,7 @@ class ContextPriority:
         # Layer 7 — user preferences from L2 memory.
         if Layer.GLOBAL not in layers:
             uid = user_id or session_id or "default"
-            prefs = self.memory.l2.list(session_id=uid)
+            prefs = self.memory.l2.list(user_id=uid)
             if prefs:
                 layers[Layer.GLOBAL] = {p.key: p.value for p in prefs}
 

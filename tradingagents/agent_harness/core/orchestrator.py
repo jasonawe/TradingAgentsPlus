@@ -559,6 +559,13 @@ class Orchestrator:
     # ------------------------------------------------------------------
     _SESSION_CTX_KEY = "__session_ctx__"
 
+    @classmethod
+    def _session_ctx_key(cls, session_id: str) -> str:
+        """L2 namespace: same __session_ctx__ key shape, scoped per
+        session so multi-session carry-forward keeps working without
+        re-introducing the session_id-as-user_id misuse."""
+        return f"{cls._SESSION_CTX_KEY}:{session_id}"
+
     def _load_session_context(self, session_id: str) -> dict:
         """Read previous-turn metadata from L2 (symbols / intent / user_msg).
 
@@ -569,7 +576,13 @@ class Orchestrator:
         if self.memory is None or not session_id:
             return {"symbols": [], "intent": None, "user_msg": None}
         try:
-            entry = self.memory.l2.get(self._SESSION_CTX_KEY, session_id=session_id)
+            # L2 is user-scoped; namespace the session ctx under
+            # ``__session_ctx__:<session_id>`` so multiple sessions of
+            # the same user don't trample each other.
+            entry = self.memory.l2.get(
+                self._session_ctx_key(session_id),
+                user_id="default",
+            )
         except Exception as e:
             LOGGER.warning("load_session_context failed: %s", e)
             return {"symbols": [], "intent": None, "user_msg": None}
@@ -607,13 +620,13 @@ class Orchestrator:
                     session_id, "assistant", str(assistant_summary)[:2000],
                 )
             self.memory.l2.set(
-                self._SESSION_CTX_KEY,
+                self._session_ctx_key(session_id),
                 {
                     "symbols": list(symbols or []),
                     "intent": getattr(intent, "value", str(intent) if intent else None),
                     "user_msg": (user_msg or "")[:200],
                 },
-                session_id=session_id,
+                user_id="default",
             )
         except Exception as e:
             LOGGER.warning("save_turn_summary failed: %s", e)

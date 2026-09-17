@@ -148,18 +148,52 @@ def test_l1_session_append_message(tmp_path: Path) -> None:
 
 def test_l2_preferences_set_get(tmp_path: Path) -> None:
     m = UserPreferencesMemory(db_path=tmp_path / "l2.sqlite")
-    m.set("locale", "zh-CN", session_id="u1")
-    entry = m.get("locale", session_id="u1")
+    m.set("locale", "zh-CN", user_id="u1")
+    entry = m.get("locale", user_id="u1")
     assert entry.value == "zh-CN"
     assert entry.scope == MemoryScope.PREFERENCES
 
 
 def test_l2_preferences_isolates_by_user(tmp_path: Path) -> None:
+    """L2 properly isolates by user — different user_id sees different prefs."""
     m = UserPreferencesMemory(db_path=tmp_path / "l2.sqlite")
-    m.set("locale", "zh-CN", session_id="u1")
-    m.set("locale", "en-US", session_id="u2")
-    assert m.get("locale", session_id="u1").value == "zh-CN"
-    assert m.get("locale", session_id="u2").value == "en-US"
+    m.set("locale", "zh-CN", user_id="u1")
+    m.set("locale", "en-US", user_id="u2")
+    assert m.get("locale", user_id="u1").value == "zh-CN"
+    assert m.get("locale", user_id="u2").value == "en-US"
+
+
+def test_l2_preferences_session_id_is_deprecated(tmp_path: Path) -> None:
+    """session_id is no longer silently treated as user_id.
+
+    The fix: passing session_id emits a DeprecationWarning AND the
+    storage falls back to the global "default" namespace, so two
+    sessions no longer silently shard preferences apart.
+    """
+    import warnings
+    m = UserPreferencesMemory(db_path=tmp_path / "l2.sqlite")
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        m.set("locale", "zh-CN", session_id="s1")
+        m.set("locale", "en-US", session_id="s2")
+    # Both calls deprecate session_id
+    assert len([w for w in caught if issubclass(w.category, DeprecationWarning)]) >= 2
+
+    # Both writes landed on the same "default" key — last write wins
+    assert m.get("locale").value == "en-US"
+    # And a session-scoped lookup would NOT find anything distinct
+    assert m.get("locale", session_id="s1") is None or         m.get("locale", session_id="s1").value == "en-US"
+
+
+def test_l2_preferences_default_user_id_is_global(tmp_path: Path) -> None:
+    """No user_id → global 'default' namespace."""
+    m = UserPreferencesMemory(db_path=tmp_path / "l2.sqlite")
+    m.set("theme", "dark")  # no user_id, no session_id
+    assert m.get("theme").value == "dark"
+    # list() with no user_id returns the global defaults
+    entries = m.list()
+    assert any(e.key == "theme" for e in entries)
 
 
 def test_l3_references_set_get(tmp_path: Path) -> None:
