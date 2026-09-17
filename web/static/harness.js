@@ -193,10 +193,20 @@
   }
 
   function appendToolResult(name, payload) {
-    const summary = payload?.error
-      ? `❌ ${name || "tool"}: ${payload.error}`
-      : `📥 ${name || "tool"}: ${JSON.stringify(payload?.result || payload).slice(0, 240)}`;
-    return appendMessage("tool-result", summary);
+    if (payload?.error) {
+      return appendMessage("tool-result", `❌ ${name || "tool"}: ${payload.error}`);
+    }
+    const result = payload?.result || payload;
+    // pending_approval already has the user-visible approval modal
+    // open; dumping the raw ``AWAITING_CONFIRMATION:`` JSON string
+    // into the reasoning trace is noisy and confusing. Render a
+    // short, scannable tag instead.
+    if (result && typeof result === "object" && result.status === "pending_approval") {
+      const args = result.args || {};
+      const sym = args.symbol ? ` · ${args.symbol}` : "";
+      return appendMessage("tool-result", `🔒 ${name} 等待审批${sym}`);
+    }
+    return appendMessage("tool-result", `📥 ${name || "tool"}: ${JSON.stringify(result).slice(0, 240)}`);
   }
 
   function appendVerified(payload) {
@@ -645,56 +655,57 @@
   // banner's buttons, opened a second focus context, and was visually
   // heavy). The banner lives inside the assistant bubble so the user
   // stays in conversation flow. Single approve / deny pair.
+  // Centred modal-based HITL approval dialog. Replaces the inline banner
+  // (which was lost inside agent_final's innerHTML overwrite and made
+  // it easy to miss). Single entry point — no parallel inline UI.
   function showHarnessConfirmInline(payload, assistant) {
     const toolName = payload?.tool_name || "(tool)";
     const toolArgs = payload?.args || {};
     const impact = payload?.impact || {};
-    // (debug log removed)
     const sessionId = ensureSession();
-    const banner = document.createElement("div");
-    banner.className = "harness-confirm-inline";
-    banner.innerHTML = `
-      <div class="harness-confirm-inline-header">
-        <span class="harness-confirm-inline-icon">⚠️</span>
-        <span class="harness-confirm-inline-title">写操作需要你确认</span>
-        <code class="harness-confirm-inline-tool">${escapeHtml(toolName)}</code>
-      </div>
-      ${impact.reason ? `<div class="harness-confirm-inline-impact">${escapeHtml(impact.reason)}</div>` : ""}
-      <details class="harness-confirm-inline-details">
-        <summary>查看参数</summary>
-        <pre class="harness-confirm-inline-args">${escapeHtml(JSON.stringify(toolArgs, null, 2))}</pre>
-      </details>
-      <div class="harness-confirm-inline-buttons">
-        <button type="button" class="harness-confirm-inline-cancel">拒绝</button>
-        <button type="button" class="harness-confirm-inline-ok">批准</button>
+
+    // Hide any prior pending modal first so a fresh confirm request
+    // replaces the old one rather than stacking.
+    closeHarnessModal();
+
+    const root = document.getElementById("modal-root");
+    if (!root) return;
+    root.innerHTML = `
+      <div class="modal-overlay" data-harness-modal-bg></div>
+      <div class="modal-dialog is-danger" role="dialog" aria-modal="true" aria-labelledby="harness-modal-title">
+        <header class="modal-header">
+          <h2 class="modal-title" id="harness-modal-title">
+            <span class="modal-title-icon">⚠️</span>
+            <span>写操作需要你确认</span>
+          </h2>
+        </header>
+        <div class="modal-body" style="padding: 0 28px 18px;">
+          <p style="margin: 0 0 14px; color: var(--ink);">
+            工具 <code style="background: var(--panel-2); padding: 2px 8px; border-radius: 4px; font-size: 0.92em;">${escapeHtml(toolName)}</code> 将要执行修改操作。
+          </p>
+          ${impact.reason ? `<p style="margin: 0 0 12px; color: var(--muted); font-size: 0.9rem;">${escapeHtml(impact.reason)}</p>` : ""}
+          <details style="margin-bottom: 16px;">
+            <summary style="cursor: pointer; font-size: 0.85rem; color: var(--muted); user-select: none;">查看参数详情</summary>
+            <pre style="margin: 8px 0 0; padding: 10px; background: var(--panel-2); border-radius: 6px; font-size: 0.8rem; overflow-x: auto; white-space: pre-wrap; word-break: break-word; max-height: 240px; overflow-y: auto;">${escapeHtml(JSON.stringify(toolArgs, null, 2))}</pre>
+          </details>
+        </div>
+        <footer class="modal-footer" style="padding: 14px 28px 22px; display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid var(--line);">
+          <button type="button" class="text-button" data-harness-modal-cancel>拒绝</button>
+          <button type="button" class="btn btn-primary" data-harness-modal-ok>批准</button>
+        </footer>
       </div>
     `;
-    // Insert the banner AFTER the assistant message element (not inside
-    // the bubble). The ``agent_final`` handler replaces
-    // ``assistant.bubble.innerHTML`` with the LLM synthesis markdown,
-    // which would destroy anything we put inside the bubble. Anchoring
-    // to the chat root and inserting the banner as a sibling of
-    // ``assistant.el`` keeps it visible through that overwrite.
-    const chatRoot = state.messagesEl || document.querySelector("#harness-messages");
-    if (chatRoot && assistant && assistant.el) {
-      // insertAdjacentElement("afterend", el) puts banner directly after assistant.el
-      assistant.el.insertAdjacentElement("afterend", banner);
-    } else if (chatRoot) {
-      chatRoot.appendChild(banner);
-    } else {
-      document.body.appendChild(banner);
-    }
-    scrollToBottom();
-
-    // Diagnostic logs removed (debug session). The banner is now a
-    // sibling of assistant.el in the chat root, so the agent_final
-    // innerHTML overwrite doesn't destroy it.
+    root.classList.add("is-open");
+    root.setAttribute("aria-hidden", "false");
+    // Lock chat input while waiting for approval — prevents re-fire that
+    // would race the in-flight confirm.
+    setBusy(true);
 
     const decide = async (approve) => {
-      banner.querySelectorAll("button").forEach(b => b.disabled = true);
-      banner.classList.add(approve ? "harness-confirm-inline-approved" : "harness-confirm-inline-rejected");
-      const labelEl = banner.querySelector(".harness-confirm-inline-header small");
-      if (labelEl) labelEl.textContent = `${escapeHtml(toolName)} · ${approve ? "已批准" : "已拒绝"}`;
+      const okBtn = root.querySelector("[data-harness-modal-ok]");
+      const cancelBtn = root.querySelector("[data-harness-modal-cancel]");
+      if (okBtn) okBtn.disabled = true;
+      if (cancelBtn) cancelBtn.disabled = true;
       try {
         const resp = await fetch(
           `/api/harness/sessions/${encodeURIComponent(sessionId)}/confirm`,
@@ -712,6 +723,7 @@
         );
         if (!resp.ok || !resp.body) {
           appendError(`审批请求失败 (HTTP ${resp.status})`);
+          closeHarnessModal();
           return;
         }
         const reader = resp.body.getReader();
@@ -730,10 +742,32 @@
         }
       } catch (e) {
         appendError(`审批流错误: ${e.message}`);
+      } finally {
+        closeHarnessModal();
       }
     };
-    banner.querySelector(".harness-confirm-inline-cancel").onclick = () => decide(false);
-    banner.querySelector(".harness-confirm-inline-ok").onclick = () => decide(true);
+
+    root.querySelector("[data-harness-modal-ok]").onclick = () => decide(true);
+    root.querySelector("[data-harness-modal-cancel]").onclick = () => decide(false);
+    // Click-on-backdrop does NOT auto-confirm. Single entry point.
+    root.querySelector("[data-harness-modal-bg]").onclick = (event) => {
+      if (event.target === event.currentTarget) {
+        // explicit reject on backdrop click
+        decide(false);
+      }
+    };
+    // Focus the confirm button so Enter approves.
+    root.querySelector("[data-harness-modal-ok]").focus();
+  }
+
+  function closeHarnessModal() {
+    const root = document.getElementById("modal-root");
+    if (!root) return;
+    root.classList.remove("is-open");
+    root.setAttribute("aria-hidden", "true");
+    root.innerHTML = "";
+    // only release busy if no in-flight streaming
+    setBusy(state.busy);
   }
 
   function setBusy(busy) {

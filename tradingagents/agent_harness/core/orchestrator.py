@@ -1547,6 +1547,122 @@ class Orchestrator:
         except Exception:
             LOGGER.debug("prefetch kick_off failed", exc_info=True)
 
+    @staticmethod
+    def _clean_tool_args(tool_name, args, user_message):
+        """Defensive arg cleanup before tool invocation.
+
+        Two common LLM planning failures:
+
+        1. **Symbol extraction**: planner pulls the wrong substring
+           (``"SS"`` from ``"600036.SS"``, or just ``"600036"``)
+           instead of the full ticker. Try to recover from the
+           user's original message via a regex sweep.
+
+        2. **Body / free-text extraction**: planner returns the entire
+           user message (including the imperative
+           ``"帮我给 600036.SS 加一个笔记：哈哈八成"``) as the body.
+           Strip common Chinese imperative prefixes so the stored
+           note is just the user-authored content.
+        """
+        import re as _re
+
+        def _extract_ticker(text):
+            # NB: Python's ``\b`` and ``\w`` treat Chinese characters
+            # as word characters, so ``\b`` won't match between a
+            # Chinese char and an ASCII digit. Use explicit ASCII-only
+            # lookarounds ``(?<![A-Za-z0-9_.])`` instead.
+            if not text:
+                return None
+            # A-share with exchange suffix: 6 digits + .SS/.SZ/.SH
+            m = _re.search(r"(?<![A-Za-z0-9_.])(\d{6}\.(?:SS|SZ|SH))(?![A-Za-z0-9_])", text, _re.IGNORECASE)
+            if m:
+                return m.group(1).upper()
+            # HK 5 digits + .HK / .HKEX
+            m = _re.search(r"(?<![A-Za-z0-9_.])(\d{5}\.(?:HK|HKEX))(?![A-Za-z0-9_])", text, _re.IGNORECASE)
+            if m:
+                return m.group(1).upper()
+            # Crypto pair (BTC-USD etc.)
+            m = _re.search(r"(?<![A-Za-z0-9_])(BTC|ETH|SOL)[-/](USD|USDT)(?![A-Za-z0-9_])", text, _re.IGNORECASE)
+            if m:
+                return f"{m.group(1).upper()}-{m.group(2).upper()}"
+            # Bare 6-digit code → assume Shanghai
+            m = _re.search(r"(?<![A-Za-z0-9_.])(\d{6})(?![A-Za-z0-9_.])", text)
+            if m:
+                return f"{m.group(1)}.SS"
+            # US ticker 1-5 uppercase letters (whole word)
+            m = _re.search(r"(?<![A-Za-z])([A-Z]{1,5})(?![A-Za-z0-9_])", text)
+            if m and m.group(1).upper() not in _BARE_EXCHANGE_SUFFIXES:
+                return m.group(1)
+            return None
+
+        # Bare exchange suffixes that should NOT count as a ticker on
+        # their own (the planner often grabs these from inside the
+        # user's symbol string — e.g. extracting ``"SS"`` from
+        # ``"600036.SS"``). If the symbol is exactly one of these,
+        # we still consider it malformed and try to recover.
+        _BARE_EXCHANGE_SUFFIXES = {"SS", "SZ", "SH", "HK", "HKEX"}
+
+        def _looks_like_ticker(s):
+            if not isinstance(s, str) or len(s) < 2:
+                return False
+            # exact qualified ticker (e.g. 600036.SS)
+            if _re.search(r"\.[A-Z]{2,4}$", s):
+                return True
+            # bare 6-digit A-share code (e.g. 600036)
+            if _re.fullmatch(r"\d{6}", s):
+                return True
+            # US 1-5 letter ticker — but only when it's not a bare
+            # exchange suffix (SS/SZ/SH/HK/etc.)
+            if _re.fullmatch(r"[A-Z]{1,5}", s):
+                return s.upper() not in _BARE_EXCHANGE_SUFFIXES
+            return False
+
+        def _clean_note_body(body):
+            if not body:
+                return body
+            patterns = [
+                r"^[\s\S]*?(?:笔记|备忘)\s*[:：]\s*",
+                r"^[\s\S]*?(?:内容|正文)\s*[:：]\s*",
+                r"^帮我(?:给|帮你)\s*[\d\w\.\-]+\s*(?:这个|那个)?\s*(?:资产|股票|标的|代码)?\s*(?:加|添加|新建)?(?:一下|个)?\s*(?:笔记|备忘|标注)\s*[:：]?\s*",
+                r"^记(?:录|一下)\s*[:：]?\s*",
+                r"^备注\s*[:：]?\s*",
+            ]
+            cleaned = body
+            for pat in patterns:
+                new = _re.sub(pat, "", cleaned, count=1)
+                if new != cleaned:
+                    cleaned = new.strip()
+                    break
+            return cleaned
+
+        def _mutate(obj, **fields):
+            if obj is None:
+                return obj
+            for k, v in fields.items():
+                if v is not None and hasattr(obj, k):
+                    setattr(obj, k, v)
+            return obj
+
+        if tool_name == "create_note":
+            sym = getattr(args, "symbol", None) if not isinstance(args, dict) else args.get("symbol")
+            body = getattr(args, "body_md", None) if not isinstance(args, dict) else args.get("body_md")
+            if not _looks_like_ticker(sym or ""):
+                recovered = _extract_ticker(user_message or "")
+                if recovered:
+                    args = _mutate(args, symbol=recovered)
+            if isinstance(body, str) and user_message and len(body) > len(user_message) * 0.6:
+                cleaned = _clean_note_body(body)
+                if cleaned and cleaned != body:
+                    args = _mutate(args, body_md=cleaned)
+        elif tool_name in ("create_alert", "update_alert", "add_to_watchlist"):
+            sym = getattr(args, "symbol", None) if not isinstance(args, dict) else args.get("symbol")
+            if not _looks_like_ticker(sym or ""):
+                recovered = _extract_ticker(user_message or "")
+                if recovered:
+                    args = _mutate(args, symbol=recovered)
+
+        return args
+
     async def _execute(
         self,
         state: OrchestratorState,
@@ -1589,6 +1705,14 @@ class Orchestrator:
                     args = schema_cls.model_validate(args)
             except Exception as e:
                 return {"name": name, "error": f"args coerce failed: {e}"}
+
+            # §P3-3+ — defensive arg cleanup. The planner LLM often
+            # extracts symbols incorrectly (e.g. ``"SS"`` from
+            # ``"600036.SS"``) or includes the user's full message in
+            # free-form text fields like ``body_md``. Run a small
+            # cleanup pass before the tool sees the args so the user
+            # sees sensible data in the approval modal.
+            args = self._clean_tool_args(name, args, getattr(state, "user_message", None))
 
             if (
                 not self.llm_factory

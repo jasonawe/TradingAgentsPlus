@@ -540,6 +540,7 @@ def create_note(
     symbol: Annotated[str, "ticker 如 600036.SS"],
     body_md: Annotated[str, "笔记 markdown 内容"],
     asset_type: Annotated[str, "stock / crypto,默认 stock"] = "stock",
+    scope: Annotated[str, "user / agent / shared"] = "user",
     config: Annotated[RunnableConfig, InjectedToolArg()] = None,
 ) -> str:
     """为某资产创建笔记(需用户确认)。
@@ -550,7 +551,10 @@ def create_note(
       - "ERROR: ..." 失败
     """
     session_id = _resolve_session_id(config)
-    args = {"symbol": symbol, "body_md": body_md, "asset_type": asset_type}
+    # Include scope here so the HITL approval key matches the args
+    # saved by the harness /confirm flow (which carries the full
+    # CreateNoteArgs dict from the approval modal).
+    args = {"symbol": symbol, "body_md": body_md, "asset_type": asset_type, "scope": scope}
     gate = _check_write_approval(
         session_id=session_id, tool_name="create_note", tool_args=args,
     )
