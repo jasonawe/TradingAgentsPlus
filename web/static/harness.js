@@ -487,6 +487,13 @@
   }
 
   function dispatchEvent(name, payload, assistant) {
+    // Surface filter: only UI-scoped events render into the chat panel.
+    // DEBUG / AUDIT events still arrive via SSE (useful for the
+    // developer console and audit log consumer) but should not pollute
+    // the user's reasoning trace. This matches the backend
+    // ``SurfaceRouter`` classification in tradingagents/agent_harness/core/surface.py.
+    const surface = payload?.surface;
+    if (surface && surface !== "ui") return;
     switch (name) {
       case "plan_started":
         appendReasoningDelta(`▶ 意图识别: ${payload.intent || "?"}\n`);

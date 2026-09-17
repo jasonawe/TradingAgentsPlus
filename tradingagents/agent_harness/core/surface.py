@@ -49,7 +49,7 @@ class Surface(str, Enum):
 # Unmapped event names default to ``Surface.UI`` (visible) — that's the
 # safe default because every existing event was already going to UI.
 DEFAULT_BY_EVENT: dict[str, Surface] = {
-    # UI — visible to user
+    # UI — visible to user in the chat panel
     "plan_started": Surface.UI,
     "plan_ready": Surface.UI,
     "plan_ready_ptc": Surface.UI,
@@ -60,9 +60,19 @@ DEFAULT_BY_EVENT: dict[str, Surface] = {
     "answer_verified": Surface.UI,
     "busy": Surface.UI,
     "error": Surface.UI,
-    # Debug — only for operators
+    "warning": Surface.UI,
+    "confirm_request": Surface.UI,
+    "audit_decision": Surface.UI,
+    # Debug — only for operators / audit log. These are the lifecycle /
+    # observability events that used to flood the chat panel before
+    # surface classification was wired in (P0-4).
+    "turn/started": Surface.DEBUG,
+    "turn/ended": Surface.DEBUG,
+    "step/started": Surface.DEBUG,
+    "step/ended": Surface.DEBUG,
     "usage_summary": Surface.DEBUG,
-    # Audit — persistent record
+    "tier2_complete": Surface.DEBUG,
+    # Audit — persistent record (no-op sink by default)
     "audit": Surface.AUDIT,
 }
 
