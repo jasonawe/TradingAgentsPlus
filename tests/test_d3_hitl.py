@@ -5,14 +5,14 @@ sys.path.insert(0, '/Users/shenkang/workroom/languages/agent/TradingAgents')
 import json
 
 # 1. 模块导入
-from tradingagents.agents.general.approval import (
+from tradingagents.agent_harness.hitl import (
     grant_approval, is_approved, consume_approval, list_pending, revoke_session,
 )
-from tradingagents.agents.general.audit import (
+from tradingagents.agent_harness.audit import (
     log_write, list_writes, update_write_status, VALID_WRITE_STATUSES,
 )
-from tradingagents.agents.general.guardrails import is_write_tool, validate_write_intent
-from tradingagents.agents.general.tools_bridge import (
+from tradingagents.agent_harness.guardrails import is_write_tool, validate_write_intent
+from tradingagents.agent_harness.tools.impl import (
     ALL_TOOLS, set_repositories, create_note, update_alert, update_preference,
 )
 from tradingagents.agents.general.orchestrator import _emit_message

@@ -35,7 +35,7 @@ class MockQuoteService:
         return mock_bulk
 
 # Patch QuoteService
-import tradingagents.agents.general.tools_bridge as tb
+from tradingagents.agent_harness.tools import impl as tb
 import web.market_data as md
 md.QuoteService = MockQuoteService
 

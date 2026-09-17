@@ -197,7 +197,7 @@ class TestCrossSessionL1Isolation:
         )
         # Inject the repos so CRUD write tools (add_to_watchlist etc.)
         # can mutate.
-        from tradingagents.agents.general import tools_bridge
+        from tradingagents.agent_harness.tools import impl as tools_bridge
         prev = dict(getattr(tools_bridge, "_repos", {}))
         tools_bridge._repos = {**prev, **repos}
         yield mm_with_orch_factory(orch, fresh_mm, repos)
@@ -271,7 +271,7 @@ class TestCrossSessionL1Isolation:
             audit=None,
             memory=fresh_mm,
         )
-        from tradingagents.agents.general import tools_bridge
+        from tradingagents.agent_harness.tools import impl as tools_bridge
         prev = dict(getattr(tools_bridge, "_repos", {}))
         tools_bridge._repos = {**prev, **repos}
         try:

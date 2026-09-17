@@ -33,7 +33,7 @@ from tradingagents.agents.general.routing import (
 )
 import logging
 
-from tradingagents.agents.general.tools_bridge import ALL_TOOLS
+from tradingagents.agent_harness.tools.impl import ALL_TOOLS
 from tradingagents.agents.general.memory import store_reference as _store_reference
 
 

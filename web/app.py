@@ -323,7 +323,7 @@ def create_app(
 
     # Stage C: 把 notes / alerts repo 注入 tools_bridge,write tools 才能用
     try:
-        from tradingagents.agents.general.tools_bridge import set_repositories
+        from tradingagents.agent_harness.tools.impl import set_repositories
         set_repositories({
             "notes": repositories["notes"],
             "alerts": repositories["alerts"],
@@ -422,14 +422,14 @@ def create_app(
     )
     # Stage C: 注入 market_service 让 get_quote / get_quotes_batch tool 能用
     try:
-        from tradingagents.agents.general.tools_bridge import set_quote_service
+        from tradingagents.agent_harness.tools.impl import set_quote_service
         set_quote_service(app.state.market_service)
         LOGGER.info("Stage C: QuoteService injected for quote tools")
     except ImportError:
         pass
     # Day 7: 注入 ActiveRunner / Scheduler / News / ReportHistory 让 6 个新 tool 能用
     try:
-        from tradingagents.agents.general.tools_bridge import (
+        from tradingagents.agent_harness.tools.impl import (
             set_active_runner, set_scheduler_service, set_news_provider,
             set_report_history,
         )
@@ -607,7 +607,7 @@ def create_app(
             session_id: str,
             body: dict,
         ) -> StreamingResponse:
-            from tradingagents.agents.general.approval import (
+            from tradingagents.agent_harness.hitl import (
                 grant_approval, revoke_session,
             )
             import json as _json
@@ -632,7 +632,7 @@ def create_app(
                 # local variable name to avoid the issue.
                 nonlocal audit_id
                 try:
-                    from tradingagents.agents.general.audit import (
+                    from tradingagents.agent_harness.audit import (
                         log_write, update_write_status,
                     )
                     if audit_id is None:
@@ -677,7 +677,7 @@ def create_app(
                 #    the same (tool, args) tuple can't replay twice.
                 try:
                     from tradingagents.agent_harness.tools import ToolContext
-                    from tradingagents.agents.general.approval import (
+                    from tradingagents.agent_harness.hitl import (
                         consume_approval,
                     )
                     registry = app.state.harness.tool_registry
@@ -721,12 +721,35 @@ def create_app(
                         consume_approval(session_id, tool_name, tool_args)
                     except Exception:
                         pass
+                    # O10 fix — mark audit row as executed so the audit
+                    # log reflects real write outcomes (not just user
+                    # approval). Best-effort: never raise from here.
+                    if audit_id:
+                        try:
+                            update_write_status(
+                                None, audit_id, status="executed",
+                            )
+                        except Exception as _audit_err:
+                            LOGGER.warning(
+                                "harness confirm: audit->executed failed: %s",
+                                _audit_err,
+                            )
                 except Exception as e:
                     LOGGER.exception("harness confirm tool invoke failed")
                     yield (
                         f"event: error\n"
                         f"data: {_json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
                     )
+                    if audit_id:
+                        try:
+                            update_write_status(
+                                None, audit_id, status="failed", error=str(e),
+                            )
+                        except Exception as _audit_err:
+                            LOGGER.warning(
+                                "harness confirm: audit->failed update failed: %s",
+                                _audit_err,
+                            )
                 finally:
                     yield (
                         f"event: done\n"
@@ -2160,8 +2183,8 @@ def create_app(
 
         Returns: SSE stream(继续 agent 调用,执行已批准的 tool)
         """
-        from tradingagents.agents.general.approval import grant_approval
-        from tradingagents.agents.general.audit import update_write_status
+        from tradingagents.agent_harness.hitl import grant_approval
+        from tradingagents.agent_harness.audit import update_write_status
         from tradingagents.agents.general.orchestrator import (
             build_agent, stream_chat,
         )
@@ -2204,7 +2227,7 @@ def create_app(
         # 然后 agent.stream(None, config) 从当前 state resume
         from langchain_core.messages import ToolMessage
         from tradingagents.agents.general.orchestrator import session_thread_id
-        from tradingagents.agents.general.tools_bridge import ALL_TOOLS
+        from tradingagents.agent_harness.tools.impl import ALL_TOOLS
 
         config = {"configurable": {"thread_id": session_thread_id(session_id)}}
         tool_call_id = body.get("tool_call_id") or f"call-{audit_id}"
@@ -2217,15 +2240,35 @@ def create_app(
                 if tool_obj is None:
                     result_str = f"ERROR: tool {tool_name!r} not found"
                 else:
+                    tool_invoked_ok = False
                     try:
                         # 注入 LangGraph config(工具需要 config 来提取 session_id)
                         invoke_args = {**tool_args, "config": config}
                         result_str = tool_obj.invoke(invoke_args)
+                        tool_invoked_ok = not (
+                            isinstance(result_str, str)
+                            and result_str.startswith("ERROR")
+                        )
                     except Exception as e:
                         result_str = (
                             f"ERROR: tool execution failed - "
                             f"{type(e).__name__}: {e}"
                         )
+                    # O10 fix — reflect real write outcome in the audit log
+                    # (was previously left at "confirmed" forever).
+                    if audit_id:
+                        try:
+                            update_write_status(
+                                None, audit_id,
+                                status="executed" if tool_invoked_ok else "failed",
+                                error=None if tool_invoked_ok else result_str[:500],
+                            )
+                        except Exception as _audit_err:
+                            LOGGER.warning(
+                                "Stage C confirm: audit->%s failed: %s",
+                                "executed" if tool_invoked_ok else "failed",
+                                _audit_err,
+                            )
                 inject_msg = ToolMessage(
                     content=result_str, tool_call_id=tool_call_id,
                 )
@@ -2344,7 +2387,7 @@ def create_app(
         limit: int = Query(100, ge=1, le=500),
     ) -> dict[str, Any]:
         """读 Stage C 写操作 audit log(管理 UI 用)。"""
-        from tradingagents.agents.general.audit import list_writes
+        from tradingagents.agent_harness.audit import list_writes
         items = list_writes(
             session_id=session_id, status=status, limit=limit,
         )
@@ -2355,7 +2398,7 @@ def create_app(
         audit_id: int, body: dict[str, Any],
     ) -> dict[str, Any]:
         """手动更新 audit log 状态(管理 UI 用)。"""
-        from tradingagents.agents.general.audit import update_write_status
+        from tradingagents.agent_harness.audit import update_write_status
         new_status = body.get("status")
         if not new_status:
             raise _error(422, "status 必填")

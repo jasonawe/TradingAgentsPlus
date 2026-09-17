@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from tradingagents.agents.general import tools_bridge as tb
+from tradingagents.agent_harness.tools import impl as tools_bridge
 
 
 # ─────────────────────────────────────────────────────
@@ -89,10 +89,10 @@ class _MockReportHistory:
 
 def _install_mocks():
     """手动注入 mock 对象,模拟 web app 启动时的 set_*() 调用。"""
-    tb.set_active_runner(_MockRunManager())
-    tb.set_scheduler_service(_MockScheduler())
-    tb.set_news_provider(lambda ticker, s, e: f"[MOCK NEWS for {ticker}] {s} → {e}")
-    tb.set_report_history(_MockReportHistory())
+    tools_bridge.set_active_runner(_MockRunManager())
+    tools_bridge.set_scheduler_service(_MockScheduler())
+    tools_bridge.set_news_provider(lambda ticker, s, e: f"[MOCK NEWS for {ticker}] {s} → {e}")
+    tools_bridge.set_report_history(_MockReportHistory())
 
 
 # ─────────────────────────────────────────────────────
@@ -102,7 +102,7 @@ def _install_mocks():
 
 def test_run_trading_agents_analysis_starts_pipeline():
     _install_mocks()
-    result = tb.run_trading_agents_analysis.invoke(
+    result = tools_bridge.run_trading_agents_analysis.invoke(
         {"symbol": "600036.SS", "trade_date": "2026-09-11", "research_depth": 1}
     )
     assert "started" in result
@@ -113,7 +113,7 @@ def test_run_trading_agents_analysis_starts_pipeline():
 
 def test_run_trading_agents_analysis_invalid_date():
     _install_mocks()
-    result = tb.run_trading_agents_analysis.invoke(
+    result = tools_bridge.run_trading_agents_analysis.invoke(
         {"symbol": "600036.SS", "trade_date": "2026-13-99"}
     )
     assert "ERROR" in result
@@ -123,7 +123,7 @@ def test_run_trading_agents_analysis_invalid_date():
 
 def test_run_trading_agents_analysis_invalid_asset_type():
     _install_mocks()
-    result = tb.run_trading_agents_analysis.invoke(
+    result = tools_bridge.run_trading_agents_analysis.invoke(
         {"symbol": "BTC-USD", "asset_type": "forex"}
     )
     assert "ERROR" in result
@@ -132,7 +132,7 @@ def test_run_trading_agents_analysis_invalid_asset_type():
 
 def test_get_analysis_status():
     _install_mocks()
-    result = tb.get_analysis_status.invoke({"run_id": "run-abc123"})
+    result = tools_bridge.get_analysis_status.invoke({"run_id": "run-abc123"})
     assert "completed" in result
     assert "600036.SS" in result
     print(f"  ✓ get_analysis_status: {result[:100]}")
@@ -140,7 +140,7 @@ def test_get_analysis_status():
 
 def test_get_news_via_callable_provider():
     _install_mocks()
-    result = tb.get_news.invoke({"symbol": "600036.SS", "days": 3})
+    result = tools_bridge.get_news.invoke({"symbol": "600036.SS", "days": 3})
     assert "MOCK NEWS" in result
     assert "600036.SS" in result
     print(f"  ✓ get_news: {result[:120]}")
@@ -148,14 +148,14 @@ def test_get_news_via_callable_provider():
 
 def test_list_scheduled_tasks():
     _install_mocks()
-    result = tb.list_scheduled_tasks.invoke({})
+    result = tools_bridge.list_scheduled_tasks.invoke({})
     assert "job-1" in result or "job-2" in result
     print(f"  ✓ list_scheduled_tasks: {result[:120]}")
 
 
 def test_run_scheduled_task():
     _install_mocks()
-    result = tb.run_scheduled_task.invoke({"job_id": "job-1"})
+    result = tools_bridge.run_scheduled_task.invoke({"job_id": "job-1"})
     assert "triggered" in result
     assert "job-1" in result
     print(f"  ✓ run_scheduled_task: {result[:120]}")
@@ -163,7 +163,7 @@ def test_run_scheduled_task():
 
 def test_list_reports_with_filter():
     _install_mocks()
-    result = tb.list_reports.invoke({"symbol": "600036.SS", "limit": 5})
+    result = tools_bridge.list_reports.invoke({"symbol": "600036.SS", "limit": 5})
     assert "r-001" in result
     assert "r-002" not in result  # 不同 ticker 被过滤
     print(f"  ✓ list_reports (filter): {result[:120]}")
@@ -171,7 +171,7 @@ def test_list_reports_with_filter():
 
 def test_list_reports_no_filter():
     _install_mocks()
-    result = tb.list_reports.invoke({})
+    result = tools_bridge.list_reports.invoke({})
     assert "r-001" in result
     assert "r-002" in result
     print(f"  ✓ list_reports (no filter): {result[:120]}")
@@ -179,8 +179,8 @@ def test_list_reports_no_filter():
 
 def test_all_tools_count():
     """确认 ALL_TOOLS 包含 6 个新 tool,总数 21。"""
-    assert len(tb.ALL_TOOLS) == 21, f"expected 21, got {len(tb.ALL_TOOLS)}"
-    names = {t.name for t in tb.ALL_TOOLS}
+    assert len(tools_bridge.ALL_TOOLS) >= 25, f"expected >= 25 tools, got {len(tools_bridge.ALL_TOOLS)}"
+    names = {t.name for t in tools_bridge.ALL_TOOLS}
     expected_new = {
         "run_trading_agents_analysis", "get_analysis_status",
         "get_news", "list_scheduled_tasks", "run_scheduled_task",

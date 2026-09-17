@@ -46,7 +46,7 @@ from mcp.server.fastmcp.utilities.func_metadata import ArgModelBase, FuncMetadat
 from pydantic import ConfigDict
 
 # 导入 ALL_TOOLS + 注入 helpers
-from tradingagents.agents.general.tools_bridge import (
+from tradingagents.agent_harness.tools.impl import (
     ALL_TOOLS,
     set_repositories,
     set_quote_service,
@@ -133,7 +133,7 @@ def _auto_approve_session(session_id: str) -> None:
 
     注意:这是把 grant_approval 的全部组合预填进去,实现"全部批准"。
     """
-    from tradingagents.agents.general.approval import grant_approval
+    from tradingagents.agent_harness.hitl import grant_approval
     # 写工具的所有可能 args 组合不在这里枚举 — approval 是按 (tool_name, args) 注册的
     # 所以更简单的做法是 monkey-patch _check_write_approval
     # 但保持最小侵入:在工具调用前 grant 一个万能 sentinel
@@ -149,7 +149,7 @@ _ORIGINAL_CHECK = None
 def _install_auto_approve_patch() -> None:
     """替换 _check_write_approval:在 MCP context 下永远返回 None(放行)。"""
     global _ORIGINAL_CHECK
-    from tradingagents.agents.general import tools_bridge
+    from tradingagents.agent_harness.tools import impl as tools_bridge
 
     if _REQUIRE_CONFIRM:
         return  # 严格模式,不 patch
@@ -168,7 +168,7 @@ def _install_auto_approve_patch() -> None:
                 payload = json.loads(result.split(":", 1)[1].strip())
                 audit_id = payload.get("audit_id")
                 if audit_id:
-                    from tradingagents.agents.general.audit import update_write_status
+                    from tradingagents.agent_harness.audit import update_write_status
                     try:
                         update_write_status(
                             None, audit_id,
@@ -179,7 +179,7 @@ def _install_auto_approve_patch() -> None:
             except Exception:
                 pass
             # grant approval 让 tool 真正执行
-            from tradingagents.agents.general.approval import grant_approval
+            from tradingagents.agent_harness.hitl import grant_approval
             grant_approval(session_id, tool_name, tool_args)
             return None  # 放行
         return result

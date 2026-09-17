@@ -44,7 +44,7 @@ def test_tool_priority_order():
 def test_sort_tools_by_priority():
     """_sort_tools_by_priority 把 ALL_TOOLS 按 priority 排好。"""
     from tradingagents.agents.general.prompts import _sort_tools_by_priority
-    from tradingagents.agents.general.tools_bridge import ALL_TOOLS
+    from tradingagents.agent_harness.tools.impl import ALL_TOOLS
 
     sorted_tools = _sort_tools_by_priority(ALL_TOOLS)
     names = [t.name for t in sorted_tools]
@@ -60,7 +60,7 @@ def test_sort_tools_by_priority():
 def test_system_prompt_keeps_high_priority_tools():
     """render_system_prompt 生成的 prompt 里高频 tool 的完整 description 保留。"""
     from tradingagents.agents.general.prompts import render_system_prompt
-    from tradingagents.agents.general.tools_bridge import ALL_TOOLS
+    from tradingagents.agent_harness.tools.impl import ALL_TOOLS
 
     prompt = render_system_prompt(tools=ALL_TOOLS, preferences={}, mode="guided")
 
@@ -82,7 +82,7 @@ def test_system_prompt_keeps_high_priority_tools():
 def test_low_priority_tool_truncated():
     """低频 tool 的描述应该被截断,只剩一行短摘要。"""
     from tradingagents.agents.general.prompts import _format_tool_descriptions
-    from tradingagents.agents.general.tools_bridge import ALL_TOOLS
+    from tradingagents.agent_harness.tools.impl import ALL_TOOLS
 
     # 短 max_total_chars → 强制截断
     text = _format_tool_descriptions(ALL_TOOLS, max_total_chars=600, max_per_tool_chars=80)
@@ -146,7 +146,7 @@ def test_real_llm_smoke_optional():
         import signal
 
         from tradingagents.agents.general.orchestrator import build_agent, stream_chat
-        from tradingagents.agents.general.tools_bridge import set_repositories, set_quote_service
+        from tradingagents.agent_harness.tools.impl import set_repositories, set_quote_service
 
         class _QS:
             def get_quote(self, symbol, asset_type="stock"):

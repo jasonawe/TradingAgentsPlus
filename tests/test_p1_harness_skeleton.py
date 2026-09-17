@@ -43,7 +43,7 @@ class TestP1Skeleton(unittest.TestCase):
         from tradingagents.agents.general.orchestrator import (
             build_agent, stream_chat, chat_once, get_session_history,
         )
-        from tradingagents.agents.general.tools_bridge import ALL_TOOLS
+        from tradingagents.agent_harness.tools.impl import ALL_TOOLS
         from tradingagents.agents.general.routing import (
             classify_intent, fast_route, Intent,
         )

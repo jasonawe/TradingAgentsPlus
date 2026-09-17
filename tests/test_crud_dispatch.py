@@ -291,7 +291,7 @@ class TestEndToEndWatchlistDelete:
 
     @pytest.fixture
     def injected_repo(self, repo):
-        from tradingagents.agents.general import tools_bridge
+        from tradingagents.agent_harness.tools import impl as tools_bridge
         prev = getattr(tools_bridge, "_repos", {})
         tools_bridge._repos = {**prev, "watchlist": repo}
         yield repo

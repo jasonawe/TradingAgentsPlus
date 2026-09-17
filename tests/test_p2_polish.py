@@ -57,7 +57,7 @@ if db.exists(): db.unlink()
 
 # P2-#8: validate_write_intent
 print("\n[3] validate_write_intent...")
-from tradingagents.agents.general.guardrails import validate_write_intent
+from tradingagents.agent_harness.guardrails import validate_write_intent
 is_w, impact = validate_write_intent('create_alert', {'symbol': '600036.SS'})
 print(f"  create_alert: is_write={is_w}, impact={impact!r}")
 assert is_w is True
@@ -70,7 +70,7 @@ print("  ✓ validate_write_intent 工作正确")
 
 # P2-#9: update_write_status 校验
 print("\n[4] update_write_status 合法性...")
-from tradingagents.agents.general.audit import update_write_status, VALID_WRITE_STATUSES, log_write
+from tradingagents.agent_harness.audit import update_write_status, VALID_WRITE_STATUSES, log_write
 db_path = Path.home() / '.tradingagents' / 'web_runs.sqlite3'
 audit_id = log_write(
     db_path=db_path, session_id='s_p2_audit',

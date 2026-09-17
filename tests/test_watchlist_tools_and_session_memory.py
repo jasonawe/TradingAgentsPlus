@@ -46,7 +46,7 @@ def watchlist_repo(tmp_path: Path):
 @pytest.fixture
 def injected_repos(watchlist_repo):
     """Inject the watchlist repo into tools_bridge so _get_repo('watchlist') works."""
-    from tradingagents.agents.general import tools_bridge
+    from tradingagents.agent_harness.tools import impl as tools_bridge
     prev = getattr(tools_bridge, "_repos", {})
     tools_bridge._repos = {**prev, "watchlist": watchlist_repo}
     yield watchlist_repo
@@ -114,7 +114,7 @@ class TestAddToWatchlist:
     @pytest.mark.asyncio
     async def test_repo_not_injected_returns_error(self, ctx):
         """When tools_bridge has no watchlist repo, surface the error cleanly."""
-        from tradingagents.agents.general import tools_bridge
+        from tradingagents.agent_harness.tools import impl as tools_bridge
         prev = getattr(tools_bridge, "_repos", {})
         tools_bridge._repos = {}
         try:

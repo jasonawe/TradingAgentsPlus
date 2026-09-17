@@ -752,7 +752,7 @@ def _translate_alert_args(args) -> tuple[str, dict]:
 
 async def _hitl_gate(session_id: str, tool_name: str, tool_args: dict) -> dict | None:
     """Return AWAITING_CONFIRMATION payload if not approved, else None."""
-    from tradingagents.agents.general import approval as _approval, audit as _audit
+    from tradingagents.agent_harness import hitl as approval, audit as _audit
     if _approval.is_approved(session_id, tool_name, tool_args):
         return None
     payload = {
@@ -763,7 +763,7 @@ async def _hitl_gate(session_id: str, tool_name: str, tool_args: dict) -> dict |
     }
     # Impact description (best-effort, fall back to generic string)
     try:
-        from tradingagents.agents.general.guardrails import describe_impact
+        from tradingagents.agent_harness.guardrails import describe_impact
         payload["impact"] = describe_impact(tool_name, tool_args)
     except Exception:
         payload["impact"] = f"Write operation: {tool_name}"
@@ -777,13 +777,13 @@ async def _hitl_gate(session_id: str, tool_name: str, tool_args: dict) -> dict |
 
 
 async def _hitl_consume(session_id: str, tool_name: str, tool_args: dict) -> None:
-    from tradingagents.agents.general import approval as _approval
+    from tradingagents.agent_harness import hitl as approval
     _approval.consume_approval(session_id, tool_name, tool_args)
 
 
 async def create_alert(args, context):
     """Create an alert via AlertRepository with kind translation + HITL gate."""
-    from tradingagents.agents.general.tools_bridge import _get_repo
+    from tradingagents.agent_harness.tools.impl import _get_repo
     import json as _json
 
     try:
@@ -833,7 +833,7 @@ async def update_alert(args, context):
     Uses tools_bridge.update_alert directly (operates by alert_id, no
     schema mismatch to translate).
     """
-    from tradingagents.agents.general.tools_bridge import update_alert as bridge
+    from tradingagents.agent_harness.tools.impl import update_alert as bridge
     kwargs = {"alert_id": args.alert_id}
     if args.enabled is not None:
         kwargs["enabled"] = args.enabled
@@ -845,12 +845,12 @@ async def update_alert(args, context):
 
 
 async def delete_alert(args, context):
-    from tradingagents.agents.general.tools_bridge import delete_alert as bridge
+    from tradingagents.agent_harness.tools.impl import delete_alert as bridge
     return await _invoke_bridge(bridge, {"alert_id": args.alert_id}, context)
 
 
 async def delete_alerts_for_symbol(args: DeleteAlertsForSymbolArgs, context=None):
-    from tradingagents.agents.general.tools_bridge import (
+    from tradingagents.agent_harness.tools.impl import (
         delete_alerts_for_symbol as bridge,
     )
     return await _invoke_bridge(
@@ -864,7 +864,7 @@ async def delete_notes_for_symbol(args, context=None):
     """§P3-3+ — bulk soft-delete every note for a given symbol.
     One HITL dialog for the whole batch (handled by the bridge).
     """
-    from tradingagents.agents.general.tools_bridge import delete_notes_for_symbol as bridge
+    from tradingagents.agent_harness.tools.impl import delete_notes_for_symbol as bridge
     if isinstance(args, dict):
         symbol = (args.get("symbol") or "").strip()
         asset_type = (args.get("asset_type") or "stock").strip()
@@ -884,7 +884,7 @@ async def delete_scheduled_tasks_for_symbol(args, context=None):
     """§P3-3+ — bulk hard-delete every scheduled job for a given
     symbol. One HITL dialog for the whole batch.
     """
-    from tradingagents.agents.general.tools_bridge import (
+    from tradingagents.agent_harness.tools.impl import (
         delete_scheduled_tasks_for_symbol as bridge,
     )
     if isinstance(args, dict):
@@ -903,7 +903,7 @@ async def delete_scheduled_tasks_for_symbol(args, context=None):
 
 
 async def create_note(args, context):
-    from tradingagents.agents.general.tools_bridge import create_note as bridge
+    from tradingagents.agent_harness.tools.impl import create_note as bridge
     return await _invoke_bridge(
         bridge,
         {"symbol": args.symbol, "body_md": args.body_md, "asset_type": args.asset_type},
@@ -912,19 +912,19 @@ async def create_note(args, context):
 
 
 async def update_note(args, context):
-    from tradingagents.agents.general.tools_bridge import update_note as bridge
+    from tradingagents.agent_harness.tools.impl import update_note as bridge
     return await _invoke_bridge(
         bridge, {"note_id": args.note_id, "body_md": args.body_md}, context
     )
 
 
 async def delete_note(args, context):
-    from tradingagents.agents.general.tools_bridge import delete_note as bridge
+    from tradingagents.agent_harness.tools.impl import delete_note as bridge
     return await _invoke_bridge(bridge, {"note_id": args.note_id}, context)
 
 
 async def list_watchlist(args=None, context=None):
-    from tradingagents.agents.general.tools_bridge import list_watchlist as bridge
+    from tradingagents.agent_harness.tools.impl import list_watchlist as bridge
     config = {"configurable": {"thread_id": context.session_id if context else "default"}}
     try:
         text = await bridge.ainvoke({}, config=config)
@@ -948,7 +948,7 @@ async def add_to_watchlist(args: AddToWatchlistArgs, context: ToolContext | None
     optimistic concurrency).
     """
     import json as _json
-    from tradingagents.agents.general.tools_bridge import _get_repo
+    from tradingagents.agent_harness.tools.impl import _get_repo
 
     try:
         repo = _get_repo("watchlist")
@@ -1001,7 +1001,7 @@ async def remove_from_watchlist(args: RemoveFromWatchlistArgs, context: ToolCont
     ``not_found`` when the symbol isn't on the list (so the LLM can
     phrase the answer correctly without needing to parse a stack trace).
     """
-    from tradingagents.agents.general.tools_bridge import _get_repo
+    from tradingagents.agent_harness.tools.impl import _get_repo
 
     try:
         repo = _get_repo("watchlist")
@@ -1046,7 +1046,7 @@ async def remove_from_watchlist(args: RemoveFromWatchlistArgs, context: ToolCont
 
 
 async def list_scheduled_tasks(args=None, context=None):
-    from tradingagents.agents.general.tools_bridge import list_scheduled_tasks as bridge
+    from tradingagents.agent_harness.tools.impl import list_scheduled_tasks as bridge
     config = {"configurable": {"thread_id": context.session_id if context else "default"}}
     # §P3-3+ — focused symbol injection (carry-forward or explicit).
     # When set, the bridge filters scheduler jobs by ticker in
@@ -1084,7 +1084,7 @@ async def list_scheduled_tasks(args=None, context=None):
 
 
 async def list_notes(args: ListNotesArgs | None = None, context=None):
-    from tradingagents.agents.general.tools_bridge import list_notes as bridge
+    from tradingagents.agent_harness.tools.impl import list_notes as bridge
     cfg = {"configurable": {"thread_id": context.session_id if context else "default"}}
     # Accept either a Pydantic args instance (post-coercion) or a raw
     # dict (pre-coercion paths).
@@ -1105,7 +1105,7 @@ async def list_notes(args: ListNotesArgs | None = None, context=None):
 
 
 async def list_alerts(args: ListAlertsArgs | None = None, context=None):
-    from tradingagents.agents.general.tools_bridge import list_alerts as bridge
+    from tradingagents.agent_harness.tools.impl import list_alerts as bridge
     cfg = {"configurable": {"thread_id": context.session_id if context else "default"}}
     # Accept either a Pydantic args instance (post-coercion) or a raw
     # dict (pre-coercion paths).
@@ -1128,7 +1128,7 @@ async def list_alerts(args: ListAlertsArgs | None = None, context=None):
 
 
 async def list_runs(args: ListRunsArgs | None = None, context=None):
-    from tradingagents.agents.general.tools_bridge import list_runs as bridge
+    from tradingagents.agent_harness.tools.impl import list_runs as bridge
     cfg = {"configurable": {"thread_id": context.session_id if context else "default"}}
     # Accept either a Pydantic args instance (post-coercion) or a raw
     # dict (pre-coercion paths) so this works through every dispatch
@@ -1156,7 +1156,7 @@ async def list_runs(args: ListRunsArgs | None = None, context=None):
 
 
 async def list_reports(args: ListReportsArgs | None = None, context=None):
-    from tradingagents.agents.general.tools_bridge import list_reports as bridge
+    from tradingagents.agent_harness.tools.impl import list_reports as bridge
     cfg = {"configurable": {"thread_id": context.session_id if context else "default"}}
     # Accept either a Pydantic args instance (post-coercion) or a raw
     # dict (pre-coercion paths).
@@ -1177,7 +1177,7 @@ async def list_reports(args: ListReportsArgs | None = None, context=None):
 
 
 async def get_report(args: GetReportArgs, context=None):
-    from tradingagents.agents.general.tools_bridge import get_report as bridge
+    from tradingagents.agent_harness.tools.impl import get_report as bridge
     cfg = {"configurable": {"thread_id": context.session_id if context else "default"}}
     try:
         text = await bridge.ainvoke({"report_id": args.report_id}, config=cfg)
@@ -1192,7 +1192,7 @@ async def run_scheduled_task(args: RunScheduledTaskArgs, context=None):
     Note: this is a read-style 'fire-and-report' invocation, not a
     mutation, so it does NOT go through HITL.
     """
-    from tradingagents.agents.general.tools_bridge import run_scheduled_task as bridge
+    from tradingagents.agent_harness.tools.impl import run_scheduled_task as bridge
     cfg = {"configurable": {"thread_id": context.session_id if context else "default"}}
     try:
         text = await bridge.ainvoke({"job_id": args.job_id}, config=cfg)
@@ -1203,7 +1203,7 @@ async def run_scheduled_task(args: RunScheduledTaskArgs, context=None):
 
 async def run_trading_agents_analysis(args: RunTradingAgentsAnalysisArgs, context=None):
     """Start a TradingAgents run — read-style fire-and-return."""
-    from tradingagents.agents.general.tools_bridge import run_trading_agents_analysis as bridge
+    from tradingagents.agent_harness.tools.impl import run_trading_agents_analysis as bridge
     payload = {
         "symbol": args.symbol,
         "trade_date": args.trade_date or "",
@@ -1218,7 +1218,7 @@ async def run_trading_agents_analysis(args: RunTradingAgentsAnalysisArgs, contex
 
 
 async def get_analysis_status(args: GetAnalysisStatusArgs, context=None):
-    from tradingagents.agents.general.tools_bridge import get_analysis_status as bridge
+    from tradingagents.agent_harness.tools.impl import get_analysis_status as bridge
     try:
         text = await bridge.ainvoke({"run_id": args.run_id})
     except Exception as e:
@@ -1228,7 +1228,7 @@ async def get_analysis_status(args: GetAnalysisStatusArgs, context=None):
 
 async def cancel_analysis_run(args: CancelAnalysisRunArgs, context=None):
     """Cancel a run — no HITL (idempotent, server-side cooperative flag)."""
-    from tradingagents.agents.general.tools_bridge import cancel_analysis_run as bridge
+    from tradingagents.agent_harness.tools.impl import cancel_analysis_run as bridge
     try:
         text = await bridge.ainvoke({"run_id": args.run_id})
     except Exception as e:
@@ -1242,7 +1242,7 @@ async def cancel_analysis_run(args: CancelAnalysisRunArgs, context=None):
 
 async def create_scheduled_task(args: CreateScheduledTaskArgs, context):
     """Create a scheduled task via ScheduledJobRepository + HITL gate."""
-    from tradingagents.agents.general.tools_bridge import _get_repo
+    from tradingagents.agent_harness.tools.impl import _get_repo
     import json as _json
 
     tool_args = {
@@ -1279,7 +1279,7 @@ async def create_scheduled_task(args: CreateScheduledTaskArgs, context):
 
 async def update_scheduled_task(args: UpdateScheduledTaskArgs, context):
     """Update a scheduled task by ID — only non-None fields are applied."""
-    from tradingagents.agents.general.tools_bridge import update_scheduled_task as bridge
+    from tradingagents.agent_harness.tools.impl import update_scheduled_task as bridge
     payload: dict = {"job_id": args.job_id}
     if args.cron_expression is not None:
         payload["cron_expression"] = args.cron_expression
@@ -1291,7 +1291,7 @@ async def update_scheduled_task(args: UpdateScheduledTaskArgs, context):
 
 
 async def delete_scheduled_task(args: DeleteScheduledTaskArgs, context):
-    from tradingagents.agents.general.tools_bridge import delete_scheduled_task as bridge
+    from tradingagents.agent_harness.tools.impl import delete_scheduled_task as bridge
     return await _invoke_bridge(bridge, {"job_id": args.job_id}, context)
 
 

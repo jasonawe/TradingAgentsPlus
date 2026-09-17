@@ -50,9 +50,9 @@ def dry_run() -> None:
     from tradingagents.agents.general.memory import (
         list_preferences, set_preference, store_reference,
     )
-    from tradingagents.agents.general.guardrails import is_write_tool
-    from tradingagents.agents.general.audit import log_write, list_writes
-    from tradingagents.agents.general.tools_bridge import ALL_TOOLS
+    from tradingagents.agent_harness.guardrails import is_write_tool
+    from tradingagents.agent_harness.audit import log_write, list_writes
+    from tradingagents.agent_harness.tools.impl import ALL_TOOLS
     print(f"    ✓ ALL_TOOLS has {len(ALL_TOOLS)} tools")
 
     # 2. L2 preferences

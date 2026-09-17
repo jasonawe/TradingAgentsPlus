@@ -26,17 +26,17 @@ from langchain_core.tools import tool, InjectedToolArg
 from langchain_core.runnables import RunnableConfig
 from typing import Annotated
 
-from tradingagents.agents.general.approval import (
+from tradingagents.agent_harness.hitl import (
     consume_approval,
     is_approved,
 )
-from tradingagents.agents.general.audit import log_write
-from tradingagents.agents.general.guardrails import (
+from tradingagents.agent_harness.audit import log_write
+from tradingagents.agent_harness.guardrails import (
     describe_impact,
     is_write_tool,
     validate_write_intent,
 )
-from tradingagents.agents.general.memory import agent_memory_db_path
+from tradingagents.agent_harness.memory.l2_preferences import UserPreferencesMemory
 
 # ════════════════════════════════════════════════════════
 # Repository 注入(由 web/app.py 启动时 set_repositories() 调用)
@@ -457,11 +457,33 @@ def _check_write_approval(
 
 
 def _after_execute(
-    session_id: str, tool_name: str, tool_args: dict[str, Any]
+    session_id: str, tool_name: str, tool_args: dict[str, Any],
+    audit_id: int | None = None,
+    error: str | None = None,
 ) -> None:
-    """执行成功后消费 approval + 更新 audit。"""
+    """执行成功后消费 approval + 更新 audit log。
+
+    Args:
+        audit_id: 由 ``_check_write_approval`` 返回的 audit row id;
+            如果上游忘了传,这里不抛错,只是不会写 executed/failed。
+        error: 若非 None,说明 tool 抛错,把 audit 标记为 ``failed``;
+            否则标记为 ``executed``。
+    """
     consume_approval(session_id, tool_name, tool_args)
-    # audit 由具体工具处理(成功 / 失败分别 update)
+    if audit_id is None:
+        return
+    try:
+        from tradingagents.agent_harness.audit import update_write_status
+        update_write_status(
+            None, audit_id,
+            status="failed" if error else "executed",
+            error=error,
+        )
+    except Exception as e:  # pragma: no cover - defensive
+        import logging
+        logging.getLogger(__name__).warning(
+            "_after_execute: audit update failed (id=%s): %s", audit_id, e,
+        )
 
 
 @tool
@@ -865,15 +887,16 @@ def update_preference(
     if gate is not None:
         return gate
     try:
-        # L2 user_preferences 在 agent_memory_db 里
-        from tradingagents.agents.general.memory import set_preference
-        db_path = agent_memory_db_path(None)  # 走 default_config.web_runs_db_path()
+        # 阶段 1 迁移:用新 harness 的 UserPreferencesMemory 替代老 memory.py
+        # 的 set_preference。原表 user_preferences (web_runs.sqlite3) 不再使用。
+        from tradingagents.agent_harness.memory.l2_preferences import UserPreferencesMemory
+        mem = UserPreferencesMemory()
         # value 需要 JSON parse 存进去
         try:
             parsed = json.loads(value)
         except json.JSONDecodeError:
             parsed = value
-        set_preference(db_path, key, parsed, source="agent")
+        mem.set(key, parsed, session_id=session_id)
         _after_execute(session_id, "update_preference", args)
         return f"PREFERENCE_UPDATED: {key}"
     except Exception as e:
