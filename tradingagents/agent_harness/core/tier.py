@@ -131,6 +131,14 @@ class RouteResult:
     symbols: list[str] = field(default_factory=list)
     confidence: float = 0.0
     reason: str = ""
+    op: Op | None = None  # §N1 — primary (intent, op) pair from
+                           # fast_route_with_op(). ShortCircuit uses
+                           # this for single-intent Tier 1 routes.
+    multi_pairs: list[tuple[Intent, Op]] = field(default_factory=list)
+    # §N1 — populated by fast_route_with_op() when classify_multi()
+    # detects 2+ read-only (intent, op) pairs in the same message.
+    # ShortCircuit._run_multi reads this to know which tools to
+    # invoke sequentially without going through Tier 2 / LLM.
 
     def to_dict(self) -> dict:
         return {
@@ -139,6 +147,8 @@ class RouteResult:
             "symbols": list(self.symbols),
             "confidence": self.confidence,
             "reason": self.reason,
+            "op": self.op.value if self.op else None,
+            "multi_pairs": [(i.value, o.value) for i, o in self.multi_pairs],
         }
 
 
@@ -178,7 +188,8 @@ _ENTITY_KW: dict[Intent, tuple[set[str], Op]] = {
 _OP_KW: dict[Op, set[str]] = {
     Op.CREATE: {"新建", "创建", "添加", "加入", "新增", "写", "建", "create", "add",
                 "schedule", "安排", "新建一个", "建一个", "做一个",
-                # 口语化:"加一下 / 加个 / 加一条 / 加一个"
+                # 口语化:"加一下 / 加个 / 加一条 / 加一个 / 加关注 / 加笔记"
+                "加",   # bare 加 — most common Chinese verb for "add"
                 "加一下", "加一个", "加个", "加一条", "加个新的",
                 "记一下", "做个", "录入",
                 # '跑一下 / 启动 / 跑起来' for analysis-run start; the
@@ -364,13 +375,30 @@ def fast_route_with_op(message: str) -> tuple[RouteResult, Op]:
     # Tier 1 short-circuit for read-only data queries + CRUD reads/lists.
     # CRUD writes (CREATE/UPDATE/DELETE) need symbols/args from the
     # user_message and are left to the orchestrator's plan layer.
-    # §P3-3+ — multi-intent CRUD queries skip Tier 1 entirely.
+    # §N1 — read-only multi-intent (e.g. "看一下笔记和告警",
+    # "我的关注 + 600036 的笔记") can short-circuit too. All pairs
+    # must be LIST or READ op AND Tier 1 read tools must exist for
+    # every intent. Otherwise fall through to PLAN_EXECUTE (existing).
     if multi_intent:
-        # Keep intent/op as the primary pair; tier bumps to PLAN_EXECUTE
-        # so _multi_crud_plan in _plan() can fan out to every pair.
+        read_only_pairs = [
+            p for p in multi_pairs
+            if p[1] in (Op.LIST, Op.READ)
+        ]
+        # All pairs read-only AND at least 2 of them.
+        if len(read_only_pairs) == len(multi_pairs) and len(read_only_pairs) >= 2:
+            return RouteResult(
+                intent=intent, tier=Tier.DIRECT, symbols=symbols,
+                op=op,
+                multi_pairs=list(multi_pairs),
+                confidence=0.85,
+                reason=f"read-only multi-intent ({len(read_only_pairs)} pairs) -> Tier 1",
+            ), op
+        # Mixed (read + write) or write-only multi-intent — Tier 2.
         return RouteResult(
             intent=intent, tier=Tier.PLAN_EXECUTE, symbols=symbols,
-            confidence=0.85, reason=f"multi-intent ({len(multi_pairs)} pairs) -> Tier 2",
+            op=op,
+            confidence=0.85,
+            reason=f"multi-intent ({len(multi_pairs)} pairs, mixed) -> Tier 2",
         ), op
     if intent in (Intent.WATCHLIST, Intent.NOTE, Intent.ALERT,
                   Intent.SCHEDULED, Intent.RUN, Intent.REPORT):
