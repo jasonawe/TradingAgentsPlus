@@ -780,7 +780,7 @@ def create_app(
                                 tool_result_dict["summary"] = s
                         except Exception:
                             pass
-                                        yield (
+                    yield (
                         f"event: tool_result\n"
                         f"data: {_json.dumps({'name': tool_name, 'ok': True, 'result': tool_result_dict}, ensure_ascii=False, default=str)}\n\n"
                     )
