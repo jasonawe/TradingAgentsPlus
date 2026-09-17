@@ -9,6 +9,7 @@ from concurrent.futures import Future, TimeoutError as FutureTimeout
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Any
+from dataclasses import dataclass
 from typing import cast
 
 from .market_models import (
@@ -312,6 +313,26 @@ class QuoteService:
         )
         if self.strategy not in self.router.strategies:
             raise ValueError(f"unknown quote strategy: {self.strategy}")
+        # Singleflight: collapse concurrent requests for the same (symbol, asset_type,
+        # force_refresh) into one upstream call. Prevents the prewarmer (5s tick) and
+        # an in-flight user request from both hitting the provider.
+        self._inflight: dict[tuple[str, str, bool], QuoteService._InflightEntry] = {}
+        self._inflight_lock = threading.Lock()
+
+    @dataclass
+    class _InflightEntry:
+        """Per-key inflight tracking for singleflight.
+
+        One fetcher performs the upstream call and publishes ``result`` or
+        ``error``; concurrent waiters block on ``done`` and consume it.
+        ``waiters_ready`` is set by any waiter that joins, so the fetcher
+        can drain a small window before starting upstream I/O.
+        """
+
+        done: threading.Event
+        waiters_ready: threading.Event
+        result: QuoteSnapshot | None = None
+        error: BaseException | None = None
 
     def _setting(self, key: str, fallback: Any) -> Any:
         if self.settings is not None:
@@ -361,6 +382,19 @@ class QuoteService:
             cached.cache_status = "hit"
             cached.provider_status = "ready"
             return cached
+        key = self._inflight_key(symbol, asset_type, force_refresh)
+        entry, is_fetcher = self._register_inflight(key)
+        if not is_fetcher:
+            # Waiter: another thread is already fetching this exact key. Reuse the
+            # upstream result to avoid doubling the provider call volume.
+            import threading as _t
+            return self._wait_inflight(entry)
+        import threading as _t
+        # Fetcher: drain a small window for any concurrent waiter to register.
+        # In production, real HTTP I/O between this point and the actual
+        # ``router.get_quote`` call naturally yields the GIL; this wait just
+        # covers the GIL-bound synchronous test paths.
+        entry.waiters_ready.wait(timeout=0.05)
         try:
             fresh = self.router.get_quote(
                 symbol,
@@ -373,6 +407,7 @@ class QuoteService:
             fresh.provider_status = "ready"
             fresh.stale_seconds = self._quote_age(fresh, now)
             self.repository.upsert_quote(fresh.model_dump(mode="json"))
+            self._publish_inflight(entry, result=fresh)
             return fresh
         except ProviderError:
             if cached:
@@ -382,8 +417,77 @@ class QuoteService:
                 cached.cache_status = "hit"
                 cached.provider_status = "degraded"
                 cached.stale_seconds = self._quote_age(cached, now)
+                self._publish_inflight(entry, result=cached)
                 return cached
+            # No cache and no fresh: propagate. Publish as error so waiters get the
+            # same exception (rather than each retrying independently).
+            self._publish_inflight(entry, error=ProviderError(ProviderErrorCode.PROVIDER_ERROR, "no fallback"))
             raise
+        finally:
+            self._unregister_inflight(key, entry)
+
+    def _inflight_key(self, symbol: str, asset_type: str, force_refresh: bool) -> tuple[str, str, bool]:
+        return (symbol.upper(), asset_type, bool(force_refresh))
+
+    def _register_inflight(
+        self, key: tuple[str, str, bool]
+    ) -> tuple[QuoteService._InflightEntry, bool]:
+        """Return (entry, is_fetcher). Only one caller per key becomes the fetcher.
+
+        Waiters signal ``entry.waiters_ready`` on registration so the in-flight
+        fetcher can drain a small window before starting upstream I/O — this
+        gives late arrivals a chance to join the same fetch instead of
+        starting their own.
+        """
+        with self._inflight_lock:
+            existing = self._inflight.get(key)
+            if existing is not None:
+                import threading as _t
+                existing.waiters_ready.set()
+                return existing, False
+            entry = self._InflightEntry(
+                done=threading.Event(),
+                waiters_ready=threading.Event(),
+            )
+            self._inflight[key] = entry
+            import threading as _t
+            return entry, True
+
+    def _wait_inflight(self, entry: QuoteService._InflightEntry) -> QuoteSnapshot:
+        # Give the upstream fetch some slack past the configured timeout so the
+        # waiter doesn't give up before the fetcher publishes.
+        timeout = self.timeout_seconds + 5
+        if not entry.done.wait(timeout=timeout):
+            raise ProviderError(
+                ProviderErrorCode.TIMEOUT,
+                f"singleflight waiter timed out after {timeout:.1f}s",
+            )
+        if entry.error is not None:
+            raise entry.error
+        assert entry.result is not None, "fetcher published without result or error"
+        return entry.result
+
+    def _publish_inflight(
+        self,
+        entry: QuoteService._InflightEntry,
+        *,
+        result: QuoteSnapshot | None = None,
+        error: BaseException | None = None,
+    ) -> None:
+        entry.result = result
+        entry.error = error
+        entry.done.set()
+        import threading as _t
+
+    def _unregister_inflight(
+        self, key: tuple[str, str, bool], entry: QuoteService._InflightEntry
+    ) -> None:
+        # Only the fetcher's entry is removed. A subsequent caller must register a
+        # fresh entry — singleflight only collapses in-flight requests, not future
+        # cache misses (those will go through normal cache logic first).
+        with self._inflight_lock:
+            if self._inflight.get(key) is entry:
+                del self._inflight[key]
 
     @staticmethod
     def _quote_age(quote: QuoteSnapshot, now: datetime) -> int | None:
