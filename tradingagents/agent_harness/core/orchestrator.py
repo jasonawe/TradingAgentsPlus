@@ -65,6 +65,13 @@ _DEDUPE_WINDOW_SECONDS = 60.0
 _DEDUPE_MAX_ENTRIES = 256
 
 _recent_tool_results: "OrderedDict[tuple[str, str, str], tuple[float, dict]]" = OrderedDict()
+# asyncio.gather in ``_execute`` runs _run_step concurrently; multiple
+# steps can hit _dedupe_record / _dedupe_lookup at the same time on the
+# module-level OrderedDict. The OrderedDict itself is not thread-safe
+# (CPython protects individual ops by the GIL but the move_to_end +
+# popitem pair in _dedupe_record is NOT atomic across threads).
+import threading as _threading
+_dedupe_lock = _threading.Lock()
 
 
 def _dedupe_key(name: str, args: Any) -> str:
@@ -99,15 +106,16 @@ def _dedupe_lookup(session_id: str, name: str, args: Any) -> dict | None:
     """60s 内已成功执行过 → 返回 cached result(含 _deduped 标记);否则 None。"""
     import time as _t
     key = (session_id, name, _dedupe_key(name, args))
-    cached = _recent_tool_results.get(key)
-    if cached is None:
-        return None
-    ts, result = cached
-    if _t.time() - ts > _DEDUPE_WINDOW_SECONDS:
-        _recent_tool_results.pop(key, None)
-        return None
-    # hit → 移到末尾(LRU 语义)
-    _recent_tool_results.move_to_end(key)
+    with _dedupe_lock:
+        cached = _recent_tool_results.get(key)
+        if cached is None:
+            return None
+        ts, result = cached
+        if _t.time() - ts > _DEDUPE_WINDOW_SECONDS:
+            _recent_tool_results.pop(key, None)
+            return None
+        # hit → 移到末尾(LRU 语义)
+        _recent_tool_results.move_to_end(key)
     return {**result, "_deduped": True, "_cached_age_s": round(_t.time() - ts, 1)}
 
 
@@ -115,10 +123,11 @@ def _dedupe_record(session_id: str, name: str, args: Any, result: dict) -> None:
     """成功执行后写入缓存;满了就 LRU 驱逐最旧的。"""
     import time as _t
     key = (session_id, name, _dedupe_key(name, args))
-    _recent_tool_results[key] = (_t.time(), result)
-    _recent_tool_results.move_to_end(key)
-    while len(_recent_tool_results) > _DEDUPE_MAX_ENTRIES:
-        _recent_tool_results.popitem(last=False)
+    with _dedupe_lock:
+        _recent_tool_results[key] = (_t.time(), result)
+        _recent_tool_results.move_to_end(key)
+        while len(_recent_tool_results) > _DEDUPE_MAX_ENTRIES:
+            _recent_tool_results.popitem(last=False)
 
 LOGGER = logging.getLogger(__name__)
 

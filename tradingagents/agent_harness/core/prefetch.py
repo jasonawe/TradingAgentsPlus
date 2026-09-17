@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import threading
 from dataclasses import dataclass, field
 from typing import Any, Awaitable, Callable, Sequence
 
@@ -140,6 +141,7 @@ class Prefetcher:
         history_capacity: int = 32,
     ) -> None:
         self._inflight: dict[tuple[str, frozenset], _PrefetchEntry] = {}
+        self._inflight_lock = threading.Lock()
         self._semaphore = asyncio.Semaphore(max_concurrent)
         self._loop_id: int | None = None  # detect cross-loop misuse
         # §7.3 #9 polish: stats + pattern-based prediction
@@ -226,10 +228,10 @@ class Prefetcher:
             if not name:
                 continue
             key = _make_cache_key(name, args)
-            if key in self._inflight:
-                # already in-flight — dedupe
-                self.stats.tasks_deduped += 1
-                continue
+            with self._inflight_lock:
+                if key in self._inflight:
+                    self.stats.tasks_deduped += 1
+                    continue
             try:
                 tool = tool_registry.get(name)
             except Exception as e:
@@ -239,7 +241,14 @@ class Prefetcher:
             task = asyncio.create_task(self._run(key, tool, args, context))
             import time as _time
             entry = _PrefetchEntry(key=key, task=task, started_at=_time.time())
-            self._inflight[key] = entry
+            with self._inflight_lock:
+                # Re-check after the await above; another kick_off in
+                # the same event-loop turn could have raced us.
+                if key in self._inflight:
+                    self.stats.tasks_deduped += 1
+                    task.cancel()
+                    continue
+                self._inflight[key] = entry
             self.stats.tasks_scheduled += 1
             fired += 1
         return fired
@@ -248,12 +257,24 @@ class Prefetcher:
         async with self._semaphore:
             try:
                 result = await tool.invoke(args, context)
-                self._inflight[key].result = result
+                self._set_entry_field(key, result=result)
             except BaseException as e:  # noqa: BLE001 — record any failure
-                self._inflight[key].error = e
+                self._set_entry_field(key, error=e)
             finally:
                 import time as _time
-                self._inflight[key].finished_at = _time.time()
+                self._set_entry_field(key, finished_at=_time.time())
+
+    def _set_entry_field(self, key, **fields) -> None:
+        # Multiple prefetch tasks run concurrently (asyncio.gather in
+        # _execute / _execute_ptc); without the lock, two tasks can
+        # race on _inflight[key].result = ... and corrupt the entry.
+        # Lock is held briefly (microseconds), negligible vs upstream I/O.
+        with self._inflight_lock:
+            entry = self._inflight.get(key)
+            if entry is None:
+                return
+            for k, v in fields.items():
+                setattr(entry, k, v)
 
     async def drain(self, *, timeout: float | None = None) -> PrefetchResult:
         """Await all in-flight tasks. Returns snapshot, never raises."""
@@ -280,12 +301,28 @@ class Prefetcher:
         self.stats.completed += snap.completed
         self.stats.failed += snap.failed
         self.stats.timed_out += snap.timed_out
+        # Bound the cache: post-drain entries stay in _inflight so
+        # follow-up ``lookup`` calls (within the same turn) still hit,
+        # but we evict the oldest when the cap is exceeded. Without
+        # this, the dict grew by N entries per turn forever (real
+        # leak — N plan steps × N turns).
+        _MAX_POST_DRAIN_ENTRIES = 256
+        with self._inflight_lock:
+            # Drop timed-out entries (the lookup contract excludes errors).
+            for e in entries:
+                if e.task in pending:
+                    self._inflight.pop(e.key, None)
+            # LRU-bounded retention for completed/failed.
+            while len(self._inflight) > _MAX_POST_DRAIN_ENTRIES:
+                oldest_key = next(iter(self._inflight))
+                self._inflight.pop(oldest_key, None)
         return snap
 
     def lookup(self, name: str, args: Any) -> tuple[bool, Any]:
         """Non-blocking cache lookup; returns (hit, result)."""
         key = _make_cache_key(name, args)
-        entry = self._inflight.get(key)
+        with self._inflight_lock:
+            entry = self._inflight.get(key)
         if entry is None:
             self.stats.cache_misses += 1
             return False, None
@@ -300,10 +337,12 @@ class Prefetcher:
 
         Clears stats + history too so the next session starts fresh.
         """
-        for e in self._inflight.values():
+        with self._inflight_lock:
+            entries = list(self._inflight.values())
+            self._inflight.clear()
+        for e in entries:
             if not e.task.done():
                 e.task.cancel()
-        self._inflight.clear()
         self._loop_id = None
         self.stats = PrefetchStats()
         self._history.clear()

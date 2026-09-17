@@ -126,13 +126,30 @@ class PTCExecutor:
             wave_tasks = [
                 self._run_group(group, context) for group in wave
             ]
-            # asyncio.gather keeps order; one group's failure does NOT
-            # cancel siblings (return_exceptions=True collects them).
+            # ``return_exceptions=True`` so a single group's unhandled
+            # exception does NOT cancel siblings. Previously the code
+            # used ``return_exceptions=False`` with a comment claiming
+            # the opposite — one group's crash would tear down the
+            # whole wave and lose already-completed sibling results.
             wave_results = await asyncio.gather(
-                *wave_tasks, return_exceptions=False
+                *wave_tasks, return_exceptions=True
             )
             for grp_results in wave_results:
-                all_results.extend(grp_results)
+                if isinstance(grp_results, BaseException):
+                    # _run_group itself raised (shouldn't happen —
+                    # per-call exceptions are caught inside _one, but
+                    # defensive). Surface as a single error entry so
+                    # the caller still sees the wave completed.
+                    LOGGER.warning("PTC wave group raised: %s", grp_results)
+                    all_results.append({
+                        "group_id": "?",
+                        "name": "(group)",
+                        "ok": False,
+                        "result": None,
+                        "error": str(grp_results),
+                    })
+                else:
+                    all_results.extend(grp_results)
 
             LOGGER.info(
                 "PTC wave %d: %d groups, %d total calls",
