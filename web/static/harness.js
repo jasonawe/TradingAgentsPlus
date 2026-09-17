@@ -543,11 +543,11 @@
         appendReasoningDelta(`🧑‍⚖️ L3 judge: ${payload.ok ? "grounded" : "ungrounded"} (score=${(payload.details?.score ?? 0).toFixed(2)})\n`);
         break;
       case "confirm_request":
-        // HITL: write tool requires user approval. Show BOTH the
-        // modal (primary UX) and the inline banner (fallback when
-        // CSS is stale or the modal is dismissed). Both call the
-        // same /confirm endpoint.
-        showHarnessConfirmDialog(payload, assistant);
+        // HITL: write tool requires user approval. Inline banner only —
+        // lives in the chat stream so the user stays in context. The
+        // previous design also opened a centred modal which (a) was
+        // visually clobbery and (b) could be clicked independently of
+        // the banner, causing double-approval races. Single entry point.
         showHarnessConfirmInline(payload, assistant);
         break;
       case "audit_decision":
@@ -574,96 +574,17 @@
     }
   }
 
-  // HITL: write-tool confirm dialog
-  async function showHarnessConfirmDialog(payload, assistant) {
-    if (harnessState.pendingConfirm) {
-      appendError("已有待确认的写操作,请先处理");
-      return;
-    }
-    const toolName = payload?.tool_name || "(tool)";
-    const toolArgs = payload?.args || {};
-    const impact = payload?.impact || {};
-
-    const overlay = document.createElement("div");
-    overlay.className = "harness-confirm-overlay";
-    const dialog = document.createElement("div");
-    dialog.className = "harness-confirm-dialog";
-    dialog.innerHTML = `
-      <h3>⚠️ 写操作需要你确认</h3>
-      <p class="harness-confirm-tool">工具:<code>${escapeHtml(toolName)}</code></p>
-      <pre class="harness-confirm-args">${escapeHtml(JSON.stringify(toolArgs, null, 2))}</pre>
-      ${impact.reason ? `<p class="harness-confirm-impact">原因:${escapeHtml(impact.reason)}</p>` : ""}
-      <div class="harness-confirm-buttons">
-        <button type="button" class="harness-confirm-cancel">拒绝</button>
-        <button type="button" class="harness-confirm-ok">批准</button>
-      </div>
-    `;
-    overlay.appendChild(dialog);
-    document.body.appendChild(overlay);
-
-    const sessionId = ensureSession();
-    const decide = async (approve) => {
-      dialog.querySelectorAll("button").forEach(b => b.disabled = true);
-      try {
-        const resp = await fetch(
-          `/api/harness/sessions/${encodeURIComponent(sessionId)}/confirm`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              tool_name: toolName,
-              tool_args: toolArgs,
-              approve,
-              user_message: state.lastUserMessage || "",
-              audit_id: payload?.audit_id,
-            }),
-          }
-        );
-        if (!resp.ok || !resp.body) {
-          appendError(`审批请求失败 (HTTP ${resp.status})`);
-          overlay.remove();
-          return;
-        }
-        // Stream the post-approval events into the same UI.
-        const reader = resp.body.getReader();
-        const decoder = new TextDecoder();
-        let buf = "";
-        // Suspend the regular handler's reasoning block; we'll route
-        // these events through the same dispatchEvent path so the UI
-        // updates in lock-step.
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          buf += decoder.decode(value, { stream: true });
-          let idx;
-          while ((idx = buf.indexOf("\n\n")) !== -1) {
-            const block = buf.slice(0, idx);
-            buf = buf.slice(idx + 2);
-            // Reuse the existing SSE parser.
-            handleSseBlock(block, assistant);
-          }
-        }
-      } catch (e) {
-        appendError(`审批流错误: ${e.message}`);
-      } finally {
-        overlay.remove();
-      }
-    };
-
-    dialog.querySelector(".harness-confirm-cancel").onclick = () => decide(false);
-    dialog.querySelector(".harness-confirm-ok").onclick = () => decide(true);
-  }
-
   function escapeHtml(s) {
     return String(s)
       .replace(/&/g, "&amp;").replace(/</g, "&lt;")
       .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
-  // §P3-3+ — inline approval banner shown IN the chat (alongside
-  // the modal). The modal is the primary UX; this is the fallback
-  // for when CSS doesn't load or the modal is dismissed. The user
-  // can click 批准 / 拒绝 directly in the chat stream.
+  // §P3-3+ — inline approval banner shown IN the chat. This is the
+  // only confirmation UX now (the modal was dropped: it duplicated the
+  // banner's buttons, opened a second focus context, and was visually
+  // heavy). The banner lives inside the assistant bubble so the user
+  // stays in conversation flow. Single approve / deny pair.
   function showHarnessConfirmInline(payload, assistant) {
     const toolName = payload?.tool_name || "(tool)";
     const toolArgs = payload?.args || {};
@@ -673,10 +594,15 @@
     banner.className = "harness-confirm-inline";
     banner.innerHTML = `
       <div class="harness-confirm-inline-header">
-        ⚠️ 写操作需要你确认 <small>(${escapeHtml(toolName)})</small>
+        <span class="harness-confirm-inline-icon">⚠️</span>
+        <span class="harness-confirm-inline-title">写操作需要你确认</span>
+        <code class="harness-confirm-inline-tool">${escapeHtml(toolName)}</code>
       </div>
-      <pre class="harness-confirm-inline-args">${escapeHtml(JSON.stringify(toolArgs, null, 2))}</pre>
       ${impact.reason ? `<div class="harness-confirm-inline-impact">${escapeHtml(impact.reason)}</div>` : ""}
+      <details class="harness-confirm-inline-details">
+        <summary>查看参数</summary>
+        <pre class="harness-confirm-inline-args">${escapeHtml(JSON.stringify(toolArgs, null, 2))}</pre>
+      </details>
       <div class="harness-confirm-inline-buttons">
         <button type="button" class="harness-confirm-inline-cancel">拒绝</button>
         <button type="button" class="harness-confirm-inline-ok">批准</button>
