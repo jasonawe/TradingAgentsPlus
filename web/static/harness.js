@@ -448,8 +448,30 @@
   // synthesis). Detects the schema shape and emits a readable summary
   // instead of dumping the raw dict — the JSON form was confusing users
   // who asked simple quote questions.
+  // Heuristic: detect when the LLM synthesizer just dumped the raw
+  // tool result JSON instead of writing prose. Common pattern is
+  // ``"{ "text": ..., "count": 1 }"`` for list_* tools.
+  function looksLikeRawJsonDump(summary, result) {
+    if (typeof summary !== "string") return false;
+    const trimmed = summary.trim();
+    if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) return false;
+    // If the result has a ``text`` field and the summary contains the
+    // same text verbatim, the LLM did no transformation.
+    if (typeof result?.text === "string" && summary.includes(result.text.slice(0, 60))) return true;
+    // ````json`` prefix from the LLM also counts.
+    return /^```json/i.test(trimmed);
+  }
+
   function formatRawResult(result, tier) {
     if (!result || typeof result !== "object") return JSON.stringify(result || {}, null, 2);
+    // list_notes / list_alerts / list_scheduled_tasks / list_watchlist
+    // return ``{text: <markdown table>, count: N}``. The text often
+    // already starts with "共 N 条笔记/告警..." so we don't prepend a
+    // duplicate header — just emit the markdown table for the renderer
+    // to format as an HTML table.
+    if (typeof result.text === "string" && typeof result.count === "number") {
+      return result.text;
+    }
     // Tier 1 QuoteResult — has symbol + price + provider
     if (typeof result.price === "number" || result.price === null) {
       if (result.symbol && ("change" in result || "volume" in result)) {
@@ -560,14 +582,17 @@
         appendReasoningDelta(`🔍 L${payload.level} 验证: ${payload.ok ? "pass" : "fail"}\n`);
         break;
       case "agent_final": {
-        // SynthesizeNode 的最终回答(LLM 合成或 raw)
         const result = payload.result || {};
-        // Tier 1 short-circuit paths don't go through the LLM synthesizer,
-        // so result.summary is empty — fall back to client-side formatting
-        // instead of dumping raw QuoteResult JSON to the user.
-        const summary = result.summary || formatRawResult(result, payload.tier);
-        // Use innerHTML with escaped markdown rendering — textContent would
-        // display the raw "#", "|", "**" characters.
+        // Tier 1 short-circuit paths skip the LLM synthesizer, so
+        // result.summary is empty — fall back to client-side formatting.
+        // For list_* tools that return ``{text: <markdown table>, count}``
+        // the LLM sometimes just dumps the raw JSON; in that case
+        // render the markdown table directly.
+        let summary = result.summary;
+        if (!summary) summary = formatRawResult(result, payload.tier);
+        else if (looksLikeRawJsonDump(summary, result)) {
+          summary = formatRawResult(result, payload.tier) || summary;
+        }
         assistant.bubble.innerHTML = renderMarkdown(summary);
         scrollToBottom();
         appendReasoningDelta(`💡 SynthesizeNode 完成\n`);
