@@ -196,6 +196,22 @@
   // summarize_tool_result templates so the reasoning trace stays in
   // sync with the assistant bubble. Frontend-only fallback (in case
   // backend didn't fill result.summary for some new status).
+  // §14.3.4 — collapse verbose JSON.stringify(args) to a readable
+  // form. Heuristic: lead with symbol/name, then key=value pairs
+  // joined by " · ". Skip nested objects (they were just noise).
+  function _friendlyArgs(args) {
+    if (typeof args !== "object" || !args) return "";
+    const parts = [];
+    const sym = args.symbol || args.ticker || args.name;
+    if (sym) parts.push(String(sym));
+    for (const [k, v] of Object.entries(args)) {
+      if (k === "symbol" || k === "ticker" || k === "name") continue;
+      if (typeof v === "object" && v !== null) continue;
+      parts.push(`${k}=${typeof v === "string" ? v : JSON.stringify(v)}`);
+    }
+    return parts.join(" · ");
+  }
+
   function _symFromRaw(raw) {
     if (typeof raw !== "string") return null;
     const m = raw.match(/"symbol"\s*:\s*"([^"]+)"/);
