@@ -43,6 +43,7 @@ class ShortCircuit:
         route: RouteResult,
         message: str,
         context: ToolContext,
+        slots: dict | None = None,
     ) -> AsyncIterator[tuple[str, dict]]:
         """Stream SSE events for a Tier 1 query.
 
@@ -55,7 +56,7 @@ class ShortCircuit:
         ``result.multi = [...]``.
         """
         if route.multi_pairs and len(route.multi_pairs) >= 2:
-            async for ev in self._run_multi(route, message, context):
+            async for ev in self._run_multi(route, message, context, slots=slots):
                 yield ev
             return
 
@@ -72,7 +73,7 @@ class ShortCircuit:
         try:
             tool = self.registry.get(tool_name)
             args_schema = tool.schema.args_schema
-            args = self._build_args(args_schema, symbol)
+            args = self._build_args(args_schema, symbol, slots=slots)
             yield ("tool_call", {"name": tool_name, "args": self._safe_dump(args)})
             result = await tool.invoke(args, context)
             result_payload = self._safe_dump(result)
@@ -111,10 +112,14 @@ class ShortCircuit:
         route: RouteResult,
         message: str,
         context: ToolContext,
+        slots: dict | None = None,
     ) -> AsyncIterator[tuple[str, dict]]:
         """§N1 — read-only multi-intent: invoke every (intent, op)
         pair sequentially and emit one combined ``agent_final`` with
         ``result.multi = [...]``. 0 LLM calls.
+
+        §Step4 — accepts ``slots`` so read tools honour user-side
+        limit / include_disabled overrides.
 
         Each tool's tool_call + tool_result events are forwarded so the
         frontend reasoning trace sees every step. If a tool raises,
@@ -133,7 +138,7 @@ class ShortCircuit:
             try:
                 tool = self.registry.get(tool_name)
                 args_schema = tool.schema.args_schema
-                args = self._build_args(args_schema, symbol)
+                args = self._build_args(args_schema, symbol, slots=slots)
                 yield ("tool_call", {
                     "name": tool_name,
                     "args": self._safe_dump(args),
@@ -210,17 +215,36 @@ class ShortCircuit:
         }.get(intent, "")
 
     @staticmethod
-    def _build_args(args_schema: type, symbol: str) -> Any:
-        """Instantiate the tool's args schema with sensible defaults."""
+    def _build_args(args_schema: type, symbol: str, slots: dict | None = None) -> Any:
+        """Instantiate the tool's args schema with sensible defaults.
+
+        §Step4 — merge ``state.slots`` (limit / threshold / ...) on top
+        of the symbol-only defaults so Tier 1 read paths honour the
+        user's structured params the same way _list_*_args does for
+        Tier 2. Unknown slot keys are silently dropped — the args
+        schema is the source of truth for which fields are valid.
+        """
         # Lazy imports to avoid circulars.
         from tradingagents.agent_harness.tools import builtin as _builtin  # noqa: F401
+        payload: dict[str, Any] = {"symbol": symbol}
+        # §Step4 — apply safe slots only. We don't pass threshold /
+        # body_md / cron / trade_date to read tools (they don't accept
+        # those fields). Only ``limit`` and ``time_range`` flow through
+        # to read_* args.
+        if slots:
+            for k in ("limit", "include_disabled"):
+                if k in slots:
+                    payload[k] = slots[k]
         if hasattr(args_schema, "model_validate"):
             try:
-                return args_schema.model_validate({"symbol": symbol})
+                return args_schema.model_validate(payload)
             except Exception:
                 pass
         # Fallback: construct dataclass-like or dict.
         try:
-            return args_schema(symbol=symbol)
+            return args_schema(**payload)
         except Exception:
-            return {"symbol": symbol}
+            try:
+                return args_schema(symbol=symbol)
+            except Exception:
+                return payload

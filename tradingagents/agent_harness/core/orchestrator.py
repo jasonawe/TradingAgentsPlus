@@ -306,46 +306,81 @@ def _list_notes_args(state: Any) -> dict[str, Any]:
     """list_notes: when the focused symbol is known (current or carry-
     forward), pass it as the filter so the tool returns scoped data.
     When empty, returns {} so the tool returns all notes.
+
+    §Step4 — also pass ``state.slots["limit"]`` when the user said
+    "最近 N 条" / "前 N 个" so the tool short-circuits without
+    returning the full history. Falls back to no limit when the slot
+    is absent (legacy behaviour preserved).
     """
     sym = _focused_symbol(state)
-    return {"symbol": sym} if sym else {}
+    slots = getattr(state, "slots", {}) or {}
+    args: dict[str, Any] = {}
+    if sym:
+        args["symbol"] = sym
+    if "limit" in slots:
+        args["limit"] = slots["limit"]
+    return args
 
 
 def _list_alerts_args(state: Any) -> dict[str, Any]:
-    """list_alerts: same scoping as ``_list_notes_args``."""
+    """list_alerts: same scoping as ``_list_notes_args``.
+
+    §Step4 — also pass ``state.slots["limit"]`` when set."""
     sym = _focused_symbol(state)
-    return {"symbol": sym} if sym else {}
+    slots = getattr(state, "slots", {}) or {}
+    args: dict[str, Any] = {"symbol": sym} if sym else {}
+    if "limit" in slots:
+        args["limit"] = slots["limit"]
+    return args
 
 
 def _list_reports_args(state: Any) -> dict[str, Any]:
     """list_reports: scope to the focused symbol when one is known
+
+    §Step4 — also pass ``state.slots["limit"]`` when set.
     (explicit ``state.symbols[0]`` or carry-forward ``state.carry_symbols[0]``).
 
     Empty args when no focused symbol — preserves "all reports" behaviour.
     """
     sym = _focused_symbol(state)
-    return {"symbol": sym} if sym else {}
+    slots = getattr(state, "slots", {}) or {}
+    args: dict[str, Any] = {"symbol": sym} if sym else {}
+    if "limit" in slots:
+        args["limit"] = slots["limit"]
+    return args
 
 
 def _list_runs_args(state: Any) -> dict[str, Any]:
     """list_runs: scope to the focused symbol when one is known.
+
+    §Step4 — also pass ``state.slots["limit"]`` when set.
 
     Same carry-forward semantics as :func:`_list_notes_args`; empty
     args when no focused symbol is set so ``manager.list_runs`` is
     used (unfiltered) instead of ``list_runs_for_ticker``.
     """
     sym = _focused_symbol(state)
-    return {"symbol": sym} if sym else {}
+    slots = getattr(state, "slots", {}) or {}
+    args: dict[str, Any] = {"symbol": sym} if sym else {}
+    if "limit" in slots:
+        args["limit"] = slots["limit"]
+    return args
 
 
 def _list_scheduled_tasks_args(state: Any) -> dict[str, Any]:
     """list_scheduled_tasks: scope to the focused symbol when one is known.
 
+    §Step4 — also pass ``state.slots["limit"]`` when set.
+
     Each scheduler job carries a ``symbol`` field; the bridge tool
     filters ``items`` in Python when ``symbol`` is non-empty.
     """
     sym = _focused_symbol(state)
-    return {"symbol": sym} if sym else {}
+    slots = getattr(state, "slots", {}) or {}
+    args: dict[str, Any] = {"symbol": sym} if sym else {}
+    if "limit" in slots:
+        args["limit"] = slots["limit"]
+    return args
 
 
 def _note_create_args(state: Any) -> dict[str, Any]:
@@ -877,7 +912,9 @@ class Orchestrator:
             # an assistant summary. The short-circuit always emits an
             # ``agent_final`` event with ``result`` containing the
             # tool output; we stash it in state.final.
-            async for ev, payload in self._short_circuit.run(route, user_message, context):
+            # §Step4 — propagate state.slots so list_* read tools honour
+            # user-supplied limit / include_disabled in Tier 1 short-circuit.
+            async for ev, payload in self._short_circuit.run(route, user_message, context, slots=state.slots):
                 if ev == "agent_final":
                     state.final = payload
                 yield await _emit(ev, payload)
