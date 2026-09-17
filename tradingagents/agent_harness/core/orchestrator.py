@@ -1435,6 +1435,15 @@ class Orchestrator:
         cached = self.plan_cache.get(state.user_message)
         if cached is not None:
             return cached
+        # §P3-3+ multi-intent FIRST (e.g. "看一下笔记和告警").
+        # Single-CRUD below short-circuits on the primary pair and
+        # would silently drop the secondary tools — multi must win
+        # whenever extra_crud_dispatch is non-empty.
+        if getattr(state, "extra_crud_dispatch", None):
+            multi_plan = self._multi_crud_plan(state)
+            if multi_plan is not None:
+                self.plan_cache.put(state.user_message, multi_plan)
+                return multi_plan
         # §7.3 #12 — single-CRUD dispatch BEFORE LLM plan. The CRUD
         # dispatch table maps (intent, op) -> write/read tool
         # deterministically, so for write intents (create_note /
@@ -1447,12 +1456,6 @@ class Orchestrator:
             if crud_plan:
                 self.plan_cache.put(state.user_message, crud_plan)
                 return crud_plan
-        # §P3-3+ — multi-intent CRUD dispatch (e.g. "看一下笔记和告警").
-        if getattr(state, "extra_crud_dispatch", None):
-            multi_plan = self._multi_crud_plan(state)
-            if multi_plan is not None:
-                self.plan_cache.put(state.user_message, multi_plan)
-                return multi_plan
         # CRUD 未命中才让 LLM plan —— 只剩读类查询需要 LLM 决定 fan-out。
         if self.llm_factory is not None:
             try:
