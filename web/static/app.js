@@ -1187,7 +1187,8 @@ document.addEventListener("click", (event) => { const retryBtn = event.target.cl
   try { ta("TradingAgentsAgentChat")?.init?.(); } catch (err) { console.warn("[AgentChat] init failed", err); }
   try { ta("TradingAgentsHarness")?.init?.(); } catch (err) { console.warn("[HarnessChat] init failed", err); }
 
-  // ── Phase B: 现有 main-page 事件绑定 — 整段包 try/catch,任何 element 缺失不阻断后续 init  try {
+  // ── Phase B: 现有 main-page 事件绑定 — 整段包 try/catch,任何 element 缺失不阻断后续 init
+  try {
     const safeBind = (id, evt, fn) => { const el = $(id); if (el) el.addEventListener(evt, fn); };
     safeBind("cancel-run", "click", async () => { if (!state.runId) return; try { await api(`/api/runs/${encodeURIComponent(state.runId)}/cancel`, { method: "POST" }); } catch (error) { terminalRun("failed", error.message); } });
     safeBind("back-history", "click", () => navigate(state.archived ? "library" : "active"));
