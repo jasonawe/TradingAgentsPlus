@@ -629,10 +629,12 @@ class Orchestrator:
                 self.memory.l1.append_message(
                     session_id, "assistant", str(assistant_summary)[:2000],
                 )
+            from tradingagents.agent_harness.core.tier import sanitize_symbols
+            sanitized = sanitize_symbols(symbols)
             self.memory.l2.set(
                 self._session_ctx_key(session_id),
                 {
-                    "symbols": list(symbols or []),
+                    "symbols": sanitized,
                     "intent": getattr(intent, "value", str(intent) if intent else None),
                     "user_msg": (user_msg or "")[:200],
                 },
@@ -759,8 +761,13 @@ class Orchestrator:
                 "carry-forward symbols from previous turn: %s (session=%s)",
                 carry_symbols, session_id,
             )
+        from tradingagents.agent_harness.core.tier import sanitize_symbols
+        # P0: drop invalid carry-forward tickers (e.g. bare "SS" leftover from
+        # earlier regex extraction). Without this filter the next turn's
+        # get_quote("SS") returns no_data and LLM hallucinates an answer.
+        sanitized_carry = sanitize_symbols(carry_symbols)
         effective_symbols = list(route.symbols) + [
-            s for s in carry_symbols if s not in route.symbols
+            s for s in sanitized_carry if s not in route.symbols
         ]
 
         state = OrchestratorState(
@@ -2096,6 +2103,31 @@ class Orchestrator:
         normalised (agent → name) so downstream consumers see a consistent
         shape.
         """
+        # P0 — short-circuit on all-error / no_data tool_results. Without
+        # this, every "no quote data" path forces the LLM to hallucinate an
+        # answer (e.g. "SS = 上证综指"), which then fails L3
+        # grounding. A short plain-string fallback is much safer.
+        all_no_data = bool(tool_results) and all(
+            isinstance(r, dict) and (
+                r.get("status") in ("no_data", "error")
+                or r.get("error")
+                or (r.get("status") == "ok" and not any(
+                    r.get(k) for k in ("price", "items", "factors", "alerts", "notes", "rows", "text")))
+            )
+            for r in tool_results
+        )
+        if all_no_data and state.symbols:
+            sym_label = ", ".join(state.symbols)
+            base["summary"] = (
+                    f"\u5f53\u524d\u6570\u636e\u6e20\u9053\u672a\u80fd\u8fd4\u56de {sym_label} \u7684\u884c\u60c5\u3002\n"
+                    "\n\u53ef\u80fd\u539f\u56e0\uff1a\n"
+                    "- \u4e0a\u6e38\u63d0\u4f9b\u8005\u77ed\u65f6\u4e0d\u53ef\u7528 / \u7f51\u7edc\u6296\u52a8\uff1b\n"
+                    "- ticker \u5199\u6cd5\u672a\u88ab\u8bc6\u522b\uff08\u8bf7\u68c0\u67e5\u662f\u5426\u4e3a 000001.SS / ^SSEC \u8fd9\u79cd\u6807\u51c6\u5199\u6cd5\uff09\uff1b\n"
+                    "- \u76d8\u540e / \u8282\u5047\u65e5\u65e0\u6570\u636e\u3002\n\n"
+                    "\u5efa\u8bae\uff1a\u7b49\u5f85\u51e0\u5206\u949f\u540e\u91cd\u8bd5\uff0c\u6216\u68c0\u67e5 ticker \u5199\u6cd5\u3002\u6570\u636e\u672a\u56de\u4e4b\u524d\u6682\u4e0d\u7ed9\u51fa\u65b9\u5411\u3002"
+            )
+            return base
+
         if self.llm_factory is None or not self.llm_factory.is_configured():
             return []
         try:
@@ -2458,16 +2490,10 @@ class Orchestrator:
         "a concise, accurate answer in the user\u2019s language.\n"
         "\n"
         "Output structure (use markdown headings):\n"
-        "1. **数据事实** — ONLY data points actually returned "
-        "by tools. Quote numbers verbatim; mark missing fields as \"—\".\n"
-        "2. **行为面观察** — technical / flow-based reading "
-        "(e.g. \"量比 1.22 + 换手 6.9% → 资金接继\"). "
-        "Allowed to use finance common knowledge, but mark inferences with "
-        "\"基于××推断\" so the L3 judge can verify.\n"
-        "3. **方向性建议** — a concrete stance "
-        "(观望 / 跳过 / 关注支撑位) with a one-line "
-        "rationale + risk note. NEVER output \"不能给出结论\" "
-        "— a direction is required even when data is partial.\n"
+        "Style:\n"
+        "- Be concise: prefer 3\u20136 short paragraphs over long bulleted dumps.\n"
+        "- Use markdown headings ONLY when the answer has clear sections. For trivial lookups (single quote, single note) write a plain sentence, no headings.\n"
+        "- Use the user\u2019s language for any natural-language answer.\n"
         "\n"
         "Grounding rules:\n"
         "- Numbers must come from tool results. If a tool returned null / "

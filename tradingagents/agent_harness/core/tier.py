@@ -67,7 +67,7 @@ class Op(str, Enum):
     BULK_DELETE = "bulk_delete"  # delete-all-for-target: requires symbol, not id
 
 
-_TICKER_RE = re.compile(r"\b[A-Z0-9]{1,6}(?:\.[A-Z]{2})?\b")
+_TICKER_RE = re.compile(r"\b(?:[A-Z]{4,}|\d{5,6})(?:\.[A-Z]{2})?\b")  # P0: drop bare ".SS"/".SZ" matches (see sysissues.md #1)
 
 # A-share prefix → exchange suffix (N121 fix, 2026-09-14).
 # 6XXXXX → 上交所 .SS ; 0XXXXX / 3XXXXX → 深交所 .SZ ; 4XXXXX/5XXXXX
@@ -118,6 +118,44 @@ def normalize_symbol(token: str) -> str:
     if s.startswith(_A_SHARE_SZ_PREFIXES):
         return s + ".SZ"
     return s
+
+
+def is_valid_symbol(s: str) -> bool:
+    """Best-effort validity check for a carry-forward / persisted ticker.
+
+    Rules
+    -----
+    - 6-digit A-share (with optional .SS / .SZ) -> valid
+    - 4+ letter latin ticker (e.g. AAPL, TSLA, NVDA) -> valid
+    - anything else (including bare "SS" / "SZ" / "ETF" leftovers from
+      regex extraction, 2–3 char tokens, etc.) -> invalid
+    """
+    if not s:
+        return False
+    t = s.strip().upper()
+    if not t:
+        return False
+    # Strip suffix for length check
+    base = t.split(".")[0] if "." in t else t
+    if len(base) >= 4 and base.isalpha():
+        return True
+    if base.isdigit() and len(base) == 6:
+        return True
+    return False
+
+
+def sanitize_symbols(symbols: list[str] | None) -> list[str]:
+    """Drop invalid tickers from a list before persistence / dispatch."""
+    if not symbols:
+        return []
+    out: list[str] = []
+    seen: set[str] = set()
+    for s in symbols:
+        norm = normalize_symbol(s)
+        if is_valid_symbol(norm) and norm not in seen:
+            seen.add(norm)
+            out.append(norm)
+    return out
 
 _TIER1_KEYWORDS = {"价格", "多少钱", "报价", "quote", "价格?", "price", "rsi", "换手", "成交"}
 _TIER2_KEYWORDS = {"估值", "分析", "对比", "compare", "估值合理性", "对比一下"}

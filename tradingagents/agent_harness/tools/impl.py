@@ -446,10 +446,12 @@ def _check_write_approval(
     }
     # 同时写 audit log
     try:
-        from web.config import resolve_model_config
-        from tradingagents.default_config import DEFAULT_CONFIG
         # log_write 用 web_runs.sqlite3 默认路径
+        # P0 — write the session_id so the write_audit_log row is
+        # linked to the originating chat session (was always
+        # NULL before this fix; queries by session returned 0 rows).
         audit_id = log_write(
+            session_id=session_id,
             tool_name=tool_name,
             tool_args=tool_args,
             status="pending",
