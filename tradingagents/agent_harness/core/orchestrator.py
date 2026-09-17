@@ -353,14 +353,18 @@ def _note_create_args(state: Any) -> dict[str, Any]:
     (state.symbols[0] > state.carry_symbols[0]) so '建一个笔记' after
     discussing 600036.SS auto-tags the note for 600036.SS.
 
-    body_md is the user message verbatim; LLM-backed plan refinement
-    can rewrite it later.  asset_type stays stock by default; for
-    crypto tickers the LLM plan can override.
+    §Step3 — prefer ``state.slots["body_md"]`` over the full
+    ``state.user_message`` so '给 600036 加一个笔记：哈哈打MVP'
+    stores '哈哈打MVP' (not the whole sentence) as the note body.
+    Falls back to user_message when no slot was extracted (regex
+    didn't find a colon-separated body in the message).
     """
     msg = state.user_message or ""
+    slots = getattr(state, "slots", {}) or {}
+    body = slots.get("body_md") or msg
     return {
         "symbol": _focused_symbol(state),
-        "body_md": msg,
+        "body_md": body,
         "asset_type": "stock",
     }
 
@@ -478,12 +482,18 @@ def _scheduled_id_args(state: Any) -> dict[str, Any]:
 def _run_create_args(state: Any) -> dict[str, Any]:
     """§P3-3+ — run_trading_agents_analysis defaults the symbol to
     the focused one (state.symbols[0] > state.carry_symbols[0]).
+
+    §Step3 — read ``trade_date`` and ``research_depth`` from
+    :func:`extract_slots` ("今天" / "明天" / "YYYY-MM-DD" / "深度 N").
+    Falls back to ``""`` (today) and ``1`` (default depth) when no
+    slot was extracted.
     """
+    slots = getattr(state, "slots", {}) or {}
     return {
         "symbol": _focused_symbol(state),
-        "trade_date": "",
+        "trade_date": slots.get("trade_date", ""),
         "asset_type": "stock",
-        "research_depth": 1,
+        "research_depth": slots.get("research_depth", 1),
     }
 
 

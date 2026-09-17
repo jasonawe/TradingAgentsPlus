@@ -266,6 +266,64 @@ def extract_slots(message: str) -> dict[str, Any]:
     elif "盘前" in lower:
         out["cron"] = "0 9 * * 1-5"
 
+    # ── body_md ──────────────────────────────────────────────────
+    # §Step3 — extract the free-text body from "create note" intents.
+    # Patterns:
+    #   "笔记：X" / "备注：X" / "memo: X" / "记一下 X" / "加一条笔记 X"
+    # Without this slot, _note_create_args falls back to the entire
+    # user_message (e.g. "给 600036 加一个笔记：哈哈打MVP") which is
+    # far too verbose to store as a research note.
+    body_match = (
+        # §Step3 — fullwidth colon (U+FF1A "：") is the common separator
+        # in Chinese ("笔记：内容"); bare ASCII colon ("memo: body")
+        # is the English variant. The char class accepts both.
+        # §Step3 — negative lookahead excludes ID-like tokens
+        # (note-abc / alert-xyz / job-123) which appear in
+        # delete/update queries. Without the lookahead those
+        # queries are misclassified as body_md.
+        re.search(r"(?:笔记|备注|memo|note)[::：\s]+(?!note-|alert-|job-|run-)(.+)$", message)
+        or re.search(r"(?:记一下|做个笔记|做个备注|加个笔记|加一条?笔记|写个笔记|录一条?)\s+(.+)$", message)
+    )
+    if body_match:
+        body = body_match.group(1).strip().strip('"').strip("'").strip()
+        # Drop trailing tool-name residue (e.g. "哈哈打MVP :m: ...")
+        if body and len(body) <= 2000:
+            out["body_md"] = body
+
+    # ── trade_date ───────────────────────────────────────────────
+    # §Step3 — extract the trade date for run_trading_agents_analysis.
+    # Patterns: "今天" / "今日" → today; "明天" / "明日" → tomorrow;
+    # explicit "YYYY-MM-DD" or "YYYY/MM/DD".
+    today = _dt.date.today()
+    if any(kw in message for kw in ("今天", "今日", "today")):
+        out["trade_date"] = today.isoformat()
+    elif any(kw in message for kw in ("明天", "明日", "tomorrow")):
+        out["trade_date"] = (today + _dt.timedelta(days=1)).isoformat()
+    else:
+        m = re.search(r"(\d{4}[-/]\d{1,2}[-/]\d{1,2})", message)
+        if m:
+            try:
+                d = _dt.date.fromisoformat(m.group(1).replace("/", "-"))
+                out["trade_date"] = d.isoformat()
+            except ValueError:
+                pass
+
+    # ── research_depth ───────────────────────────────────────────
+    # §Step3 — extract the research depth for run_trading_agents_analysis.
+    # Patterns: "深度 N" / "N 层" / "depth N" / "深 N".
+    m = re.search(r"(?:深度|depth)\s*[:：]?\s*(\d)", lower)
+    if not m:
+        m = re.search(r"(\d)\s*(?:层|级)", message)
+    if not m:
+        m = re.search(r"深\s*(\d)", message)
+    if m:
+        try:
+            depth = int(m.group(1))
+            if 1 <= depth <= 5:
+                out["research_depth"] = depth
+        except ValueError:
+            pass
+
     return out
 
 _TIER1_KEYWORDS = {"价格", "多少钱", "报价", "quote", "价格?", "price", "rsi", "换手", "成交", "行情", "股价", "现在", "today", "今日"}
@@ -357,6 +415,10 @@ _OP_KW: dict[Op, set[str]] = {
                 # Schedule-creation phrases (e.g. "每天早上 9 点跑 X" / "盘后跑 Y")
                 # that imply the user wants to *create* a scheduled task.
                 "每天跑", "每日跑", "定时跑", "周期跑", "按周期跑", "排个任务",
+                # §Step3 — bare 备注 / 记一下 / 写个笔记 imply CREATE
+                # without explicit 加/创建/添加. Without these,
+                # "600036 备注：基本面强劲" routes to NOTE/LIST.
+                "备注", "记一下", "写个笔记", "录一条", "录一下", "写一下",
                 # §Step2 — write-operation hints ("提醒" / "提醒我" /
                 # "提醒一下") that imply the user wants to *create* an
                 # alert even when they don't say "添加" / "创建"
@@ -400,6 +462,21 @@ def classify(message: str) -> tuple[Intent, Op]:
        with ``Op.READ`` since the legacy intents are read-only.
     """
     text = (message or "").lower()
+
+    # 0. §Step3 — slot-aware override FIRST. When extract_slots has
+    # already produced structured params (trade_date / body_md / cron),
+    # the user clearly wants to *create* a run / note / scheduled-task.
+    # Apply the override before entity detection so "记一下 X 估值合理"
+    # doesn't get its (NOTE, CREATE) routing hijacked by the COMPARE
+    # legacy intent from the "估值" keyword. Without this override the
+    # legacy COMPARE intent plus verb-driven CREATE produces
+    # (COMPARE, CREATE) which has no _CRUD_DISPATCH entry — the LLM
+    # has to re-derive the right tool.
+    _slots = extract_slots(message or "")
+    if "trade_date" in _slots or "research_depth" in _slots:
+        return Intent.RUN, Op.CREATE
+    if "body_md" in _slots:
+        return Intent.NOTE, Op.CREATE
 
     # 1. Entity detection
     for intent, (kws, default_op) in _ENTITY_KW.items():
