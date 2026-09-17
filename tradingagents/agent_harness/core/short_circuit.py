@@ -47,7 +47,18 @@ class ShortCircuit:
         """Stream SSE events for a Tier 1 query.
 
         Yields ``(event_name, payload)`` tuples. Caller maps to SSE wire format.
+
+        §N1 — when ``route.multi_pairs`` is non-empty (set by
+        fast_route_with_op() for read-only multi-intent), dispatches
+        to :meth:`_run_multi` which invokes every tool sequentially
+        and emits a single ``agent_final`` with
+        ``result.multi = [...]``.
         """
+        if route.multi_pairs and len(route.multi_pairs) >= 2:
+            async for ev in self._run_multi(route, message, context):
+                yield ev
+            return
+
         tool_name = self._tool_for_intent(route.intent)
         if not tool_name:
             yield ("warning", {"message": f"no Tier 1 tool for intent={route.intent}"})
@@ -94,6 +105,70 @@ class ShortCircuit:
         except Exception as e:
             LOGGER.warning("Tier 1 short-circuit failed: %s", e)
             yield ("error", {"tier": int(Tier.DIRECT), "error": str(e)})
+
+    async def _run_multi(
+        self,
+        route: RouteResult,
+        message: str,
+        context: ToolContext,
+    ) -> AsyncIterator[tuple[str, dict]]:
+        """§N1 — read-only multi-intent: invoke every (intent, op)
+        pair sequentially and emit one combined ``agent_final`` with
+        ``result.multi = [...]``. 0 LLM calls.
+
+        Each tool's tool_call + tool_result events are forwarded so the
+        frontend reasoning trace sees every step. If a tool raises,
+        we emit a ``warning`` event and continue to the next pair (do
+        not abort the whole multi-intent batch).
+        """
+        results: list[dict[str, Any]] = []
+        for intent, op in route.multi_pairs:
+            tool_name = self._tool_for_intent(intent)
+            if not tool_name:
+                yield ("warning", {
+                    "message": f"no Tier 1 tool for intent={intent.value}",
+                })
+                continue
+            symbol = route.symbols[0] if route.symbols else ""
+            try:
+                tool = self.registry.get(tool_name)
+                args_schema = tool.schema.args_schema
+                args = self._build_args(args_schema, symbol)
+                yield ("tool_call", {
+                    "name": tool_name,
+                    "args": self._safe_dump(args),
+                })
+                result = await tool.invoke(args, context)
+                result_payload = self._safe_dump(result)
+                yield ("tool_result", {
+                    "name": tool_name,
+                    "result": result_payload,
+                })
+                results.append({
+                    "intent": intent.value,
+                    "op": op.value,
+                    "tool": tool_name,
+                    "result": result_payload,
+                })
+            except Exception as e:
+                LOGGER.warning(
+                    "Tier 1 multi-intent tool failed: %s %s",
+                    tool_name, e,
+                )
+                yield ("warning", {
+                    "message": f"multi-intent tool {tool_name} failed: {e}",
+                    "tool": tool_name,
+                })
+                # Continue with next pair — partial results are better
+                # than aborting the whole batch.
+                continue
+
+        yield ("agent_final", {
+            "tier": int(Tier.DIRECT),
+            "result": {"multi": results, "count": len(results)},
+            "rendered": True,
+            "multi_intent": True,
+        })
 
     @staticmethod
     def _safe_dump(obj: Any) -> Any:
