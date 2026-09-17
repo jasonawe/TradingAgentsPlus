@@ -22,6 +22,8 @@ import pytest
 # ---------------------------------------------------------------------------
 def test_normalize_strips_whitespace_and_punctuation():
     from tradingagents.agent_harness.core.plan_template import normalize_message
+    # ASCII 半角标点(包括逗号)被剥除,只有 CJK 全角列表分隔符
+    # (、 ， ； &)会被归一为"和"。
     assert normalize_message("  Hello,  World!  ") == "hello world"
 
 
@@ -32,8 +34,11 @@ def test_normalize_lowercases():
 
 def test_normalize_handles_chinese_punctuation():
     from tradingagents.agent_harness.core.plan_template import normalize_message
-    # 标点都是非 \w, 全部被剥掉
+    # 列表分隔符统一为"和",其它标点被剥掉
+    # ASCII 半角逗号不视为列表分隔符(英文场景),只剥除
     assert normalize_message("分析, 600036 估值。") == "分析 600036 估值"
+    # 顿号也是列表分隔符
+    assert normalize_message("笔记、告警、关注列表") == "笔记和告警和关注列表"
 
 
 def test_normalize_collapses_internal_whitespace():
@@ -102,7 +107,59 @@ def test_normalized_key_collapses_equivalent_messages():
     c.put("Get Quote for AAPL!", plan)
     # 忽略空格/标点 + 小写后,这两个 message 是同一个 key
     assert c.get("get quote for aapl") == plan
+    # list separators (comma / semicolon) collapse to "和"
     assert c.get("GET,  QUOTE;  FOR AAPL?") == plan
+
+
+def test_normalize_canonicalises_chinese_list_separators():
+    """中文列表分隔符(、 ， ； &)统一为"和",命中同一 cache slot。
+
+    ASCII 半角 , ; 保持原状剥除,因为英文里这些字符有大量非列表用法。
+    前导的"看一下 / 帮我看一下 / 请查"等礼貌/动词前缀也会被剥掉,
+    所以 "看一下笔记和告警" / "笔记和告警" / "帮我查看笔记、告警"
+    三个表达全部归一到 "笔记和告警"。
+    """
+    from tradingagents.agent_harness.core.plan_template import (
+        PlanTemplateCache, normalize_message,
+    )
+    # CJK 顿号 / 全角逗号 / 全角分号 / & — 全部归一
+    assert normalize_message("看一下笔记和告警") == "笔记和告警"
+    assert normalize_message("看一下笔记、告警") == "笔记和告警"
+    assert normalize_message("看一下笔记，告警") == "笔记和告警"
+    assert normalize_message("看一下笔记；告警") == "笔记和告警"
+    assert normalize_message("看一下笔记&告警") == "笔记和告警"
+    # 已经存在的"和"前后空白会被压扁
+    assert normalize_message("看一下笔记 和 告警") == "笔记和告警"
+    # 礼貌前缀 + 列表分隔符
+    assert normalize_message("帮我看一下笔记、告警") == "笔记和告警"
+    assert normalize_message("请查看笔记和告警") == "笔记和告警"
+    # 列表分隔符的混合形态也归一
+    assert normalize_message("笔记、告警、关注列表") == "笔记和告警和关注列表"
+    # ASCII 半角逗号 / 分号保持剥除(英文场景保持不变)
+    assert normalize_message("看一下笔记, 告警") == "笔记 告警"
+    assert normalize_message("看一下笔记;告警") == "笔记告警"
+    # 分析 / 对比 等动词不会剥(影响意图分发)
+    assert normalize_message("分析 600036 估值") == "分析 600036 估值"
+    assert normalize_message("对比 600036 跟 600000") == "对比 600036 跟 600000"
+
+
+def test_plan_cache_hits_on_list_separator_variants():
+    """同义中文列表分隔符表达在 5 分钟内命中同一个缓存槽位。"""
+    from tradingagents.agent_harness.core.plan_template import PlanTemplateCache
+    c = PlanTemplateCache()
+    plan = [{"step": 1, "action": "list_notes_alerts"}]
+    c.put("看一下笔记和告警", plan)
+    # 顿号 / 全角逗号 / 全角分号 / & 全部命中
+    assert c.get("看一下笔记、告警") == plan
+    assert c.get("看一下笔记，告警") == plan
+    assert c.get("看一下笔记&告警") == plan
+    # "和" 前后空白被压扁后也命中
+    assert c.get("看一下笔记 和 告警") == plan
+    # 略去"看一下"前缀也应命中同一槽位 — 这是用户最常见的抱怨
+    assert c.get("笔记和告警") == plan
+    stats = c.stats()
+    assert stats["hits"] == 5
+    assert stats["size"] == 1
 
 
 def test_put_empty_message_is_noop():

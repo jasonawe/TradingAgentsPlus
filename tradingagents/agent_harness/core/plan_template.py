@@ -32,17 +32,58 @@ DEFAULT_MAX_ENTRIES = 256
 _PUNCT_RE = re.compile(r"[^\w\s]+", re.UNICODE)
 _WHITESPACE_RE = re.compile(r"\s+")
 
+# Leading politeness / verb prefixes that don't change the cacheable
+# intent. Stripped from the front of the message only — never the
+# middle (e.g. "帮我看一下" → "看一下笔记和告警", but "分析助手" stays
+# intact). The verb "分析"/"对比" etc. are NOT stripped because they
+# change the dispatch (analysis intent vs read intent).
+_LEADING_VERB_RE = re.compile(
+    r"^(?:帮我|请|麻烦|劳驾|想|要|给我)?"
+    r"(?:看一下|看下|看看|查看|查下|查一下|查询|获取|展示|显示|查)"
+    r"(?:一下|下|看)?"
+    r"\s*"
+)
+
+# List separators that should collapse to "和" so semantically
+# equivalent queries ("笔记、告警" / "笔记和告警" / "笔记,告警")
+# hash to the same cache slot. Without this, a 5-minute cache window
+# still re-plans on every punctuation choice — defeating the point.
+_LIST_SEP_RE = re.compile(r"[、\uff0c\uff1b&]+")  # CJK list separators only: 、 ， ； &
+_AND_SPACING_RE = re.compile(r"\s*和\s*")
+
 
 def normalize_message(message: str) -> str:
-    """归一化 message — 忽略空格/标点,小写。
+    """归一化 message — 忽略空格/标点,小写,中文列表分隔符统一为"和"。
+
+    ASCII 标点(英文逗号 / 分号)保持原状剥除,因为英文里这些字符有
+    大量非列表用法("for aapl, quote, ...")。
 
     >>> normalize_message("  Hello,  World!  ")
     'hello world'
+    >>> normalize_message("笔记、告警")
+    '笔记和告警'
+    >>> normalize_message("看一下笔记和告警")
+    '看一下笔记和告警'
     >>> normalize_message("分析 600036 估值")
     '分析 600036 估值'
     """
     s = (message or "").strip().lower()
+    # 0) Strip leading politeness / verb prefixes. "看一下笔记和告警"
+    #    and "笔记和告警" should land on the same slot — the only
+    #    difference is a request-form wrapper that doesn't change the
+    #    cacheable intent (note: 警报/关注列表 仍是同一组 CRUD 目标).
+    s = _LEADING_VERB_RE.sub("", s)
+    # 1) Map every CJK list separator to a single token "和" BEFORE we
+    #    strip punctuation, otherwise "笔记、告警" becomes "笔记告警"
+    #    (different cache slot from "笔记和告警").
+    s = _LIST_SEP_RE.sub(" 和 ", s)
+    # 2) Strip the remaining punctuation. Done before collapsing around
+    #    "和" so that "笔记、告警" → "笔记 和 告警" → "笔记和告警" lands
+    #    on the same key as "笔记和告警" (which already had bare "和").
     s = _PUNCT_RE.sub("", s)
+    # 3) Collapse all whitespace around "和" to bare "和".
+    s = _AND_SPACING_RE.sub("和", s)
+    # 4) Collapse remaining whitespace.
     s = _WHITESPACE_RE.sub(" ", s).strip()
     return s
 
