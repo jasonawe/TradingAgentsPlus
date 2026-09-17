@@ -174,8 +174,10 @@ from typing import Any
 
 _NUMBER_RE = re.compile(r"(\d+(?:\.\d+)?)")
 _TIME_UNIT_CN = {"秒": 1, "分钟": 60, "小时": 3600, "天": 86400, "日": 86400, "周": 604800}
-_DIRECTION_CN = {"超过": "above", "高于": "above", "大于": "above", "above": "above",
-                 "低于": "below", "小于": "below", "below": "below"}
+_DIRECTION_CN = {"超过": "above", "高于": "above", "大于": "above", "向上": "above",
+                 "涨破": "above", "涨过": "above", "above": "above",
+                 "低于": "below", "小于": "below", "向下": "below",
+                 "跌破": "below", "跌穿": "below", "below": "below"}
 
 
 def _now_utc() -> _dt.datetime:
@@ -229,14 +231,14 @@ def extract_slots(message: str) -> dict[str, Any]:
 
     # ── threshold + direction ─────────────────────────────────────
     # Patterns: 超过 50 / 高于 5.2 / 低于 30 / above 100 / below 200
-    m = re.search(r"(超过|高于|大于|低于|小于|above|below)\s*([\d.]+)", lower)
+    m = re.search(r"(超过|高于|大于|向上|涨破|涨过|低于|小于|向下|跌破|跌穿|above|below)\s*([\d.]+)", lower)
     if m:
         kw = m.group(1)
         val = float(m.group(2))
-        if kw in {"超过", "高于", "大于", "above"}:
-            direction = "above"
-        else:
-            direction = "below"
+        # §Step2 — use the _DIRECTION_CN table (single source of truth)
+        # instead of a hardcoded whitelist, so any new direction word
+        # added to the table (涨破/涨过/向上/...) routes properly.
+        direction = _DIRECTION_CN.get(kw, "above")
         out["threshold"] = val
         out["direction"] = direction
 
@@ -327,7 +329,16 @@ _ENTITY_KW: dict[Intent, tuple[set[str], Op]] = {
     Intent.WATCHLIST: ({"关注", "自选", "watchlist"}, Op.LIST),
     Intent.NOTE:      ({"笔记", "备注", "memo", "note"}, Op.LIST),
     Intent.ALERT:     ({"告警", "提醒", "预警", "alert"}, Op.LIST),
-    Intent.SCHEDULED: ({"定时", "cron", "定时任务", "scheduled"}, Op.LIST),
+    Intent.SCHEDULED: ({"定时", "cron", "定时任务", "scheduled",
+                      # §Step2 — natural-language schedule hints ("每天跑 X" /
+                      # "每日触发" / "周期跑"). Combined with a CREATE verb
+                      # ("跑" / "触发") these route to scheduled/CREATE;
+                      # without a verb they stay scheduled/LIST (default).
+                      "每天", "每日", "周期", "schedule", "scheduler", "cron-job",
+                      # market-session phrases (暗示 schedule): 盘后 / 盘前 /
+                      # 收盘后 / 开市前 / 收盘 / 开盘. Combined with a verb they
+                      # route to SCHEDULED/CREATE; alone they stay SCHEDULED/LIST.
+                      "盘后", "盘前", "收盘后", "开市前", "收盘", "开盘", "盘后跑", "盘前跑"}, Op.LIST),
     Intent.RUN:       ({"分析任务", "运行", "跑一下", "analyse", "analyze", "analysis", "run"}, Op.LIST),
     Intent.REPORT:    ({"分析报告", "报告", "report"}, Op.LIST),
 }
@@ -342,7 +353,23 @@ _OP_KW: dict[Op, set[str]] = {
                 # '跑一下 / 启动 / 跑起来' for analysis-run start; the
                 # dispatch table maps (RUN, CREATE) to
                 # run_trading_agents_analysis so these belong here.
-                "跑一下", "跑起来", "跑个", "启动", "run-it", "开始"},
+                "跑一下", "跑起来", "跑个", "跑", "启动", "run-it", "开始",
+                # Schedule-creation phrases (e.g. "每天早上 9 点跑 X" / "盘后跑 Y")
+                # that imply the user wants to *create* a scheduled task.
+                "每天跑", "每日跑", "定时跑", "周期跑", "按周期跑", "排个任务",
+                # §Step2 — write-operation hints ("提醒" / "提醒我" /
+                # "提醒一下") that imply the user wants to *create* an
+                # alert even when they don't say "添加" / "创建"
+                # explicitly. Without these, classify() falls back to
+                # ALERT/LIST and routes to list_alerts instead of
+                # create_alert — making "价格超过 50 提醒 600036" a
+                # no-op instead of a real pending_approval flow.
+                "提醒", "提醒我", "提醒一下", "建一个提醒", "设置提醒",
+                "加上", "设个", "给我建",
+                # scheduled-task implicit creation: "盘后跑 X" / "每天
+                # 早上 9 点跑 X" — the user wants to *create* a job,
+                # not list existing ones.
+                "盘后跑", "盘前跑", "收盘后跑", "开市前跑", "定时跑"},
     Op.LIST:   {"查看", "列出", "显示", "看看", "show", "list", "有哪些", "有什么",
                 "全部的", "所有的", "列表"},
     Op.UPDATE: {"更新", "修改", "改", "调整", "edit", "update", "改一下",
@@ -388,8 +415,19 @@ def classify(message: str) -> tuple[Intent, Op]:
                     return intent, op
             return intent, default_op
 
-    # 3. Legacy fallback (read-only intents like QUOTE / NEWS / ANALYSIS)
+    # 3. Legacy fallback (read-only intents like QUOTE / NEWS / ANALYSIS).
+    # §Step2 — even when no entity keyword matched, a write-op verb
+    # ("跑" / "提醒" / "盘后跑" / etc.) should override the default
+    # Op.READ fallback. Without this, queries like "盘后跑 600036"
+    # fall through to read-only Tier 2 even though the user clearly
+    # wants to *create* a scheduled task. The (intent=UNKNOWN, op=CREATE)
+    # pair lets the orchestrator's _CRUD_DISPATCH short-circuit pick
+    # the right tool (create_scheduled_task) without first resolving
+    # an entity.
     legacy = classify_intent(message)
+    for vop, vkws in _OP_KW.items():
+        if any(vk in text for vk in vkws):
+            return legacy, vop
     return legacy, Op.READ
 
 

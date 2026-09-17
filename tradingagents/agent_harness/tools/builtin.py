@@ -777,7 +777,7 @@ def _translate_alert_args(args) -> tuple[str, dict]:
 async def _hitl_gate(session_id: str, tool_name: str, tool_args: dict) -> dict | None:
     """Return AWAITING_CONFIRMATION payload if not approved, else None."""
     from tradingagents.agent_harness import hitl as approval, audit as _audit
-    if _approval.is_approved(session_id, tool_name, tool_args):
+    if approval.is_approved(session_id, tool_name, tool_args):
         return None
     payload = {
         "needs_confirmation": True,
@@ -802,7 +802,7 @@ async def _hitl_gate(session_id: str, tool_name: str, tool_args: dict) -> dict |
 
 async def _hitl_consume(session_id: str, tool_name: str, tool_args: dict) -> None:
     from tradingagents.agent_harness import hitl as approval
-    _approval.consume_approval(session_id, tool_name, tool_args)
+    approval.consume_approval(session_id, tool_name, tool_args)
 
 
 async def create_alert(args, context):

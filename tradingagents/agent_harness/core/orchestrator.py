@@ -383,11 +383,27 @@ def _alert_create_args(state: Any) -> dict[str, Any]:
     state.symbols[0] was used which missed the carry-forward case
     ('建一个 50 块的告警' on the second turn of a 600036 conversation
     would lose the symbol).
+
+    §Step2 — when :func:`extract_slots` populated threshold / direction
+    on the state (e.g. "价格超过 50 提醒我"), prefer those over the
+    legacy 0.0 default. direction "above" → kind=price_above; "below"
+    → kind=price_below. The ``params`` dict carries both fields so
+    ``tools_bridge.create_alert``'s _translate_alert_args can match
+    either variant.
     """
+    slots = getattr(state, "slots", {}) or {}
+    direction = slots.get("direction")
+    threshold = slots.get("threshold")
+    if direction in ("above", "below") and threshold is not None:
+        kind = "price_above" if direction == "above" else "price_below"
+        params = {"threshold": threshold, "direction": direction}
+    else:
+        kind = "price"
+        params = {"threshold": 0.0}
     return {
         "symbol": _focused_symbol(state),
-        "kind": "price",
-        "params": {"threshold": 0.0},
+        "kind": kind,
+        "params": params,
         "asset_type": "stock",
     }
 
@@ -434,11 +450,18 @@ def _scheduled_create_args(state: Any) -> dict[str, Any]:
     """§P3-3+ — create_scheduled_task defaults the symbol to the
     focused one (state.symbols[0] > state.carry_symbols[0]). Cron
     and timezone have sensible defaults; the LLM plan can override.
+
+    §Step2 — when :func:`extract_slots` populated ``cron`` on the
+    state (e.g. "每天早上 9 点跑" → "0 9 * * *"), prefer that over
+    the weekdays-09:00 default. Falls back to the default only when
+    the slot is absent or failed to parse.
     """
+    slots = getattr(state, "slots", {}) or {}
+    cron = slots.get("cron") or "0 9 * * 1-5"
     return {
         "symbol": _focused_symbol(state),
         "asset_type": "stock",
-        "cron_expression": "0 9 * * 1-5",  # weekdays 09:00
+        "cron_expression": cron,
         "timezone": "Asia/Shanghai",
     }
 
