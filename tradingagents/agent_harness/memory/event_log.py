@@ -458,6 +458,49 @@ class EventLog:
     # ------------------------------------------------------------------
     # Maintenance
     # ------------------------------------------------------------------
+    def events_by_type_prefix(
+        self,
+        session_id: str | None,
+        prefix: str,
+        *,
+        limit: int | None = None,
+    ) -> list[Event]:
+        """Return events whose ``type`` starts with ``prefix``.
+
+        ``session_id=None`` searches across all sessions (admin /
+        audit replay). Events are returned in seq order.
+
+        Used by ``AuditLogger`` to route lifecycle events through the
+        same SQLite store as conversation events, so we don't keep
+        a parallel JSONL file just for ``tier2_complete`` events.
+        """
+        clauses = ["type LIKE ?"]
+        params: list[Any] = [f"{prefix}%"]
+        if session_id is not None:
+            clauses.append("session_id = ?")
+            params.append(session_id)
+        sql = (
+            "SELECT seq, session_id, type, data, time FROM event_log WHERE "
+            + " AND ".join(clauses)
+            + " ORDER BY time DESC, seq DESC"
+        )
+        if limit is not None:
+            sql += " LIMIT ?"
+            params.append(int(limit))
+        with self._connect() as conn:
+            rows = conn.execute(sql, params).fetchall()
+        return [
+            Event(
+                seq=int(r["seq"]),
+                session_id=r["session_id"],
+                type=r["type"],
+                data=self._deserialize(r["data"]),
+                time=float(r["time"]),
+                surface=classify_surface(r["type"]),
+            )
+            for r in rows
+        ]
+
     def head_seq(self, session_id: str) -> int:
         """Return the current max seq for ``session_id`` (0 if empty)."""
         with self._connect() as conn:

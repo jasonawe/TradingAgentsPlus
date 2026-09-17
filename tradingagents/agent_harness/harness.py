@@ -171,9 +171,15 @@ class Harness:
                 )
             )
 
-        # 7. audit (P7)
+        # 7. audit (P7) — single-source: route lifecycle events
+        # through the same EventLog as SurfaceOp conversation events.
+        # The legacy ``audit.log`` JSONL stays as a fallback for
+        # standalone / test usage where no EventLog is wired in.
         from tradingagents.agent_harness.observability import AuditLogger
-        self.audit = AuditLogger(self.config.data_dir)
+        self.audit = AuditLogger(
+            self.config.data_dir,
+            event_log=self.event_log,
+        )
 
         # 8. health (P7)
         from tradingagents.agent_harness.observability import (
