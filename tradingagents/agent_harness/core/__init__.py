@@ -11,6 +11,7 @@ Holds:
 from .context import ContextPriority, Layer
 from .orchestrator import Orchestrator, OrchestratorState
 from .plan_template import PlanTemplateCache, normalize_message
+from .session_manager import SessionManager
 from .prefetch import (
     PlanPredictor, PrefetchResult, PrefetchStats, Prefetcher,
 )
@@ -32,6 +33,8 @@ from .system_prompt import SystemPrompt
 from .agent_scope import AgentScope
 
 __all__ = [
+    "SessionManager",
+
     "ContextPriority",
     "Layer",
     "Orchestrator",

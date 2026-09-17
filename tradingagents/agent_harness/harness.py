@@ -242,6 +242,20 @@ class Harness:
             memory=self.memory,
         )
 
+        # §1.3 A3 — single-session-lifecycle facade. Built with
+        # l1 + event_log; session_store + checkpoint_store are filled
+        # in later by set_session_store / set_checkpoint_store. Missing
+        # collaborators are silently skipped on delete, so the manager
+        # is safe to use partially.
+        from tradingagents.agent_harness.core.session_manager import (
+            SessionManager,
+        )
+        self.session_manager = SessionManager(
+            l1=self.memory.l1 if self.memory is not None else None,
+            event_log=self.event_log,
+        )
+        self.orchestrator._session_manager = self.session_manager
+
         LOGGER.info(
             "Harness ready (tools=%d, providers=%d, stage=P3+P4+P5+P6+P7)",
             len(self.tool_registry.list_all()),
@@ -274,6 +288,8 @@ class Harness:
         ``resume(session_id)``.
         """
         self.orchestrator._checkpoint_store = store
+        if getattr(self, "session_manager", None) is not None:
+            self.session_manager.checkpoint_store = store
 
     def set_session_store(self, store) -> None:
         """Wire a ``SessionStore`` into the underlying orchestrator (A2).
@@ -284,6 +300,14 @@ class Harness:
         DELETE /api/agent/sessions/{id} also relies on this wiring.
         """
         self.orchestrator._session_store = store
+        # §1.3 A3 — keep the SessionManager facade in sync so DELETE
+        # cleans every session-scoped store in one go.
+        self.session_manager.session_store = store
+        if hasattr(self.orchestrator, "_checkpoint_store") and \
+                self.orchestrator._checkpoint_store is not None:
+            self.session_manager.checkpoint_store = (
+                self.orchestrator._checkpoint_store
+            )
 
     async def resume(
         self, session_id: str,
