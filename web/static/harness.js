@@ -192,20 +192,68 @@
     return appendMessage("tool-call", `🔧 ${name}(${argsStr})`);
   }
 
+  // §3.5 — STATUS_BADGE switch. Mirrors backend
+  // summarize_tool_result templates so the reasoning trace stays in
+  // sync with the assistant bubble. Frontend-only fallback (in case
+  // backend didn't fill result.summary for some new status).
+  function _symFromRaw(raw) {
+    if (typeof raw !== "string") return null;
+    const m = raw.match(/"symbol"\s*:\s*"([^"]+)"/);
+    return m ? m[1] : null;
+  }
+  const STATUS_BADGE = {
+    pending_approval: (n, p) => {
+      const args = p?.result?.args || p?.args || {};
+      const sym = args.symbol ? ` · ${args.symbol}` : "";
+      return `🔒 ${n} 等待审批${sym}`;
+    },
+    created: (n, p) => {
+      const r = p?.result || p;
+      const sym = r?.symbol || _symFromRaw(r?.raw);
+      return `✅ ${n} 已完成${sym ? ` (${sym})` : ""}`;
+    },
+    updated: (n, p) => `✏️ ${n} 已更新`,
+    deleted: (n, p) => {
+      const r = p?.result || p;
+      const sym = r?.symbol || _symFromRaw(r?.raw);
+      return `🗑️ ${n} 已删除${sym ? ` (${sym})` : ""}`;
+    },
+    duplicate: (n, p) => {
+      const r = p?.result || p;
+      const sym = r?.symbol || "?";
+      return `♻️ ${sym} 已存在,未重复添加`;
+    },
+    not_found: (n, p) => {
+      const r = p?.result || p;
+      return `⚠️ ${r?.symbol || "?"} 不在关注列表中`;
+    },
+    empty: () => `（空）`,
+    no_data: (n, p) => {
+      const r = p?.result || p;
+      return `📭 ${n}: 无可用数据${r?.raw ? ` (${String(r.raw).slice(0, 60)})` : ""}`;
+    },
+    error: (n, p) => {
+      const r = p?.result || p;
+      const raw = r?.raw || r?.message || "";
+      return `❌ ${n} 失败${raw ? `: ${String(raw).slice(0, 80)}` : ""}`;
+    },
+    ok: (n, p) => {
+      // summary already filled by backend; if missing, leave a neutral
+      // tag rather than dumping JSON.
+      const r = p?.result || p;
+      if (r?.summary) return `✓ ${n}: ${r.summary.slice(0, 60)}`;
+      return `✓ ${n} 完成`;
+    },
+  };
+
   function appendToolResult(name, payload) {
     if (payload?.error) {
       return appendMessage("tool-result", `❌ ${name || "tool"}: ${payload.error}`);
     }
     const result = payload?.result || payload;
-    // pending_approval already has the user-visible approval modal
-    // open; dumping the raw ``AWAITING_CONFIRMATION:`` JSON string
-    // into the reasoning trace is noisy and confusing. Render a
-    // short, scannable tag instead.
-    if (result && typeof result === "object" && result.status === "pending_approval") {
-      const args = result.args || {};
-      const sym = args.symbol ? ` · ${args.symbol}` : "";
-      return appendMessage("tool-result", `🔒 ${name} 等待审批${sym}`);
-    }
+    const status = result?.status;
+    const badge = STATUS_BADGE[status];
+    if (badge) return appendMessage("tool-result", badge(name || "tool", payload));
     return appendMessage("tool-result", `📥 ${name || "tool"}: ${JSON.stringify(result).slice(0, 240)}`);
   }
 
@@ -566,16 +614,19 @@
         appendReasoningDelta(`▶ 意图识别: ${payload.intent || "?"}\n`);
         break;
       case "plan_ready": {
+        // §14.3.4 — use friendly args in plan display (drop verbose
+        // JSON.stringify for nested dicts).
         const steps = payload.steps || [];
         const planText = steps
-          .map((s, i) => `${i + 1}. [${s.agent}] ${JSON.stringify(s.args || {})}`)
+          .map((s, i) => `${i + 1}. [${s.agent || "?"}] ${_friendlyArgs(s.args || {})}`)
           .join("\n");
         appendReasoningDelta(`📋 计划 (${steps.length} 步):\n${planText}\n`);
         break;
       }
       case "tool_call":
         appendToolCall(payload.name || "", payload.args || {});
-        appendReasoningDelta(`→ 调用 ${payload.name}(${JSON.stringify(payload.args || {})})\n`);
+        // §14.3.5 — only emit the trace delta once; appendToolCall
+        // already shows the args, JSON.stringify was duplicating.
         break;
       case "tool_result":
         appendToolResult(payload.name, payload);
@@ -635,12 +686,44 @@
           harnessState.pendingConfirm = null;
         }
         break;
-      case "error":
-        appendError(payload.error || JSON.stringify(payload));
-        appendReasoningDelta(`❌ 错误: ${payload.error || ""}\n`);
+      case "error": {
+        // §14.3.3 — friendly fallback. Old behaviour dumped the
+        // entire payload as JSON when payload.error was missing/null;
+        // now fall back to a localised message + payload.failure.reason
+        // (LLM-failure detail) when available.
+        const errMsg = payload.error || "会话执行失败,请重试";
+        const failureReason = payload.failure?.reason;
+        const detail = failureReason ? ` (${failureReason})` : "";
+        appendError(`${errMsg}${detail}`);
+        appendReasoningDelta(`❌ 错误: ${errMsg}${detail}\n`);
         break;
-      default:
+      }
+      default: {
+        // §14.3.2 — 5 common-but-unhandled events get friendly rendering
+        // instead of raw JSON dumps. Truly unknown events still fall
+        // through to JSON (last-resort diagnostics for new event types).
+        switch (name) {
+          case "plan_ready_ptc":
+            appendReasoningDelta(`📋 PTC 计划: ${payload.groups?.length || 0} 个并行组\n`);
+            return;
+          case "turn/started":
+            appendReasoningDelta(`▶ Turn 开始 (turn_id=${payload.turn_id || "?"})\n`);
+            return;
+          case "warning": {
+            const msg = payload.message || payload.fallback || "fallback";
+            appendReasoningDelta(`⚠️ ${msg}\n`);
+            return;
+          }
+          case "usage_summary":
+            // Cost/tokens — typically rendered in a side panel, not
+            // trace. Skip from trace to reduce noise.
+            return;
+          case "resume_complete":
+            appendReasoningDelta(`🔄 会话恢复: ${payload.replayed_events || 0} 事件已重放\n`);
+            return;
+        }
         appendReasoningDelta(`  · ${name}: ${JSON.stringify(payload).slice(0, 120)}\n`);
+      }
     }
   }
 
