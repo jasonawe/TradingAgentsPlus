@@ -67,7 +67,7 @@ class Op(str, Enum):
     BULK_DELETE = "bulk_delete"  # delete-all-for-target: requires symbol, not id
 
 
-_TICKER_RE = re.compile(r"\b(?:[A-Z]{4,}|\d{5,6})(?:\.[A-Z]{2})?\b")  # P0: drop bare ".SS"/".SZ" matches (see sysissues.md #1)
+_TICKER_RE = re.compile(r"(?<![A-Za-z0-9])(?:[A-Z]{4,}|\d{5,6})(?:\.[A-Z]{2})?(?![A-Za-z0-9])")  # P0: char-class lookbehind (handles CJK boundaries); see sysissues.md #1  # P0: drop bare ".SS"/".SZ" matches (see sysissues.md #1)
 
 # A-share prefix → exchange suffix (N121 fix, 2026-09-14).
 # 6XXXXX → 上交所 .SS ; 0XXXXX / 3XXXXX → 深交所 .SZ ; 4XXXXX/5XXXXX
@@ -157,7 +157,116 @@ def sanitize_symbols(symbols: list[str] | None) -> list[str]:
             out.append(norm)
     return out
 
-_TIER1_KEYWORDS = {"价格", "多少钱", "报价", "quote", "价格?", "price", "rsi", "换手", "成交"}
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# §Step1 — Hybrid slot filling foundation.
+#
+# extract_slots() pulls structured parameters (time_range / threshold /
+# direction / cron / limit) out of a user message before route + dispatch
+# decide which tier to serve. Each slot is independent: missing slots
+# remain None and the orchestrator falls back to LLM synthesis to fill
+# them in (Stage 2 of the hybrid plan). The dict is intentionally
+# loose-typed — the orchestrator validates per-tool args downstream.
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+import datetime as _dt
+from typing import Any
+
+_NUMBER_RE = re.compile(r"(\d+(?:\.\d+)?)")
+_TIME_UNIT_CN = {"秒": 1, "分钟": 60, "小时": 3600, "天": 86400, "日": 86400, "周": 604800}
+_DIRECTION_CN = {"超过": "above", "高于": "above", "大于": "above", "above": "above",
+                 "低于": "below", "小于": "below", "below": "below"}
+
+
+def _now_utc() -> _dt.datetime:
+    return _dt.datetime.now(_dt.timezone.utc)
+
+
+def extract_slots(message: str) -> dict[str, Any]:
+    """Pull structured parameter slots out of a user message.
+
+    Returns a dict with any subset of these keys (None when not found):
+
+    - ``time_range``: ``(since_ts, until_ts)`` ISO strings for windows like
+      "近 30 天" / "过去 5 小时" / "last 7 days".
+    - ``threshold``: numeric value from phrases like "超过 50" / "高于 5.2".
+    - ``direction``: "above" or "below" paired with threshold.
+    - ``limit``: int from "最近 N 条" / "前 N 个" / "limit N".
+    - ``cron``: cron string from "每天早上 9 点" / "每个交易日收盘" (basic
+      natural-language cron — only the common cases; complex patterns
+      still go to LLM).
+
+    The function is best-effort: it never raises and never modifies the
+    caller-visible message. Use the helper for cheap pre-routing hints;
+    rely on the LLM synthesizer for anything ambiguous.
+    """
+    out: dict[str, Any] = {}
+    if not message:
+        return out
+    lower = message.lower()
+
+    # ── time_range ────────────────────────────────────────────────
+    # Patterns: 近 N 天 / 过去 N 小时 / last N days / 过去 N 分钟
+    m = re.search(r"(?:近|过去|最近)\s*(\d+)\s*(秒|分钟|小时|天|日|周)", lower)
+    if not m:
+        m = re.search(r"last\s+(\d+)\s+(seconds?|minutes?|hours?|days?|weeks?)", lower)
+        if m:
+            n = int(m.group(1))
+            unit = m.group(2).lower()
+            seconds = {"second": 1, "seconds": 1, "minute": 60, "minutes": 60,
+                       "hour": 3600, "hours": 3600, "day": 86400, "days": 86400,
+                       "week": 604800, "weeks": 604800}.get(unit, 86400)
+            until = _now_utc()
+            since = until - _dt.timedelta(seconds=n * seconds)
+            out["time_range"] = (since.isoformat(), until.isoformat())
+    if "time_range" not in out and m:
+        n = int(m.group(1))
+        unit = m.group(2)
+        seconds = _TIME_UNIT_CN.get(unit, 86400)
+        until = _now_utc()
+        since = until - _dt.timedelta(seconds=n * seconds)
+        out["time_range"] = (since.isoformat(), until.isoformat())
+
+    # ── threshold + direction ─────────────────────────────────────
+    # Patterns: 超过 50 / 高于 5.2 / 低于 30 / above 100 / below 200
+    m = re.search(r"(超过|高于|大于|低于|小于|above|below)\s*([\d.]+)", lower)
+    if m:
+        kw = m.group(1)
+        val = float(m.group(2))
+        if kw in {"超过", "高于", "大于", "above"}:
+            direction = "above"
+        else:
+            direction = "below"
+        out["threshold"] = val
+        out["direction"] = direction
+
+    # ── limit ─────────────────────────────────────────────────────
+    m = re.search(r"(?:最近|前|limit)\s*(\d+)\s*(?:条|个|只|条记录|条笔记)?", lower)
+    if m:
+        out["limit"] = int(m.group(1))
+
+    # ── cron (basic NL → cron) ────────────────────────────────────
+    # Patterns:
+    #   每天早上 N 点         -> "0 N * * *"
+    #   每个交易日收盘         -> "0 15 * * 1-5"  (15:00 CST daily close)
+    #   每天 / 每日 / daily   -> "0 9 * * *"    (default 09:00)
+    #   weekly / 每周 N        -> "5 N * * 1"    (default Monday 09:00)
+    if any(kw in lower for kw in ("每天", "每日", "天天", "daily")):
+        m = re.search(r"(?:每天|每日|天天)?(?:早上|上午|早上|早晨)?\s*(\d{1,2})\s*点", lower)
+        hour = int(m.group(1)) if m else 9
+        if 0 <= hour <= 23:
+            out["cron"] = f"0 {hour} * * *"
+    elif "每周" in lower or "weekly" in lower:
+        m = re.search(r"每周\s*[一二三四五六日天]?\s*(\d{1,2})?\s*点?", lower)
+        out["cron"] = "0 9 * * 1"  # Monday 09:00 default
+    elif "交易日收盘" in lower or "盘后" in lower:
+        out["cron"] = "30 15 * * 1-5"  # 15:30 CST close
+    elif "盘前" in lower:
+        out["cron"] = "0 9 * * 1-5"
+
+    return out
+
+_TIER1_KEYWORDS = {"价格", "多少钱", "报价", "quote", "价格?", "price", "rsi", "换手", "成交", "行情", "股价", "现在", "today", "今日"}
 _TIER2_KEYWORDS = {"估值", "分析", "对比", "compare", "估值合理性", "对比一下"}
 _TIER3_KEYWORDS = {"深度", "综合", "详细", "全维度", "深度分析", "全面分析"}
 

@@ -183,6 +183,11 @@ class OrchestratorState:
     # ``symbols`` so the planner can choose to use only the explicit ones.
     carry_symbols: list[str] = field(default_factory=list)
     prior_user_msg: str | None = None
+    # §Step1+ — hybrid slot filling: structured params pulled out of
+    # the user message before routing. Keys: time_range / threshold /
+    # direction / limit / cron. ``None`` when the slot wasn't found
+    # (orchestrator falls back to LLM synthesis to fill it in).
+    slots: dict = field(default_factory=dict)
     # §P3-3 — verb discriminator paired with ``intent``. Set from
     # :func:`tier.classify`. Together they pin the user's CRUD action
     # down to a single (entity, op) cell in the _CRUD_DISPATCH table.
@@ -770,6 +775,13 @@ class Orchestrator:
             s for s in sanitized_carry if s not in route.symbols
         ]
 
+        # §Step1 — pull structured parameter slots (time_range /
+        # threshold / cron / limit) out of the user message before
+        # state construction. The orchestrator passes ``state.slots``
+        # to the planner / tool-arg factory as a cheap pre-fill; LLM
+        # synthesis is only invoked for slots that come back as None.
+        from tradingagents.agent_harness.core.tier import extract_slots
+        slots = extract_slots(user_message)
         state = OrchestratorState(
             session_id=session_id,
             user_message=user_message,
@@ -777,6 +789,7 @@ class Orchestrator:
             symbols=effective_symbols,
             carry_symbols=carry_symbols,
             prior_user_msg=session_ctx.get("user_msg"),
+            slots=slots,
             op=op,
             extra_crud_dispatch=extra,
         )
