@@ -767,7 +767,20 @@ def create_app(
                         tool_result_dict = tool_result_obj
                     else:
                         tool_result_dict = {"value": str(tool_result_obj)}
-                    yield (
+                    # §3.3 — defensive summary fill. Most builtin tools
+                    # already attach ``summary`` via
+                    # ``_invoke_bridge._parse_bridge_text``, but typed
+                    # Pydantic results (add_to_watchlist, etc.) bypass
+                    # that path. Compute summary here as a safety net.
+                    if "summary" not in tool_result_dict:
+                        try:
+                            from tradingagents.agent_harness.core.result_formatter import summarize_tool_result
+                            s = summarize_tool_result(tool_result_dict)
+                            if s:
+                                tool_result_dict["summary"] = s
+                        except Exception:
+                            pass
+                                        yield (
                         f"event: tool_result\n"
                         f"data: {_json.dumps({'name': tool_name, 'ok': True, 'result': tool_result_dict}, ensure_ascii=False, default=str)}\n\n"
                     )

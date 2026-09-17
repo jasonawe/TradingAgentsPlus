@@ -124,10 +124,15 @@ def test_bulk_delete_alerts_embedded_summary():
 
 
 def test_bulk_delete_scheduled_embedded_summary():
-    """delete_scheduled_tasks_for_symbol 没有 summary 字段 — fallback 到 None。"""
+    """delete_scheduled_tasks_for_symbol 没有 summary 字段 — 合成 fallback 字符串。"""
     raw = '{"status":"ok","symbol":"600036.SS","matched":3,"deleted":3}'
     result = {"status": "ok", "raw": raw}
-    assert summarize_tool_result(result) is None
+    assert summarize_tool_result(result) == "(600036.SS) 已删除:3/3 条成功"
+
+def test_bulk_delete_scheduled_empty():
+    raw = '{"status":"ok","symbol":"600036.SS","matched":0,"deleted":0}'
+    result = {"status": "ok", "raw": raw}
+    assert summarize_tool_result(result) == "(600036.SS) 当前没有可删除项"
 
 
 # ---------------------------------------------------------------------------

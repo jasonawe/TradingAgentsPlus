@@ -2021,10 +2021,23 @@ class Orchestrator:
                 return await self._llm_synthesize(state)
             except Exception as e:
                 LOGGER.warning("LLM synthesize failed, returning raw tool_results: %s", e)
+        # §14.3.1 — even when LLM synthesize fails, fill ``summary`` from
+        # result_formatter so the assistant bubble doesn't dump raw JSON.
+        # Trivial-ack results get templated summaries; data-bearing
+        # results fall back to a generic "数据已获取,但 LLM 暂时不可用"
+        # message so the user knows what happened.
+        from .result_formatter import summarize_tool_results
+        summary = summarize_tool_results(state.tool_results)
+        if not summary:
+            sym_part = (
+                f" ({', '.join(state.symbols)})" if state.symbols else ""
+            )
+            summary = f"数据已获取{sym_part},但 LLM 暂时不可用,请重试或换一种问法。"
         return {
             "intent": state.intent.value,
             "symbols": state.symbols,
             "results": state.tool_results,
+            "summary": summary,
         }
 
     @staticmethod
@@ -2034,6 +2047,12 @@ class Orchestrator:
         Returns ``None`` if any result carries meaningful data (quotes,
         news items, fundamentals, factor values, etc.) and therefore
         needs an LLM to phrase the answer.
+
+        §3.4 — delegates per-item templating to
+        :func:`result_formatter.summarize_tool_results` (single source
+        of truth) and falls back to :func:`_format_trivial_summary` for
+        batch-level semantics (e.g. "等待你确认" suffix on
+        pending_approval).
         """
         if not tool_results:
             return None
@@ -2051,7 +2070,15 @@ class Orchestrator:
             if status == "ok":
                 if any(r.get(k) for k in ("price", "items", "factors", "alerts", "notes", "rows")):
                     return None
-        summary = _format_trivial_summary(tool_results)
+        # Use result_formatter (single source of truth) + add
+        # "等待你确认" suffix when any result is pending_approval.
+        from .result_formatter import summarize_tool_results
+        summary = summarize_tool_results(tool_results)
+        if any(r.get("status") == "pending_approval" for r in tool_results if isinstance(r, dict)):
+            if summary:
+                summary = summary + "\n等待你确认"
+            else:
+                summary = "等待你确认"
         return {
             "intent": "crud",
             "symbols": [],

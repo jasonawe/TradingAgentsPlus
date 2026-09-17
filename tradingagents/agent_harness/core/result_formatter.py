@@ -78,6 +78,11 @@ def _try_parse_embedded_summary(raw: str) -> str | None:
     工具的 bridge 字符串本身就是 JSON:``{"status": "ok", "summary":
     "资产 X 的笔记已删除:N/N 条成功", ...}``。一旦命中,直接返回
     ``summary`` 字段 — 比 status-based templating 精确得多。
+
+    Synthetic fallback: 当 bridge 没填 ``summary`` 但有
+    ``matched/deleted/failed`` 字段(典型:
+    ``delete_scheduled_tasks_for_symbol``),合成 "已删除:deleted/
+    matched 条成功 [+ failed 条失败]" 的文案。
     """
     if not isinstance(raw, str):
         return None
@@ -88,9 +93,23 @@ def _try_parse_embedded_summary(raw: str) -> str | None:
         payload = _json.loads(raw)
     except Exception:
         return None
-    if isinstance(payload, dict) and isinstance(payload.get("summary"), str):
+    if not isinstance(payload, dict):
+        return None
+    if isinstance(payload.get("summary"), str):
         return payload["summary"]
-    return None
+    matched = payload.get("matched")
+    deleted = payload.get("deleted")
+    failed = payload.get("failed")
+    if matched is None or deleted is None:
+        return None
+    symbol = payload.get("symbol")
+    sym_part = f"({symbol}) " if symbol else ""
+    if matched == 0:
+        return f"{sym_part}当前没有可删除项".strip()
+    base = f"{sym_part}已删除:{deleted}/{matched} 条成功"
+    if failed:
+        base += f",{failed} 条失败"
+    return base
 
 
 def summarize_tool_result(result: dict[str, Any]) -> str | None:
@@ -128,10 +147,22 @@ def summarize_tool_result(result: dict[str, Any]) -> str | None:
                 return f"{tmpl} ({symbol})" if symbol else tmpl
 
     # 优先级 3: 通用 ok 路径(PREFERENCE_UPDATED, etc.)
+    # status=ok with data-bearing fields (price/items/factors/etc.) means
+    # a real data payload — leave it for the LLM synthesizer or the
+    # client-side formatRawResult. This mirrors
+    # Orchestrator._trivial_crud_summary's pre-filter.
+    if status == "ok" and any(result.get(k) for k in (
+        "price", "items", "factors", "alerts", "notes", "rows"
+    )):
+        return None
     if status == "ok" and "PREFERENCE_UPDATED" in raw:
         return "偏好已更新"
     if status == "ok" and "added" in raw.lower():
         return f"{symbol or ''} 已加入关注".strip()
+    # Generic ok fallback — back-compat with legacy _format_trivial_summary
+    # (status=ok + plain/raw text + no data fields).
+    if status == "ok":
+        return "操作成功"
 
     # pending_approval → None(走前端 modal,不显示在 bubble)
     if status == "pending_approval":
