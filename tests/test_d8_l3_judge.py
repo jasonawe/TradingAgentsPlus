@@ -149,13 +149,15 @@ def test_verify_l3_grounded_passes() -> None:
         v.verify_l3(
             user_query="600036.SS 多少钱",
             tool_results=[{"name": "get_quote", "result": {"price": 99.5}}] * 5,
-            llm_answer="招商银行当前价 99.50",
+            # Step 30 — combined verification requires a citation
+            # block when data tools were used.
+            llm_answer="招商银行当前价 99.50\n## 来源\n> get_quote",
         )
     )
     assert result.ok is True
     assert result.level == VerificationLevel.L3_LLM_JUDGE
     assert "grounded" in result.reason
-    assert result.details["score"] == 0.9
+    assert result.details["citation_score"] == 1.0
 
 
 def test_verify_l3_ungrounded_fails() -> None:
@@ -288,7 +290,9 @@ def test_orchestrator_runs_l3_when_enabled_and_enough_results() -> None:
     async def fake_execute(state, context):
         return tool_results
     async def fake_synth(state):
-        return {"summary": "招商银行 99.50"}
+        # Step 30 — include a citation block so combined verification
+        # (citation + claim_audit + LLM judge) passes.
+        return {"summary": "招商银行 99.50\n## 来源\n> get_quote"}
     async def fake_plan(state, context):
         return [{"step": 1, "action": "noop"}]
 

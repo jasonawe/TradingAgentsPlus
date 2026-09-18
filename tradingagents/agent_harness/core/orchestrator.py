@@ -1001,6 +1001,17 @@ class Orchestrator:
                 symbols=list(route.symbols or []),
                 assistant_summary=self._extract_assistant_summary(state.final),
             )
+            # Step 29 — checkpoint cleanup. Tier 1 short-circuit
+            # returns BEFORE the long-form success path at line 1110,
+            # so it needs its own delete to drop every milestone row
+            # for this session. Without this, the partial-replay
+            # chain (planning:1..N) survives the run and resume()
+            # would replay all of them on a subsequent reconnect.
+            if self._checkpoint_store is not None:
+                try:
+                    self._checkpoint_store.delete(session_id)
+                except Exception:
+                    LOGGER.debug("checkpoint cleanup (tier1) failed", exc_info=True)
             return
 
         # Token accounting: every LLM call inside stream_chat records
