@@ -698,7 +698,11 @@ def classify_intent(message: str) -> Intent:
     return Intent.UNKNOWN
 
 
-def fast_route_with_op(message: str) -> tuple[RouteResult, Op]:
+def fast_route_with_op(
+    message: str,
+    *,
+    carry_symbols: list[str] | None = None,
+) -> tuple[RouteResult, Op]:
     """Single-shot tier + entity/op. See :func:`fast_route` for the
     entity-only variant. Adds Op to the result tuple so callers that
     want CRUD verb awareness (orchestrator's _CRUD_DISPATCH) don't have
@@ -711,6 +715,13 @@ def fast_route_with_op(message: str) -> tuple[RouteResult, Op]:
     ("no Tier 1 tool for intent=NOTE" warning, no tool_call emitted).
     We force PLAN_EXECUTE in that case so the orchestrator's plan_node
     fans out via ``_multi_crud_plan``.
+
+    §Step 20 — slot carry-forward: when the current message has no
+    ticker but the previous turn had one ("加入我的关注", "看一下估值",
+    "分析这家"), ``carry_symbols`` from the L2 session_ctx lets the
+    classifier infer the implicit asset reference. Without this, the
+    CRUD dispatch args factory gets an empty symbol field → the tool
+    call aborts and LLM hallucinates an answer.
     """
     intent, op = classify(message)
     # §P3-3 — always pull symbols from the message so CRUD dispatch
@@ -720,6 +731,12 @@ def fast_route_with_op(message: str) -> tuple[RouteResult, Op]:
     # DIRECT (CRUD reads/lists), the short_circuit may want to show
     # which symbol(s) the user mentioned.
     symbols = extract_symbols(message)
+    # §Step 20 — merge carry-forward symbols when the message itself
+    # produced none. Order matters: explicit message symbols win; the
+    # carries are appended only when absent so we never reorder the
+    # user's intended focus.
+    if carry_symbols and not symbols:
+        symbols = list(carry_symbols)
     multi_pairs = classify_multi(message)
     multi_intent = len({(p[0], p[1]) for p in multi_pairs}) >= 2
     # Tier 1 short-circuit for read-only data queries + CRUD reads/lists.
@@ -765,7 +782,12 @@ def fast_route_with_op(message: str) -> tuple[RouteResult, Op]:
             confidence=0.8, reason=f"{intent.value}+{op.value} → Tier 2",
         ), op
     # Fall through to the legacy single-shot route for the read-only intents.
-    return fast_route(message), op
+    # §Step 20 — propagate carry_symbols so ANALYSIS / COMPARE / UNKNOWN
+    # paths still benefit from the previous turn's asset reference.
+    legacy = fast_route(message)
+    if carry_symbols and not legacy.symbols:
+        legacy.symbols = list(carry_symbols)
+    return legacy, op
 
 
 def fast_route(message: str) -> RouteResult:

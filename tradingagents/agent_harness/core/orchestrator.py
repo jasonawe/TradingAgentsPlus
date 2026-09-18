@@ -783,7 +783,16 @@ class Orchestrator:
             fast_route_with_op,
         )
         intent, op = _classify(user_message)
-        route, op_from_route = fast_route_with_op(user_message)
+        # §Step 20 — load the previous turn's session context before
+        # routing so carry-forward symbols can populate the route when
+        # the user message has no ticker ("加入我的关注" after
+        # discussing 600036). Without this pre-load the routing is
+        # symbol-blind and CRUD dispatch sees an empty symbol.
+        _session_ctx = self._load_session_context(session_id)
+        _carry = list(_session_ctx.get("symbols") or [])
+        route, op_from_route = fast_route_with_op(
+            user_message, carry_symbols=_carry,
+        )
         # §P3-3+: detect multi-intent CRUD queries ("看看告警和笔记")
         # so the plan layer can fan out to multiple tools.
         multi_pairs = _classify_multi(user_message)
@@ -844,14 +853,14 @@ class Orchestrator:
             )
             user_message = f"{inject_block}\n\n{user_message}"
 
-        # §P3-2 — symbol carry-forward: if the current message has no
-        # ticker (e.g. "加入关注", "看一下估值", "分析这家"),") pull the
-        # last turn's symbols out of L2 so the planner / tier routing can
-        # still act on the implicit asset reference.
-        session_ctx = self._load_session_context(session_id)
-        carry_symbols: list[str] = []
-        if not route.symbols and session_ctx.get("symbols"):
-            carry_symbols = list(session_ctx["symbols"])
+        # §P3-2 — symbol carry-forward: route already absorbed carry
+        # symbols via fast_route_with_op(carry_symbols=...). We only
+        # need to surface the merge into state / log here. ``_carry``
+        # is the raw previous-turn list; ``route.symbols`` already
+        # includes them when the user didn't name one in the message.
+        session_ctx = _session_ctx
+        carry_symbols = _carry
+        if carry_symbols:
             LOGGER.info(
                 "carry-forward symbols from previous turn: %s (session=%s)",
                 carry_symbols, session_id,
