@@ -735,6 +735,24 @@ class Orchestrator:
                 },
                 user_id="default",
             )
+            # §Step 21 — write a cross-session discussion record to L3
+            # so the next turn (or a turn in a different session) can
+            # surface "earlier we discussed X" context. TTL is 7 days
+            # because references older than a week are rarely relevant.
+            try:
+                self.memory.l3.set(
+                    f"discussions:{session_id}",
+                    {
+                        "session_id": session_id,
+                        "symbols": sanitized,
+                        "summary": (user_msg or "")[:200],
+                        "intent": getattr(intent, "value", str(intent) if intent else None),
+                    },
+                    session_id=session_id,
+                    ttl_seconds=7 * 86400,
+                )
+            except Exception:
+                pass  # L3 write best-effort — never fail the turn
         except Exception as e:
             LOGGER.warning("save_turn_summary failed: %s", e)
 
@@ -2655,8 +2673,60 @@ class Orchestrator:
         "judge down-weights them but does not fail the answer."
     )
 
+
+    def _build_l3_reference_block(self, state: OrchestratorState) -> str:
+        """§Step 21 — surface prior session discussions to the LLM.
+
+        Reads from ``self.memory.l3`` (cross-session knowledge cache)
+        and renders the last ``_L3_REFERENCE_LIMIT`` entries into a
+        short prose paragraph the synthesizer can anchor on.
+
+        Returns empty string when no L3 is wired, when memory is None,
+        or when no relevant references exist.
+        """
+        if getattr(self, "memory", None) is None:
+            return ""
+        try:
+            l3 = self.memory.l3
+        except AttributeError:
+            return ""
+        if l3 is None:
+            return ""
+        try:
+            entries = l3.list(prefix="discussions:")
+        except Exception as e:
+            LOGGER.debug("L3 references read failed: %s", e)
+            return ""
+        # Filter out expired and current-session entries (we don't want
+        # to surface the *current* turn's context as "history").
+        current_sid = getattr(state, "session_id", None)
+        relevant = []
+        for e in entries:
+            if e.session_id == current_sid:
+                continue
+            value = e.value if isinstance(e.value, dict) else {}
+            relevant.append(value)
+        if not relevant:
+            return ""
+        relevant = relevant[-self._L3_REFERENCE_LIMIT:]
+        lines = []
+        for v in relevant:
+            syms = v.get("symbols") or []
+            summary = v.get("summary") or v.get("user_msg") or ""
+            sym_str = ", ".join(syms) if syms else "(no symbols)"
+            lines.append(f"- session {v.get("session_id", "?")[:14]}: {sym_str} · {summary[:120]}")
+        return "\n".join(lines)
+
+    _L3_REFERENCE_LIMIT = 5
+
     def _build_synthesize_prompt(self, state: OrchestratorState) -> str:
         import json as _json
+        # §Step 21 — load cross-session L3 references so the LLM can
+        # scope its answer to prior discussion context. Without this,
+        # the synthesizer sees a green-field prompt every turn and
+        # can't tell whether the current symbols match what the user
+        # was looking at moments ago (different session).
+        l3_block = self._build_l3_reference_block(state)
         results_dump = _json.dumps(state.tool_results, ensure_ascii=False, default=str)[:6000]
         # §P3-3+ — surface focus-asset hint to the synthesizer. Without
         # this, list_notes / list_alerts (which return ALL records) are
@@ -2683,6 +2753,16 @@ class Orchestrator:
         if not focus_lines:
             focus_lines.append("- No symbols detected; tool results cover all assets")
         focus_block = "\n".join(focus_lines)
+        # §Step 21 — splice L3 history into the prompt between intent
+        # declaration and focus-block. When the user message names a
+        # ticker already discussed in another session, the LLM can
+        # avoid hallucinating context it should look up. The block is
+        # rendered even when empty so the LLM knows no history was
+        # available (rather than silently dropping the section).
+        if l3_block:
+            l3_section = f"\nL3 历史参考 (跨 session 长期记忆):\n{l3_block}\n"
+        else:
+            l3_section = "\nL3 历史参考: (无)\n"
         # §P3-3+ — detect pending_approval in tool_results so the
         # synthesizer can tell the user the UI is handling the
         # confirmation, not to type it as a chat message.
@@ -2713,6 +2793,7 @@ class Orchestrator:
             f"Current date: {self._format_now_cst()}\n\n"
             f"User message: {state.user_message}\n\n"
             f"Detected intent: {intent_value}\n"
+            f"{l3_section}"
             f"Focus assets for this turn:\n{focus_block}\n\n"
             f"Tool results: {results_dump}{pending_note}\n\n"
             "Follow the structure in your system prompt: "
