@@ -858,7 +858,12 @@ def _translate_alert_args(args) -> tuple[str, dict]:
     raise ValueError(f"unsupported alert kind: {args.kind}")
 
 
-async def _hitl_gate(session_id: str, tool_name: str, tool_args: dict) -> dict | None:
+async def _hitl_gate(
+    session_id: str,
+    tool_name: str,
+    tool_args: dict,
+    user_message: str | None = None,
+) -> dict | None:
     """Return AWAITING_CONFIRMATION payload if not approved, else None."""
     from tradingagents.agent_harness import hitl as approval, audit as _audit
     if approval.is_approved(session_id, tool_name, tool_args):
@@ -869,12 +874,17 @@ async def _hitl_gate(session_id: str, tool_name: str, tool_args: dict) -> dict |
         "tool_args": tool_args,
         "session_id": session_id,
     }
-    # Impact description (best-effort, fall back to generic string)
+    # §Step 11 — surface a friendly impact_note alongside the
+    # technical impact string. Frontend confirms use the friendly line
+    # in the dialog header; ``impact`` stays for audit / debug.
     try:
         from tradingagents.agent_harness.guardrails import describe_impact
-        payload["impact"] = describe_impact(tool_name, tool_args)
+        impact = describe_impact(tool_name, tool_args, user_message)
+        payload["impact"] = impact
+        payload["impact_note"] = impact  # alias for cleaner frontend access
     except Exception:
         payload["impact"] = f"Write operation: {tool_name}"
+        payload["impact_note"] = payload["impact"]
     try:
         payload["audit_id"] = _audit.log_write(
             tool_name=tool_name, tool_args=tool_args, status="pending"
@@ -906,7 +916,7 @@ async def create_alert(args, context):
         "asset_type": args.asset_type,
         "cooldown_seconds": args.cooldown_seconds,
     }
-    gate = await _hitl_gate(context.session_id, "create_alert", tool_args)
+    gate = await _hitl_gate(context.session_id, "create_alert", tool_args, getattr(context, "user_message", None))
     if gate is not None:
         return {
             "status": "pending_approval",
@@ -1358,7 +1368,7 @@ async def create_scheduled_task(args: CreateScheduledTaskArgs, context):
         "cron_expression": args.cron_expression,
         "enabled": bool(args.enabled), "note": args.note or "",
     }
-    gate = await _hitl_gate(context.session_id, "create_scheduled_task", tool_args)
+    gate = await _hitl_gate(context.session_id, "create_scheduled_task", tool_args, getattr(context, "user_message", None))
     if gate is not None:
         return {
             "status": "pending_approval",

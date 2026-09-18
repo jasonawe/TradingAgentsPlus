@@ -437,11 +437,15 @@ def _check_write_approval(
 
     # 未批准 → 返回 AWAITING_CONFIRMATION
     is_write, impact = validate_write_intent(tool_name, tool_args)
+    # §Step 11 — add impact_note (friendly line for UI dialog)
+    # alongside the technical impact string. Defaults to the same text
+    # when describe_impact can't personalise without user_message.
     payload = {
         "needs_confirmation": True,
         "tool_name": tool_name,
         "tool_args": tool_args,
         "impact": impact,
+        "impact_note": impact,
         "session_id": session_id,
     }
     # 同时写 audit log

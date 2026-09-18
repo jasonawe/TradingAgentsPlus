@@ -73,12 +73,17 @@ WRITE_TOOL_IMPACT: dict[str, str] = {
 }
 
 
-def describe_impact(tool_name: str, tool_args: dict[str, Any] | None = None) -> str:
+def describe_impact(
+    tool_name: str,
+    tool_args: dict[str, Any] | None = None,
+    user_message: str | None = None,
+) -> str:
     """生成写操作的 impact 描述(给前端 confirm dialog 用)。
 
     Args:
         tool_name: 工具名
         tool_args: 工具参数(用于摘要展示)
+        user_message: 用户原始语义(用于生成更友好的描述)
 
     Returns:
         人类可读的描述字符串
@@ -87,14 +92,45 @@ def describe_impact(tool_name: str, tool_args: dict[str, Any] | None = None) -> 
         tool_name,
         WRITE_TOOL_IMPACT.get(
             tool_name.split("_", 1)[-1] if "_" in tool_name else "",
-            f"执行 {tool_name} 写操作",
+            f"执行 {tool_name} 写擰作",
         ),
     )
+    # §Step 11 — prepend a friendly asset-scoped line when the
+    # tool args carry a recognisable asset symbol. The UI shows this
+    # above the technical ``参数: ...`` line.
+    asset = None
+    body = None
     if tool_args:
+        for k in ("symbol", "ticker"):
+            v = tool_args.get(k)
+            if v:
+                asset = str(v)
+                break
+        body = tool_args.get("body_md") or tool_args.get("note")
+    friendly = base
+    if asset:
+        if tool_name.startswith("create_note") and body:
+            body_str = str(body)
+            preview = body_str[:40].replace(chr(10), " ")
+            if len(body_str) > 40:
+                friendly = f'将为 {asset} 添加一条笔记: “...{preview}...”'
+            else:
+                friendly = f'将为 {asset} 添加一条笔记: “{body_str}”' 
+        elif tool_name.startswith("create_alert"):
+            thresh = tool_args.get("threshold")
+            direction = tool_args.get("direction") or "above"
+            friendly = f"将为 {asset} 设置一条价格告警(超过 {thresh} 时触发)" if thresh                 else f"将为 {asset} 创建一条告警"
+        elif tool_name.startswith("add_to_watchlist"):
+            friendly = f"将 {asset} 加入关注列表"
+        elif tool_name.startswith("delete"):
+            friendly = f"将删除 {asset} 的记录"
+        else:
+            friendly = f"将对 {asset} 执行写操作"
+    if tool_args and not asset:
         keys = ", ".join(f"{k}={v}" for k, v in list(tool_args.items())[:3])
         if keys:
-            return f"{base}。参数:{keys}"
-    return base
+            return f"{friendly}。参数:{keys}"
+    return friendly
 
 
 # ════════════════════════════════════════════════════════

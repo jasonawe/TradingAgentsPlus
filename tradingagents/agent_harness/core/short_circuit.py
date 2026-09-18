@@ -102,7 +102,15 @@ class ShortCircuit:
                             "template render failed, falling back to raw emit",
                             exc_info=True,
                         )
-            yield ("agent_final", {"tier": int(Tier.DIRECT), "result": result_payload})
+            # §Step 10 — surface the scope slot to the UI so the
+            # result badge can read "my notes" / "all notes" rather than
+            # a raw symbol filter. Safe default = "user".
+            scope_hint = (slots or {}).get("scope", "user")
+            yield ("agent_final", {
+                "tier": int(Tier.DIRECT),
+                "result": result_payload,
+                "scope": scope_hint,
+            })
         except Exception as e:
             LOGGER.warning("Tier 1 short-circuit failed: %s", e)
             yield ("error", {"tier": int(Tier.DIRECT), "error": str(e)})

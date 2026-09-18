@@ -249,6 +249,17 @@ def extract_slots(message: str) -> dict[str, Any]:
             except ValueError:
                 pass
 
+    # ── scope (Step 10) ───────────────────────────────────────
+    # Patterns: '我的笔记' / 'my notes' / '所有的笔记' / '我的全部笔记' → user scope.
+    # Read paths already default to user-scope; this slot is the UI hint
+    # that the user explicitly asked for *their* data — used by the
+    # result_summary event so the badge says '我的笔记' instead
+    # of just '笔记'. Implicit (no scope keyword) keeps working.
+    if any(kw in message for kw in ("我的", "my ", "i have", "mine")):
+        out["scope"] = "user"
+    elif any(kw in message for kw in ("公开", "全部", "所有的", "all ", "public")):
+        out["scope"] = "all"
+
     # ── threshold + direction ─────────────────────────────────────
     # Patterns: 超过 50 / 高于 5.2 / 低于 30 / above 100 / below 200
     m = re.search(r"(超过|高于|大于|向上|涨破|涨过|低于|小于|向下|跌破|跌穿|above|below)\s*([\d.]+)", lower)

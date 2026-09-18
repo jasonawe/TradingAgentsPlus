@@ -971,6 +971,16 @@ class Orchestrator:
 
                         LOGGER.debug("session_end hook failed", exc_info=True)
             current_node = NODE_DONE
+            # §Step 9 — surface PlanTemplateCache stats alongside the
+            # usage_summary so the UI / debug layer can see how often
+            # the LLM plan step was skipped. Cheap: just the counter
+            # snapshot — no per-turn histogram.
+            try:
+                cache_stats = self.plan_cache.stats()
+                if cache_stats:
+                    yield await _emit("cache_stats", cache_stats)
+            except Exception:
+                LOGGER.debug("cache_stats emit failed", exc_info=True)
             yield await _emit("usage_summary", store.summary())
             # §P3-2 — persist user message + assistant final so the next
             # turn's ChatHistoryLayerProvider returns real history and
@@ -1292,7 +1302,15 @@ class Orchestrator:
                 yield _ev
             state.final = final
             current_node = NODE_DONE
-            yield await _emit("agent_final", {"tier": int(Tier.PLAN_EXECUTE), "result": self._dump(final)})
+            # §Step 10 — surface scope slot (user / all) alongside the
+            # Tier 2/3 agent_final so the UI badge can show
+            # '我的笔记' vs '这个资产的笔记'. Tier 1
+            # path already includes this in short_circuit.run().
+            yield await _emit("agent_final", {
+                "tier": int(Tier.PLAN_EXECUTE),
+                "result": self._dump(final),
+                "scope": (state.slots or {}).get("scope", "user"),
+            })
 
             # L3 LLM-judge (spec §D6) — runs AFTER synthesize. Extracted
             # into `_run_l3_judge` so it's directly testable without
