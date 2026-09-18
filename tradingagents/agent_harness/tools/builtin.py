@@ -1595,6 +1595,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=type(None),
         result_schema=ListWatchlistResult,
         permission=PermissionType.READ,
+        metadata={
+            "capabilities": [Capability.WATCHLIST.value],
+            "display_view": "list",
+            "category": "crud",
+        },
     )(list_watchlist)
 
     # §P3-1 — write-side watchlist tools.  Required so the LLM agent
@@ -1629,6 +1634,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=RemoveFromWatchlistArgs,
         result_schema=RemoveFromWatchlistResult,
         permission=PermissionType.WRITE,
+        metadata={
+            "capabilities": [Capability.WATCHLIST.value],
+            "display_view": "ack",
+            "category": "crud",
+        },
     )(remove_from_watchlist)
 
     registry.register(
@@ -1637,6 +1647,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=ListScheduledTasksArgs,
         result_schema=ListScheduledTasksResult,
         permission=PermissionType.READ,
+        metadata={
+            "capabilities": [Capability.SCHEDULED.value],
+            "display_view": "list",
+            "category": "crud",
+        },
     )(list_scheduled_tasks)
 
     # ---- Layer 2: write tools (HITL) -------------------------------
@@ -1646,6 +1661,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=CreateAlertArgs,
         result_schema=dict,
         permission=PermissionType.WRITE,
+        metadata={
+            "capabilities": [Capability.ALERT.value],
+            "display_view": "ack",
+            "category": "crud",
+        },
     )(create_alert)
     registry.register(
         name="update_alert",
@@ -1653,6 +1673,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=UpdateAlertArgs,
         result_schema=dict,
         permission=PermissionType.WRITE,
+        metadata={
+            "capabilities": [Capability.ALERT.value],
+            "display_view": "ack",
+            "category": "crud",
+        },
     )(update_alert)
     registry.register(
         name="delete_alert",
@@ -1660,6 +1685,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=DeleteAlertArgs,
         result_schema=dict,
         permission=PermissionType.WRITE,
+        metadata={
+            "capabilities": [Capability.ALERT.value],
+            "display_view": "ack",
+            "category": "crud",
+        },
     )(delete_alert)
 
     registry.register(
@@ -1669,6 +1699,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=DeleteAlertsForSymbolArgs,
         result_schema=dict,
         permission=PermissionType.WRITE,
+        metadata={
+            "capabilities": [Capability.ALERT.value],
+            "display_view": "ack",
+            "category": "crud",
+        },
     )(delete_alerts_for_symbol)
 
     registry.register(
@@ -1678,6 +1713,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=BulkSymbolArgs,
         result_schema=dict,
         permission=PermissionType.WRITE,
+        metadata={
+            "capabilities": [Capability.NOTE.value],
+            "display_view": "ack",
+            "category": "crud",
+        },
     )(delete_notes_for_symbol)
 
     registry.register(
@@ -1687,6 +1727,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=BulkSymbolArgs,
         result_schema=dict,
         permission=PermissionType.WRITE,
+        metadata={
+            "capabilities": [Capability.SCHEDULED.value],
+            "display_view": "ack",
+            "category": "crud",
+        },
     )(delete_scheduled_tasks_for_symbol)
 
     registry.register(
@@ -1695,6 +1740,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=CreateNoteArgs,
         result_schema=dict,
         permission=PermissionType.WRITE,
+        metadata={
+            "capabilities": [Capability.NOTE.value],
+            "display_view": "ack",
+            "category": "crud",
+        },
     )(create_note)
     registry.register(
         name="update_note",
@@ -1702,6 +1752,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=UpdateNoteArgs,
         result_schema=dict,
         permission=PermissionType.WRITE,
+        metadata={
+            "capabilities": [Capability.NOTE.value],
+            "display_view": "ack",
+            "category": "crud",
+        },
     )(update_note)
     registry.register(
         name="delete_note",
@@ -1709,6 +1764,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=DeleteNoteArgs,
         result_schema=dict,
         permission=PermissionType.WRITE,
+        metadata={
+            "capabilities": [Capability.NOTE.value],
+            "display_view": "ack",
+            "category": "crud",
+        },
     )(delete_note)
 
     # §P3-3 — read tools that fill gaps in the entity × op dispatch
@@ -1719,6 +1779,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=ListNotesArgs,
         result_schema=ListNotesResult,
         permission=PermissionType.READ,
+        metadata={
+            "capabilities": [Capability.NOTE.value],
+            "display_view": "list",
+            "category": "crud",
+        },
     )(list_notes)
 
     registry.register(
@@ -1727,6 +1792,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=ListAlertsArgs,
         result_schema=ListAlertsResult,
         permission=PermissionType.READ,
+        metadata={
+            "capabilities": [Capability.ALERT.value],
+            "display_view": "list",
+            "category": "crud",
+        },
     )(list_alerts)
 
     registry.register(
@@ -1735,6 +1805,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=ListRunsArgs,
         result_schema=ListRunsResult,
         permission=PermissionType.READ,
+        metadata={
+            "capabilities": [Capability.RUN.value],
+            "display_view": "list",
+            "category": "crud",
+        },
     )(list_runs)
 
     registry.register(
@@ -1743,6 +1818,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=ListReportsArgs,
         result_schema=ListReportsResult,
         permission=PermissionType.READ,
+        metadata={
+            "capabilities": [Capability.REPORT.value],
+            "display_view": "list",
+            "category": "crud",
+        },
     )(list_reports)
 
     registry.register(
@@ -1751,6 +1831,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=GetReportArgs,
         result_schema=dict,
         permission=PermissionType.READ,
+        metadata={
+            "capabilities": [Capability.REPORT_READ.value],
+            "display_view": "report_read",
+            "category": "crud",
+        },
     )(get_report)
 
     # §P3-3 — read-style 'fire-and-report' tools (no HITL; run returns
@@ -1765,6 +1850,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=RunTradingAgentsAnalysisArgs,
         result_schema=dict,
         permission=PermissionType.WRITE,
+        metadata={
+            "capabilities": [Capability.RUN.value],
+            "display_view": "ack",
+            "category": "crud",
+        },
     )(run_trading_agents_analysis)
 
     registry.register(
@@ -1773,6 +1863,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=GetAnalysisStatusArgs,
         result_schema=dict,
         permission=PermissionType.READ,
+        metadata={
+            "capabilities": [Capability.RUN.value],
+            "display_view": "list",
+            "category": "crud",
+        },
     )(get_analysis_status)
 
     registry.register(
@@ -1784,6 +1879,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=CancelAnalysisRunArgs,
         result_schema=dict,
         permission=PermissionType.WRITE,
+        metadata={
+            "capabilities": [Capability.RUN.value],
+            "display_view": "ack",
+            "category": "crud",
+        },
     )(cancel_analysis_run)
 
     registry.register(
@@ -1792,6 +1892,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=RunScheduledTaskArgs,
         result_schema=dict,
         permission=PermissionType.WRITE,
+        metadata={
+            "capabilities": [Capability.SCHEDULED.value],
+            "display_view": "ack",
+            "category": "crud",
+        },
     )(run_scheduled_task)
 
     # §P3-3 — write tools (HITL). Mirror create_alert / update_alert /
@@ -1805,6 +1910,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=CreateScheduledTaskArgs,
         result_schema=dict,
         permission=PermissionType.WRITE,
+        metadata={
+            "capabilities": [Capability.SCHEDULED.value],
+            "display_view": "ack",
+            "category": "crud",
+        },
     )(create_scheduled_task)
 
     registry.register(
@@ -1813,6 +1923,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=UpdateScheduledTaskArgs,
         result_schema=dict,
         permission=PermissionType.WRITE,
+        metadata={
+            "capabilities": [Capability.SCHEDULED.value],
+            "display_view": "ack",
+            "category": "crud",
+        },
     )(update_scheduled_task)
 
     registry.register(
@@ -1821,6 +1936,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=DeleteScheduledTaskArgs,
         result_schema=dict,
         permission=PermissionType.WRITE,
+        metadata={
+            "capabilities": [Capability.SCHEDULED.value],
+            "display_view": "ack",
+            "category": "crud",
+        },
     )(delete_scheduled_task)
 
 

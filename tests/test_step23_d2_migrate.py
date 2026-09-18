@@ -41,22 +41,20 @@ def test_add_to_watchlist_has_metadata():
     assert schema.metadata["category"] == "crud"
 
 
-def test_unmigrated_tools_have_empty_metadata():
-    """Tools not yet migrated carry an empty metadata dict so the
-    harness can safely call schema.metadata['capabilities'] without
-    KeyError.
-
-    Step 24 migrated the data-layer tools (get_history etc.) — pick
-    an unmigrated target instead.
+def test_every_builtin_tool_has_metadata_after_step_25():
+    """After Step 24 + Step 25 every tool in the builtin registry
+    carries D2 metadata. The harness can safely call
+    ``schema.metadata['capabilities']`` for any registered tool.
     """
     from tradingagents.agent_harness.tools import ToolRegistry
     reg = ToolRegistry()
     from tradingagents.agent_harness.tools.builtin import install_builtin_tools
     install_builtin_tools(reg)
-    # run_trading_agents_analysis is a write / orchestration tool
-    # not yet picked up by the D2 migration.
-    schema = reg.get("run_trading_agents_analysis").schema
-    assert schema.metadata == {}
+    empty = [
+        n for n in reg.list_names()
+        if not reg.get(n).schema.metadata
+    ]
+    assert not empty, f"unmigrated tools still exist: {empty}"
 
 
 def test_lifecycle_tracker_records_real_tool_call():
