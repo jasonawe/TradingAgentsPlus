@@ -1374,9 +1374,25 @@ class Orchestrator:
             # Tier 2/3 agent_final so the UI badge can show
             # '我的笔记' vs '这个资产的笔记'. Tier 1
             # path already includes this in short_circuit.run().
+            # §Step 26 — render the final answer into friendly
+            # markdown when ``final`` is a dict produced by the
+            # trivial-CRUd fast-path or a synthesized payload. The
+            # markdown goes in the bubble; the raw ``final`` dict is
+            # kept under ``result_raw`` so audit / L3 still see the
+            # structured answer.
+            final_dump = self._dump(final)
+            friendly = None
+            tool_name_hint = (state.tool_results[0].get("name")
+                              if (state.tool_results and isinstance(state.tool_results[0], dict))
+                              else None)
+            if isinstance(final_dump, dict):
+                friendly = self._friendly_summary(
+                    final_dump, tool_name=tool_name_hint,
+                )
             yield await _emit("agent_final", {
                 "tier": int(Tier.PLAN_EXECUTE),
-                "result": self._dump(final),
+                "result": friendly if friendly else final_dump,
+                "result_raw": final_dump,
                 "scope": (state.slots or {}).get("scope", "user"),
             })
 
@@ -2215,6 +2231,73 @@ class Orchestrator:
             "results": state.tool_results,
             "summary": summary,
         }
+
+    @staticmethod
+    def _friendly_summary(
+        result: Any,
+        *,
+        tool_name: str | None = None,
+        intent: str | None = None,
+    ) -> str:
+        """§Step 26 — render a tool result into a friendly markdown
+        summary for the agent_final bubble.
+
+        Routing order:
+
+        1. ``intent`` (when explicit, e.g. multi-intent Tier 1).
+        2. ``tool_name`` → look up ``metadata["display_view"]`` on the
+           tool's schema. Falls back to intent inference from the
+           tool_name (``get_quote`` → quote, etc.).
+        3. Graceful JSON dump when nothing matches.
+
+        This is the same family of renderers as
+        ``tools/display_view.py:display_view_for`` — we duplicate the
+        logic here so the orchestrator doesn't need to reach into the
+        tools package (which would create a circular import).
+        """
+        if not isinstance(result, dict):
+            return json.dumps(result, ensure_ascii=False, default=str)
+
+        from tradingagents.agent_harness.tools.display_view import (
+            display_view_for,
+        )
+
+        view_key = None
+        if intent:
+            view_key = intent
+        if not view_key and tool_name:
+            try:
+                # Try the registry first — if the tool is registered
+                # with metadata we read display_view from there.
+                from tradingagents.agent_harness.tools.registry import (
+                    get_default_tool_registry,
+                )
+                tool = get_default_tool_registry().get(tool_name)
+                view_key = tool.schema.metadata.get("display_view")
+            except Exception:
+                pass
+        # Last-resort inference from the tool name prefix.
+        if not view_key and tool_name:
+            if tool_name.startswith("get_quote"):
+                view_key = "quote"
+            elif tool_name.startswith("get_history"):
+                view_key = "history"
+            elif tool_name.startswith("get_fundamentals"):
+                view_key = "fundamentals"
+            elif tool_name.startswith("get_news"):
+                view_key = "news"
+            elif tool_name.startswith(("list_",)):
+                view_key = "list"
+            elif tool_name.startswith(("create_", "update_", "delete_",
+                                        "add_", "remove_", "run_",
+                                        "cancel_")):
+                view_key = "ack"
+            elif tool_name == "get_report":
+                view_key = "report_read"
+
+        if view_key:
+            return display_view_for(result, intent=view_key)
+        return json.dumps(result, ensure_ascii=False, indent=2, default=str)
 
     @staticmethod
     def _trivial_crud_summary(tool_results: list) -> dict | None:

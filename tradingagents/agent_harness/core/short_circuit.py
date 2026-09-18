@@ -112,9 +112,26 @@ class ShortCircuit:
             # result badge can read "my notes" / "all notes" rather than
             # a raw symbol filter. Safe default = "user".
             scope_hint = (slots or {}).get("scope", "user")
+            # §Step 26 — when the tool result is a dict, render it
+            # into a friendly markdown summary via the orchestrator's
+            # _friendly_summary helper. We keep the raw payload in
+            # ``result_raw`` so downstream consumers (audit / L3) still
+            # see the structured data; ``result`` becomes the markdown
+            # string the frontend renders via renderMarkdown().
+            friendly = None
+            if isinstance(result_payload, dict):
+                try:
+                    from .orchestrator import Orchestrator as _O
+                    friendly = _O._friendly_summary(
+                        result_payload, tool_name=tool_name,
+                    )
+                except Exception:
+                    friendly = None
             yield ("agent_final", {
                 "tier": int(Tier.DIRECT),
-                "result": result_payload,
+                "result": friendly if friendly is not None else result_payload,
+                "result_raw": result_payload,
+                "tool_name": tool_name,
                 "scope": scope_hint,
             })
         except Exception as e:
