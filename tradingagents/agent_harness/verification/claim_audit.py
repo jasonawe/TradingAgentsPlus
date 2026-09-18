@@ -159,19 +159,33 @@ def claim_audit_score(
     Returns ``(score, unsupported_numbers)``. ``unsupported_numbers``
     is the list of numeric tokens that did NOT match any tool value.
     """
-    numbers = extract_numbers(answer)
-    if not numbers:
+    haystack = _flatten_tool_values(tool_results)
+    # Lazy import to avoid circular dependency at module load
+    from tradingagents.agent_harness.verification.chinese_numbers import (
+        extract_chinese_numbers,
+        chinese_in_haystack,
+    )
+    arabic_nums = extract_numbers(answer)
+    chinese_nums = extract_chinese_numbers(answer)
+    total_count = len(arabic_nums) + len(chinese_nums)
+    if total_count == 0:
         # No numerical claims → nothing to verify, perfect score.
         return 1.0, []
-    haystack = _flatten_tool_values(tool_results)
     if not haystack:
         # Tools returned nothing useful; we can't verify any number.
-        return 0.0, list(numbers)
+        unsupported = list(arabic_nums) + [str(n) for n in chinese_nums]
+        return 0.0, unsupported
     unsupported: list[str] = []
-    for n in numbers:
+    # Arabic numbers
+    for n in arabic_nums:
         if not _number_in_haystack(n, haystack):
             unsupported.append(n)
-    score = (len(numbers) - len(unsupported)) / len(numbers)
+    # Chinese numbers
+    for n in chinese_nums:
+        if not chinese_in_haystack(n, haystack):
+            unsupported.append(str(n))
+    matched = total_count - len(unsupported)
+    score = matched / total_count
     return score, unsupported
 
 
