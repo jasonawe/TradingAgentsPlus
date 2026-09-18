@@ -321,20 +321,38 @@ def extract_slots(message: str) -> dict[str, Any]:
     )
     if body_match:
         body = body_match.group(1).strip().strip('"').strip("'").strip()
-        # Drop trailing tool-name residue (e.g. "哈哈打MVP :m: ...")
-        if body and len(body) <= 2000:
+        # §Step6.A — body_md gate: do not treat a bare limit phrase as
+        # a note body. Without this, "600036 笔记 limit 3" routes to
+        # (NOTE, CREATE) because "limit 3" gets captured as body_md and
+        # the slot-aware override fires. Also reject empty / pure-punct
+        # / number-only captures (e.g. "笔记 3").
+        limit_only = re.match(r"^\s*(limit\s*)?\d+\s*(?:条|个|只|条记录|条笔记)?\s*$", body)
+        near_limit = re.match(r"^\s*(?:前|最近)\s*\d+\s*(?:条|个|只)?\s*$", body)
+        empty_body = not body or body.strip() in {"", ".", "。", ",", "，"}
+        if empty_body:
+            pass  # drop silently — do not set body_md
+        elif limit_only or near_limit:
+            pass  # §Step6.A — drop; user clearly meant a list query
+        elif body and len(body) <= 2000:
             out["body_md"] = body
 
     # ── trade_date ───────────────────────────────────────────────
     # §Step3 — extract the trade date for run_trading_agents_analysis.
     # Patterns: "今天" / "今日" → today; "明天" / "明日" → tomorrow;
     # explicit "YYYY-MM-DD" or "YYYY/MM/DD".
+    # §Step6.B — gate bare-ISO extraction on a keyword OR on the
+    # absence of time_range. Without these gates, "2026-09-01 之后
+    # 600036 的笔记" produces trade_date=2026-09-01 and routes to
+    # (RUN, CREATE) even though the date is a *filter* on time_range
+    # (since_ts). Accepted keywords: today / tomorrow / 分析日 /
+    # 交易日 / 用 / 以. Bare-ISO fallback only fires when no
+    # time_range has been extracted — Step 5.B's since_ts wins.
     today = _dt.date.today()
     if any(kw in message for kw in ("今天", "今日", "today")):
         out["trade_date"] = today.isoformat()
     elif any(kw in message for kw in ("明天", "明日", "tomorrow")):
         out["trade_date"] = (today + _dt.timedelta(days=1)).isoformat()
-    else:
+    elif "time_range" not in out:
         m = re.search(r"(\d{4}[-/]\d{1,2}[-/]\d{1,2})", message)
         if m:
             try:

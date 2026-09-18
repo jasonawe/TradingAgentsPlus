@@ -229,6 +229,20 @@ class ShortCircuit:
 
     @staticmethod
     def _safe_dump(obj: Any) -> Any:
+        """Project a tool output into a JSON-serialisable form.
+
+        §Step 8 — when ``obj`` exposes ``display_view()``, prefer it
+        over ``model_dump()`` so the UI receives a small UI-safe dict
+        (summary / preview / count) instead of every internal field.
+        Tools that don't declare ``display_view`` keep using the
+        raw dump — backward compatible.
+        """
+        view = getattr(obj, "display_view", None)
+        if callable(view):
+            try:
+                return view()
+            except Exception:
+                pass  # fall through to model_dump
         if hasattr(obj, "model_dump"):
             return obj.model_dump()
         return obj

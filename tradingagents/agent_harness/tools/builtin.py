@@ -520,6 +520,21 @@ class ListNotesResult(BaseModel):
     text: str
     count: int = 0
 
+    def display_view(self) -> dict:
+        """Step 8 — UI-safe projection.
+
+        Returns a small dict containing only the fields the
+        frontend should render. Keeps ``text`` accessible so
+        the UI can preview it; drops any future internal
+        fields without breaking the contract.
+        """
+        preview = self.text[:240] if self.text else ""
+        return {
+            "summary": f"{self.count} 条记录" if self.count else "无记录",
+            "preview": preview,
+            "count": self.count,
+        }
+
 
 class ListAlertsArgs(BaseModel):
     symbol: Optional[str] = None
@@ -535,6 +550,21 @@ class ListAlertsArgs(BaseModel):
 class ListAlertsResult(BaseModel):
     text: str
     count: int = 0
+
+    def display_view(self) -> dict:
+        """Step 8 — UI-safe projection.
+
+        Returns a small dict containing only the fields the
+        frontend should render. Keeps ``text`` accessible so
+        the UI can preview it; drops any future internal
+        fields without breaking the contract.
+        """
+        preview = self.text[:240] if self.text else ""
+        return {
+            "summary": f"{self.count} 条记录" if self.count else "无记录",
+            "preview": preview,
+            "count": self.count,
+        }
 
 
 class CreateScheduledTaskArgs(BaseModel):
@@ -593,6 +623,21 @@ class ListRunsResult(BaseModel):
     text: str
     count: int = 0
 
+    def display_view(self) -> dict:
+        """Step 8 — UI-safe projection.
+
+        Returns a small dict containing only the fields the
+        frontend should render. Keeps ``text`` accessible so
+        the UI can preview it; drops any future internal
+        fields without breaking the contract.
+        """
+        preview = self.text[:240] if self.text else ""
+        return {
+            "summary": f"{self.count} 条记录" if self.count else "无记录",
+            "preview": preview,
+            "count": self.count,
+        }
+
 
 class ListReportsArgs(BaseModel):
     symbol: Optional[str] = None
@@ -607,6 +652,21 @@ class ListReportsArgs(BaseModel):
 class ListReportsResult(BaseModel):
     text: str
     count: int = 0
+
+    def display_view(self) -> dict:
+        """Step 8 — UI-safe projection.
+
+        Returns a small dict containing only the fields the
+        frontend should render. Keeps ``text`` accessible so
+        the UI can preview it; drops any future internal
+        fields without breaking the contract.
+        """
+        preview = self.text[:240] if self.text else ""
+        return {
+            "summary": f"{self.count} 条记录" if self.count else "无记录",
+            "preview": preview,
+            "count": self.count,
+        }
 
 
 class GetReportArgs(BaseModel):
@@ -666,6 +726,15 @@ class ListScheduledTasksResult(BaseModel):
 
     text: str
     count: int = 0
+
+    def display_view(self) -> dict:
+        """§Step 8 — UI-safe projection (see ListNotesResult for rationale)."""
+        preview = self.text[:240] if self.text else ""
+        return {
+            "summary": f"{self.count} 条记录" if self.count else "无记录",
+            "preview": preview,
+            "count": self.count,
+        }
 
 
 _BRIDGE_PREFIXES = (
