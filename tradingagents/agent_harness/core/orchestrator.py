@@ -2787,8 +2787,32 @@ class Orchestrator:
                         return False
         return True
 
+    # §Step 34 — citation retry budget. When the first synthesize pass
+    # fails the citation contract (no 来源 block) and we have data-
+    # bearing tool results, retry up to ``_CITATION_RETRY_LIMIT`` times
+    # with an extra "STRICT CITATION REQUIRED" hint appended to the
+    # prompt. We bail out after the budget and return whatever the
+    # last attempt produced — the L3 judge still surfaces a low
+    # citation_score so the UI badge can render correctly.
+    _CITATION_RETRY_LIMIT = 1
+    _CITATION_RETRY_HINT = (
+        "\n\nIMPORTANT (retry hint): The previous answer lacked the "
+        "required 来源 / source block. List EVERY tool that contributed "
+        'data as either a blockquote ("> 来源: get_quote, get_news") '
+        'or a "## 来源" section. Do NOT use forward-looking words '
+        '("预计 / 估计 / estimate / target price") unless the tool '
+        "returned that data — otherwise stick to observed numbers only."
+    )
+
     async def _llm_synthesize(self, state: OrchestratorState) -> Any:
-        """Real LLM synthesis when configured; fallback dict otherwise."""
+        """Real LLM synthesis when configured; fallback dict otherwise.
+
+        Step 34 — citation retry loop. If the first attempt produces
+        an answer that the citation detector flags (no 来源 block +
+        data tools were used), we append a strict hint and retry
+        once. The retry budget defaults to 1; bump
+        ``_CITATION_RETRY_LIMIT`` for production tuning.
+        """
         base = {
             "intent": state.intent.value,
             "symbols": state.symbols,
@@ -2798,18 +2822,70 @@ class Orchestrator:
             base["summary"] = "(LLM not configured — returning raw tool results)"
             return base
         try:
-            provider = self.llm_factory.make()
-            prompt = self._build_synthesize_prompt(state)
-            response = provider.complete_text(
-                prompt=prompt, system=self._SYNTH_SYSTEM, temperature=0.0
+            from tradingagents.agent_harness.verification.citations import (
+                citation_score as _citation_score,
             )
-            content = getattr(response, "content", response)
-            base["summary"] = content
-            return base
-        except Exception as e:
-            LOGGER.warning("LLM synthesize failed: %s", e)
-            base["summary"] = "(LLM synthesize failed — returning raw tool results)"
-            return base
+            from tradingagents.agent_harness.verification.claim_audit import (
+                has_forward_claim as _has_forward_claim,
+            )
+        except Exception:
+            _citation_score = None
+            _has_forward_claim = None
+        provider = self.llm_factory.make()
+        prompt = self._build_synthesize_prompt(state)
+        last_content = None
+        # Identify data tools used so we can decide whether citation
+        # retry is even meaningful (skip retry on trivial CRUD acks).
+        used_data_tools = [
+            r.get("name") or r.get("tool") or ""
+            for r in (state.tool_results or [])
+            if isinstance(r, dict)
+        ]
+        used_data_tools = [t for t in used_data_tools if t]
+        from tradingagents.agent_harness.verification.citations import DATA_TOOLS
+        has_data_tools = any(
+            t.lower() in DATA_TOOLS for t in used_data_tools
+        )
+        attempts_left = self._CITATION_RETRY_LIMIT if has_data_tools else 0
+        while True:
+            try:
+                response = provider.complete_text(
+                    prompt=prompt, system=self._SYNTH_SYSTEM, temperature=0.0,
+                )
+                content = getattr(response, "content", response)
+            except Exception as e:
+                LOGGER.warning("LLM synthesize failed: %s", e)
+                # If we have a previous attempt, keep that instead of
+                # falling back to the generic placeholder.
+                if last_content is not None:
+                    content = last_content
+                else:
+                    base["summary"] = "(LLM synthesize failed — returning raw tool results)"
+                    return base
+            last_content = content
+            # Decide whether to retry.
+            if attempts_left <= 0 or _citation_score is None:
+                break
+            cite = _citation_score(content, used_data_tools)
+            # Retry when citation is missing OR the answer uses
+            # forward-looking language ("预计 / 估计 / target price")
+            # — both signals mean the LLM tried to make a claim the
+            # tool data didn\'t back up.
+            has_forward = (
+                _has_forward_claim is not None
+                and _has_forward_claim(content)
+            )
+            needs_retry = cite < 0.4 or has_forward
+            if not needs_retry:
+                break
+            attempts_left -= 1
+            LOGGER.info(
+                "synth retry due to citation score %.2f < 0.4 (tools=%s)",
+                cite, used_data_tools,
+            )
+            prompt = prompt + self._CITATION_RETRY_HINT
+        base["summary"] = last_content
+        return base
 
     _SYNTH_SYSTEM = (
         "You are a finance research assistant. Synthesize tool results into "
