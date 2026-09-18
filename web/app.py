@@ -1122,11 +1122,35 @@ def create_app(
             from tradingagents.agent_harness.core.classify_plan_execute_workflow import (
                 build_classify_plan_execute_workflow,
             )
+            from tradingagents.agent_harness.core.parallel_fetch_workflow import (
+                build_parallel_fetch_workflow,
+            )
+            # parallel-fetch needs a fetcher implementing async
+            # fetch_quote/fetch_news/fetch_fundamentals. Reuse the
+            # orchestrator's existing tool implementations so the demo
+            # workflow matches the production tool paths.
+            def _build_parallel_fetch(orchestrator):
+                class _ToolFetcher:
+                    async def fetch_quote(self, symbol):
+                        return await orchestrator._call_tool(
+                            "get_quote", {"symbol": symbol}
+                        )
+                    async def fetch_news(self, symbol, lookback_days=7):
+                        return await orchestrator._call_tool(
+                            "get_news",
+                            {"symbol": symbol, "lookback_days": lookback_days},
+                        )
+                    async def fetch_fundamentals(self, symbol):
+                        return await orchestrator._call_tool(
+                            "get_fundamentals", {"symbol": symbol}
+                        )
+                return build_parallel_fetch_workflow(_ToolFetcher())
             registry: dict[str, callable] = {
                 "post-execute": build_post_execute_workflow,
                 "classify-plan-execute": (
                     build_classify_plan_execute_workflow
                 ),
+                "parallel-fetch": _build_parallel_fetch,
             }
             if name not in registry:
                 raise _error(
@@ -1149,8 +1173,10 @@ def create_app(
                      "label": "observe -> verify -> synthesize"},
                     {"id": "classify-plan-execute",
                      "label": "plan -> execute -> observe -> verify -> synthesize"},
+                    {"id": "parallel-fetch",
+                     "label": "fan-out: quote + news + fundamentals -> synthesize"},
                 ],
-                "count": 2,
+                "count": 3,
             }
 
         @app.get("/api/harness/status")
