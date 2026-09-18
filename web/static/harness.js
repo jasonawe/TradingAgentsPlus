@@ -700,8 +700,75 @@
     return /^```json/i.test(trimmed);
   }
 
+  // §Step 22 — friendly renderer for write tool acks.
+  // Returns a markdown string when the result looks like an ACK,
+  // null otherwise so formatRawResult can fall back to its other
+  // branches. Handles NOTE_CREATED / ALERT_DELETED / ADDED /
+  // DUPLICATE etc. — anything ending in a known ACK verb.
+  function renderWriteAck(result) {
+    const status = result && result.status;
+    const raw = (result && result.raw) || "";
+    const ackPrefixes = [
+      "ADDED", "REMOVED", "DUPLICATE", "UPDATED", "DELETED", "CREATED",
+      // Namespaced verbs from NOTE_/ALERT_/WATCHLIST_/SCHEDULED_/RUN_ tools
+      "NOTE_CREATED", "NOTE_UPDATED", "NOTE_DELETED",
+      "ALERT_CREATED", "ALERT_UPDATED", "ALERT_DELETED",
+      "WATCHLIST_ADDED", "WATCHLIST_REMOVED",
+      "SCHEDULED_CREATED", "SCHEDULED_UPDATED", "SCHEDULED_DELETED",
+      "RUN_STARTED", "RUN_COMPLETED", "RUN_FAILED",
+    ];
+    const isAckStatus = ["created", "updated", "deleted", "duplicate"].includes(status);
+    const isAckRaw = status === "ok" && ackPrefixes.some((p) => raw.startsWith(p));
+    if (!isAckStatus && !isAckRaw) return null;
+    const verbMap = {
+      NOTE_CREATED: "笔记已创建",
+      NOTE_UPDATED: "笔记已更新",
+      NOTE_DELETED: "笔记已删除",
+      ALERT_CREATED: "告警已创建",
+      ALERT_UPDATED: "告警已更新",
+      ALERT_DELETED: "告警已删除",
+      WATCHLIST_ADDED: "已加入关注",
+      WATCHLIST_REMOVED: "已移除关注",
+      SCHEDULED_CREATED: "定时任务已创建",
+      SCHEDULED_UPDATED: "定时任务已更新",
+      SCHEDULED_DELETED: "定时任务已删除",
+      RUN_STARTED: "分析任务已启动",
+      RUN_COMPLETED: "分析任务已完成",
+      RUN_FAILED: "分析任务失败",
+      ADDED: "已加入关注",
+      REMOVED: "已移除关注",
+      DUPLICATE: "已存在(未重复添加)",
+      UPDATED: "已更新",
+      DELETED: "已删除",
+      CREATED: "已创建",
+    };
+    let label = "已保存";
+    let sym = "";
+    const m = raw.match(/^([A-Z_]+):\s*(.*)$/);
+    if (m) {
+      const verb = m[1];
+      const payload = (m[2] || "").trim();
+      label = verbMap[verb] || verb;
+      try {
+        const parsed = JSON.parse(payload);
+        sym = parsed.symbol || parsed.ticker || "";
+      } catch (_) {
+        // payload may be a bare ticker ("ADDED: 600036.SS")
+        if (payload && !payload.startsWith("{")) sym = payload;
+      }
+    }
+    return sym ? `✅ ${label} (${sym})` : `✅ ${label}`;
+  }
+
   function formatRawResult(result, tier) {
     if (!result || typeof result !== "object") return JSON.stringify(result || {}, null, 2);
+    // §Step 22 — write-ack friendly rendering. Tier 1 short-circuit
+    // on a write tool returns ``{status: "created"|"ok"|..., raw:
+    // "NOTE_CREATED: {...}" | "ADDED: 600036.SS" | ...}``. Without
+    // this branch the user sees raw JSON dump. We parse the ACK
+    // prefix + optional JSON body and emit "✅ 笔记已创建 (600036.SS)".
+    const ackRendered = renderWriteAck(result);
+    if (ackRendered) return ackRendered;
     // list_notes / list_alerts / list_scheduled_tasks / list_watchlist
     // return ``{text: <markdown table>, count: N}``. The text often
     // already starts with "共 N 条笔记/告警..." so we don't prepend a
@@ -1036,7 +1103,7 @@
           while ((idx = buf.indexOf("\n\n")) !== -1) {
             const block = buf.slice(0, idx);
             buf = buf.slice(idx + 2);
-            handleSseBlock(block, assistant);
+            handleSseBlock(block, safeAssistant);
           }
         }
       } catch (e) {
