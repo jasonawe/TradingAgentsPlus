@@ -478,6 +478,30 @@ def create_app(
         from tradingagents.agent_harness.harness import Harness, mount_health_endpoint
         app.state.harness = Harness()
         mount_health_endpoint(app, app.state.harness, path="/api/harness/health")
+        # Step 28-E — wire a persistent plan cache so they survive
+        # uvicorn restarts / gunicorn worker reloads. Resolved relative
+        # to active_config["data_dir"] (default .ta_cache) and falls
+        # back to in-memory if the dir is unwritable. Pass
+        # HARNESS_PLAN_CACHE_TTL_SECONDS / HARNESS_PLAN_CACHE_MAX_ENTRIES
+        # env vars for prod tuning.
+        import os as _pc_os
+        _pc_data_dir = active_config.get("data_dir") or ".ta_cache"
+        _pc_db_path = _pc_data_dir + "/plan_cache.sqlite"
+        try:
+            app.state.harness.set_plan_cache_db_path(
+                _pc_db_path,
+                ttl_seconds=float(
+                    _pc_os.environ.get("HARNESS_PLAN_CACHE_TTL_SECONDS", "300")
+                ),
+                max_entries=int(
+                    _pc_os.environ.get("HARNESS_PLAN_CACHE_MAX_ENTRIES", "1024")
+                ),
+            )
+            app.state.plan_cache_db_path = _pc_db_path
+            LOGGER.info("plan cache persisted at %s", _pc_db_path)
+        except Exception as _pc_exc:
+            LOGGER.warning("plan cache persistence disabled: %s", _pc_exc)
+
         # P1 in-flight lock: per-session lock so concurrent stream_chat
         # requests for the same session don't race on circuit breaker /
         # audit log / SSE event emission. Second request yields a `busy`
@@ -664,6 +688,64 @@ def create_app(
             except Exception:
                 pass  # file-level cleanup best-effort
             return {"deleted": deleted, "session_id": session_id}
+
+        # §Step 28-C — fork endpoint. Body: {source_session_id, title?}.
+        # Creates a brand-new session, copies L3 discussions:<src>
+        # into discussions:<new> so the next synthesize call has
+        # prior context to surface. The original L1 history is NOT
+        # copied — that would be a "clone" not a fork; we want the new
+        # session to start with its own chat history but inherit the
+        # agent-level references.
+        @app.post("/api/harness/sessions/fork")
+        async def _harness_fork_session(body: dict | None = None) -> dict:
+            import uuid as _uuid
+            from tradingagents.agent_harness.core.l3_fork import (
+                fork_session_reference,
+            )
+            body = body or {}
+            source_session_id = (body.get("source_session_id") or "").strip()
+            title = body.get("title")
+            user_id = body.get("user_id") or "default"
+            if not source_session_id:
+                raise _error(
+                    status.HTTP_400_BAD_REQUEST,
+                    "source_session_id is required",
+                )
+            new_sid = body.get("session_id") or f"harness-{_uuid.uuid4().hex[:8]}"
+
+            # Persist the new session row first so the L3 copy has a
+            # session_id target that exists in SessionStore.
+            store = _get_session_store()
+            persisted = False
+            if store is not None:
+                try:
+                    store.upsert(Session(id=new_sid, user_id=user_id))
+                    persisted = True
+                except Exception:
+                    persisted = False
+
+            # L3 fork: copy discussions:<src> -> discussions:<new>
+            # so the next synthesize has inherited context. No-op if
+            # the source had no discussions row yet.
+            forked = False
+            try:
+                l3 = getattr(app.state.harness.memory, "l3", None)
+                if l3 is not None:
+                    forked = fork_session_reference(
+                        l3,
+                        source_session_id=source_session_id,
+                        target_session_id=new_sid,
+                    )
+            except Exception:
+                forked = False
+
+            return {
+                "session_id": new_sid,
+                "inherited_from": source_session_id,
+                "persisted": persisted,
+                "forked": forked,
+                "title": title,
+            }
 
         # §P3-3+ HITL: harness-path approval endpoint. Mirrors
         # /api/harness/sessions/{sid}/confirm — harness path

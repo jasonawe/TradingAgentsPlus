@@ -73,6 +73,7 @@
     state.sessionSelectEl = document.getElementById("harness-session-select");
     state.newSessionBtnEl = document.getElementById("harness-new-session-btn");
     state.deleteSessionBtnEl = document.getElementById("harness-delete-session-btn");
+    state.forkSessionBtnEl = document.getElementById("harness-fork-session-btn");
     if (state.sessionSelectEl) {
       state.sessionSelectEl.addEventListener("change", (e) => {
         switchSession(e.target.value);
@@ -83,6 +84,9 @@
     }
     if (state.deleteSessionBtnEl) {
       state.deleteSessionBtnEl.addEventListener("click", deleteCurrentSession);
+    }
+    if (state.forkSessionBtnEl) {
+      state.forkSessionBtnEl.addEventListener("click", forkCurrentSession);
     }
     // Kick the initial session picker population.
     loadSessions();
@@ -203,6 +207,43 @@
     state.messagesEl.innerHTML = "";
     renderWelcome();
     renderSessionPicker();
+  }
+
+  async function forkCurrentSession() {
+    if (state.busy) return;
+    const srcSid = state.sessionId;
+    if (!srcSid) return;
+    if (!confirm("基于当前会话 fork 出新会话?(将继承 L3 讨论上下文,聊天记录不复制)")) return;
+    try {
+      const r = await fetch("/api/harness/sessions/fork", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source_session_id: srcSid,
+          title: "fork of " + shortSessionLabel(srcSid),
+        }),
+      });
+      if (!r.ok) {
+        console.warn("[HarnessChat] fork failed", r.status);
+        return;
+      }
+      const body = await r.json();
+      const sid = body.session_id;
+      if (!sid) return;
+      // Switch UI to the new forked session.
+      state.sessionId = sid;
+      persistSessionId();
+      state.messagesEl.innerHTML = "";
+      renderWelcome();
+      await loadSessions();
+      console.info(
+        "[HarnessChat] forked", srcSid, "->", sid,
+        "inherited_from=", body.inherited_from,
+        "forked=", body.forked,
+      );
+    } catch (e) {
+      console.warn("[HarnessChat] fork error", e);
+    }
   }
 
   async function deleteCurrentSession() {
@@ -906,7 +947,24 @@
         appendReasoningDelta(`🔍 L${payload.level} 验证: ${payload.ok ? "pass" : "fail"}\n`);
         break;
       case "agent_final": {
-        const result = payload.result || {};
+        // §Step 26 — backend may emit ``result`` as a friendly markdown
+        // string (rendered via display_view_for). When that happens we
+        // just renderMarkdown() it; legacy dict-shape branches below
+        // keep working for synthesised answers.
+        let result = payload.result;
+        if (result == null) result = {};
+        if (typeof result === "string") {
+          assistant.bubble.innerHTML = renderMarkdown(result);
+          scrollToBottom();
+          appendReasoningDelta(
+            payload.tool_name
+              ? `💡 SynthesizeNode 完成 (${payload.tool_name}, friendly)
+`
+              : `💡 SynthesizeNode 完成
+`,
+          );
+          break;
+        }
         // §N2 — multi-intent Tier 1 short-circuit returns
         // {multi: [{intent, op, tool, result}, ...], count: N}.
         // Render each section with a heading + formatRawResult output

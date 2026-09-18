@@ -291,6 +291,36 @@ class Harness:
         if getattr(self, "session_manager", None) is not None:
             self.session_manager.checkpoint_store = store
 
+    def set_plan_cache_db_path(
+        self,
+        db_path: str | None,
+        *,
+        ttl_seconds: float = 300.0,
+        max_entries: int = 256,
+    ) -> None:
+        """Step 28-E — swap the orchestrator's plan cache to a persistent SQLite-backed one.
+
+        The default cache (in-memory only) loses all entries on
+        restart. By passing db_path here, every subsequent
+        :class:`PersistentPlanCache` set/get goes through the same
+        LRU + TTL semantics but survives process restarts. Useful for
+        prod where the web server gets restarted (gunicorn workers,
+        uvicorn reload, deploys) — without this, every fresh process
+        has to re-plan every symbol combination on first request.
+
+        Safe to call multiple times — re-instantiates the cache.
+        """
+        if not db_path:
+            return
+        from tradingagents.agent_harness.core.persistent_plan_cache import (
+            PersistentPlanCache,
+        )
+        self.orchestrator.plan_cache = PersistentPlanCache(
+            db_path=db_path,
+            ttl_seconds=ttl_seconds,
+            max_entries=max_entries,
+        )
+
     def set_session_store(self, store) -> None:
         """Wire a ``SessionStore`` into the underlying orchestrator (A2).
 
