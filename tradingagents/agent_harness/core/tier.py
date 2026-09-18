@@ -297,9 +297,18 @@ def extract_slots(message: str) -> dict[str, Any]:
     # token shape (``run-<12+ hex>``). Without this, the report_id
     # token falls through to entity detection where ``run`` in
     # Intent.RUN keywords mis-classifies the query as (RUN, LIST).
+    # §Step 17 — also accept ``report-<id>`` (UI short-hand). Order
+    # matters: try ``run-<hex>`` first because it is the canonical
+    # shape produced by ReportHistory; ``report-<id>`` is a fallback
+    # that users sometimes paste into chat. Skip the second pass when
+    # the first already populated the slot.
     m = re.search(r"run-[a-f0-9]{12,}", message or "", flags=re.IGNORECASE)
     if m:
         out["report_id"] = m.group(0)
+    elif out.get("report_id") is None:
+        m2 = re.search(r"report-[A-Za-z0-9_-]+", message or "")
+        if m2:
+            out["report_id"] = m2.group(0)
 
     # cron (basic NL → cron) ────────────────────────────────────
     # Patterns:

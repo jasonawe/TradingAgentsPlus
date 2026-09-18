@@ -921,7 +921,11 @@ class Orchestrator:
         # empty for short-circuit turns (e.g. "600036.SS 多少钱" → no
         # history recorded, the next session has no idea we discussed
         # the stock).
-        if route.tier == Tier.DIRECT and route.symbols:
+        # §Step 18 — symbol-less Tier 1 when the route carries a
+        # report_id slot (e.g. "读报告 run-55464f..."). Without this
+        # guard every symbol-less read falls through to Tier 2.
+        report_id_slot = (state.slots or {}).get("report_id") if state else None
+        if route.tier == Tier.DIRECT and (route.symbols or report_id_slot):
             if degraded_reason:
                 # §7.2 #1: surface the LLM-unavailable fallback so users
                 # (and the audit log) know why we skipped Tier 2/3.

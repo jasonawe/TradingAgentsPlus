@@ -66,7 +66,13 @@ class ShortCircuit:
             return
 
         symbol = route.symbols[0] if route.symbols else ""
-        if not symbol:
+        # §Step 18 — symbol-less queries reach Tier 1 when the slot
+        # carries an identifier the tool can consume (currently just
+        # ``report_id`` → ``get_report``). Without this, "读报告
+        # run-55464f3..." emits "no ticker detected" and falls back to
+        # Tier 2 where the LLM re-derives the right call (plan cache
+        # can latch onto a bad args shape).
+        if not symbol and not (slots or {}).get("report_id"):
             yield ("warning", {"message": "no ticker detected, falling back to Tier 2"})
             return
 
@@ -305,7 +311,17 @@ class ShortCircuit:
         """
         # Lazy imports to avoid circulars.
         from tradingagents.agent_harness.tools import builtin as _builtin  # noqa: F401
-        payload: dict[str, Any] = {"symbol": symbol}
+        # §Step 18 — when no symbol is present but a slot such as
+        # ``report_id`` carries the necessary id, we still want to
+        # invoke the tool. Build a minimal payload from the slot and
+        # let the schema validator ignore unknown keys. Symbol stays
+        # optional for tools that don't need it (GetReportArgs only
+        # declares ``report_id``).
+        payload: dict[str, Any] = {}
+        if symbol:
+            payload["symbol"] = symbol
+        elif (slots or {}).get("report_id"):
+            payload["report_id"] = slots["report_id"]
         # §Step4 — apply safe slots only. We don't pass threshold /
         # body_md / cron / trade_date to read tools (they don't accept
         # those fields). Only ``limit`` and ``time_range`` flow through
