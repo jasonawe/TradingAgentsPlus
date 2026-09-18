@@ -1103,6 +1103,56 @@ def create_app(
                 return {"configured": False}
             return {"configured": True, **cache.stats}
 
+        # Step 35 — workflow visualization endpoints. Operators can
+        # pull the live node/edge structure of any built-in workflow
+        # as DOT (for graphviz renderers) or JSON (for JS graph
+        # libraries). ``format`` query param selects: ``dot`` (default)
+        # or ``json``.
+        @app.get("/api/harness/workflows/{name}/graph")
+        async def _harness_workflow_graph(
+            name: str, format: str = "dot",
+        ) -> dict:
+            from tradingagents.agent_harness.core.workflow import Workflow
+            from tradingagents.agent_harness.core.workflow_viz import (
+                to_dot, to_json,
+            )
+            from tradingagents.agent_harness.core.post_execute_workflow import (
+                build_post_execute_workflow,
+            )
+            from tradingagents.agent_harness.core.classify_plan_execute_workflow import (
+                build_classify_plan_execute_workflow,
+            )
+            registry: dict[str, callable] = {
+                "post-execute": build_post_execute_workflow,
+                "classify-plan-execute": (
+                    build_classify_plan_execute_workflow
+                ),
+            }
+            if name not in registry:
+                raise _error(
+                    status.HTTP_404_NOT_FOUND,
+                    f"workflow {name!r} not registered; "
+                    f"available: {sorted(registry)}",
+                )
+            wf = registry[name](app.state.harness.orchestrator)
+            assert isinstance(wf, Workflow)
+            if format == "json":
+                return to_json(wf)
+            return {"name": wf.name, "format": "dot", "dot": to_dot(wf)}
+
+        @app.get("/api/harness/workflows")
+        async def _harness_workflows_list() -> dict:
+            """List all built-in workflows (id + display name)."""
+            return {
+                "workflows": [
+                    {"id": "post-execute",
+                     "label": "observe -> verify -> synthesize"},
+                    {"id": "classify-plan-execute",
+                     "label": "plan -> execute -> observe -> verify -> synthesize"},
+                ],
+                "count": 2,
+            }
+
         @app.get("/api/harness/status")
         async def _harness_status() -> dict:
             h = app.state.harness
