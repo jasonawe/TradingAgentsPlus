@@ -598,6 +598,13 @@ class Orchestrator:
         checkpoint_store: HarnessCheckpointStore | None = None,
         session_store: SessionStore | None = None,
         memory: Any | None = None,
+        # §Step 27 — opt-in persistent plan cache. When provided,
+        # plans survive process restarts so the new web process hits
+        # the cache instead of replaying the LLM round-trip. Default:
+        # in-memory only (backward-compatible).
+        plan_cache_db_path: str | None = None,
+        plan_cache_ttl_seconds: float = 300.0,
+        plan_cache_max_entries: int = 256,
     ) -> None:
         self.tool_registry = tool_registry
         self.agent_registry = agent_registry
@@ -656,8 +663,23 @@ class Orchestrator:
         # §7.3 #6: PlanTemplateCache — skip LLM plan when an identical
         # user_message was planned within the last 5 minutes (N65 fix).
         # Defaults: TTL 5min, max 256 entries.
+        # §Step 27 — opt-in persistent backing via a SQLite file.
+        # When ``plan_cache_db_path`` is provided, plans survive
+        # process restarts so a fresh web process can hit the cache
+        # instead of replaying the LLM round-trip. Default: in-memory
+        # only (backward-compatible).
         from tradingagents.agent_harness.core.plan_template import PlanTemplateCache
-        self.plan_cache: PlanTemplateCache = PlanTemplateCache()
+        if plan_cache_db_path:
+            from tradingagents.agent_harness.core.persistent_plan_cache import (
+                PersistentPlanCache,
+            )
+            self.plan_cache: PersistentPlanCache = PersistentPlanCache(
+                db_path=plan_cache_db_path,
+                ttl_seconds=plan_cache_ttl_seconds,
+                max_entries=plan_cache_max_entries,
+            )
+        else:
+            self.plan_cache: PlanTemplateCache = PlanTemplateCache()
 
     # ------------------------------------------------------------------
     # §P3-2 — per-turn memory helpers
