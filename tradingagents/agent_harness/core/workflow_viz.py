@@ -46,7 +46,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .workflow import Edge, Node, Workflow, END
+from .workflow import Edge, FanOut, Node, Workflow, END
 
 
 def _node_label(node: Node) -> str:
@@ -67,10 +67,25 @@ def to_dot(workflow: Workflow) -> str:
     lines.append(f"digraph {workflow.name} {{")
     lines.append("  rankdir=LR;")
     lines.append("  node [shape=box, style=rounded, fontname=Helvetica];")
-    # Nodes
+    # Nodes (regular)
     for node in workflow.nodes():
         label = _node_label(node)
         lines.append(f'  "{node.id}" [label="{label}"];')
+    # Fan-out nodes rendered as octagons with parallelogram children.
+    for fanout_id, fanout in workflow._fanouts.items():
+        child_ids = ",".join(c.id for c in fanout.children)
+        label = f"{fanout_id}\\nfan_out ({len(fanout.children)} parallel children)"
+        lines.append(f'  "{fanout_id}" [shape=octagon, label="{label}"];')
+        for child in fanout.children:
+            child_label = _node_label(child)
+            # Phantom edges: fanout -> child (dashed)
+            lines.append(
+                f'  "{fanout_id}" -> "{child.id}" '
+                f'[style=dashed, arrowhead=none, label="parallel"];'
+            )
+            lines.append(
+                f'  "{child.id}" [label="{child_label}", shape=parallelogram];'
+            )
     # End sentinel
     lines.append(f'  "{END}" [shape=doublecircle, label="<end>"];')
     # Edges
@@ -97,7 +112,25 @@ def to_json(workflow: Workflow) -> dict[str, Any]:
             "id": node.id,
             "label": node.id,
             "handler": handler_name,
+            "kind": "node",
         })
+    for fanout_id, fanout in workflow._fanouts.items():
+        nodes.append({
+            "id": fanout_id,
+            "label": fanout_id,
+            "handler": None,
+            "kind": "fanout",
+            "children": [c.id for c in fanout.children],
+        })
+        for child in fanout.children:
+            handler_name = getattr(child.handler, "__name__", None)
+            nodes.append({
+                "id": child.id,
+                "label": child.id,
+                "handler": handler_name,
+                "kind": "child",
+                "parent": fanout_id,
+            })
     # End sentinel as a node too so JS can render the terminal marker
     nodes.append({"id": END, "label": "<end>", "handler": None,
                   "terminal": True})
@@ -112,7 +145,17 @@ def to_json(workflow: Workflow) -> dict[str, Any]:
             "to": edge.to_node,
             "label": label or "always",
             "priority": edge.priority,
+            "kind": "flow",
         })
+    # Fan-out internal edges marked separately for graph rendering.
+    for fanout_id, fanout in workflow._fanouts.items():
+        for child in fanout.children:
+            edges.append({
+                "from": fanout_id,
+                "to": child.id,
+                "label": "parallel",
+                "kind": "parallel",
+            })
     return {
         "name": workflow.name,
         "entry": workflow.entry_node().id if workflow.entry_node() else None,

@@ -29,6 +29,7 @@ from dataclasses import dataclass, field
 from typing import (
     Any, AsyncIterator, Awaitable, Callable,
 )
+import asyncio
 
 
 @dataclass
@@ -95,6 +96,47 @@ class Edge:
     priority: int = 0
 
 
+@dataclass
+class FanOut:
+    """Parallel execution node — runs multiple child nodes concurrently.
+
+    Use when a workflow stage needs to fan out into independent sub-tasks
+    (e.g. fetch quote + fetch news + fetch fundamentals in parallel, then
+    converge into a synthesizer).
+
+    State merging
+    -------------
+    Each child handler receives a SHARED state reference (same as
+    sequential nodes), but writes must be coordinated. The convention
+    used in this codebase:
+
+    - Each child writes its own slice: ``state["fan_out_id"][child_id]``
+    - The framework writes the per-child output under
+      ``state["fan_out_results"][child_id]`` for post-hoc inspection.
+
+    Emits
+    -----
+    Each child's ``emit`` events are surfaced in order of completion,
+    prefixed with the fan-out node id so SSE clients can demultiplex.
+    Halt semantics: if a child requests ``halt=True``, the fan-out stops
+    further children and short-circuits the workflow.
+
+    Edges
+    -----
+    FanOut participates in edge routing like a regular Node — outgoing
+    edges from the FanOut id are evaluated after all children finish.
+
+    Attributes
+    ----------
+    id : str
+        Unique id, used as ``Edge.from_node`` / ``Edge.to_node`` target.
+    children : list[Node]
+        Sub-nodes to execute concurrently.
+    """
+    id: str
+    children: list[Node] = field(default_factory=list)
+
+
 END = "<end>"
 
 
@@ -126,6 +168,7 @@ class Workflow:
     def __init__(self, *, name: str = "workflow") -> None:
         self.name = name
         self._nodes: dict[str, Node] = {}
+        self._fanouts: dict[str, FanOut] = {}
         self._edges: list[Edge] = []
         self._entry: str = ""
         self._executed: list[str] = []  # execution log for debugging
@@ -135,22 +178,41 @@ class Workflow:
     # ------------------------------------------------------------------
     def add_node(self, node: Node) -> None:
         """Register a node. Raises ValueError on duplicate id."""
-        if node.id in self._nodes:
+        if node.id in self._nodes or node.id in self._fanouts:
             raise ValueError(f"workflow {self.name!r}: duplicate node id {node.id!r}")
         if node.id == END:
             raise ValueError(f"node id {END!r} is reserved")
         self._nodes[node.id] = node
 
+    def add_fanout(self, fanout: FanOut) -> None:
+        """Register a fan-out (parallel) node.
+
+        Fan-out id must be unique across regular nodes and other fan-outs.
+        """
+        if fanout.id in self._nodes or fanout.id in self._fanouts:
+            raise ValueError(f"workflow {self.name!r}: duplicate node id {fanout.id!r}")
+        if fanout.id == END:
+            raise ValueError(f"node id {END!r} is reserved")
+        # Children ids must also be globally unique.
+        seen_child = set()
+        for child in fanout.children:
+            if child.id in seen_child or child.id in self._nodes or child.id in self._fanouts:
+                raise ValueError(
+                    f"workflow {self.name!r}: duplicate child node id {child.id!r}"
+                )
+            seen_child.add(child.id)
+        self._fanouts[fanout.id] = fanout
+
     def add_edge(self, edge: Edge) -> None:
         """Register a directed edge. from_node must already exist (or
         be added later — we don't enforce ordering)."""
-        if edge.to_node != END and edge.to_node not in self._nodes:
+        if edge.to_node != END and edge.to_node not in self._nodes and edge.to_node not in self._fanouts:
             # Allow forward-declared edges; check at run time.
             pass
         self._edges.append(edge)
 
     def set_entry(self, node_id: str) -> None:
-        if node_id not in self._nodes:
+        if node_id not in self._nodes and node_id not in self._fanouts:
             raise ValueError(f"workflow {self.name!r}: unknown entry node {node_id!r}")
         self._entry = node_id
 
@@ -163,8 +225,10 @@ class Workflow:
     def edges(self) -> list[Edge]:
         return list(self._edges)
 
-    def entry_node(self) -> Node | None:
-        return self._nodes.get(self._entry)
+    def entry_node(self) -> Node | Node | FanOut | None:
+        if self._entry in self._nodes:
+            return self._nodes[self._entry]
+        return self._fanouts.get(self._entry)
 
     def executed(self) -> list[str]:
         """List of node ids in execution order (read-only copy)."""
@@ -191,6 +255,28 @@ class Workflow:
         hops = 0
         while current != END and hops < max_hops:
             hops += 1
+            # FanOut path
+            fanout = self._fanouts.get(current)
+            if fanout is not None:
+                async for ev, payload in self._run_fanout(fanout, state):
+                    yield (ev, payload)
+                self._executed.append(fanout.id)
+                # Walk outgoing edges (same as Node path)
+                outgoing = [e for e in self._edges if e.from_node == fanout.id]
+                outgoing.sort(key=lambda e: e.priority)
+                matched = None
+                for e in outgoing:
+                    try:
+                        ok = e.condition(state)
+                    except Exception:
+                        continue
+                    if ok:
+                        matched = e
+                        break
+                if matched is None:
+                    return
+                current = matched.to_node
+                continue
             node = self._nodes.get(current)
             if node is None:
                 yield ("workflow_error", {
@@ -221,7 +307,7 @@ class Workflow:
                 return
             # Explicit next_node bypasses edges.
             if result.next_node:
-                if result.next_node != END and result.next_node not in self._nodes:
+                if result.next_node != END and result.next_node not in self._nodes and result.next_node not in self._fanouts:
                     yield ("workflow_error", {
                         "workflow": self.name,
                         "node": node.id,
@@ -252,3 +338,53 @@ class Workflow:
                 "error": "max_hops exceeded — suspected cycle",
                 "executed": list(self._executed),
             })
+
+    async def _run_fanout(
+        self, fanout: FanOut, state: dict[str, Any]
+    ) -> AsyncIterator[tuple[str, dict]]:
+        """Execute fan-out children concurrently.
+
+        Each child runs against the shared state reference. Emits are
+        tagged with the parent fan-out id and child id so consumers can
+        demultiplex. Per-child results are stored in
+        ``state["fan_out_results"][child_id]``. If any child raises, the
+        error is yielded as a ``workflow_error`` event with the
+        ``child_id`` field but the other children continue.
+        """
+        if not fanout.children:
+            return
+
+        # Initialize fan-out slice in state so children can write into it.
+        if "fan_out_results" not in state:
+            state["fan_out_results"] = {}
+
+        async def _run_child(child: Node) -> tuple[str, NodeResult | BaseException]:
+            try:
+                return (child.id, await child.handler(state))
+            except Exception as exc:  # noqa: BLE001 — surface as data
+                return (child.id, exc)
+
+        tasks = [asyncio.create_task(_run_child(child)) for child in fanout.children]
+        # Track completion order so emits preserve "first done, first out".
+        for completed in asyncio.as_completed(tasks):
+            child_id, result = await completed
+            if isinstance(result, BaseException):
+                yield ("workflow_error", {
+                    "workflow": self.name,
+                    "node": fanout.id,
+                    "child_id": child_id,
+                    "error": repr(result),
+                })
+                continue
+            state["fan_out_results"][child_id] = {
+                "emit": result.emit,
+                "halt": result.halt,
+            }
+            for ev, payload in result.emit:
+                yield (ev, {**payload, "_fanout": fanout.id, "_child": child_id})
+            if result.halt:
+                # Cancel sibling children
+                for t in tasks:
+                    if not t.done():
+                        t.cancel()
+                return
