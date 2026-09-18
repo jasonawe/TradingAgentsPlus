@@ -595,6 +595,76 @@ def create_app(
                 headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
             )
 
+        # §Step 19 — multi-session API surface. The frontend session
+        # switcher needs to list / create / delete rows from the
+        # SessionStore. Underlying data layer already exists; this
+        # exposes the three endpoints it needs.
+        from tradingagents.agent_harness.core.session_store import (
+            SESSION_STATUS_ACTIVE, Session, SessionStore,
+        )
+
+        def _get_session_store() -> SessionStore | None:
+            orch = getattr(app.state.harness, "orchestrator", None)
+            return getattr(orch, "_session_store", None) if orch else None
+
+        @app.get("/api/harness/sessions")
+        async def _harness_list_sessions(
+            status: str = SESSION_STATUS_ACTIVE,
+            limit: int = 100,
+        ) -> dict:
+            store = _get_session_store()
+            if store is None:
+                return {"sessions": [], "count": 0, "error": "session_store_unavailable"}
+            sessions = store.list_sessions(status=status, limit=limit)
+            return {
+                "sessions": [s.to_dict() for s in sessions],
+                "count": len(sessions),
+            }
+
+        @app.post("/api/harness/sessions")
+        async def _harness_create_session(body: dict | None = None) -> dict:
+            import uuid
+            body = body or {}
+            sid = body.get("session_id") or f"harness-{uuid.uuid4().hex[:8]}"
+            store = _get_session_store()
+            if store is None:
+                return {"session_id": sid, "persisted": False,
+                        "error": "session_store_unavailable"}
+            sess = Session(id=sid, user_id=body.get("user_id", "default"))
+            store.upsert(sess)
+            return {
+                "session_id": sid,
+                "persisted": True,
+                "title": body.get("title"),
+            }
+
+        @app.delete("/api/harness/sessions/{session_id}")
+        async def _harness_delete_session(session_id: str) -> dict:
+            from fastapi import HTTPException
+            store = _get_session_store()
+            if store is None:
+                raise HTTPException(
+                    status_code=503, detail="session_store_unavailable",
+                )
+            deleted = store.delete(session_id)
+            # §Step 19 — cascade the LangGraph checkpoint file too, so
+            # deleting a session clears its L1 history on disk. We
+            # resolve the data dir from active_config (passed in via
+            # create_app) and default to .ta_cache/agent_general.
+            import os as _os
+            try:
+                from tradingagents.default_config import DEFAULT_CONFIG as _DC
+                data_root = active_config.get("data_dir") or _DC.get("data_dir") or ".ta_cache"
+                agent_dir = Path(data_root) / "agent_general"
+                safe_id = _os.path.basename(session_id).replace("/", "_")
+                ckpt_path = agent_dir / "sessions" / f"agent_{safe_id}.db"
+                if ckpt_path.exists():
+                    ckpt_path.unlink()
+                    deleted["checkpoint_file"] = 1
+            except Exception:
+                pass  # file-level cleanup best-effort
+            return {"deleted": deleted, "session_id": session_id}
+
         # §P3-3+ HITL: harness-path approval endpoint. Mirrors
         # /api/harness/sessions/{sid}/confirm — harness path
         # orchestrator. Body:
