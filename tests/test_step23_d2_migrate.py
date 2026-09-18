@@ -44,13 +44,18 @@ def test_add_to_watchlist_has_metadata():
 def test_unmigrated_tools_have_empty_metadata():
     """Tools not yet migrated carry an empty metadata dict so the
     harness can safely call schema.metadata['capabilities'] without
-    KeyError."""
+    KeyError.
+
+    Step 24 migrated the data-layer tools (get_history etc.) — pick
+    an unmigrated target instead.
+    """
     from tradingagents.agent_harness.tools import ToolRegistry
     reg = ToolRegistry()
     from tradingagents.agent_harness.tools.builtin import install_builtin_tools
     install_builtin_tools(reg)
-    # get_history is read but not yet migrated
-    schema = reg.get("get_history").schema
+    # run_trading_agents_analysis is a write / orchestration tool
+    # not yet picked up by the D2 migration.
+    schema = reg.get("run_trading_agents_analysis").schema
     assert schema.metadata == {}
 
 

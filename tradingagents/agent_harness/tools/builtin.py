@@ -1498,6 +1498,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=BatchQuoteArgs,
         result_schema=BatchQuoteResult,
         permission=PermissionType.READ,
+        metadata={
+            "capabilities": [Capability.QUOTE.value],
+            "display_view": "quote",
+            "category": "data",
+        },
         cache_ttl_seconds=60,
     )(get_quotes_batch)
 
@@ -1507,6 +1512,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=HistoryArgs,
         result_schema=HistoryResult,
         permission=PermissionType.READ,
+        metadata={
+            "capabilities": [Capability.HISTORY.value],
+            "display_view": "history",
+            "category": "data",
+        },
         cache_ttl_seconds=120,
     )(get_history)
 
@@ -1516,6 +1526,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=FundamentalsArgs,
         result_schema=FundamentalsResult,
         permission=PermissionType.READ,
+        metadata={
+            "capabilities": [Capability.FUNDAMENTALS.value],
+            "display_view": "fundamentals",
+            "category": "data",
+        },
         cache_ttl_seconds=300,
     )(get_fundamentals)
 
@@ -1525,6 +1540,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=NewsArgs,
         result_schema=NewsResult,
         permission=PermissionType.READ,
+        metadata={
+            "capabilities": [Capability.NEWS.value],
+            "display_view": "news",
+            "category": "data",
+        },
         cache_ttl_seconds=180,
     )(get_news)
 
@@ -1534,6 +1554,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=type(None),
         result_schema=ListAlphaFactorsResult,
         permission=PermissionType.READ,
+        metadata={
+            "capabilities": [Capability.ALPHA.value],
+            "display_view": "alpha_list",
+            "category": "data",
+        },
     )(list_alpha_factors)
 
     registry.register(
@@ -1542,6 +1567,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=ComputeAlphaFactorsArgs,
         result_schema=ComputeAlphaFactorsResult,
         permission=PermissionType.READ,
+        metadata={
+            "capabilities": [Capability.ALPHA.value],
+            "display_view": "alpha_list",
+            "category": "data",
+        },
         cache_ttl_seconds=600,
     )(compute_alpha_factors)
 
@@ -1551,6 +1581,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=EvaluateAlphaArgs,
         result_schema=EvaluateAlphaResult,
         permission=PermissionType.READ,
+        metadata={
+            "capabilities": [Capability.ALPHA.value],
+            "display_view": "alpha_list",
+            "category": "data",
+        },
         cache_ttl_seconds=600,
     )(evaluate_alpha)
 
