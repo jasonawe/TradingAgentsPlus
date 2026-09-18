@@ -28,7 +28,7 @@ test suite.
 - Workflow fan-out (Step 37): parallel sub-task execution via
   ``asyncio.as_completed``, with ``_fanout`` / ``_child`` SSE tags.
 
-完成度: **~ 98%** (以 v3 spec 为 100% 计; v1 was ~70%, v2 was ~92%).
+完成度: **~ 100%** (post-Step 42; v1 was ~70%, v2 was ~92%, v3 pre-Step 38-42 was ~98%).
 
 ---
 
@@ -171,4 +171,18 @@ These are documented and tracked; not regression from Step 28-31.
 - 持久化: plan_cache.sqlite, agent_refs.sqlite, harness_checkpoints (composite PK), session_memory.sqlite — 全栈 SQLite,零外部依赖
 - 3 个 registered workflows: post-execute / classify-plan-execute / parallel-fetch
 
-— 下一步: post-Step 37 backlog A–E (hitl audit race / multi-intent parallel / workflow checkpoint mapping)。
+## 6. Step 38-42 关闭 (post-Step 42, 2026-09-18)
+
+| Step | 范围 | 测试 |
+|---|---|---|
+| 38 | HITL audit↔tool race (R-E/R-G/R-H/R-F) | 13 |
+| 39 | SessionRWLock (per-session RWLock + manager) | 10 |
+| 40 | QuoteService cache invalidation hooks | 8 |
+| 41 | Multi-intent fan-out aggregator | 5 |
+| 42 | Workflow ↔ checkpoint mapping | 8 |
+| **合计** | **44 new tests, 232/232 step tests pass** |
+
+新增 spec: 5 docs (`hitl-audit-race`, `session-rwlock`, `quote-cache-invalidation`, `multi-intent-fanout`, `workflow-checkpoint`).
+新增 migration: 016 (`tool_approvals`) + 017 (`workflow_name`).
+新增 endpoint: `POST /api/market/invalidate` (admin manual cache nuke).
+
