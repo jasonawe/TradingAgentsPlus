@@ -397,10 +397,15 @@ def _note_create_args(state: Any) -> dict[str, Any]:
     msg = state.user_message or ""
     slots = getattr(state, "slots", {}) or {}
     body = slots.get("body_md") or msg
+    # §Step 15 — forward scope slot ('user' / 'agent' / 'shared')
+    # into the write args. Defaults to 'user' via the schema; user-only
+    # writes stay local, shared/agent are routed through different scopes.
+    scope = slots.get("scope", "user")
     return {
         "symbol": _focused_symbol(state),
         "body_md": body,
         "asset_type": "stock",
+        "scope": scope,
     }
 
 
@@ -439,11 +444,14 @@ def _alert_create_args(state: Any) -> dict[str, Any]:
     else:
         kind = "price"
         params = {"threshold": 0.0}
+    # §Step 15 — forward scope slot.
+    scope = slots.get("scope", "user")
     return {
         "symbol": _focused_symbol(state),
         "kind": kind,
         "params": params,
         "asset_type": "stock",
+        "scope": scope,
     }
 
 
@@ -497,11 +505,14 @@ def _scheduled_create_args(state: Any) -> dict[str, Any]:
     """
     slots = getattr(state, "slots", {}) or {}
     cron = slots.get("cron") or "0 9 * * 1-5"
+    # §Step 15 — forward scope slot.
+    scope = slots.get("scope", "user")
     return {
         "symbol": _focused_symbol(state),
         "asset_type": "stock",
         "cron_expression": cron,
         "timezone": "Asia/Shanghai",
+        "scope": scope,
     }
 
 
@@ -973,11 +984,26 @@ class Orchestrator:
             current_node = NODE_DONE
             # §Step 9 — surface PlanTemplateCache stats alongside the
             # usage_summary so the UI / debug layer can see how often
-            # the LLM plan step was skipped. Cheap: just the counter
-            # snapshot — no per-turn histogram.
+            # the LLM plan step was skipped.
+            # §Step 14 — also feed the same counters into the
+            # TokenUsageStore so usage_summary.totals.cache_extractions
+            # is self-contained (single round-trip for the UI).
             try:
                 cache_stats = self.plan_cache.stats()
                 if cache_stats:
+                    # Feed into the per-session store so the usage_summary
+                    # event includes cache_extractions / cache_misses.
+                    try:
+                        store.record_cache(
+                            agent="orchestrator",
+                            hits=int(cache_stats.get("hits", 0)),
+                            misses=int(cache_stats.get("misses", 0)),
+                            evictions=int(cache_stats.get("evictions", 0)),
+                            expirations=int(cache_stats.get("expirations", 0)),
+                        )
+                    except Exception:
+                        LOGGER.debug("record_cache failed", exc_info=True)
+                    # Keep the standalone event so debug surfaces still see it.
                     yield await _emit("cache_stats", cache_stats)
             except Exception:
                 LOGGER.debug("cache_stats emit failed", exc_info=True)

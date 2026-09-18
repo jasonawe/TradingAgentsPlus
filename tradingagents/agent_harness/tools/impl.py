@@ -436,16 +436,16 @@ def _check_write_approval(
         pass
 
     # 未批准 → 返回 AWAITING_CONFIRMATION
-    is_write, impact = validate_write_intent(tool_name, tool_args)
-    # §Step 11 — add impact_note (friendly line for UI dialog)
-    # alongside the technical impact string. Defaults to the same text
-    # when describe_impact can't personalise without user_message.
+    is_write, impact, reason_short = validate_write_intent(tool_name, tool_args)
+    # §Step 11 — add impact_note (friendly line for UI dialog).
+    # §Step 13 — reason_short for the dialog header banner.
     payload = {
         "needs_confirmation": True,
         "tool_name": tool_name,
         "tool_args": tool_args,
         "impact": impact,
         "impact_note": impact,
+        "reason_short": reason_short,
         "session_id": session_id,
     }
     # 同时写 audit log
@@ -454,8 +454,11 @@ def _check_write_approval(
         # P0 — write the session_id so the write_audit_log row is
         # linked to the originating chat session (was always
         # NULL before this fix; queries by session returned 0 rows).
+        # §Step 12 — persist the friendly impact_note shown at the
+        # approval moment so the audit viewer can display it later.
         audit_id = log_write(
             session_id=session_id,
+            impact_note=impact,
             tool_name=tool_name,
             tool_args=tool_args,
             status="pending",

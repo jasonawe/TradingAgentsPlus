@@ -137,6 +137,39 @@ def describe_impact(
 # Max tool calls 限制(防 LLM 失控)
 # ════════════════════════════════════════════════════════
 
+# §Step 13 — reason_short (banner-length action label)
+# Short banner versions for the confirm dialog header. Kept ≤ 14 chars
+# so the banner stays one line on mobile widths.
+WRITE_TOOL_REASON_SHORT: dict[str, str] = {
+    "create_alert": "新建告警",
+    "update_alert": "修改告警",
+    "delete_alert": "删除告警",
+    "create_note": "新增笔记",
+    "update_note": "修改笔记",
+    "delete_note": "删除笔记",
+    "create_scheduled_task": "新建定时任务",
+    "update_scheduled_task": "修改定时任务",
+    "delete_scheduled_task": "删除定时任务",
+    "update_preference": "修改偏好",
+}
+
+
+def describe_reason_short(tool_name: str) -> str:
+    """§Step 13 — banner-length action label for confirm dialog.
+
+    Returns a short Chinese phrase (≤ 6 chars) suitable for the dialog
+    header. Falls back to a constructed verb-form name when the tool is
+    unknown so we never return an empty string.
+    """
+    return WRITE_TOOL_REASON_SHORT.get(
+        tool_name,
+        WRITE_TOOL_REASON_SHORT.get(
+            tool_name.split("_", 1)[-1] if "_" in tool_name else "",
+            f"执行 {tool_name}",
+        ),
+    )
+
+
 def check_max_tool_calls(call_count: int, max_calls: int = 10) -> bool:
     """检查是否超过 max_tool_calls 上限。
 
@@ -185,6 +218,7 @@ __all__ = [
     "WRITE_TOOL_IMPACT",
     "is_write_tool",
     "describe_impact",
+    "describe_reason_short",
     "check_max_tool_calls",
     "build_confirmation",
     "validate_write_intent",
@@ -192,7 +226,7 @@ __all__ = [
 
 def validate_write_intent(
     tool_name: str, tool_args: dict[str, Any] | None = None
-) -> tuple[bool, str]:
+) -> tuple[bool, str, str]:
     """一体化校验写操作意图(O6v2 HITL 入口)。
 
     Args:
@@ -200,13 +234,15 @@ def validate_write_intent(
         tool_args: 工具参数
 
     Returns:
-        (is_write, impact):
+        (is_write, impact, reason_short):
             is_write: True 表示需要 confirm(HITL)
             impact: 人类可读的影响描述(给前端 dialog 用)
+            reason_short: §Step 13 — banner-length action label
     """
     is_write = is_write_tool(tool_name)
     impact = describe_impact(tool_name, tool_args or {})
-    return is_write, impact
+    reason_short = describe_reason_short(tool_name)
+    return is_write, impact, reason_short
 
 
 # 更新 __all__

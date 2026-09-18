@@ -78,6 +78,11 @@ class UsageBucket:
     total_tokens: int = 0
     calls: int = 0
     errors: int = 0
+    # §Step 14 — cache stats co-resident in the bucket
+    cache_hits: int = 0
+    cache_misses: int = 0
+    cache_evictions: int = 0
+    cache_expirations: int = 0
 
     def add(
         self,
@@ -122,6 +127,20 @@ class UsageBucket:
             "calls": self.calls,
             "errors": self.errors,
         }
+
+    def add_cache(
+        self,
+        *,
+        hits: int = 0,
+        misses: int = 0,
+        evictions: int = 0,
+        expirations: int = 0,
+    ) -> None:
+        """§Step 14 — record cache counters without touching tokens."""
+        self.cache_hits += int(hits)
+        self.cache_misses += int(misses)
+        self.cache_evictions += int(evictions)
+        self.cache_expirations += int(expirations)
 
 
 class TokenUsageStore:
@@ -174,6 +193,25 @@ class TokenUsageStore:
     def by_agent(self) -> dict[str, dict]:
         """Aggregate by agent (all surfaces rolled up)."""
         agg: dict[str, dict] = {}
+
+    def record_cache(
+        self,
+        agent: str,
+        *,
+        hits: int = 0,
+        misses: int = 0,
+        evictions: int = 0,
+        expirations: int = 0,
+        surface: str = DEFAULT_SURFACE,
+    ) -> None:
+        """§Step 14 — record PlanTemplateCache counters under ``agent``."""
+        key = (agent, surface)
+        bucket = self._buckets.get(key)
+        if bucket is None:
+            bucket = UsageBucket()
+            self._buckets[key] = bucket
+        bucket.add_cache(hits=hits, misses=misses,
+                         evictions=evictions, expirations=expirations)
         for (agent, _surface), bucket in self._buckets.items():
             row = agg.setdefault(agent, {
                 "input_tokens": 0, "output_tokens": 0,
@@ -234,9 +272,29 @@ class TokenUsageStore:
         }
 
     def summary(self) -> dict:
-        """Nested shape suitable for SSE / API responses."""
+        """Nested shape suitable for SSE / API responses.
+
+        §Step 14 — ``totals.cache_extractions`` is the
+        PlanTemplateCache hit counter rolled across agents / surfaces,
+        so the UI gets a single ``usage_summary`` event instead of
+        needing a separate ``cache_stats`` round-trip.
+        """
+        totals = self.totals()
+        cache_hits = 0
+        cache_misses = 0
+        cache_evictions = 0
+        cache_expirations = 0
+        for bucket in self._buckets.values():
+            cache_hits += bucket.cache_hits
+            cache_misses += bucket.cache_misses
+            cache_evictions += bucket.cache_evictions
+            cache_expirations += bucket.cache_expirations
+        totals["cache_extractions"] = cache_hits
+        totals["cache_misses"] = cache_misses
+        totals["cache_evictions"] = cache_evictions
+        totals["cache_expirations"] = cache_expirations
         return {
-            "totals": self.totals(),
+            "totals": totals,
             "by_agent": self.by_agent(),
             "by_surface": self.by_surface(),
         }

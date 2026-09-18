@@ -877,17 +877,27 @@ async def _hitl_gate(
     # §Step 11 — surface a friendly impact_note alongside the
     # technical impact string. Frontend confirms use the friendly line
     # in the dialog header; ``impact`` stays for audit / debug.
+    # §Step 13 — reason_short for the dialog header banner.
     try:
-        from tradingagents.agent_harness.guardrails import describe_impact
+        from tradingagents.agent_harness.guardrails import (
+            describe_impact, describe_reason_short,
+        )
         impact = describe_impact(tool_name, tool_args, user_message)
         payload["impact"] = impact
         payload["impact_note"] = impact  # alias for cleaner frontend access
+        payload["reason_short"] = describe_reason_short(tool_name)
     except Exception:
         payload["impact"] = f"Write operation: {tool_name}"
         payload["impact_note"] = payload["impact"]
+        payload["reason_short"] = tool_name
     try:
+        # §Step 12 — persist impact_note from the payload so the
+        # audit viewer shows the same friendly line the user approved.
         payload["audit_id"] = _audit.log_write(
-            tool_name=tool_name, tool_args=tool_args, status="pending"
+            tool_name=tool_name,
+            tool_args=tool_args,
+            status="pending",
+            impact_note=payload.get("impact_note"),
         )
     except Exception:
         pass

@@ -43,6 +43,7 @@ def log_write(
     confirmed_by: str | None = None,
     status: str = "pending",
     error: str | None = None,
+    impact_note: str | None = None,
 ) -> int:
     """记录一次写操作,返回 audit log id。
 
@@ -66,11 +67,13 @@ def log_write(
     ts = datetime.utcnow().isoformat() + "Z"
     conn = sqlite3.connect(str(db_path))
     try:
+        # §Step 12 — persist impact_note so the audit viewer shows
+        # the friendly Chinese line that was shown at the approval moment.
         cur = conn.execute(
             """INSERT INTO write_audit_log
                (session_id, user_message, tool_name, tool_args,
-                actor, confirmed_by, status, error, created_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                actor, confirmed_by, status, error, impact_note, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 session_id,
                 user_message,
@@ -80,6 +83,7 @@ def log_write(
                 confirmed_by,
                 status,
                 error,
+                impact_note,
                 ts,
             ),
         )
@@ -114,7 +118,8 @@ def list_writes(
     if db_path is None:
         db_path = _default_db_path()
 
-    sql = "SELECT id, session_id, user_message, tool_name, tool_args, actor, confirmed_by, status, error, created_at FROM write_audit_log WHERE 1=1"
+    # §Step 12 — surface impact_note for audit viewer.
+    sql = "SELECT id, session_id, user_message, tool_name, tool_args, actor, confirmed_by, status, error, impact_note, created_at FROM write_audit_log WHERE 1=1"
     params: list[Any] = []
     if session_id is not None:
         sql += " AND session_id = ?"
