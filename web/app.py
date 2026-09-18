@@ -388,6 +388,19 @@ def create_app(
             prewarmer = getattr(app.state, "quote_prewarmer", None)
             if prewarmer is not None:
                 prewarmer.start()
+            # Step 38 R-G — clean orphan audit/approval rows from
+            # previous runs. Best-effort; failures are logged.
+            try:
+                from tradingagents.agent_harness import audit_sweeper
+                sweep_result = audit_sweeper.run_sweep()
+                if any(sweep_result.values()):
+                    LOGGER.info(
+                        "audit_sweeper startup: %s", sweep_result
+                    )
+            except Exception as _sweep_err:
+                LOGGER.warning(
+                    "audit_sweeper startup failed: %s", _sweep_err
+                )
             yield
         finally:
             prewarmer = getattr(app.state, "quote_prewarmer", None)
@@ -958,9 +971,22 @@ def create_app(
                             )
                         except Exception as _audit_err:
                             LOGGER.warning(
-                                "harness confirm: audit->executed failed: %s",
+                                "harness confirm: audit->executed failed: %s "
+                                "(queued for retry)",
                                 _audit_err,
                             )
+                            # Step 38 R-H — queue retry so transient DB
+                            # failures don't leave audit in "confirmed"
+                            # state forever.
+                            try:
+                                from tradingagents.agent_harness import (
+                                    audit_sweeper,
+                                )
+                                audit_sweeper.queue_failed_update(
+                                    audit_id, "executed",
+                                )
+                            except Exception:
+                                pass
                 except Exception as e:
                     LOGGER.exception("harness confirm tool invoke failed")
                     yield (
@@ -974,9 +1000,19 @@ def create_app(
                             )
                         except Exception as _audit_err:
                             LOGGER.warning(
-                                "harness confirm: audit->failed update failed: %s",
+                                "harness confirm: audit->failed update "
+                                "failed: %s (queued for retry)",
                                 _audit_err,
                             )
+                            try:
+                                from tradingagents.agent_harness import (
+                                    audit_sweeper,
+                                )
+                                audit_sweeper.queue_failed_update(
+                                    audit_id, "failed", error=str(e),
+                                )
+                            except Exception:
+                                pass
                 finally:
                     yield (
                         f"event: done\n"

@@ -77,6 +77,10 @@ def _apply_env_overrides(config: dict) -> dict:
 DEFAULT_CONFIG = _apply_env_overrides({
     "project_dir": os.path.abspath(os.path.join(os.path.dirname(__file__), ".")),
     "results_dir": os.getenv("TRADINGAGENTS_RESULTS_DIR", os.path.join(_TRADINGAGENTS_HOME, "logs")),
+    # Explicit web_runs.sqlite3 path override (Step 38 R-E: lets tests
+    # + multi-DB setups point hitl/audit at a fresh DB without touching
+    # the production ~/.tradingagents/logs/web_runs.sqlite3 file).
+    "web_runs_db": os.getenv("TRADINGAGENTS_WEB_RUNS_DB"),
     "data_cache_dir": os.getenv("TRADINGAGENTS_CACHE_DIR", os.path.join(_TRADINGAGENTS_HOME, "cache")),
     "quote_ttl_seconds": 60,
     "quote_strategy_id": "default-eastmoney",
