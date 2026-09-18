@@ -801,3 +801,14 @@ details[open] .agent-reasoning-summary::before {
 .harness-multi-body .harness-md-table {
   margin: 0.2rem 0;
 }
+
+.harness-session-select {
+  max-width: 260px;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 6px;
+  background: var(--surface-color, #fff);
+  color: var(--text-color, #222);
+  cursor: pointer;
+}

@@ -16,10 +16,20 @@
     grantAllBox: null,
     busy: false,
     sessionId: null,
+    // §Step 19 — multi-session state. We persist the current
+    // sessionId to localStorage so a refresh keeps the user in the
+    // same conversation, and we cache the lightweight session list
+    // for the switcher dropdown.
+    sessions: [], // [{id, created_at, last_active, message_count, status}]
+    sessionSelectEl: null,
+    newSessionBtnEl: null,
+    deleteSessionBtnEl: null,
     // 当前累积的 reasoning trace(下一个 tool_call/answer_verified 触发时收尾)
     traceEl: null,
     traceContent: "",
   };
+
+  const SESSION_STORAGE_KEY = "ta.harness.sessionId";
 
   const SUGGESTIONS = [
     "招商银行 600036 现在多少钱?",
@@ -59,6 +69,23 @@
     if (state.clearBtn) {
       state.clearBtn.addEventListener("click", clearConversation);
     }
+    // §Step 19 — session switcher wiring
+    state.sessionSelectEl = document.getElementById("harness-session-select");
+    state.newSessionBtnEl = document.getElementById("harness-new-session-btn");
+    state.deleteSessionBtnEl = document.getElementById("harness-delete-session-btn");
+    if (state.sessionSelectEl) {
+      state.sessionSelectEl.addEventListener("change", (e) => {
+        switchSession(e.target.value);
+      });
+    }
+    if (state.newSessionBtnEl) {
+      state.newSessionBtnEl.addEventListener("click", createNewSession);
+    }
+    if (state.deleteSessionBtnEl) {
+      state.deleteSessionBtnEl.addEventListener("click", deleteCurrentSession);
+    }
+    // Kick the initial session picker population.
+    loadSessions();
     if (state.grantAllBox) {
       state.grantAllBox.addEventListener("change", onGrantAllChange);
       // restore from server (so refreshes don't reset the toggle)
@@ -91,18 +118,155 @@
   // ─────────────────────────────────────────────────
 
   function ensureSession() {
+    // §Step 19 — reuse the sessionId the user previously picked. We
+    // mint a new one (and persist it) only when nothing is in
+    // localStorage. This keeps multi-session behaviour seamless across
+    // reloads.
+    if (!state.sessionId) {
+      try {
+        const cached = window.localStorage.getItem(SESSION_STORAGE_KEY);
+        if (cached) state.sessionId = cached;
+      } catch (e) { /* private mode / disabled storage */ }
+    }
     if (!state.sessionId) {
       state.sessionId =
         "hc-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+      try { window.localStorage.setItem(SESSION_STORAGE_KEY, state.sessionId); } catch (e) {}
     }
     return state.sessionId;
   }
 
+  function persistSessionId() {
+    try {
+      if (state.sessionId) {
+        window.localStorage.setItem(SESSION_STORAGE_KEY, state.sessionId);
+      }
+    } catch (e) { /* ignore */ }
+  }
+
   function clearConversation() {
     if (state.busy) return;
-    state.sessionId = null;
+    // §Step 19 — "清空" keeps the active session, just wipes the
+    // visible messages. To start a *new* session use the 新建按钮.
     state.messagesEl.innerHTML = "";
     renderWelcome();
+  }
+
+  // ─────────────────────────────────────────────────
+  // §Step 19 — session list / switcher
+  // ─────────────────────────────────────────────────
+  async function loadSessions() {
+    try {
+      const r = await fetch("/api/harness/sessions?status=active&limit=50");
+      if (!r.ok) return;
+      const body = await r.json();
+      state.sessions = Array.isArray(body.sessions) ? body.sessions : [];
+      renderSessionPicker();
+    } catch (e) {
+      console.warn("[HarnessChat] loadSessions failed", e);
+    }
+  }
+
+  async function createNewSession() {
+    if (state.busy) return;
+    try {
+      const r = await fetch("/api/harness/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "新会话" }),
+      });
+      if (!r.ok) {
+        console.warn("[HarnessChat] createNewSession failed", r.status);
+        return;
+      }
+      const body = await r.json();
+      const sid = body.session_id;
+      if (!sid) return;
+      state.sessionId = sid;
+      persistSessionId();
+      state.messagesEl.innerHTML = "";
+      renderWelcome();
+      await loadSessions();
+    } catch (e) {
+      console.warn("[HarnessChat] createNewSession error", e);
+    }
+  }
+
+  async function switchSession(sid) {
+    if (!sid || sid === state.sessionId) return;
+    if (state.busy) {
+      alert("请先等待当前请求结束再切换会话");
+      return;
+    }
+    state.sessionId = sid;
+    persistSessionId();
+    state.messagesEl.innerHTML = "";
+    renderWelcome();
+    renderSessionPicker();
+  }
+
+  async function deleteCurrentSession() {
+    if (!state.sessionId) return;
+    if (!confirm("确认删除当前会话?此操作不可撤销。")) return;
+    try {
+      const r = await fetch(
+        `/api/harness/sessions/${encodeURIComponent(state.sessionId)}`,
+        { method: "DELETE" },
+      );
+      if (!r.ok) {
+        console.warn("[HarnessChat] delete failed", r.status);
+        return;
+      }
+      // Pick a fresh session and refresh the picker.
+      try { window.localStorage.removeItem(SESSION_STORAGE_KEY); } catch (e) {}
+      state.sessionId = null;
+      ensureSession();
+      persistSessionId();
+      state.messagesEl.innerHTML = "";
+      renderWelcome();
+      await loadSessions();
+    } catch (e) {
+      console.warn("[HarnessChat] delete error", e);
+    }
+  }
+
+  function renderSessionPicker() {
+    if (!state.sessionSelectEl) return;
+    const sel = state.sessionSelectEl;
+    const cur = state.sessionId || "";
+    // Build options: current session always shown, plus the rest.
+    const sessions = (state.sessions || []).slice();
+    sel.innerHTML = "";
+    const seen = new Set();
+    const opts = [];
+    if (cur) {
+      const o = document.createElement("option");
+      o.value = cur;
+      o.textContent = shortSessionLabel(cur) + " (当前)";
+      opts.push(o);
+      seen.add(cur);
+    }
+    for (const s of sessions) {
+      if (seen.has(s.id)) continue;
+      const o = document.createElement("option");
+      o.value = s.id;
+      o.textContent = shortSessionLabel(s.id, s);
+      opts.push(o);
+      seen.add(s.id);
+    }
+    for (const o of opts) sel.appendChild(o);
+    sel.value = cur;
+  }
+
+  function shortSessionLabel(sid, sess) {
+    if (sess && sess.last_active) {
+      try {
+        const t = new Date(sess.last_active);
+        const ms = sess.message_count || 0;
+        return `${sid.slice(0, 12)}… · ${ms}条 · ${t.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}`;
+      } catch (e) { /* fall through */ }
+    }
+    return sid.slice(0, 14) + "…";
   }
 
   // ─────────────────────────────────────────────────

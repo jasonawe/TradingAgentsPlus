@@ -419,6 +419,12 @@
                 <input type="checkbox" id="harness-grant-all" />
                 <span>全权限</span>
               </label>
+              <!-- §Step 19 — session switcher. Dropdown lists active sessions
+                   persisted on the server; 新建 creates a fresh row and
+                   删除 removes the current one. -->
+              <select id="harness-session-select" class="harness-session-select" title="切换会话" aria-label="切换会话"></select>
+              <button type="button" id="harness-new-session-btn" class="text-button" title="新建会话">+ 新建</button>
+              <button type="button" id="harness-delete-session-btn" class="text-button" title="删除当前会话">删除</button>
               <button type="button" id="harness-clear-btn" class="text-button" data-i18n="actions.clear">清空</button>
             </div>
           </div>
