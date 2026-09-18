@@ -134,13 +134,13 @@ class Verifier:
                     "judge returned non-JSON — failing open",
                     details={"raw": content[:200]},
                 )
-            # §Step 22 P1 — citation score. We extract the set of tool
-            # names that contributed data to the answer and score how
-            # many of them the LLM cited. The score is informational
-            # only — we never block on it because the LLM-judge is the
-            # authoritative grounded/ ungrounded verdict. We surface
-            # it in ``details`` so the UI can show a citation badge
-            # alongside the LLM-judge score.
+            # §Step 22 P1 — citation score. The LLM-judge is the
+            # primary grounded/ungrounded signal; citation_score +
+            # claim_audit (Step 30) tighten the bar so fabricated
+            # numbers can\'t slip through.
+            cite = 1.0
+            cite_unsupported: list[str] = []
+            cite_has_forward = False
             try:
                 from tradingagents.agent_harness.verification.citations import (
                     citation_score as _citation_score,
@@ -150,30 +150,86 @@ class Verifier:
                     for r in (tool_results or [])
                     if isinstance(r, dict)
                 ]
-                # Drop falsy / unknown names.
                 cited_tools = [t for t in cited_tools if t]
                 cite = _citation_score(llm_answer or "", cited_tools)
             except Exception:
                 cite = 1.0
+            try:
+                from tradingagents.agent_harness.verification.claim_audit import (
+                    claim_audit_score as _claim_audit_score,
+                    has_forward_claim as _has_forward_claim,
+                )
+                claim_score, cite_unsupported = _claim_audit_score(
+                    llm_answer or "", tool_results or [],
+                )
+                cite_has_forward = _has_forward_claim(llm_answer or "")
+            except Exception:
+                claim_score = 1.0
+                cite_unsupported = []
+
+            # §Step 30 — combine. The LLM judge score is the primary
+            # signal but we discount it when:
+            #  - citation is missing AND data tools were used
+            #  - claim audit found unsupported numbers AND the answer
+            #    contains forward-looking language ("预计 / estimate")
+            #  - either of the above plus low citation score (<0.4)
+            # When claim audit alone finds numbers AND there\'s a
+            # forward claim, we force-ungrounded regardless of LLM
+            # judge verdict — this is the "fabricated forecast"
+            # case we explicitly want to block.
+            combined_score = verdict.score
+            hard_ungrounded = False
+            ungrounded_reasons: list[str] = list(verdict.issues or [])
+
+            if cite < 0.4 and len(cited_tools) >= 1:
+                # Heavy citation penalty
+                combined_score = min(combined_score, 0.5)
+                ungrounded_reasons.append(
+                    f"citation_score={cite:.2f} (no 来源 block; tools used={cited_tools})"
+                )
+            if cite_unsupported and cite_has_forward:
+                # Forward-looking claim backed by fabricated numbers
+                hard_ungrounded = True
+                ungrounded_reasons.append(
+                    f"unsupported numbers in forward claim: {cite_unsupported[:5]}"
+                )
+            elif cite_unsupported and claim_score < 0.6:
+                combined_score = min(combined_score, 0.6)
+                ungrounded_reasons.append(
+                    f"claim_audit={claim_score:.2f}; unsupported={cite_unsupported[:5]}"
+                )
+
             details = {
-                "score": verdict.score,
-                "issues": verdict.issues,
+                "score": combined_score,
+                "issues": ungrounded_reasons,
                 "suggestion": verdict.suggestion,
                 "reasoning": verdict.reasoning,
                 "threshold": _JUDGE_THRESHOLD,
                 "citation_score": cite,
+                "claim_audit_score": claim_score,
+                "claim_audit_unsupported": cite_unsupported,
+                "llm_judge_score": verdict.score,
             }
-            if verdict.grounded:
+            # Hard override: forward-claim with fabricated numbers
+            # is ALWAYS ungrounded, regardless of LLM judge verdict.
+            if hard_ungrounded:
+                return VerificationResult(
+                    False,
+                    VerificationLevel.L3_LLM_JUDGE,
+                    f"ungrounded (forward-claim fabrication): {'; '.join(ungrounded_reasons)}",
+                    details=details,
+                )
+            if verdict.grounded and combined_score >= _JUDGE_THRESHOLD:
                 return VerificationResult(
                     True,
                     VerificationLevel.L3_LLM_JUDGE,
-                    f"grounded (score={verdict.score:.2f})",
+                    f"grounded (score={combined_score:.2f})",
                     details=details,
                 )
             return VerificationResult(
                 False,
                 VerificationLevel.L3_LLM_JUDGE,
-                f"ungrounded (score={verdict.score:.2f}): {'; '.join(verdict.issues) or verdict.reasoning[:120]}",
+                f"ungrounded (score={combined_score:.2f}): {'; '.join(ungrounded_reasons) or verdict.reasoning[:120]}",
                 details=details,
             )
         except Exception as e:
