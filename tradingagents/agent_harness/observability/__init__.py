@@ -6,12 +6,18 @@ Exposes:
 - HealthChecker — /api/harness/health payload
 - FeishuAlerter — 飞书群机器人 webhook
 - ProviderFailover — fall-back to next provider on transient errors
+- Tracer — per-session tracing (Step 44)
+- Counter / Histogram / Gauge / MetricsRegistry — Step 44 metrics
 """
 from .audit import AuditLogger
 from .failover import ProviderFailover
 from .health import HealthChecker
 from .metrics import Metrics
-from .tracing import Tracer
+from .tracing import Tracer, Span, current_trace_id
+from .feishu import FeishuAlerter
+from .metrics_new import (
+    Counter, Histogram, Gauge, MetricsRegistry,
+)
 
 __all__ = [
     "AuditLogger",
@@ -19,7 +25,11 @@ __all__ = [
     "HealthChecker",
     "Metrics",
     "Tracer",
+    "Span",
+    "current_trace_id",
+    "FeishuAlerter",
+    "Counter",
+    "Histogram",
+    "Gauge",
+    "MetricsRegistry",
 ]
-from .feishu import FeishuAlerter
-
-__all__ += ["FeishuAlerter"]
