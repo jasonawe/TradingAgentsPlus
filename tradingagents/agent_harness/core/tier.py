@@ -229,6 +229,26 @@ def extract_slots(message: str) -> dict[str, Any]:
         since = until - _dt.timedelta(seconds=n * seconds)
         out["time_range"] = (since.isoformat(), until.isoformat())
 
+    # §Step5.B — explicit date ranges: "2026-09-01 之后" / "after 2026-09-01"
+    # / "2026-09-01 ~ 2026-09-10". Sets only since_ts/until_ts on the
+    # time_range tuple — leaves any pre-existing rolling window alone.
+    if "time_range" not in out:
+        iso = re.search(r"(\d{4}-\d{1,2}-\d{1,2})", message)
+        if iso:
+            try:
+                d = _dt.date.fromisoformat(iso.group(1))
+                # Bind on directional cue words if present, else use
+                # the bare date as lower bound.
+                after_kw = any(k in message for k in ("之后", "以后", "after", "since"))
+                before_kw = any(k in message for k in ("之前", "以前", "before", "until"))
+                since_iso = _dt.datetime(d.year, d.month, d.day, tzinfo=_dt.timezone.utc).isoformat()
+                if after_kw and not before_kw:
+                    out["time_range"] = (since_iso, _now_utc().isoformat())
+                elif before_kw and not after_kw:
+                    out["time_range"] = (_dt.datetime(1970, 1, 1, tzinfo=_dt.timezone.utc).isoformat(), since_iso)
+            except ValueError:
+                pass
+
     # ── threshold + direction ─────────────────────────────────────
     # Patterns: 超过 50 / 高于 5.2 / 低于 30 / above 100 / below 200
     m = re.search(r"(超过|高于|大于|向上|涨破|涨过|低于|小于|向下|跌破|跌穿|above|below)\s*([\d.]+)", lower)
@@ -243,9 +263,24 @@ def extract_slots(message: str) -> dict[str, Any]:
         out["direction"] = direction
 
     # ── limit ─────────────────────────────────────────────────────
-    m = re.search(r"(?:最近|前|limit)\s*(\d+)\s*(?:条|个|只|条记录|条笔记)?", lower)
-    if m:
-        out["limit"] = int(m.group(1))
+    # §Step5.A — multi-pattern union covering Chinese / English /
+    # adjective variants. Tried in priority order; first hit wins.
+    # Capped at 200 to bound the call (read tools shouldn't page out
+    # the entire DB by accident).
+    limit_m = (
+        # "前 X 条 / limit X / 最近 X 条" with explicit count word
+        re.search(r"(?:最近|前|limit)\s*(\d+)\s*(?:条|个|只|条记录|条笔记)?", lower)
+        # "X 条 / X 个" standalone — "5 条笔记"
+        or re.search(r"(\d+)\s*(?:条|个|只|条记录|条笔记)", lower)
+        # "只看 X / 只要 X / 仅 X" — restrictive prefix
+        or re.search(r"(?:只|仅|就要)\s*(\d+)\s*(?:条|个|只)?", lower)
+        # "top X / 前 X 名" English-leaning fallback
+        or re.search(r"\btop\s*(\d+)", lower)
+    )
+    if limit_m:
+        n = int(limit_m.group(1))
+        if 0 < n <= 200:
+            out["limit"] = n
 
     # ── cron (basic NL → cron) ────────────────────────────────────
     # Patterns:

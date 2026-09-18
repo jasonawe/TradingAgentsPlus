@@ -168,12 +168,64 @@ class ShortCircuit:
                 # than aborting the whole batch.
                 continue
 
+        # §Step5.C — multi-read aggregation. When 2+ read tools run in
+        # one short-circuit turn, render a single one-paragraph summary
+        # so the UI shows coherent prose instead of a JSON blob. Falls
+        # back to concatenating the raw tool text when no count field
+        # is available.
+        summary_text = self._summarise_multi(results)
         yield ("agent_final", {
             "tier": int(Tier.DIRECT),
             "result": {"multi": results, "count": len(results)},
+            "summary": summary_text,
             "rendered": True,
             "multi_intent": True,
         })
+
+
+    @staticmethod
+    def _summarise_multi(results: list[dict[str, Any]]) -> str:
+        """§Step5.C — turn a list of read-tool results into one prose paragraph.
+
+        Each result is ``{intent, op, tool, result: {text, count, ...}}``.
+        Falls back to ``"\n".join(text)`` when count fields are absent
+        so we never return an empty string for a successful batch.
+        """
+        if not results:
+            return ""
+        lines: list[str] = []
+        total = 0
+        for r in results:
+            payload = r.get("result") or {}
+            if isinstance(payload, dict):
+                text = str(payload.get("text", "")).strip()
+                count = payload.get("count")
+            else:
+                text = str(payload).strip()
+                count = None
+            if count is not None:
+                try:
+                    total += int(count)
+                except (TypeError, ValueError):
+                    pass
+            intent_cn = {
+                "list_notes": "笔记",
+                "list_alerts": "告警",
+                "list_reports": "报告",
+                "list_runs": "分析任务",
+                "list_scheduled_tasks": "定时任务",
+                "watchlist": "关注",
+            }.get(r.get("intent", ""), r.get("intent", ""))
+            head = f"• {intent_cn}: " if intent_cn else "• "
+            if count is not None:
+                head += f"{count} 条"
+            else:
+                head += text.splitlines()[0] if text else "(无内容)"
+            lines.append(head)
+        summary = "\n".join(lines)
+        if total:
+            summary = f"共 {total} 条记录:\n" + summary
+        return summary
 
     @staticmethod
     def _safe_dump(obj: Any) -> Any:
@@ -235,6 +287,22 @@ class ShortCircuit:
             for k in ("limit", "include_disabled"):
                 if k in slots:
                     payload[k] = slots[k]
+            # §Step5.B — convert ``time_range`` (ISO strings) into
+            # ``since_ts / until_ts`` (epoch seconds). Only emit when
+            # the target schema declares either field — otherwise the
+            # slot is silently dropped (e.g. watchlist has no time
+            # window).
+            tr = slots.get("time_range")
+            if tr:
+                try:
+                    import datetime as _dt
+                    since_iso, until_iso = tr
+                    if since_iso and "since_ts" in getattr(args_schema, "model_fields", {}):
+                        payload["since_ts"] = int(_dt.datetime.fromisoformat(since_iso).timestamp())
+                    if until_iso and "until_ts" in getattr(args_schema, "model_fields", {}):
+                        payload["until_ts"] = int(_dt.datetime.fromisoformat(until_iso).timestamp())
+                except Exception:
+                    pass
         if hasattr(args_schema, "model_validate"):
             try:
                 return args_schema.model_validate(payload)

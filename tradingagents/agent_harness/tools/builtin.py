@@ -509,6 +509,11 @@ class DeleteNoteArgs(BaseModel):
 class ListNotesArgs(BaseModel):
     symbol: Optional[str] = None
     limit: int = 50
+    # §Step5.B — epoch-second window filter. Forwarded by the bridge
+    # only when ``state.slots["time_range"]`` is present. Read tools
+    # fall back to "all-time" when omitted, so this is purely additive.
+    since_ts: Optional[int] = None
+    until_ts: Optional[int] = None
 
 
 class ListNotesResult(BaseModel):
@@ -520,6 +525,11 @@ class ListAlertsArgs(BaseModel):
     symbol: Optional[str] = None
     include_disabled: bool = False
     limit: int = 50
+    # §Step5.B — epoch-second window filter. Forwarded by the bridge
+    # only when ``state.slots["time_range"]`` is present. Read tools
+    # fall back to "all-time" when omitted, so this is purely additive.
+    since_ts: Optional[int] = None
+    until_ts: Optional[int] = None
 
 
 class ListAlertsResult(BaseModel):
@@ -587,6 +597,11 @@ class ListRunsResult(BaseModel):
 class ListReportsArgs(BaseModel):
     symbol: Optional[str] = None
     limit: int = 20
+    # §Step5.B — epoch-second window filter. Forwarded by the bridge
+    # only when ``state.slots["time_range"]`` is present. Read tools
+    # fall back to "all-time" when omitted, so this is purely additive.
+    since_ts: Optional[int] = None
+    until_ts: Optional[int] = None
 
 
 class ListReportsResult(BaseModel):
