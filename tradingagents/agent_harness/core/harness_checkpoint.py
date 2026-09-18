@@ -49,6 +49,22 @@ ALL_NODES = (
     NODE_VERIFYING, NODE_SYNTHESIZING, NODE_DONE,
 )
 
+# §Step 29 — milestone ordering. Used by resume_from to find the
+# latest checkpoint at-or-before the requested node. Lower index =
+# earlier in the pipeline. Any node not in this tuple is treated as
+# a free-form observation event (no partial-replay anchor).
+_NODE_ORDER: dict[str, int] = {n: i for i, n in enumerate(ALL_NODES)}
+
+# Legacy milestone_id used to tag rows imported from the pre-015
+# schema (single-row-per-session). load_latest() and resume() both
+# honour these rows as if they were the last milestone in the chain.
+LEGACY_MILESTONE_ID = "legacy:singleton"
+
+# Emitted-event monotonic counter per (session, node). Stored on the
+# store instance so two saves for the same node in the same session
+# still get unique milestone_ids.
+_EMIT_COUNTERS: dict[tuple[str, str], int] = {}
+
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -65,11 +81,16 @@ class HarnessCheckpoint:
     token_usage: dict[str, Any] = field(default_factory=dict)
     created_at: str = field(default_factory=_now_iso)
     updated_at: str = field(default_factory=_now_iso)
+    # §Step 29 — composite key part. "<node>:<counter>" for new
+    # saves, "legacy:singleton" for rows imported from pre-015
+    # schema. Counters are monotonic per (session_id, node).
+    milestone_id: str = LEGACY_MILESTONE_ID
 
     def to_row(self) -> dict[str, Any]:
         """Serialise to a row dict ready for SQLiteStore.upsert."""
         return {
             "session_id": self.session_id,
+            "milestone_id": self.milestone_id,
             "state_json": json.dumps(self.state, ensure_ascii=False, default=str),
             "node_position": self.node_position,
             "emitted_events": json.dumps(self.emitted_events, ensure_ascii=False, default=str),
@@ -84,6 +105,7 @@ class HarnessCheckpoint:
         d = dict(row)
         return cls(
             session_id=d["session_id"],
+            milestone_id=d.get("milestone_id") or LEGACY_MILESTONE_ID,
             node_position=d["node_position"],
             state=json.loads(d["state_json"]) if d.get("state_json") else {},
             emitted_events=[
@@ -121,37 +143,102 @@ class HarnessCheckpointStore:
     # Write
     # ------------------------------------------------------------------
     def save(self, checkpoint: HarnessCheckpoint) -> None:
-        """Upsert a checkpoint for ``checkpoint.session_id``.
+        """Upsert a milestone checkpoint for ``checkpoint.session_id``.
 
-        Called after each node completes in ``Orchestrator._emit``.
-        Each save overwrites the previous checkpoint for the same
-        session_id (one active checkpoint per session).
+        Step 29 — composite key (session_id, milestone_id). Each
+        milestone becomes its own row, so a single session can have
+        a chain of recoverable snapshots (planning -> executing ->
+        observing -> verifying -> synthesizing -> done).
+
+        If the caller did not set milestone_id we synthesise one
+        of the form <node>:<counter> where counter is monotonic
+        per (session_id, node) — guaranteeing uniqueness without
+        requiring callers to coordinate.
         """
         checkpoint.updated_at = _now_iso()
+        if not checkpoint.milestone_id or checkpoint.milestone_id == LEGACY_MILESTONE_ID:
+            counter = _EMIT_COUNTERS.get(
+                (checkpoint.session_id, checkpoint.node_position), 0,
+            ) + 1
+            _EMIT_COUNTERS[(checkpoint.session_id, checkpoint.node_position)] = counter
+            checkpoint.milestone_id = f"{checkpoint.node_position}:{counter}"
         row = checkpoint.to_row()
-        # SQLite upsert — INSERT ... ON CONFLICT(session_id) DO UPDATE SET
         with self._store._connect() as conn:
-            existing = conn.execute(
-                "SELECT 1 FROM harness_checkpoints WHERE session_id = ?",
-                (checkpoint.session_id,),
-            ).fetchone()
-            if existing:
-                conn.execute(
-                    "UPDATE harness_checkpoints SET state_json=?, node_position=?, "
-                    "emitted_events=?, token_usage=?, updated_at=? WHERE session_id=?",
-                    (row["state_json"], row["node_position"], row["emitted_events"],
-                     row["token_usage"], row["updated_at"], checkpoint.session_id),
-                )
-            else:
-                conn.execute(
-                    "INSERT INTO harness_checkpoints (session_id, state_json, "
-                    "node_position, emitted_events, token_usage, created_at, updated_at) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?)",
-                    (row["session_id"], row["state_json"], row["node_position"],
-                     row["emitted_events"], row["token_usage"],
-                     row["created_at"], row["updated_at"]),
-                )
+            conn.execute(
+                "INSERT INTO harness_checkpoints "
+                "(session_id, milestone_id, state_json, node_position, "
+                "emitted_events, token_usage, created_at, updated_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?) "
+                "ON CONFLICT(session_id, milestone_id) DO UPDATE SET "
+                "state_json=excluded.state_json, node_position=excluded.node_position, "
+                "emitted_events=excluded.emitted_events, token_usage=excluded.token_usage, "
+                "updated_at=excluded.updated_at",
+                (row["session_id"], row["milestone_id"], row["state_json"],
+                 row["node_position"], row["emitted_events"], row["token_usage"],
+                 row["created_at"], row["updated_at"]),
+            )
             conn.commit()
+
+    # ------------------------------------------------------------------
+    # Step 29 — partial-replay read paths
+    # ------------------------------------------------------------------
+    def load_latest(self, session_id: str) -> HarnessCheckpoint | None:
+        """Return the milestone with the highest updated_at for session_id.
+
+        Falls back to legacy:singleton for sessions written before
+        the milestone migration (those rows always sort last because
+        their updated_at is the last-write timestamp).
+        """
+        with self._store._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM harness_checkpoints WHERE session_id = ? "
+                "ORDER BY updated_at DESC, milestone_id DESC LIMIT 1",
+                (session_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        return HarnessCheckpoint.from_row(row)
+
+    def load_at_or_before(
+        self, session_id: str, node_position: str,
+    ) -> HarnessCheckpoint | None:
+        """Return the latest milestone whose node is at or before node_position.
+
+        Used by Orchestrator.resume_from to start replay from the
+        nearest successful checkpoint. node_position must be a
+        member of ALL_NODES; unknown nodes fall back to
+        load_latest.
+        """
+        if node_position not in _NODE_ORDER:
+            return self.load_latest(session_id)
+        target_idx = _NODE_ORDER[node_position]
+        candidates = self.list_milestones(session_id)
+        # Sort by (node_index ascending, updated_at descending) so we
+        # pick the latest checkpoint at the *latest* node <= target.
+        # Walk candidates in (node_index DESC, updated_at DESC) order
+        # and return the first whose node_index <= target_idx. That
+        # way "at or before synthesizing" picks the latest of
+        # {planning, executing, observing, synthesizing} (NOT done).
+        candidates.sort(
+            key=lambda c: (
+                -_NODE_ORDER.get(c.node_position, -1),
+                -datetime.fromisoformat(c.updated_at).timestamp(),
+            ),
+        )
+        for c in candidates:
+            if _NODE_ORDER.get(c.node_position, 999) <= target_idx:
+                return c
+        return None
+
+    def list_milestones(self, session_id: str) -> list[HarnessCheckpoint]:
+        """All milestones for session_id ordered by updated_at ascending."""
+        with self._store._connect() as conn:
+            rows = conn.execute(
+                "SELECT * FROM harness_checkpoints WHERE session_id = ? "
+                "ORDER BY updated_at ASC, milestone_id ASC",
+                (session_id,),
+            ).fetchall()
+        return [HarnessCheckpoint.from_row(r) for r in rows]
 
     def delete(self, session_id: str) -> bool:
         """Remove the checkpoint for ``session_id``. Returns True if removed."""
@@ -167,13 +254,12 @@ class HarnessCheckpointStore:
     # Read
     # ------------------------------------------------------------------
     def load(self, session_id: str) -> HarnessCheckpoint | None:
-        """Load the checkpoint for ``session_id`` or None."""
-        with self._store._connect() as conn:
-            row = conn.execute(
-                "SELECT * FROM harness_checkpoints WHERE session_id = ?",
-                (session_id,),
-            ).fetchone()
-        return HarnessCheckpoint.from_row(row) if row else None
+        """Load the latest checkpoint for ``session_id`` or None.
+
+        Step 29 — alias for load_latest (legacy callers). Returns
+        the milestone with the highest updated_at.
+        """
+        return self.load_latest(session_id)
 
     def has_checkpoint(self, session_id: str) -> bool:
         return self.load(session_id) is not None

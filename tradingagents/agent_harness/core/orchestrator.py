@@ -37,6 +37,7 @@ from .surface import SurfaceRouter
 from .session_store import Session, SessionStore
 from .harness_checkpoint import (
     ALL_NODES,
+    LEGACY_MILESTONE_ID,
     HarnessCheckpoint,
     HarnessCheckpointStore,
     NODE_DONE,
@@ -1208,6 +1209,46 @@ class Orchestrator:
             self._checkpoint_store.save(ckpt)
         except Exception:
             LOGGER.debug("checkpoint save failed", exc_info=True)
+
+    async def resume_from(
+        self,
+        session_id: str,
+        from_node: str | None = None,
+    ) -> AsyncIterator[tuple[str, dict]]:
+        """Step 29 — partial replay from a specified node.
+
+        ``from_node`` must be a member of ALL_NODES or None. None
+        means "replay everything from the latest checkpoint"
+        (equivalent to ``resume()``). A specific node means
+        "find the latest milestone whose node is at or before
+        ``from_node`` and replay only those events".
+
+        Yields the same event stream as ``resume()`` so the SSE
+        client can render them transparently.
+        """
+        if self._checkpoint_store is None:
+            yield ("error", {"session_id": session_id, "error": "checkpoint store not configured"})
+            return
+        if from_node is None:
+            ckpt = self._checkpoint_store.load_latest(session_id)
+        else:
+            ckpt = self._checkpoint_store.load_at_or_before(session_id, from_node)
+        if ckpt is None:
+            yield ("error", {
+                "session_id": session_id,
+                "error": "no checkpoint for session",
+                "from_node": from_node,
+            })
+            return
+        for ev, payload in ckpt.emitted_events:
+            yield (ev, payload)
+        yield ("resume_complete", {
+            "session_id": session_id,
+            "from_node": from_node,
+            "milestone_id": ckpt.milestone_id,
+            "node_position": ckpt.node_position,
+            "events_replayed": len(ckpt.emitted_events),
+        })
 
     async def resume(self, session_id: str) -> AsyncIterator[tuple[str, dict]]:
         """Resume a crashed/interrupted session from its last checkpoint.
