@@ -41,6 +41,10 @@ class ToolRegistry:
         timeout_seconds: float = 30.0,
         cache_ttl_seconds: int = 60,
         retry: Optional[RetryPolicy] = None,
+        # §Step 23 — D2 metadata bag (capability tags, display_view
+        # hint, lifecycle hook names, error normalization hints). Open
+        # dict so individual callers can add keys without schema churn.
+        metadata: dict | None = None,
     ) -> Callable[[Callable[..., object]], Callable[..., object]]:
         """Decorator that wraps the target function as a FunctionTool."""
 
@@ -54,6 +58,7 @@ class ToolRegistry:
                 timeout_seconds=timeout_seconds,
                 cache_ttl_seconds=cache_ttl_seconds,
                 retry=retry or RetryPolicy(),
+                metadata=metadata or {},
             )
             self.add(FunctionTool(func, schema))
             return func

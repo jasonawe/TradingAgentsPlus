@@ -30,6 +30,8 @@ from tradingagents.agent_harness.observability.failover import ProviderFailover
 
 from .context import ToolContext
 from .permission import PermissionType
+from .capabilities import Capability
+
 from .schema import ToolSchema
 
 # ----------------------------------------------------------------------
@@ -1476,6 +1478,14 @@ def install_builtin_tools(registry) -> None:
         result_schema=QuoteResult,
         permission=PermissionType.READ,
         cache_ttl_seconds=60,
+        # §Step 23 — D2 Tool metadata: capability tags + display_view
+        # hint. The display_view helper picks the right renderer when
+        # the result lands in the agent_final bubble.
+        metadata={
+            "capabilities": [Capability.QUOTE.value],
+            "display_view": Capability.QUOTE.value,
+            "category": "data",
+        },
     )(get_quote)
 
     registry.register(
@@ -1567,6 +1577,11 @@ def install_builtin_tools(registry) -> None:
         args_schema=AddToWatchlistArgs,
         result_schema=AddToWatchlistResult,
         permission=PermissionType.WRITE,
+        metadata={
+            "capabilities": [Capability.WATCHLIST.value],
+            "display_view": "ack",
+            "category": "crud",
+        },
     )(add_to_watchlist)
 
     registry.register(

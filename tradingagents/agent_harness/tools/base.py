@@ -92,6 +92,17 @@ class FunctionTool(BaseTool):
         if "args" in sig.parameters:
             kwargs["args"] = args
 
+        # §Step 23 — record pre-invoke lifecycle event. Args are
+        # sanitised via ``model_dump()`` when available so the
+        # tracker never holds a reference to a live Pydantic model.
+        # Hooks run synchronously; the harness already calls invoke()
+        # under a lock so order is preserved.
+        from .lifecycle import global_tracker as _tracker
+        _tracker().pre(
+            self.name,
+            args=getattr(args, "model_dump", lambda: args)(),
+        )
+
         # §7.2 #4 — wall-clock cap from ToolSchema.timeout_seconds.
         # 0 = no cap.  CallTimeoutError inherits asyncio.TimeoutError so
         # callers that catch ``asyncio.TimeoutError`` still match.
@@ -99,14 +110,31 @@ class FunctionTool(BaseTool):
         enforcer = TimeoutEnforcer(
             op=f"tool.{self.name}", default_timeout_seconds=timeout_seconds,
         )
-        if self._is_coro:
-            # Build the coroutine so we can pass it to enforce().
-            async def _coro():
-                return await self._func(**kwargs)
-            result = await enforcer.enforce(_coro())
-        else:
-            # Sync path — runs in worker thread so the timeout still fires.
-            result = await enforcer.enforce_sync(self._func, kwargs=kwargs)
+        try:
+            if self._is_coro:
+                # Build the coroutine so we can pass it to enforce().
+                async def _coro():
+                    return await self._func(**kwargs)
+                result = await enforcer.enforce(_coro())
+            else:
+                # Sync path — runs in worker thread so the timeout still fires.
+                result = await enforcer.enforce_sync(self._func, kwargs=kwargs)
+        except BaseException as e:
+            # §Step 23 — record error then re-raise. The exception
+            # propagates unchanged so existing callers see the same
+            # failure modes (TimeoutError, ProviderError, etc.).
+            _tracker().error(
+                self.name,
+                args=getattr(args, "model_dump", lambda: args)(),
+                error=e,
+            )
+            raise
+
+        _tracker().post(
+            self.name,
+            args=getattr(args, "model_dump", lambda: args)(),
+            result=result,
+        )
 
         if cache_lookup is not None and cache_key is not None:
             cache_lookup.set(cache_key, result, ttl_seconds=self.schema.cache_ttl_seconds)
