@@ -293,7 +293,15 @@ def extract_slots(message: str) -> dict[str, Any]:
         if 0 < n <= 200:
             out["limit"] = n
 
-    # ── cron (basic NL → cron) ────────────────────────────────────
+    # ──     # §Step 16 — report_id slot. Matches the harness's report_id
+    # token shape (``run-<12+ hex>``). Without this, the report_id
+    # token falls through to entity detection where ``run`` in
+    # Intent.RUN keywords mis-classifies the query as (RUN, LIST).
+    m = re.search(r"run-[a-f0-9]{12,}", message or "", flags=re.IGNORECASE)
+    if m:
+        out["report_id"] = m.group(0)
+
+    # cron (basic NL → cron) ────────────────────────────────────
     # Patterns:
     #   每天早上 N 点         -> "0 N * * *"
     #   每个交易日收盘         -> "0 15 * * 1-5"  (15:00 CST daily close)
@@ -541,6 +549,13 @@ def classify(message: str) -> tuple[Intent, Op]:
         return Intent.RUN, Op.CREATE
     if "body_md" in _slots:
         return Intent.NOTE, Op.CREATE
+    # §Step 16 — report_id slot → REPORT/READ. Without this override,
+    # "读报告 run-55464f3..." was classified as RUN/LIST because the
+    # Intent.RUN keyword set includes the literal "run" — the report_id
+    # token "run-55464f3" matched it. Promote to REPORT/READ so the
+    # short_circuit can route to get_report.
+    if "report_id" in _slots:
+        return Intent.REPORT, Op.READ
 
     # 1. Entity detection
     for intent, (kws, default_op) in _ENTITY_KW.items():

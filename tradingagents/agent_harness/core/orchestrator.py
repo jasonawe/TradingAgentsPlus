@@ -553,7 +553,18 @@ def _run_id_args(state: Any) -> dict[str, Any]:
 
 
 def _report_id_args(state: Any) -> dict[str, Any]:
+    """§Step 16 — prefer state.slots['report_id'] (extracted by
+    ``extract_slots`` from a ``run-<hex>`` token) over the legacy regex.
+
+    Falls back to the legacy ``report-<id>`` regex when the slot is
+    absent so callers that bypass extract_slots (e.g. tests) keep
+    working.
+    """
     import re as _re
+    slots = getattr(state, "slots", {}) or {}
+    rid = slots.get("report_id")
+    if rid:
+        return {"report_id": rid}
     msg = state.user_message or ""
     m = re.search(r"report-[A-Za-z0-9_-]+", msg)
     if m:

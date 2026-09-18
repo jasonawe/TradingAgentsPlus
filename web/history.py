@@ -226,11 +226,23 @@ class ReportHistory:
                 entry = self._entry_from_record(record)
                 if entry is not None:
                     self._index[report_id] = entry
-            if entry is None:
-                entry = self._index.get(report_id)
-        else:
+        # §Step 16 — filesystem fallback. Even when a repository is
+        # attached, refresh() the in-memory index from the filesystem
+        # if the repository miss returned. This keeps the harness
+        # working on installations where the report_index_outbox hasn't
+        # been flushed yet (or DB has zero rows) but the reports live
+        # on disk under results_dir/web_reports/.
+        if entry is None:
             self.refresh()
             entry = self._index.get(report_id)
+            # §Step 16 — debug log for diagnosis when report lookup fails.
+            import logging as _ld
+            _ld.getLogger("web.history").debug(
+                "report lookup %s: index size after refresh=%d, hit=%s",
+                report_id, len(self._index), entry is not None,
+            )
+        if entry is None or not self._safe_descendant(entry.path, entry.root):
+            raise ReportNotFound(report_id)
         if entry is None or not self._safe_descendant(entry.path, entry.root):
             raise ReportNotFound(report_id)
         if entry.source == "web" and not self._is_publishable_web_report(

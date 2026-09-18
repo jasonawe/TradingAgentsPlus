@@ -60,7 +60,7 @@ class ShortCircuit:
                 yield ev
             return
 
-        tool_name = self._tool_for_intent(route.intent)
+        tool_name = self._tool_for_intent(route.intent, slots)
         if not tool_name:
             yield ("warning", {"message": f"no Tier 1 tool for intent={route.intent}"})
             return
@@ -136,7 +136,7 @@ class ShortCircuit:
         """
         results: list[dict[str, Any]] = []
         for intent, op in route.multi_pairs:
-            tool_name = self._tool_for_intent(intent)
+            tool_name = self._tool_for_intent(intent, slots)
             if not tool_name:
                 yield ("warning", {
                     "message": f"no Tier 1 tool for intent={intent.value}",
@@ -269,11 +269,16 @@ class ShortCircuit:
         return {"value": str(result)}
 
     @staticmethod
-    def _tool_for_intent(intent: Intent) -> str:
+    def _tool_for_intent(intent: Intent, slots: dict | None = None) -> str:
         # §7.3 #12 — every read-capable intent gets a default Tier 1
         # read tool so we never emit "no Tier 1 tool for intent=NOTE"
         # warnings. Write intents still go through Tier 2 (CRUD
         # dispatch → HITL gate) because they need approval.
+        # §Step 16 — when a report_id slot is present, route to
+        # get_report (which fetches full markdown) instead of
+        # list_reports (which only returns metadata).
+        if intent == Intent.REPORT and slots and "report_id" in slots:
+            return "get_report"
         return {
             Intent.QUOTE: "get_quote",
             Intent.HISTORY: "get_history",
@@ -309,6 +314,11 @@ class ShortCircuit:
             for k in ("limit", "include_disabled"):
                 if k in slots:
                     payload[k] = slots[k]
+            # §Step 16 — forward report_id slot to GetReportArgs so the
+            # single-intent Tier 1 path can call get_report instead of
+            # list_reports when the user names a specific report.
+            if "report_id" in slots and "report_id" in getattr(args_schema, "model_fields", {}):
+                payload["report_id"] = slots["report_id"]
             # §Step5.B — convert ``time_range`` (ISO strings) into
             # ``since_ts / until_ts`` (epoch seconds). Only emit when
             # the target schema declares either field — otherwise the

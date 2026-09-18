@@ -1322,8 +1322,19 @@ def get_report(
         return f"ERROR: get_report - {e}"
     try:
         record = history.get_report(report_id)
-        meta = {k: v for k, v in record.items() if k not in ("body_md", "content")}
-        content = record.get("body_md") or record.get("content") or ""
+        # §Step 16 — ReportHistory returns 'complete_report' (raw
+        # markdown) not 'body_md'. Read it first, fall back to legacy.
+        meta = {
+            k: v for k, v in record.items()
+            if k not in ("body_md", "content", "complete_report",
+                         "complete_report_html")
+        }
+        content = (
+            record.get("complete_report")
+            or record.get("body_md")
+            or record.get("content")
+            or ""
+        )
         header = (
             "REPORT: " + report_id
             + "\n---meta---\n"

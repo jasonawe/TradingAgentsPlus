@@ -1310,6 +1310,11 @@ async def get_report(args: GetReportArgs, context=None):
     try:
         text = await bridge.ainvoke({"report_id": args.report_id}, config=cfg)
     except Exception as e:
+        import traceback as _tb
+        # §Step 16 — log full traceback so we can see whether the error
+        # comes from the tool body (impl.py) or from the LangChain wrapper.
+        from tradingagents.agent_harness.core.logging import LOGGER as _L
+        _L.warning("get_report failed: %s", _tb.format_exc())
         return {"status": "error", "raw": f"ERROR: {type(e).__name__}: {e}"}
     return {"status": "ok", "text": text}
 
