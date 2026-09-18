@@ -134,12 +134,34 @@ class Verifier:
                     "judge returned non-JSON — failing open",
                     details={"raw": content[:200]},
                 )
+            # §Step 22 P1 — citation score. We extract the set of tool
+            # names that contributed data to the answer and score how
+            # many of them the LLM cited. The score is informational
+            # only — we never block on it because the LLM-judge is the
+            # authoritative grounded/ ungrounded verdict. We surface
+            # it in ``details`` so the UI can show a citation badge
+            # alongside the LLM-judge score.
+            try:
+                from tradingagents.agent_harness.verification.citations import (
+                    citation_score as _citation_score,
+                )
+                cited_tools = [
+                    str(r.get("name") or r.get("tool") or "")
+                    for r in (tool_results or [])
+                    if isinstance(r, dict)
+                ]
+                # Drop falsy / unknown names.
+                cited_tools = [t for t in cited_tools if t]
+                cite = _citation_score(llm_answer or "", cited_tools)
+            except Exception:
+                cite = 1.0
             details = {
                 "score": verdict.score,
                 "issues": verdict.issues,
                 "suggestion": verdict.suggestion,
                 "reasoning": verdict.reasoning,
                 "threshold": _JUDGE_THRESHOLD,
+                "citation_score": cite,
             }
             if verdict.grounded:
                 return VerificationResult(

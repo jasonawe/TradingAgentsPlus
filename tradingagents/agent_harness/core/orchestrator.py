@@ -2670,7 +2670,16 @@ class Orchestrator:
         "an estimate.\n"
         "- Brief historical references (e.g. \"2021 年高点约 53 元\") "
         "are allowed if marked \"参考\" / \"常识\" — the L3 "
-        "judge down-weights them but does not fail the answer."
+        "judge down-weights them but does not fail the answer.\n"
+        "\n"
+        "Citation contract (Step 22 P1):\n"
+        "- When the answer cites numbers / news / events from tool results, "
+        "end the answer with a \"\u8d44\u6599\u6765\u6e90\" section.\n"
+        "- Format: either a blockquote (\"> \u8d44\u6599\u6765\u6e90: get_quote (600036.SS) \u00b7 get_news (600036.SS)\") "
+        "or a heading (\"## \u8d44\u6599\u6765\u6e90\") followed by one \"> tool_name (symbol)\" row per tool that contributed data.\n"
+        "- The L3 judge reads this block; answers without it are down-weighted "
+        "even when the numbers are correct \u2014 verifiability matters.\n"
+        "- Trivial CRUD acks (\"Delete a single note\") do NOT need a citation block.\n"
     )
 
 
