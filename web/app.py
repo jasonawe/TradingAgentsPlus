@@ -1215,6 +1215,38 @@ def create_app(
                 "count": 3,
             }
 
+        @app.post("/api/market/invalidate")
+        async def _market_invalidate(body: dict) -> dict:
+            """Drop cached quotes immediately.
+
+            Body fields (all optional):
+            - ``symbol``: invalidate one symbol
+            - ``asset_type``: invalidate one asset class
+            - ``all_asset_types``: when symbol set, wipe all asset types
+            - ``older_than_seconds``: purge stale rows older than N seconds
+
+            Returns the row count deleted.
+            """
+            market_service = getattr(app.state, "market_service", None)
+            if market_service is None:
+                raise _error(
+                    status.HTTP_503_SERVICE_UNAVAILABLE,
+                    "market_service not initialised",
+                )
+            symbol = body.get("symbol")
+            asset_type = body.get("asset_type")
+            all_asset_types = bool(body.get("all_asset_types", False))
+            older_than = body.get("older_than_seconds")
+            if older_than is not None:
+                n = market_service.purge_stale(int(older_than))
+                return {"purged_stale": n}
+            n = market_service.invalidate(
+                symbol=symbol,
+                asset_type=asset_type,
+                all_asset_types=all_asset_types,
+            )
+            return {"invalidated": n}
+
         @app.get("/api/harness/status")
         async def _harness_status() -> dict:
             h = app.state.harness

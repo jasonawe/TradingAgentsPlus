@@ -346,6 +346,45 @@ class QuoteService:
         value = self._setting(key, value)
         return os.getenv(env_key) or value
 
+    def invalidate(
+        self,
+        symbol: str | None = None,
+        asset_type: str | None = None,
+        *,
+        all_asset_types: bool = False,
+    ) -> int:
+        """Drop cached quotes immediately.
+
+        Without invalidation the cache is TTL-based (15–60s) which is
+        fine for normal traffic but too slow when:
+        - user manually clicks "refresh"
+        - an earnings announcement is published and stale data is
+          misleading
+        - watchlist item is added/removed (forcing a re-fetch)
+        - provider reports an error data correction
+
+        Args:
+            symbol: optional symbol to invalidate
+            asset_type: optional asset type filter
+            all_asset_types: when True with symbol, wipe all asset
+                types for that symbol (e.g. both stock + crypto)
+        Returns:
+            number of rows actually deleted
+        """
+        return self.repository.invalidate(
+            symbol=symbol,
+            asset_type=asset_type,
+            all_asset_types=all_asset_types,
+        )
+
+    def purge_stale(self, older_than_seconds: int = 300) -> int:
+        """Drop quotes older than ``older_than_seconds``.
+
+        Useful as a periodic housekeeping task alongside the
+        prewarmer. Returns row count deleted.
+        """
+        return self.repository.purge_stale(older_than_seconds)
+
     def _cached(self, symbol: str, asset_type: str) -> QuoteSnapshot | None:
         row = self.repository.get_latest(symbol, asset_type)
         if not row:

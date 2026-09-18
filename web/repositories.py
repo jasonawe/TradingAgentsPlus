@@ -331,6 +331,69 @@ class QuoteRepository:
         with self.store.connection() as conn:
             return _row(conn.execute("SELECT * FROM market_quotes WHERE symbol=? AND asset_type=?", (canonical, asset_type)).fetchone())
 
+    def invalidate(
+        self,
+        symbol: str | None = None,
+        asset_type: str | None = None,
+        *,
+        all_asset_types: bool = False,
+    ) -> int:
+        """Delete cached quotes. Returns the row count deleted.
+
+        Three modes:
+          - ``invalidate(symbol, asset_type)`` — delete one specific row
+          - ``invalidate(asset_type=...)`` — delete all rows of one asset class
+          - ``invalidate(all_asset_types=True)`` — nuke the entire cache
+
+        Used by QuoteService.invalidate() + manual admin endpoint +
+        prewarmer TTL bypass.
+        """
+        with self.store.connection() as conn:
+            if symbol:
+                canonical = normalize_ticker_symbol(symbol)
+                if not canonical:
+                    return 0
+                if not all_asset_types and asset_type:
+                    cur = conn.execute(
+                        "DELETE FROM market_quotes WHERE symbol=? AND asset_type=?",
+                        (canonical, asset_type),
+                    )
+                else:
+                    cur = conn.execute(
+                        "DELETE FROM market_quotes WHERE symbol=?",
+                        (canonical,),
+                    )
+                return cur.rowcount
+            if asset_type:
+                cur = conn.execute(
+                    "DELETE FROM market_quotes WHERE asset_type=?",
+                    (asset_type,),
+                )
+                return cur.rowcount
+            cur = conn.execute("DELETE FROM market_quotes")
+            return cur.rowcount
+
+    def purge_stale(self, older_than_seconds: int) -> int:
+        """Delete cached quotes older than ``older_than_seconds``.
+
+        ``fetched_at`` is the canonical cache age anchor — provider's
+        ``as_of`` can be the trading day for delayed/EOD data, so we
+        don't trust it for staleness calculation.
+        """
+        from datetime import datetime, timezone
+        cutoff = (
+            datetime.now(timezone.utc).timestamp() - older_than_seconds
+        )
+        cutoff_iso = datetime.fromtimestamp(
+            cutoff, tz=timezone.utc
+        ).isoformat()
+        with self.store.connection() as conn:
+            cur = conn.execute(
+                "DELETE FROM market_quotes WHERE fetched_at < ?",
+                (cutoff_iso,),
+            )
+            return cur.rowcount
+
     def upsert_candles(self, candles: list[dict[str, Any]]) -> None:
         with self.store.connection() as conn:
             for candle in candles:
