@@ -497,12 +497,29 @@ class SettingsRepository:
     # §P3-4 — LLM (harness main + L3 judge) provider/model. Persisted
     # so users can switch at runtime via the settings page without
     # restarting the service. Factory reads these with a 10s TTL cache.
+    #
+    # §P3-4 mode split (Phase 2):
+    #   LLM_MODEL            — fallback when quick/deep are unset
+    #                          (Phase 1 default; existing users keep
+    #                          working without any migration).
+    #   LLM_QUICK_MODEL      — model used for cheap / summarisation
+    #                          calls (data_agent / news_agent /
+    #                          alpha_agent). Wins over LLM_MODEL when set.
+    #   LLM_DEEP_MODEL       — model used for plan + synth (the
+    #                          user-facing reasoning path). Wins over
+    #                          LLM_MODEL when set.
+    #   LLM_JUDGE_PROVIDER / LLM_JUDGE_MODEL — dedicated L3 judge
+    #                          factory (always single model; the
+    #                          judge only does one task).
     LLM_PROVIDER = "llm.provider"
     LLM_MODEL = "llm.model"
+    LLM_QUICK_MODEL = "llm.quick_model"
+    LLM_DEEP_MODEL = "llm.deep_model"
     LLM_JUDGE_PROVIDER = "llm.judge_provider"
     LLM_JUDGE_MODEL = "llm.judge_model"
     LLM_KEYS = frozenset({
         LLM_PROVIDER, LLM_MODEL,
+        LLM_QUICK_MODEL, LLM_DEEP_MODEL,
         LLM_JUDGE_PROVIDER, LLM_JUDGE_MODEL,
     })
 

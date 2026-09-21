@@ -1382,7 +1382,12 @@ def create_app(
             # HarnessConfig snapshot. After the user changes the
             # provider/model on the settings page, this endpoint
             # reflects the new choice on the very next call.
-            main_p, main_m = h.llm_factory._resolve_cached()
+            # §P3-4 mode split — surface the resolved quick / deep
+            # models separately so the UI / status consumers can see
+            # exactly which model each call site is currently using.
+            main_p, _ = h.llm_factory._resolve_cached(mode="unspecified")
+            main_quick_m = h.llm_factory._resolve_cached(mode="quick")[1]
+            main_deep_m = h.llm_factory._resolve_cached(mode="deep")[1]
             judge_p, judge_m = h.judge_factory._resolve_cached()
             return {
                 "ok": True,
@@ -1396,7 +1401,8 @@ def create_app(
                 },
                 "llm": {
                     "provider": main_p,
-                    "model": main_m,
+                    "quick_model": main_quick_m,
+                    "deep_model": main_deep_m,
                     "configured": h.llm_factory.is_configured(),
                 },
                 "agents": [
@@ -1962,8 +1968,22 @@ def create_app(
         fields[SettingsRepository.LLM_PROVIDER] = _llm_field(
             SettingsRepository.LLM_PROVIDER, _factory_main_p, has_options=True,
         )
+        # §P3-4 mode split — when user picked quick/deep, show the
+        # *resolved* model for each mode (cached lookup) so the UI
+        # reflects what the factory actually uses, not the raw
+        # ``llm.model`` key. ``_llm_field`` falls back to the factory's
+        # resolved value when nothing is persisted, so the UI shows
+        # the live effective model.
+        _factory_main_quick_m = _factory_main._resolve_cached(mode="quick")[1] if _factory_main else ""
+        _factory_main_deep_m = _factory_main._resolve_cached(mode="deep")[1] if _factory_main else ""
         fields[SettingsRepository.LLM_MODEL] = _llm_field(
             SettingsRepository.LLM_MODEL, _factory_main_m,
+        )
+        fields[SettingsRepository.LLM_QUICK_MODEL] = _llm_field(
+            SettingsRepository.LLM_QUICK_MODEL, _factory_main_quick_m,
+        )
+        fields[SettingsRepository.LLM_DEEP_MODEL] = _llm_field(
+            SettingsRepository.LLM_DEEP_MODEL, _factory_main_deep_m,
         )
         fields[SettingsRepository.LLM_JUDGE_PROVIDER] = _llm_field(
             SettingsRepository.LLM_JUDGE_PROVIDER, _factory_judge_p, has_options=True,
@@ -2075,14 +2095,26 @@ def create_app(
         Body shape (all keys optional — omit to leave unchanged):
             {
                 "provider": "openai" | "anthropic" | ...,
-                "model": "gpt-4o-mini" | <custom>,
-                "judge_provider": "google" | ... | "",   # "" = disable dedicated judge (falls back to main factory)
+                "model": "gpt-4o-mini" | <custom>,    # Phase 1 fallback
+                "quick_model": "gpt-4o-mini-flash",   # §P3-4 mode split
+                "deep_model": "gpt-4o",               # §P3-4 mode split
+                "judge_provider": "google" | ... | "",
                 "judge_model": "gemini-1.5-pro" | <custom> | "",
             }
 
         Validation: ``provider`` / ``judge_provider`` (when non-empty)
         must appear in ``LLM_REGISTRY``. Model strings are free-form
         because some providers allow custom endpoint model IDs.
+
+        Mode split (Phase 2): when both ``quick_model`` and
+        ``deep_model`` are unset, every call site falls back to
+        ``model`` (Phase 1 single-model behaviour). When the user
+        picks a separate quick / deep model, calls in the cheap
+        summarisation path (data_agent / news_agent / alpha_agent)
+        use ``quick_model``; plan + synth (the user-facing reasoning
+        path) use ``deep_model``. ``llm.model`` is retained as the
+        safety net so users who never touched quick/deep keep
+        working unchanged.
         """
         from tradingagents.agent_harness.llm import LLM_REGISTRY
 
@@ -2090,41 +2122,52 @@ def create_app(
         allowed_providers = set(LLM_REGISTRY.keys())
         updated: dict[str, str] = {}
 
-        prov = data.get("provider")
-        if prov is not None:
-            if not isinstance(prov, str):
-                raise _error(status.HTTP_400_BAD_REQUEST, "provider must be a string")
-            if prov != "" and prov not in allowed_providers:
+        def _check_provider(value, field_label):
+            if not isinstance(value, str):
+                raise _error(status.HTTP_400_BAD_REQUEST, f"{field_label} must be a string")
+            if value != "" and value not in allowed_providers:
                 raise _error(
                     status.HTTP_400_BAD_REQUEST,
-                    f"unknown LLM provider; known: {sorted(LLM_REGISTRY)}",
+                    f"unknown {field_label}; known: {sorted(LLM_REGISTRY)}",
                 )
+
+        def _check_model(value, field_label):
+            if not isinstance(value, str):
+                raise _error(status.HTTP_400_BAD_REQUEST, f"{field_label} must be a string")
+
+        prov = data.get("provider")
+        if prov is not None:
+            _check_provider(prov, "provider")
             settings_repo.set(SettingsRepository.LLM_PROVIDER, prov, source="sqlite")
             updated["provider"] = prov
 
         model = data.get("model")
         if model is not None:
-            if not isinstance(model, str):
-                raise _error(status.HTTP_400_BAD_REQUEST, "model must be a string")
+            _check_model(model, "model")
             settings_repo.set(SettingsRepository.LLM_MODEL, model, source="sqlite")
             updated["model"] = model
 
+        quick_model = data.get("quick_model")
+        if quick_model is not None:
+            _check_model(quick_model, "quick_model")
+            settings_repo.set(SettingsRepository.LLM_QUICK_MODEL, quick_model, source="sqlite")
+            updated["quick_model"] = quick_model
+
+        deep_model = data.get("deep_model")
+        if deep_model is not None:
+            _check_model(deep_model, "deep_model")
+            settings_repo.set(SettingsRepository.LLM_DEEP_MODEL, deep_model, source="sqlite")
+            updated["deep_model"] = deep_model
+
         jprov = data.get("judge_provider")
         if jprov is not None:
-            if not isinstance(jprov, str):
-                raise _error(status.HTTP_400_BAD_REQUEST, "judge_provider must be a string")
-            if jprov != "" and jprov not in allowed_providers:
-                raise _error(
-                    status.HTTP_400_BAD_REQUEST,
-                    f"unknown judge provider; known: {sorted(LLM_REGISTRY)}",
-                )
+            _check_provider(jprov, "judge_provider")
             settings_repo.set(SettingsRepository.LLM_JUDGE_PROVIDER, jprov, source="sqlite")
             updated["judge_provider"] = jprov
 
         jmodel = data.get("judge_model")
         if jmodel is not None:
-            if not isinstance(jmodel, str):
-                raise _error(status.HTTP_400_BAD_REQUEST, "judge_model must be a string")
+            _check_model(jmodel, "judge_model")
             settings_repo.set(SettingsRepository.LLM_JUDGE_MODEL, jmodel, source="sqlite")
             updated["judge_model"] = jmodel
 

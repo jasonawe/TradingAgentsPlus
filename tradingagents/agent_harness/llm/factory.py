@@ -48,15 +48,30 @@ class LLMFactory:
     service.
     """
 
-    # §P3-4 — ``role`` strings accepted by :meth:`_resolve`. The main
-    # LLM uses ``"main"``; the L3 judge uses ``"judge"``. Roles map to
-    # the SettingsRepository keys ``llm.{role}_provider`` /
-    # ``llm.{role}_model`` (with ``main`` dropping the ``main_`` infix
-    # for readability — keys are ``llm.provider`` / ``llm.model``).
-    _ROLE_KEYS = {
-        "main": ("llm.provider", "llm.model"),
-        "judge": ("llm.judge_provider", "llm.judge_model"),
+    # §P3-4 mode split — main role resolves per-mode (quick vs deep)
+    # with ``llm.model`` as the backward-compat fallback. Judge role
+    # ignores ``mode`` (always single model).
+    #
+    # The dict shape is ``{role: (provider_key, {mode: model_key})}``.
+    # For main role: mode="quick" → ``llm.quick_model`` (else
+    # ``llm.model``); mode="deep" → ``llm.deep_model`` (else
+    # ``llm.model``). For judge: any mode → ``llm.judge_model``.
+    _ROLE_KEYS: dict[str, tuple[str, dict[str, str]]] = {
+        "main": ("llm.provider", {
+            "quick": "llm.quick_model",
+            "deep": "llm.deep_model",
+            # "unspecified" — explicit mode not declared by caller.
+            # Falls back to the legacy single-model key so Phase 1
+            # callers keep their existing behaviour.
+            "unspecified": "llm.model",
+        }),
+        "judge": ("llm.judge_provider", {
+            "quick": "llm.judge_model",
+            "deep": "llm.judge_model",
+            "unspecified": "llm.judge_model",
+        }),
     }
+    _VALID_MODES = frozenset({"quick", "deep", "unspecified"})
 
     def __init__(
         self,
@@ -81,43 +96,74 @@ class LLMFactory:
         self.settings_lookup = settings_lookup
         self.role = role if role in self._ROLE_KEYS else "main"
         self.lookup_ttl_seconds = lookup_ttl_seconds
-        # (provider, model, expires_at) — refreshed lazily by
-        # _resolve_cached(). ``expires_at = 0.0`` is a sentinel for
-        # "no cached value yet" so the first call always re-resolves.
-        self._cache_provider: str = ""
-        self._cache_model: str = ""
-        self._cache_expires_at: float = 0.0
+        # §P3-4 mode split — the cache is keyed by mode so quick / deep
+        # resolutions don't clobber each other within the same turn.
+        # Stored as ``{mode: (provider, model, expires_at)}`` where
+        # ``expires_at = 0.0`` means "no cached value yet" so the
+        # first call for that mode always re-resolves.
+        self._cache_by_mode: dict[str, tuple[str, str, float]] = {}
 
     def invalidate(self) -> None:
-        """Drop the cached (provider, model) so the next :meth:`make`
-        re-reads settings. Useful for tests and for the PATCH endpoint
-        to apply changes immediately rather than after TTL.
+        """Drop the cached (provider, model) for *every* mode so the
+        next :meth:`make` call re-reads settings. Useful for tests
+        and for the PATCH endpoint to apply changes immediately
+        rather than after TTL.
         """
-        self._cache_expires_at = 0.0
+        self._cache_by_mode.clear()
 
-    def _resolve_cached(self) -> tuple[str, str]:
+    def _resolve_cached(self, mode: str = "unspecified") -> tuple[str, str]:
         """Resolve the effective (provider, model) for this factory's
-        role. Cached for :attr:`lookup_ttl_seconds`.
+        role + mode. Cached for :attr:`lookup_ttl_seconds`.
 
-        Priority on each cache miss: settings_lookup → constructor
-        default (which already absorbed env vars at __init__).
+        Resolution priority on each cache miss:
+
+        1. ``settings_lookup(llm.provider)`` / ``settings_lookup(mode_key)``
+           — wins over defaults when both are non-empty.
+        2. ``self.default_provider`` / ``self.default_model`` — the
+           constructor defaults, which already absorbed the env vars
+           at ``__init__``.
+
+        ``mode`` selects which settings key holds the model:
+
+        * ``"quick"`` — cheap / summarisation calls. Reads
+          ``llm.quick_model``; falls back to ``llm.model`` when
+          ``quick_model`` is unset (Phase 1 backward compat).
+        * ``"deep"`` — plan / synth / final-answer calls. Reads
+          ``llm.deep_model``; falls back to ``llm.model``.
+        * ``"unspecified"`` — explicit mode not declared by caller.
+          Reads ``llm.model`` (Phase 1 single-model behaviour).
+
+        The mode string is normalised silently so an unknown value
+        behaves like ``"unspecified"`` (defensive — third-party
+        plugins may pass arbitrary strings).
         """
+        if mode not in self._VALID_MODES:
+            mode = "unspecified"
         now = time.monotonic()
-        if self._cache_expires_at > now and (self._cache_provider or self._cache_model):
-            return self._cache_provider, self._cache_model
+        cached = self._cache_by_mode.get(mode)
+        if cached is not None:
+            cached_p, cached_m, cached_expires = cached
+            if cached_expires > now and (cached_p or cached_m):
+                return cached_p, cached_m
         p, m = self.default_provider, self.default_model
         if self.settings_lookup is not None:
             try:
-                prov_key, model_key = self._ROLE_KEYS[self.role]
+                prov_key, model_keys = self._ROLE_KEYS[self.role]
                 p_setting = self.settings_lookup(prov_key)
-                m_setting = self.settings_lookup(model_key)
+                # Walk mode_key → fall back to legacy ``llm.model`` →
+                # fall back to constructor default. Each step keeps
+                # the value only if it's non-empty.
+                m_setting: str | None = None
+                for candidate_key in (model_keys[mode], "llm.model"):
+                    candidate = self.settings_lookup(candidate_key)
+                    if candidate:
+                        m_setting = candidate
+                        break
                 if p_setting and m_setting:
                     p, m = p_setting, m_setting
             except Exception as exc:
                 LOGGER.debug("LLMFactory settings_lookup failed: %s", exc)
-        self._cache_provider = p
-        self._cache_model = m
-        self._cache_expires_at = now + self.lookup_ttl_seconds
+        self._cache_by_mode[mode] = (p, m, now + self.lookup_ttl_seconds)
         return p, m
 
     def make(
@@ -125,16 +171,25 @@ class LLMFactory:
         provider: str | None = None,
         model: str | None = None,
         base_url: str | None = None,
+        *,
+        mode: str = "unspecified",
         **kwargs: Any,
     ) -> OpenAICompatibleProvider:
         """Return a configured :class:`LLMProvider`.
 
         Resolution priority: explicit ``provider`` / ``model`` kwargs →
-        ``settings_lookup`` (cached) → constructor defaults (env vars).
-        Raises ``ValueError`` if no provider/model can be resolved.
+        ``settings_lookup`` (cached, mode-aware) → constructor defaults
+        (env vars). Raises ``ValueError`` if no provider/model can be
+        resolved.
+
+        ``mode`` is one of ``"quick"`` / ``"deep"`` / ``"unspecified"``
+        and selects which settings key holds the model. See
+        :meth:`_resolve_cached` for the precedence rules. Callers
+        that don't care (most existing test fixtures, CLI bootstrap)
+        can leave it at the default.
         """
         if provider is None or model is None:
-            cached_p, cached_m = self._resolve_cached()
+            cached_p, cached_m = self._resolve_cached(mode=mode)
             provider = provider or cached_p
             model = model or cached_m
         if not provider or not model:
@@ -147,13 +202,15 @@ class LLMFactory:
         kwargs.setdefault("identity", self.identity or default_app_identity())
         return OpenAICompatibleProvider(provider, model, base_url=base_url, cache=self.cache, **kwargs)
 
-    def is_configured(self) -> bool:
+    def is_configured(self, *, mode: str = "unspecified") -> bool:
         """True iff a usable (provider, model) is currently resolvable.
 
         Reflects the live settings_lookup (with cache) so the
         orchestrator's :func:`maybe_degrade_to_tier1` correctly
         disables Tier 2/3 only when there is genuinely nothing
-        configured.
+        configured. ``mode`` lets the caller check "is there at
+        least a deep model configured?" without coupling to
+        ``_resolve_cached`` internals.
         """
-        p, m = self._resolve_cached()
+        p, m = self._resolve_cached(mode=mode)
         return bool(p and m)

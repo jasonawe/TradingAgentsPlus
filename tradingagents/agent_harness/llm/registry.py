@@ -9,7 +9,16 @@ from typing import Callable
 
 from .openai_provider import OpenAICompatibleProvider, make_openai_compatible
 
+# §P3-4 — every OpenAI-compatible endpoint listed in
+# tradingagents/llm_clients/model_catalog.MODEL_OPTIONS is registered
+# here, so the settings-page PATCH endpoint accepts any catalog
+# provider instead of rejecting "unknown provider" for entries that
+# the UI happily advertises (qwen / xai / glm / deepseek / ...).
+# Each entry maps to the same ``make_openai_compatible`` factory —
+# provider-specific URL / API key are picked up from
+# ``OpenAICompatibleProvider``'s own base-URL env lookup.
 LLM_REGISTRY: dict[str, Callable[..., OpenAICompatibleProvider]] = {
+    # v3-spec baseline providers
     "openai": make_openai_compatible,
     "anthropic": make_openai_compatible,
     "google": make_openai_compatible,
@@ -20,6 +29,18 @@ LLM_REGISTRY: dict[str, Callable[..., OpenAICompatibleProvider]] = {
     "minimax_cn": make_openai_compatible,
     "ollama": make_openai_compatible,
     "vllm": make_openai_compatible,
+    # Catalog-aligned providers (Phase 2)
+    "xai": make_openai_compatible,
+    "deepseek": make_openai_compatible,
+    "qwen": make_openai_compatible,
+    "qwen-cn": make_openai_compatible,
+    "glm": make_openai_compatible,
+    "glm-cn": make_openai_compatible,
+    "groq": make_openai_compatible,
+    "kimi": make_openai_compatible,
+    "mistral": make_openai_compatible,
+    "nvidia": make_openai_compatible,
+    "openai_compatible": make_openai_compatible,
 }
 
 

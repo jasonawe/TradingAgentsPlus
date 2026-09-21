@@ -129,13 +129,28 @@ class BaseAgent(ABC):
             and self.llm_factory.is_configured()
         )
 
-    def _llm_complete(self, prompt: str, *, temperature: float = 0.0) -> str | None:
+    def _llm_complete(
+        self,
+        prompt: str,
+        *,
+        temperature: float = 0.0,
+        mode: str = "deep",
+    ) -> str | None:
+        """Run a one-shot LLM completion and return the response text.
+
+        ``mode`` selects which factory slot the call goes through:
+        ``"quick"`` for cheap / summarisation tasks (data_agent,
+        news_agent, alpha_agent), ``"deep"`` for plan / synth paths
+        where reasoning quality matters. Default ``"deep"`` matches
+        the Phase 1 behaviour — every existing caller keeps its
+        previous cost/quality profile unless it opts into quick.
+        """
         if not self._llm_available():
             return None
         from tradingagents.agent_harness.core.token_usage import track_agent
         try:
             with track_agent(getattr(self, "name", type(self).__name__)):
-                provider = self.llm_factory.make()
+                provider = self.llm_factory.make(mode=mode)
                 response = provider.complete_text(
                     prompt=prompt, system=self.system_prompt, temperature=temperature
                 )

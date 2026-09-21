@@ -36,7 +36,8 @@ class AlphaAgent(BaseAgent):
         if tool_results and self._llm_available():
             summary = self._llm_complete(
                 f"Alpha158 factors: {tool_results[0]['result']}\n\n"
-                "Identify 3-5 most predictive factors for A-share momentum/reversal."
+                "Identify 3-5 most predictive factors for A-share momentum/reversal.",
+                mode="quick",
             )
             return AgentResult(
                 success=True,

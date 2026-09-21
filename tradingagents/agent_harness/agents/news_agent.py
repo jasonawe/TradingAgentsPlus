@@ -36,7 +36,8 @@ class NewsAgent(BaseAgent):
         if tool_results and self._llm_available():
             summary = self._llm_complete(
                 f"Symbol: {symbol}\nNews: {tool_results[0]['result']}\n\n"
-                "Summarize sentiment + dominant themes in 1-2 sentences."
+                "Summarize sentiment + dominant themes in 1-2 sentences.",
+                mode="quick",
             )
             return AgentResult(
                 success=True,

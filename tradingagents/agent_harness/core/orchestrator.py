@@ -2580,7 +2580,11 @@ class Orchestrator:
         if self.llm_factory is None or not self.llm_factory.is_configured():
             return []
         try:
-            provider = self.llm_factory.make()
+            # §P3-4 — plan generation always runs on the deep model.
+            # Plan quality drives downstream routing, so a cheaper
+            # quick model would risk producing shallow / misrouted
+            # plans.
+            provider = self.llm_factory.make(mode="deep")
             prompt = self._build_plan_prompt(state)
             response = provider.complete_text(prompt=prompt, system=self._PLAN_SYSTEM, temperature=0.0)
             content = getattr(response, "content", response)
@@ -2972,7 +2976,10 @@ class Orchestrator:
         except Exception:
             _citation_score = None
             _has_forward_claim = None
-        provider = self.llm_factory.make()
+        # §P3-4 — synthesise the final user-facing answer on the deep
+        # model. The synthesised text is what the user actually sees,
+        # so cost/quality tradeoff favours depth here.
+        provider = self.llm_factory.make(mode="deep")
         prompt = self._build_synthesize_prompt(state)
         # §P2 — turn-level L3 retry directive. If the L3 judge
         # flagged the previous attempt for unsupported numbers, the

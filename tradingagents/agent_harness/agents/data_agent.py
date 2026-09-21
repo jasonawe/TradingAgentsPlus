@@ -122,7 +122,7 @@ class DataAgent(BaseAgent):
             "Write a 1-2 sentence summary in the same language as the symbol description "
             "(Chinese for A-share codes like 600xxx.SH/600xxx.SS, English otherwise)."
         )
-        return self._llm_complete(prompt)
+        return self._llm_complete(prompt, mode="quick")
 
 
 # ════════════════════════════════════════════════════════

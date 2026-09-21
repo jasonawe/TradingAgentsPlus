@@ -221,15 +221,22 @@
     const providerEl = $("llm-provider");
     const modelEl = $("llm-model");
     const modelListEl = $("llm-model-suggestions");
+    const quickModelEl = $("llm-quick-model");
+    const quickModelListEl = $("llm-model-suggestions-quick");
+    const deepModelEl = $("llm-deep-model");
+    const deepModelListEl = $("llm-model-suggestions-deep");
     const judgeProviderEl = $("llm-judge-provider");
     const judgeModelEl = $("llm-judge-model");
     const judgeModelListEl = $("llm-judge-model-suggestions");
     const saveBtn = $("llm-save");
     const statusEl = $("llm-status");
-    if (!providerEl || !modelEl || !judgeProviderEl || !judgeModelEl || !saveBtn) return;
+    if (!providerEl || !modelEl || !quickModelEl || !deepModelEl ||
+        !judgeProviderEl || !judgeModelEl || !saveBtn) return;
 
     const providerField = fields["llm.provider"] || {};
     const modelField = fields["llm.model"] || {};
+    const quickModelField = fields["llm.quick_model"] || {};
+    const deepModelField = fields["llm.deep_model"] || {};
     const judgeProviderField = fields["llm.judge_provider"] || {};
     const judgeModelField = fields["llm.judge_model"] || {};
     const providerOptions = providerField.options || [];
@@ -245,27 +252,41 @@
       }
       select.innerHTML = opts.join("");
     }
-    function populateModelSuggestions(datalist, provider) {
+    // §P3-4 mode split — each input gets a datalist filtered to the
+    // relevant mode. ``quick`` for cheap/fast models, ``deep`` for
+    // flagship reasoning models, ``all`` (union) for the fallback
+    // ``model`` input that catches both modes when the user hasn't
+    // picked a separate quick/deep pair.
+    function populateModelSuggestions(datalist, provider, mode) {
       const entry = llmModels[provider] || { quick: [], deep: [] };
       const seen = new Set();
       const all = [];
-      for (const arr of [entry.quick, entry.deep]) {
-        for (const m of arr) {
-          if (m && m !== "custom" && !seen.has(m)) { seen.add(m); all.push(m); }
-        }
+      const list = mode === "quick" ? entry.quick
+        : mode === "deep" ? entry.deep
+        : [...(entry.quick || []), ...(entry.deep || [])];
+      for (const m of list) {
+        if (m && m !== "custom" && !seen.has(m)) { seen.add(m); all.push(m); }
       }
       datalist.innerHTML = all.map((m) => `<option value="${escapeHtml(m)}"></option>`).join("");
     }
 
     populateProvider(providerEl, providerField.value || "", false);
     populateProvider(judgeProviderEl, judgeProviderField.value || "", true);
-    populateModelSuggestions(modelListEl, providerEl.value);
-    populateModelSuggestions(judgeModelListEl, judgeProviderEl.value);
+    populateModelSuggestions(modelListEl, providerEl.value, "all");
+    populateModelSuggestions(quickModelListEl, providerEl.value, "quick");
+    populateModelSuggestions(deepModelListEl, providerEl.value, "deep");
+    populateModelSuggestions(judgeModelListEl, judgeProviderEl.value, "all");
     modelEl.value = modelField.value || "";
+    quickModelEl.value = quickModelField.value || "";
+    deepModelEl.value = deepModelField.value || "";
     judgeModelEl.value = judgeModelField.value || "";
 
-    providerEl.addEventListener("change", () => populateModelSuggestions(modelListEl, providerEl.value));
-    judgeProviderEl.addEventListener("change", () => populateModelSuggestions(judgeModelListEl, judgeProviderEl.value));
+    providerEl.addEventListener("change", () => {
+      populateModelSuggestions(modelListEl, providerEl.value, "all");
+      populateModelSuggestions(quickModelListEl, providerEl.value, "quick");
+      populateModelSuggestions(deepModelListEl, providerEl.value, "deep");
+    });
+    judgeProviderEl.addEventListener("change", () => populateModelSuggestions(judgeModelListEl, judgeProviderEl.value, "all"));
 
     // showSettings() is invoked multiple times; the save button is a
     // stable DOM node so we guard against double-listener attachment
@@ -281,6 +302,8 @@
             body: JSON.stringify({
               provider: providerEl.value,
               model: modelEl.value,
+              quick_model: quickModelEl.value,
+              deep_model: deepModelEl.value,
               judge_provider: judgeProviderEl.value,
               judge_model: judgeModelEl.value,
             }),

@@ -35,7 +35,7 @@ class SynthesizerAgent(BaseAgent):
                 f"Tool results: {_json.dumps(tool_results, ensure_ascii=False, default=str)[:6000]}\n\n"
                 "Write a concise answer in the same language as the user message."
             )
-            summary = self._llm_complete(prompt)
+            summary = self._llm_complete(prompt, mode="deep")
             if summary:
                 return AgentResult(
                     success=True,

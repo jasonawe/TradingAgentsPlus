@@ -92,7 +92,7 @@ class PlannerAgent(BaseAgent):
                 "Available agents and tools:\n" + "\n".join(caps_lines) +
                 "\n\nGenerate a JSON plan as a list of {step, agent OR action, args} objects."
             )
-            content = self._llm_complete(prompt, temperature=0.0)
+            content = self._llm_complete(prompt, temperature=0.0, mode="deep")
             plan = self._parse_plan(content) if content else []
             if plan:
                 return AgentResult(
@@ -291,7 +291,7 @@ def _v2_plan_via_llm(planner, message: str, symbols: list[str]) -> list[dict]:
         '"required": bool}. task_key is plan-local (e.g. "data_aapl").'
     )
     try:
-        content = planner._llm_complete(prompt, temperature=0.0)
+        content = planner._llm_complete(prompt, temperature=0.0, mode="deep")
     except Exception:
         return []
     if not content:
