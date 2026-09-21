@@ -41,6 +41,18 @@ LOGGER = logging.getLogger(__name__)
 class Harness:
     """Harness 主类 — 组装 tool/agent/registry + orchestrator, 提供统一入口."""
 
+    @classmethod
+    def from_data_dir(cls, data_dir, **kwargs):
+        """Build a Harness with a minimal config pointing at ``data_dir``.
+
+        Convenience constructor for tests + CLI bootstrap. Production
+        code should still pass a fully-built HarnessConfig.
+        """
+        from .config.schema import HarnessConfig
+        from pathlib import Path as _P
+        cfg = HarnessConfig(data_dir=_P(str(data_dir)))
+        return cls(config=cfg, **kwargs)
+
     def __init__(self, config: HarnessConfig | None = None) -> None:
         self.config = config or HarnessConfig.from_env()
 
@@ -242,6 +254,9 @@ class Harness:
             memory=self.memory,
         )
 
+        # 14. supervised AgentRuntime components (Task 19)
+        self._init_runtime_components()
+
         # §1.3 A3 — single-session-lifecycle facade. Built with
         # l1 + event_log; session_store + checkpoint_store are filled
         # in later by set_session_store / set_checkpoint_store. Missing
@@ -359,6 +374,84 @@ class Harness:
 # ---------------------------------------------------------------------------
 # FastAPI integration helper
 # ---------------------------------------------------------------------------
+
+    # ─── Task 19 — supervised Runtime assembly ────────────────────
+
+    def _init_runtime_components(self) -> None:
+        """Wire up RuntimeStore / scheduler / dispatcher / runtime / policy.
+
+        Coexists with the existing V1 execution path — Harness.stream_chat
+        still goes through the legacy Orchestrator (TurnCoordinator) until
+        Task 24 production cutover.
+        """
+        try:
+            from .runtime.store import AgentRuntimeStore
+            from .runtime.scheduler import TaskScheduler
+            from .runtime.dispatcher import AgentDispatcher
+            from .runtime.policy import PolicyGuard
+            from .runtime.projector import TraceProjector
+            from .agents.registry import AgentRegistry
+            from .agents.base import AgentDescriptor
+
+            runtime_db = self.config.data_dir / "agent_runtime.sqlite"
+            self.runtime_store = AgentRuntimeStore(runtime_db)
+
+            # Don't replace self.agent_registry — it's already populated
+            # by SubagentProvider with the real V1 agents.  Augment it
+            # with V2 descriptors for the builtins so runtime layer can
+            # do capability lookup + handoff metadata.
+            from .agents.base import BaseAgent, AgentResult
+            reg = self.agent_registry
+            builtin_specs = [
+                ("planner", ("planning",), "global", 10),
+                ("data_agent", ("domain_lookup",), "user", 5),
+                ("news_agent", ("news_lookup",), "user", 5),
+                ("alpha_agent", ("alpha_compute",), "user", 5),
+                ("verifier", ("verify_evidence", "verify_answer"), "global", 8),
+                ("synthesizer", ("synthesis",), "global", 8),
+            ]
+            class _BuiltinProxy(BaseAgent):
+                def __init__(self, n):
+                    self.name = n
+                    self.description = n
+                    self.tools = []
+                async def run(self, input, *, context):
+                    return AgentResult(success=True, content=n)
+            for name, caps, scope, prio in builtin_specs:
+                instance = reg.get(name) if reg.has(name) else _BuiltinProxy(name)
+                if not reg.has(name):
+                    reg.register(instance)
+                reg.register_v2(
+                    AgentDescriptor(
+                        name=name, version=2,
+                        capabilities=caps, scope=scope, priority=prio,
+                    ),
+                    instance=instance,
+                )
+            self.policy = PolicyGuard(
+                registry=None,
+                max_tasks=10, max_handoff_depth=2,
+                max_messages=20, max_repairs=1,
+                deadline_seconds=600.0, max_tokens=4000,
+            )
+            self.scheduler = TaskScheduler(self.runtime_store, lease_seconds=60)
+            self.dispatcher = AgentDispatcher(
+                agent_registry=reg,
+                command_resolver=None,
+                message_ingestor=None,
+                context_provider=None,
+            )
+            self.trace_projector = TraceProjector(store=self.runtime_store)
+            self.runtime = None
+        except Exception as exc:  # pragma: no cover
+            LOGGER.warning("Harness runtime assembly partial: %s", exc)
+            self.runtime_store = None
+            self.scheduler = None
+            self.dispatcher = None
+            self.runtime = None
+            self.policy = None
+            self.trace_projector = None
+
 
 def mount_health_endpoint(app, harness: "Harness", path: str = "/api/harness/health") -> None:
     """Attach the `` /api/harness/health `` endpoint to ``app``.
