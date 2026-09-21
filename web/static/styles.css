@@ -1255,3 +1255,37 @@ table.data .num { font-family: var(--mono); font-weight: 600; text-align: right;
         background: #052e16; border-color: #16a34a; color: #bbf7d0;
     }
 }
+
+/* ────────────────────────────────────────────────
+   Harness view — when is-harness-view is set, suppress the global
+   app sidebar + topbar-title. The harness view is a standalone
+   focused chat workspace.
+   ──────────────────────────────────────────────── */
+
+body.is-harness-view .sidebar,
+body.is-harness-view #sidebar-nav,
+body.is-harness-view .sidebar-backdrop,
+body.is-harness-view .topbar {
+  display: none !important;
+}
+body.is-harness-view .app-shell {
+  grid-template-columns: 1fr !important;
+  grid-template-rows: 1fr !important;
+}
+body.is-harness-view .main-area {
+  padding: 0 !important;
+  height: 100vh !important;
+}
+body.is-harness-view .page {
+  padding: 0 !important;
+  height: 100vh !important;
+}
+/* §Step 24 — on the standalone /harness page the harness view
+   should fill the entire viewport, not the 1200px max-width that
+   .view applies to the main app shell. The standalone harness.html
+   also tags <body class="is-harness-view"> so this rule matches. */
+body.is-harness-view .view {
+  max-width: none !important;
+  width: 100% !important;
+  height: 100vh !important;
+}

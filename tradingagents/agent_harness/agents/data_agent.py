@@ -123,3 +123,59 @@ class DataAgent(BaseAgent):
             "(Chinese for A-share codes like 600xxx.SH/600xxx.SS, English otherwise)."
         )
         return self._llm_complete(prompt)
+
+
+# ════════════════════════════════════════════════════════
+# V2 entry point — concurrent quote + fundamentals via ToolExecutor
+# ════════════════════════════════════════════════════════
+
+
+async def _data_agent_run_v2(
+    self, input: AgentInput, *, context: AgentContext
+):
+    """V2 entry: concurrent ``get_quote`` + ``get_fundamentals``."""
+    from .base import AgentReply
+
+    tool_executor = (context.extra or {}).get("tool_executor") if context.extra else None
+    if tool_executor is None:
+        return AgentReply(
+            success=False,
+            content="",
+            missing_items=("tool_executor",),
+            errors=("no tool_executor in context",),
+        )
+
+    symbols = (input.context or {}).get("symbols") or []
+    if not symbols:
+        return AgentReply(success=True, content="no symbols", missing_items=("symbols",))
+
+    async def _one(sym: str) -> dict:
+        async def quote():
+            return await tool_executor.invoke("get_quote", {"symbol": sym})
+        async def fundamentals():
+            return await tool_executor.invoke("get_fundamentals", {"symbol": sym})
+        return await asyncio.gather(quote(), fundamentals())
+
+    evidence = []
+    for sym in symbols:
+        try:
+            q, f = await _one(sym)
+        except Exception as e:
+            LOGGER.warning("data agent error for %s: %s", sym, e)
+            continue
+        evidence.append({
+            "symbol": sym,
+            "quote": q,
+            "fundamentals": f,
+        })
+
+    return AgentReply(
+        success=True,
+        content=f"fetched data for {len(evidence)} symbol(s)",
+        evidence=tuple(evidence),
+        confidence=0.9 if evidence else 0.0,
+        missing_items=() if evidence else ("all_symbols",),
+    )
+
+
+DataAgent.run_v2 = _data_agent_run_v2  # type: ignore[attr-defined]

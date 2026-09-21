@@ -81,3 +81,51 @@ class AlphaAgent(BaseAgent):
         except Exception as e:
             LOGGER.debug("AlphaAgent: %s raised: %s", tool_name, e)
             return None
+
+
+# ════════════════════════════════════════════════════════
+# V2 entry point — select list / compute / evaluate from inputs
+# ════════════════════════════════════════════════════════
+
+
+async def _alpha_agent_run_v2(
+    self, input: AgentInput, *, context: AgentContext
+):
+    """V2 entry: select compute / list / evaluate path from objective+inputs."""
+    from .base import AgentReply
+
+    tool_executor = (context.extra or {}).get("tool_executor") if context.extra else None
+    if tool_executor is None:
+        return AgentReply(
+            success=False,
+            content="",
+            missing_items=("tool_executor",),
+            errors=("no tool_executor in context",),
+        )
+
+    action = (input.context or {}).get("action") or "compute"
+    factor = (input.context or {}).get("factor") or "alpha_default"
+
+    tool_name = {
+        "list": "alpha_list_factors",
+        "compute": "alpha_compute",
+        "evaluate": "alpha_evaluate",
+    }.get(action, "alpha_compute")
+
+    try:
+        result = await tool_executor.invoke(
+            tool_name, {"factor": factor, "action": action},
+        )
+    except Exception as e:
+        LOGGER.warning("alpha agent error: %s", e)
+        return AgentReply(success=False, errors=(str(e),))
+
+    return AgentReply(
+        success=True,
+        content=f"alpha {action} for {factor}",
+        evidence=({"factor": factor, "action": action, "result": result},),
+        confidence=0.7,
+    )
+
+
+AlphaAgent.run_v2 = _alpha_agent_run_v2  # type: ignore[attr-defined]

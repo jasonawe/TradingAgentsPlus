@@ -491,6 +491,15 @@ def create_app(
         from tradingagents.agent_harness.harness import Harness, mount_health_endpoint
         app.state.harness = Harness()
         mount_health_endpoint(app, app.state.harness, path="/api/harness/health")
+        # Step 33 — wire the WorkflowSpecRegistry so YAML specs under
+        # tradingagents/agent_harness/workflows/specs/ are introspectable
+        # and runnable via /api/harness/workflows/specs/*.
+        from tradingagents.agent_harness.core.workflow_spec_registry import (
+            WorkflowSpecRegistry,
+        )
+        app.state.workflow_specs = WorkflowSpecRegistry(
+            orchestrator=app.state.harness.orchestrator,
+        )
         # Step 28-E — wire a persistent plan cache so they survive
         # uvicorn restarts / gunicorn worker reloads. Resolved relative
         # to active_config["data_dir"] (default .ta_cache) and falls
@@ -658,6 +667,50 @@ def create_app(
                 "count": len(sessions),
             }
 
+        @app.get("/api/harness/sessions/{session_id}")
+        async def _harness_get_session(session_id: str) -> dict:
+            """Return a single session metadata record.
+
+            Used by the UI's boot-time reconcile to probe whether a
+            localStorage-cached session id is still known to the
+            server (older `hc-*` sessions may not appear in the list
+            endpoint if they were never marked active, but they're
+            still persisted).
+            """
+            from fastapi import HTTPException
+            store = _get_session_store()
+            if store is None:
+                raise HTTPException(status_code=503, detail="session_store_unavailable")
+            sess = store.get(session_id)
+            if sess is None:
+                raise HTTPException(status_code=404, detail="session_not_found")
+            return sess.to_dict()
+
+        @app.get("/api/harness/sessions/{session_id}/messages")
+        async def _harness_session_messages(session_id: str) -> dict:
+            """Return chat history for the session (L1 memory).
+
+            Used by the harness UI to restore the message list when the
+            user switches back to a session that already has a
+            conversation. Returns ``[]`` when the session has no history
+            yet OR when the harness memory layer isn't wired.
+            """
+            harness_obj = getattr(app.state, "harness", None)
+            memory = getattr(harness_obj, "memory", None) if harness_obj else None
+            if memory is None:
+                return {"session_id": session_id, "messages": [],
+                        "error": "memory_unavailable"}
+            try:
+                history = memory.get_history(session_id)
+            except Exception as e:
+                return {"session_id": session_id, "messages": [],
+                        "error": f"history_fetch_failed: {e!r}"}
+            return {
+                "session_id": session_id,
+                "messages": history or [],
+                "count": len(history or []),
+            }
+
         @app.post("/api/harness/sessions")
         async def _harness_create_session(body: dict | None = None) -> dict:
             import uuid
@@ -673,6 +726,32 @@ def create_app(
                 "session_id": sid,
                 "persisted": True,
                 "title": body.get("title"),
+            }
+
+        @app.patch("/api/harness/sessions/{session_id}")
+        async def _harness_patch_session(session_id: str, body: dict | None = None) -> dict:
+            """Partially update session metadata (title / token_total).
+
+            Body: ``{"title": "..."}`` or ``{"token_total": 123}``.
+            Returns ``{"ok": True, "session_id": ...}`` on success or
+            ``{"ok": False, "error": "session_store_unavailable"}`` when
+            the store is unconfigured.
+            """
+            body = body or {}
+            store = _get_session_store()
+            if store is None:
+                return {"ok": False, "error": "session_store_unavailable"}
+            updated = store.update_metadata(
+                session_id,
+                title=body.get("title"),
+                token_total=body.get("token_total"),
+            )
+            return {
+                "ok": True,
+                "session_id": session_id,
+                "updated": updated,
+                "title": body.get("title"),
+                "token_total": body.get("token_total"),
             }
 
         @app.delete("/api/harness/sessions/{session_id}")
@@ -1202,18 +1281,55 @@ def create_app(
 
         @app.get("/api/harness/workflows")
         async def _harness_workflows_list() -> dict:
-            """List all built-in workflows (id + display name)."""
+            """List all workflows (built-in + YAML specs)."""
+            from tradingagents.agent_harness.core.post_execute_workflow import (
+                build_post_execute_workflow,
+            )
+            from tradingagents.agent_harness.core.classify_plan_execute_workflow import (
+                build_classify_plan_execute_workflow,
+            )
+            from tradingagents.agent_harness.core.parallel_fetch_workflow import (
+                build_parallel_fetch_workflow,
+            )
+            builtins = [
+                {"id": "post-execute",
+                 "label": "observe -> verify -> synthesize",
+                 "kind": "builtin"},
+                {"id": "classify-plan-execute",
+                 "label": "plan -> execute -> observe -> verify -> synthesize",
+                 "kind": "builtin"},
+                {"id": "parallel-fetch",
+                 "label": "fan-out: quote + news + fundamentals -> synthesize",
+                 "kind": "builtin"},
+            ]
+            yaml_specs = app.state.workflow_specs.list()
+            for s in yaml_specs:
+                s["kind"] = "yaml"
             return {
-                "workflows": [
-                    {"id": "post-execute",
-                     "label": "observe -> verify -> synthesize"},
-                    {"id": "classify-plan-execute",
-                     "label": "plan -> execute -> observe -> verify -> synthesize"},
-                    {"id": "parallel-fetch",
-                     "label": "fan-out: quote + news + fundamentals -> synthesize"},
-                ],
-                "count": 3,
+                "workflows": builtins + yaml_specs,
+                "count": len(builtins) + len(yaml_specs),
             }
+
+        @app.get("/api/harness/workflows/specs/{name}")
+        async def _harness_workflow_spec_yaml(name: str) -> dict:
+            """Return the raw YAML text + parsed spec for a YAML workflow."""
+            text = app.state.workflow_specs.get_yaml_text(name)
+            if isinstance(text, list):
+                raise _error(status.HTTP_404_NOT_FOUND, "; ".join(text))
+            return {"name": name, "yaml": text}
+
+        @app.post("/api/harness/workflows/specs/{name}/load")
+        async def _harness_workflow_spec_load(name: str) -> dict:
+            """Force-reload a YAML spec from disk and return the resulting
+            workflow's node + edge list as JSON."""
+            from tradingagents.agent_harness.core.workflow_viz import to_json
+            wf_or_errs = app.state.workflow_specs.reload(name)
+            if isinstance(wf_or_errs, list):
+                raise _error(
+                    status.HTTP_400_BAD_REQUEST,
+                    f"workflow {name!r} failed to load: {'; '.join(wf_or_errs)}",
+                )
+            return {"name": name, "graph": to_json(wf_or_errs)}
 
         @app.post("/api/market/invalidate")
         async def _market_invalidate(body: dict) -> dict:
@@ -1277,8 +1393,21 @@ def create_app(
     except Exception as e:
         LOGGER.warning("harness mount skipped: %s", e)
 
+    # Static assets: harness.js / harness.css change frequently and a
+    # stale cached bundle can surface as runtime errors (e.g.
+    # "safeAssistant is not defined") that the user sees but the
+    # server doesn't. A tiny middleware adds ``Cache-Control: no-cache``
+    # to every /static/* response so browsers always revalidate.
+    # 304s still work via ETag for zero-cost revalidation.  §Step 41.
     if _STATIC_DIR.is_dir():
         app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
+
+        @app.middleware("http")
+        async def _no_cache_static(request, call_next):
+            resp = await call_next(request)
+            if request.url.path.startswith("/static/"):
+                resp.headers["cache-control"] = "no-cache, must-revalidate"
+            return resp
 
     def _console_entry() -> Response:
         index_path = _STATIC_DIR / "index.html"
@@ -1288,6 +1417,27 @@ def create_app(
         return HTMLResponse(
             "<!doctype html><title>TradingAgents</title><h1>TradingAgents</h1>",
             headers=headers,
+        )
+
+    def _harness_entry() -> Response:
+        """Serve the harness-only HTML shell.
+
+        §Step 24 — the harness view is rendered on its own minimal
+        page (no global app sidebar / topbar / other views) so users
+        get a focused chat workspace with the chat panel taking the
+        full viewport. Falls back to the main index.html when the
+        dedicated file is missing.
+        """
+        harness_path = _STATIC_DIR / "harness.html"
+        index_path = _STATIC_DIR / "index.html"
+        chosen = harness_path if harness_path.is_file() else index_path
+        if chosen.is_file():
+            return FileResponse(
+                chosen, media_type="text/html",
+                headers={"Cache-Control": "no-store, must-revalidate"},
+            )
+        return HTMLResponse(
+            "<!doctype html><title>P8 Harness</title><h1>Harness view unavailable</h1>",
         )
 
     @app.get("/", response_class=HTMLResponse, include_in_schema=False)
@@ -1300,9 +1450,12 @@ def create_app(
     @app.get("/alerts", response_class=HTMLResponse, include_in_schema=False)
     @app.get("/notes", response_class=HTMLResponse, include_in_schema=False)
     @app.get("/agent-audit", response_class=HTMLResponse, include_in_schema=False)
-    @app.get("/harness", response_class=HTMLResponse, include_in_schema=False)
     def index() -> Response:
         return _console_entry()
+
+    @app.get("/harness", response_class=HTMLResponse, include_in_schema=False)
+    def harness_index() -> Response:
+        return _harness_entry()
 
     @app.get("/reports/{report_id}", response_class=HTMLResponse, include_in_schema=False)
     def report_index(report_id: str) -> Response:

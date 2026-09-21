@@ -82,3 +82,64 @@ class NewsAgent(BaseAgent):
         except Exception as e:
             LOGGER.debug("NewsAgent: %s raised: %s", tool_name, e)
             return None
+
+
+# ════════════════════════════════════════════════════════
+# V2 entry point — lookback freshness validation
+# ════════════════════════════════════════════════════════
+
+
+async def _news_agent_run_v2(
+    self, input: AgentInput, *, context: AgentContext
+):
+    """V2 entry: validate as_of / lookback, fetch via ToolExecutor."""
+    from datetime import datetime, timezone
+    from .base import AgentReply
+
+    tool_executor = (context.extra or {}).get("tool_executor") if context.extra else None
+    if tool_executor is None:
+        return AgentReply(
+            success=False,
+            content="",
+            missing_items=("tool_executor",),
+            errors=("no tool_executor in context",),
+        )
+
+    symbols = (input.context or {}).get("symbols") or []
+    lookback_days = int((input.context or {}).get("lookback_days") or 7)
+    as_of_str = (input.context or {}).get("as_of")
+
+    try:
+        as_of = datetime.fromisoformat(as_of_str) if as_of_str else datetime.now(timezone.utc)
+    except Exception:
+        as_of = datetime.now(timezone.utc)
+    if as_of.tzinfo is None:
+        as_of = as_of.replace(tzinfo=timezone.utc)
+
+    now = datetime.now(timezone.utc)
+    age_days = (now - as_of).days
+    missing: list[str] = []
+    if age_days > lookback_days:
+        missing.append(f"as_of older than lookback ({age_days}d > {lookback_days}d)")
+
+    evidence = []
+    for sym in symbols:
+        try:
+            res = await tool_executor.invoke(
+                "get_news", {"symbol": sym, "lookback_days": lookback_days},
+            )
+        except Exception as e:
+            LOGGER.warning("news agent error for %s: %s", sym, e)
+            continue
+        evidence.append({"symbol": sym, "items": res.get("items", []) if isinstance(res, dict) else []})
+
+    return AgentReply(
+        success=True,
+        content=f"news for {len(evidence)} symbol(s)",
+        evidence=tuple(evidence),
+        confidence=0.8 if evidence else 0.0,
+        missing_items=tuple(missing),
+    )
+
+
+NewsAgent.run_v2 = _news_agent_run_v2  # type: ignore[attr-defined]

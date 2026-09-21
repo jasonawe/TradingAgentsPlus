@@ -375,17 +375,46 @@ def extract_slots(message: str) -> dict[str, Any]:
     # (since_ts). Accepted keywords: today / tomorrow / 分析日 /
     # 交易日 / 用 / 以. Bare-ISO fallback only fires when no
     # time_range has been extracted — Step 5.B's since_ts wins.
+    #
+    # §Step 22 — analysis-context gate. The plain "今天"/"今日"/
+    # "today" / "明天" / "明日" / "tomorrow" / bare-ISO fallbacks
+    # only fire when the message also carries an *analysis-context
+    # anchor* — either a ticker / asset code (extract_symbols is
+    # non-empty) or an explicit analysis verb (分析 / 研究 / 估值 /
+    # 评估 / 跑 / compare / evaluate / ...). Without this gate the
+    # keyword scan turns plain date questions ("今天周几" /
+    # "现在几点" / "今天天气如何") into (RUN, CREATE) routing and
+    # the LLM has to fight its way back out of a full trading
+    # analysis pipeline. The hardcoded ISO path still runs without
+    # the gate so users can paste a specific date in a clearly
+    # analysis-shaped message.
     today = _dt.date.today()
-    if any(kw in message for kw in ("今天", "今日", "today")):
-        out["trade_date"] = today.isoformat()
-    elif any(kw in message for kw in ("明天", "明日", "tomorrow")):
-        out["trade_date"] = (today + _dt.timedelta(days=1)).isoformat()
-    elif "time_range" not in out:
+    has_ticker = bool(extract_symbols(message or ""))
+    _ANALYSIS_VERBS = (
+        "分析", "研究", "估值", "评估", "跑", "深度", "行情",
+        "走势", "compare", "evaluate", "analyze", "analyse",
+        "valuation", "深度分析",
+    )
+    has_analysis_verb = any(kw in (message or "") for kw in _ANALYSIS_VERBS)
+    has_analysis_ctx = has_ticker or has_analysis_verb
+    if has_analysis_ctx:
+        if any(kw in message for kw in ("今天", "今日", "today")):
+            out["trade_date"] = today.isoformat()
+        elif any(kw in message for kw in ("明天", "明日", "tomorrow")):
+            out["trade_date"] = (today + _dt.timedelta(days=1)).isoformat()
+    if "time_range" not in out:
         m = re.search(r"(\d{4}[-/]\d{1,2}[-/]\d{1,2})", message)
         if m:
             try:
                 d = _dt.date.fromisoformat(m.group(1).replace("/", "-"))
-                out["trade_date"] = d.isoformat()
+                # Bare ISO path is gated on has_analysis_ctx above
+                # so a stray date in a non-analysis message never
+                # leaks into trade_date. The "explicit 分析日 /
+                # 交易日 / 用 / 以" keywords (added in §Step6.B)
+                # still flow through here by virtue of being
+                # analysis-shaped messages.
+                if has_analysis_ctx:
+                    out["trade_date"] = d.isoformat()
             except ValueError:
                 pass
 

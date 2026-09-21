@@ -1,0 +1,28 @@
+# Step 37 — parallel fetch + aggregate in YAML.
+#
+# Handlers ``quote`` / ``news`` / ``fundamentals`` / ``aggregate``
+# map to the orchestrator's bound tool methods. The end node uses
+# the ``noop`` handler so the workflow halts after aggregation.
+name: parallel-fetch
+description: "fan-out: quote + news + fundamentals -> synthesize"
+nodes:
+  - id: quote
+    handler: quote
+  - id: news
+    handler: news
+  - id: fundamentals
+    handler: fundamentals
+  - id: aggregate
+    handler: aggregate
+  - id: "<end>"
+    handler: noop
+edges:
+  - from: quote
+    to: aggregate
+  - from: news
+    to: aggregate
+  - from: fundamentals
+    to: aggregate
+  - from: aggregate
+    to: "<end>"
+entry: quote

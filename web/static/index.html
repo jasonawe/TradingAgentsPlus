@@ -411,29 +411,94 @@
       </section></section>
       <section id="harness-view" class="view" aria-labelledby="harness-title" hidden>
         <h1 id="harness-title" class="visually-hidden" data-i18n="harness.title">理财通用 Agent (P8)</h1>
-        <div class="harness-page">
-          <div class="harness-toolbar">
-            <span class="harness-banner" data-i18n="harness.banner">P8 harness · LLM + 6 agents + L3 judge · 与 WebRunRunner 并行</span>
-            <div class="harness-toolbar-actions">
+
+        <!-- Harness layout: 3-column grid (sidebar | chat | inspector).
+             Replaces the old toolbar-over-chat layout. -->
+        <div class="harness-layout">
+
+          <!-- ── Left: Session list ── -->
+          <aside class="harness-sidebar" aria-label="会话列表">
+            <div class="harness-sidebar-header">
+              <button type="button" id="harness-new-session-btn" class="harness-new-chat-btn" title="新建会话">
+                <svg width="14" height="14" aria-hidden="true"><use href="#i-plus"/></svg>
+                <span>新对话</span>
+              </button>
+            </div>
+            <div class="harness-sidebar-search">
+              <svg width="14" height="14" aria-hidden="true" class="harness-sidebar-search-icon"><use href="#i-search"/></svg>
+              <input type="search" id="harness-session-search" placeholder="搜索会话" aria-label="搜索会话" />
+            </div>
+            <nav id="harness-session-list" class="harness-session-list" aria-label="活动会话"></nav>
+            <div class="harness-sidebar-footer">
               <label class="harness-grant-all" title="开启后所有写操作自动放行,关闭后恢复逐条审批">
                 <input type="checkbox" id="harness-grant-all" />
                 <span>全权限</span>
               </label>
-              <!-- §Step 19 — session switcher. Dropdown lists active sessions
-                   persisted on the server; 新建 creates a fresh row and
-                   删除 removes the current one. -->
-              <select id="harness-session-select" class="harness-session-select" title="切换会话" aria-label="切换会话"></select>
-              <button type="button" id="harness-new-session-btn" class="text-button" title="新建会话">+ 新建</button>
-              <button type="button" id="harness-delete-session-btn" class="text-button" title="删除当前会话">删除</button>
-              <button type="button" id="harness-fork-session-btn" class="text-button" title="基于当前会话 fork 出新会话(继承 L3 上下文)">fork</button>
-              <button type="button" id="harness-clear-btn" class="text-button" data-i18n="actions.clear">清空</button>
             </div>
-          </div>
-          <div id="harness-messages" class="harness-messages" aria-live="polite"></div>
-          <form id="harness-form" class="harness-form" autocomplete="off">
-            <textarea id="harness-input" rows="2" data-i18n-placeholder="harness.placeholder" placeholder="例:深度分析 600036.SS 估值,或对比 600036 / 600000"></textarea>
-            <button type="submit" id="harness-send-btn" class="btn btn-primary" data-i18n="actions.send">发送</button>
-          </form>
+          </aside>
+
+          <!-- ── Center: Chat ── -->
+          <main class="harness-main">
+            <header class="harness-main-header">
+              <div class="harness-main-title">
+                <strong id="harness-current-title">新对话</strong>
+                <div class="harness-current-meta">
+                  <span class="harness-current-dot"></span>
+                  <span id="harness-current-sub">LLM + 6 agents · L3 judge</span>
+                </div>
+              </div>
+              <div class="harness-main-actions">
+                <button type="button" id="harness-inspector-toggle" class="harness-icon-btn" title="切换侧边检查器" aria-label="切换侧边检查器">
+                  <svg width="16" height="16" aria-hidden="true"><use href="#i-search"/></svg>
+                </button>
+                <span class="harness-action-divider"></span>
+                <button type="button" id="harness-fork-session-btn" class="text-button" title="Fork 会话(继承 L3 上下文)">
+                  <svg width="13" height="13" aria-hidden="true" style="vertical-align:-2px;margin-right:3px"><use href="#i-plus"/></svg>fork
+                </button>
+                <button type="button" id="harness-clear-btn" class="text-button" title="清空当前会话的对话历史">
+                  <svg width="13" height="13" aria-hidden="true" style="vertical-align:-2px;margin-right:3px"><use href="#i-refresh"/></svg>清空
+                </button>
+                <button type="button" id="harness-delete-session-btn" class="text-button" data-variant="danger" title="删除当前会话">
+                  <svg width="13" height="13" aria-hidden="true" style="vertical-align:-2px;margin-right:3px"><use href="#i-x-close"/></svg>删除
+                </button>
+              </div>
+            </header>
+            <!-- 隐藏的 session select 保留以兼容 harness.js 既有逻辑(渲染时不使用,只复用 state) -->
+            <select id="harness-session-select" hidden></select>
+            <div id="harness-messages" class="harness-messages" aria-live="polite"></div>
+            <form id="harness-form" class="harness-form" autocomplete="off">
+              <textarea id="harness-input" rows="3" data-i18n-placeholder="harness.placeholder" placeholder="例:深度分析 600036.SS 估值,或对比 600036 / 600000"></textarea>
+              <button type="submit" id="harness-send-btn" class="btn btn-primary" data-i18n="actions.send">
+                <svg width="16" height="16" aria-hidden="true"><use href="#i-plus"/></svg>
+              </button>
+            </form>
+          </main>
+
+          <!-- ── Right: Inspector ── -->
+          <aside class="harness-inspector" aria-label="检查器">
+            <div class="harness-inspector-tabs">
+              <button type="button" class="harness-inspector-tab is-active" data-tab="workflow">工作流</button>
+              <button type="button" class="harness-inspector-tab" data-tab="events">事件</button>
+            </div>
+            <div class="harness-inspector-body" id="harness-inspector-body">
+              <div class="harness-inspector-pane is-active" data-pane="workflow">
+                <div class="harness-inspector-empty" id="harness-workflow-empty">
+                  <div class="harness-inspector-empty-icon">⌘</div>
+                  <div style="font-weight:600;color:var(--ink-2);margin-bottom:6px;">工作流</div>
+                  <div>每个 turn 完成后,这里会渲染分类 → 计划 → 执行 → 综合 的执行链路。</div>
+                  <div style="margin-top:14px;font-size:0.74rem;opacity:0.7;">试试发条消息开始?</div>
+                </div>
+              </div>
+              <div class="harness-inspector-pane" data-pane="events">
+                <div class="harness-inspector-empty" id="harness-events-empty">
+                  <div class="harness-inspector-empty-icon">⚡</div>
+                  <div style="font-weight:600;color:var(--ink-2);margin-bottom:6px;">事件流</div>
+                  <div>工具调用、L3 judge 决策、审批门控都会实时出现在这里。</div>
+                </div>
+                <ul class="harness-event-feed" id="harness-event-feed"></ul>
+              </div>
+            </div>
+          </aside>
         </div>
       </section>
       <div id="modal-root" class="modal-root" aria-hidden="true"></div>

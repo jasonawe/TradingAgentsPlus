@@ -32,7 +32,7 @@ from .context import ToolContext
 from .permission import PermissionType
 from .capabilities import Capability
 
-from .schema import ToolSchema
+from .schema import ToolSchema, SideEffectMode
 
 # ----------------------------------------------------------------------
 # Layer 1: read tools
@@ -369,7 +369,11 @@ async def list_alpha_factors() -> ListAlphaFactorsResult:
 
 class ComputeAlphaFactorsArgs(BaseModel):
     symbol: str
-    factors: list[str] = Field(default_factory=lambda: ["alpha_001", "alpha_002"])
+    # §Step 41 — ``None`` (or empty) means "compute every factor
+    # registered in the alpha158 library". Keeps the public surface
+    # backward-compatible: existing callers passing an explicit list
+    # still get exactly that subset.
+    factors: list[str] | None = None
 
 
 class ComputeAlphaFactorsResult(BaseModel):
@@ -378,6 +382,18 @@ class ComputeAlphaFactorsResult(BaseModel):
 
 
 async def compute_alpha_factors(args: ComputeAlphaFactorsArgs) -> ComputeAlphaFactorsResult:
+    # §Step 41 — resolve the factor list: explicit list wins,
+    # otherwise ask the alpha158 library for its full registry. This
+    # keeps callers like Tier 1 short_circuit (which only pass symbol)
+    # useful out of the box.
+    from tradingagents.dataflows.alpha_factors import list_factors
+    try:
+        names = [s.name for s in list_factors()]
+    except Exception:
+        names = []
+    factors = list(args.factors) if args.factors else names
+    if not factors:
+        factors = ["alpha_001", "alpha_002"]
     # W3-D2 E3: pull OHLCV from the active alpha_provider and compute
     # the requested factors via the local alpha158 library. When the
     # provider has no data (empty df) we fall back to the pre-seam
@@ -387,19 +403,19 @@ async def compute_alpha_factors(args: ComputeAlphaFactorsArgs) -> ComputeAlphaFa
     df = provider.load_ohlcv(args.symbol, asset_type="stock")
     if df is None or df.empty:
         return ComputeAlphaFactorsResult(
-            symbol=args.symbol, values={f: 0.0 for f in args.factors}
+            symbol=args.symbol, values={f: 0.0 for f in factors}
         )
     try:
         from tradingagents.dataflows.alpha_factors import compute_factors
-        out = compute_factors(df, args.factors)
+        out = compute_factors(df, factors)
     except Exception:
         return ComputeAlphaFactorsResult(
-            symbol=args.symbol, values={f: 0.0 for f in args.factors}
+            symbol=args.symbol, values={f: 0.0 for f in factors}
         )
     # compute_factors returns a DataFrame (one col per factor) keyed
     # by date. Take the most recent row as the current factor reading.
     values: dict[str, float] = {}
-    for f in args.factors:
+    for f in factors:
         if f in out.columns and not out[f].empty:
             last = out[f].dropna()
             values[f] = float(last.iloc[-1]) if not last.empty else 0.0
@@ -1569,7 +1585,10 @@ def install_builtin_tools(registry) -> None:
         permission=PermissionType.READ,
         metadata={
             "capabilities": [Capability.ALPHA.value],
-            "display_view": "alpha_list",
+            # §Step 41 — alpha numeric values render via the
+            # ``alpha`` renderer (markdown table). ``alpha_list`` is
+            # for the bare factor-name catalogue (``list_alpha_factors``).
+            "display_view": "alpha",
             "category": "data",
         },
         cache_ttl_seconds=600,
@@ -1618,6 +1637,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=AddToWatchlistResult,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.WATCHLIST.value],
             "display_view": "ack",
             "category": "crud",
@@ -1635,6 +1655,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=RemoveFromWatchlistResult,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.WATCHLIST.value],
             "display_view": "ack",
             "category": "crud",
@@ -1662,6 +1683,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.ALERT.value],
             "display_view": "ack",
             "category": "crud",
@@ -1674,6 +1696,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.ALERT.value],
             "display_view": "ack",
             "category": "crud",
@@ -1686,6 +1709,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.ALERT.value],
             "display_view": "ack",
             "category": "crud",
@@ -1700,6 +1724,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.ALERT.value],
             "display_view": "ack",
             "category": "crud",
@@ -1714,6 +1739,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.NOTE.value],
             "display_view": "ack",
             "category": "crud",
@@ -1728,6 +1754,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.SCHEDULED.value],
             "display_view": "ack",
             "category": "crud",
@@ -1741,6 +1768,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.NOTE.value],
             "display_view": "ack",
             "category": "crud",
@@ -1753,6 +1781,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.NOTE.value],
             "display_view": "ack",
             "category": "crud",
@@ -1765,6 +1794,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.NOTE.value],
             "display_view": "ack",
             "category": "crud",
@@ -1851,6 +1881,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.RUN.value],
             "display_view": "ack",
             "category": "crud",
@@ -1880,6 +1911,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.RUN.value],
             "display_view": "ack",
             "category": "crud",
@@ -1893,6 +1925,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.SCHEDULED.value],
             "display_view": "ack",
             "category": "crud",
@@ -1911,6 +1944,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.SCHEDULED.value],
             "display_view": "ack",
             "category": "crud",
@@ -1924,6 +1958,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.SCHEDULED.value],
             "display_view": "ack",
             "category": "crud",
@@ -1937,6 +1972,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.SCHEDULED.value],
             "display_view": "ack",
             "category": "crud",

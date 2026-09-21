@@ -213,3 +213,248 @@ class PlannerAgent(BaseAgent):
             for line in _WRITE_TOOL_CATALOG
         ]
         return agents + write_tools
+
+
+# ════════════════════════════════════════════════════════
+# V2 — PlanGraph output (Task 15)
+# ════════════════════════════════════════════════════════
+
+# Plan-local task_key namespaces — kept short and stable for testability
+_DATA_TASK_PREFIX = "data"
+_NEWS_TASK_PREFIX = "news"
+_ALPHA_TASK_PREFIX = "alpha"
+
+# Rejected agent / action names — Planner 不应发出
+_REJECTED_AGENTS = frozenset({"verifier", "synthesizer"})
+_REJECTED_ACTIONS = frozenset({
+    "create_note", "update_note", "delete_note", "delete_notes_for_symbol",
+    "create_alert", "update_alert", "delete_alert", "delete_alerts_for_symbol",
+    "add_to_watchlist", "remove_from_watchlist",
+    "create_scheduled_task", "update_scheduled_task",
+    "delete_scheduled_task", "delete_scheduled_tasks_for_symbol",
+    "run_scheduled_task",
+})
+
+
+def _intent_from_message(msg: str) -> set[str]:
+    """Classify the user's intent by keyword presence."""
+    m = msg or ""
+    out = set()
+    if any(kw in m for kw in ("新闻", "news", "资讯")):
+        out.add("news")
+    if any(kw in m for kw in ("alpha", "compute", "因子", "IC")):
+        out.add("alpha")
+    # default: data
+    out.add("data")
+    return out
+
+
+class _PlanCache:
+    """Tiny LRU cache keyed by (user_message, tuple(symbols))."""
+
+    def __init__(self, max_entries: int = 256) -> None:
+        self._entries: dict[tuple, Any] = {}
+        self._max = max_entries
+
+    def _key(self, user_message: str, symbols: list[str]) -> tuple:
+        return (user_message.strip(), tuple(symbols or []))
+
+    def get(self, user_message: str, symbols: list[str]):
+        return self._entries.get(self._key(user_message, symbols))
+
+    def put(self, user_message: str, symbols: list[str], graph) -> None:
+        if len(self._entries) >= self._max:
+            # evict oldest arbitrary entry
+            self._entries.pop(next(iter(self._entries)))
+        self._entries[self._key(user_message, symbols)] = graph
+
+
+def _v2_plan_via_llm(planner, message: str, symbols: list[str]) -> list[dict]:
+    """Try to get a V2 plan from the LLM.
+
+    Returns ``[]`` when LLM is unavailable, returns invalid JSON, or
+    returns a plan that contains rejected agents / write actions.
+    """
+    if not planner._llm_available():
+        return []
+    caps = planner._capability_catalog()
+    caps_lines = [
+        f"- {c['agent']}: {c['capability']}" for c in caps
+    ]
+    prompt = (
+        f"User message: {message}\n\n"
+        f"Symbols: {symbols}\n\n"
+        "Available agents (domain only — no verifier/synthesizer/tools):\n"
+        + "\n".join(caps_lines)
+        + '\n\nReturn a JSON list of {"task_key": str, "agent": str, '
+        '"capability": str, "objective": str, "inputs": dict, '
+        '"required": bool}. task_key is plan-local (e.g. "data_aapl").'
+    )
+    try:
+        content = planner._llm_complete(prompt, temperature=0.0)
+    except Exception:
+        return []
+    if not content:
+        return []
+    text = content.strip()
+    text = re.sub(r"^```(?:json)?\s*", "", text)
+    text = re.sub(r"```\s*$", "", text)
+    try:
+        data = json.loads(text)
+    except Exception:
+        return []
+    if not isinstance(data, list):
+        return []
+    cleaned: list[dict] = []
+    for entry in data:
+        if not isinstance(entry, dict):
+            continue
+        agent = entry.get("agent") or entry.get("action") or ""
+        if agent in _REJECTED_AGENTS or agent in _REJECTED_ACTIONS:
+            # 拒绝 verifier / synthesizer / 写 tool
+            continue
+        cleaned.append(entry)
+    return cleaned
+
+
+def _v2_plan_heuristic(symbols: list[str], intents: set[str]) -> list[dict]:
+    """Deterministic fallback: emit one task per (symbol × intent)."""
+    if not symbols:
+        return []
+    plan: list[dict] = []
+    for sym in symbols:
+        for intent in sorted(intents):
+            if intent == "data":
+                plan.append({
+                    "task_key": f"{_DATA_TASK_PREFIX}_{sym.lower()}",
+                    "agent": "data_agent",
+                    "capability": "domain_lookup",
+                    "objective": f"lookup quote + fundamentals for {sym}",
+                    "inputs": {"symbol": sym, "carry_symbols": []},
+                    "required": True,
+                })
+            elif intent == "news":
+                plan.append({
+                    "task_key": f"{_NEWS_TASK_PREFIX}_{sym.lower()}",
+                    "agent": "news_agent",
+                    "capability": "news_lookup",
+                    "objective": f"fetch recent news for {sym}",
+                    "inputs": {"symbol": sym},
+                    "required": False,
+                })
+            elif intent == "alpha":
+                plan.append({
+                    "task_key": f"{_ALPHA_TASK_PREFIX}_{sym.lower()}",
+                    "agent": "alpha_agent",
+                    "capability": "alpha_compute",
+                    "objective": f"compute alpha factors for {sym}",
+                    "inputs": {"symbol": sym},
+                    "required": False,
+                })
+    return plan
+
+
+# Monkey-patch: extend PlannerAgent with V2 method
+def _planner_plan_v2(self, input: AgentInput, *, context: AgentContext):
+    """V2 entry point — return a typed ``PlanGraph`` (domain tasks only)."""
+    from tradingagents.agent_harness.runtime.models import (
+        PlanGraph as _PlanGraph,
+        PlanTask as _PlanTask,
+        RunBudgets as _RunBudgets,
+    )
+
+    symbols = _TICKER_RE.findall(input.user_message or "")
+    extra_symbols = (input.context or {}).get("symbols") or []
+    if isinstance(extra_symbols, list):
+        symbols = list(dict.fromkeys(list(symbols) + list(extra_symbols)))
+
+    # Plan cache hit
+    if self._plan_cache is None:
+        self._plan_cache = _PlanCache()
+    cached = self._plan_cache.get(input.user_message, symbols)
+    if cached is not None:
+        return cached
+
+    # LLM 路径(可能 fallback)
+    raw = _v2_plan_via_llm(self, input.user_message, symbols)
+    if not raw:
+        intents = _intent_from_message(input.user_message)
+        raw = _v2_plan_heuristic(symbols, intents)
+
+    # 转换为 typed PlanTask
+    domain_tasks = []
+    for entry in raw:
+        try:
+            task = _PlanTask(
+                task_key=str(entry["task_key"]),
+                agent=str(entry["agent"]),
+                capability=str(entry.get("capability") or ""),
+                objective=str(entry.get("objective") or ""),
+                inputs=dict(entry.get("inputs") or {}),
+                depends_on=list(entry.get("depends_on") or []),
+                required=bool(entry.get("required", True)),
+            )
+        except Exception:
+            continue
+        domain_tasks.append(task)
+
+    budgets = _RunBudgets(
+        max_dynamic_tasks=6,
+        max_messages=20,
+        max_handoff_depth=2,
+        max_repairs_per_task=1,
+        max_total_tokens=4000,
+        deadline_at=_deadline_default(),
+    )
+    graph = _PlanGraph(domain_tasks=domain_tasks, budgets=budgets)
+    self._plan_cache.put(input.user_message, symbols, graph)
+    return graph
+
+
+def _deadline_default():
+    from datetime import datetime, timedelta, timezone
+    return (datetime.now(timezone.utc) + timedelta(seconds=600)).isoformat()
+
+
+PlannerAgent.plan_v2 = _planner_plan_v2  # type: ignore[attr-defined]
+
+
+def _planner_capability_catalog(self) -> list[dict[str, Any]]:
+    """V2 capability catalog — pulled from the AgentRegistry V2 entries.
+
+    Only domain agents (data / news / alpha) are exposed; verifier and
+    synthesizer are excluded — they are runtime-added.
+    """
+    reg = getattr(self, "agent_registry", None)
+    if reg is None:
+        return [
+            {"agent": "data_agent", "capability": "domain_lookup"},
+            {"agent": "alpha_agent", "capability": "alpha_compute"},
+            {"agent": "news_agent", "capability": "news_lookup"},
+        ]
+    out: list[dict[str, Any]] = []
+    for name in reg.list():
+        descriptor = reg.descriptor(name)
+        if descriptor is None:
+            continue
+        if name in _REJECTED_AGENTS:
+            continue
+        for cap in descriptor.capabilities:
+            out.append({"agent": name, "capability": cap})
+    return out
+
+
+PlannerAgent._capability_catalog = _planner_capability_catalog  # type: ignore[attr-defined]
+
+
+# Allow AgentRegistry injection — PlannerAgent.__init__ can accept agent_registry
+_orig_init = PlannerAgent.__init__
+
+
+def _patched_init(self, *, agent_registry=None, **kwargs):
+    _orig_init(self, **kwargs)
+    self.agent_registry = agent_registry
+    self._plan_cache = _PlanCache()
+
+
+PlannerAgent.__init__ = _patched_init  # type: ignore[assignment]

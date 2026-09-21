@@ -1,0 +1,34 @@
+# Step 32 — classify -> plan -> execute prefix in YAML.
+#
+# Note: the classify->plan->execute prefix still needs handler
+# aliases for the plan/execute steps too. For now this spec is
+# exposed via /api/harness/workflows/specs for inspection. The
+# orchestrator's imperative _stream_chat_impl still owns plan +
+# execute (Step 32 left them inline). Aliases below are reserved
+# names; the registry will resolve them when plan + execute
+# become bound handlers.
+name: classify-plan-execute
+description: "plan -> execute -> observe -> verify -> synthesize"
+nodes:
+  - id: plan
+    handler: observe
+  - id: execute
+    handler: observe
+  - id: observe
+    handler: observe
+  - id: verify
+    handler: verify
+  - id: synthesize
+    handler: synthesize
+edges:
+  - from: plan
+    to: execute
+  - from: execute
+    to: observe
+  - from: observe
+    to: verify
+  - from: verify
+    to: synthesize
+  - from: synthesize
+    to: "<end>"
+entry: plan

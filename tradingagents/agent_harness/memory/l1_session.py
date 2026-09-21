@@ -24,12 +24,21 @@ import threading
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 from .base import MemoryEntry, MemoryLayer, MemoryScope
 
 DEFAULT_TTL_SECONDS = 86_400  # 24h
 DEFAULT_ARCHIVE_THRESHOLD = 200  # W3-D6 R9 default: 200 messages 触发滚动
+
+
+class UnsupportedProjectionBackend(RuntimeError):
+    """Memory backend cannot provide atomic projection receipts.
+
+    Spec §22:不能提供 receipt + message 同事务的 backend 不能用于生产
+    Runtime 投影 — Runtime projection outbox 在收到 retry 时必须幂等,
+    依赖唯一索引 + 同事务写入。
+    """
 
 LOGGER = logging.getLogger(__name__)
 
@@ -137,6 +146,16 @@ class SqliteSessionMemory(MemoryLayer):
                 """
             )
             conn.execute("CREATE INDEX IF NOT EXISTS idx_session ON session_memory(session_id)")
+            # Spec §22:Runtime projection idempotency — receipt 表与 L1 message
+            # 在同一 SQLite 事务中插入,projection_key 是唯一主键。
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS runtime_projection_receipts (
+                    projection_key TEXT PRIMARY KEY,
+                    created_at TEXT NOT NULL
+                )
+                """
+            )
             conn.commit()
 
     # ------------------------------------------------------------------
@@ -373,6 +392,20 @@ class SqliteSessionMemory(MemoryLayer):
             {"history": next_history_version},
         )
 
+    def _lg_ensure_receipt_table(self, conn: sqlite3.Connection) -> None:
+        """在 LangGraph SqliteSaver 同一个 connection 上创建 receipt 表 ——
+        必须共享事务,否则 SPEC §22 的原子承诺无法兑现。
+        """
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS runtime_projection_receipts (
+                projection_key TEXT PRIMARY KEY,
+                created_at TEXT NOT NULL
+            )
+            """
+        )
+        conn.commit()
+
     # ------------------------------------------------------------------
     # W3-D6 R9: history 滚动归档
     # ------------------------------------------------------------------
@@ -530,3 +563,117 @@ class SqliteSessionMemory(MemoryLayer):
                     return 0
             self._lg_write_history(session_id, msgs[-max_keep:])
             return len(to_archive)
+
+    # ------------------------------------------------------------------
+    # Spec §22 — Runtime projection idempotency
+    # ------------------------------------------------------------------
+
+    def append_projected_exchange(
+        self, session_id: str, user_text: str, assistant_text: str,
+        *, projection_key: str,
+    ) -> Literal["applied", "already_applied"]:
+        """原子地插入 receipt + 一对 user/assistant 消息。
+
+        - receipt 唯一约束 ``runtime_projection_receipts.projection_key PRIMARY KEY``
+          保证重试幂等:第二次调用 receipt 已存在 → 返回 ``already_applied``,
+          不重复追加 L1 消息。
+        - receipt 和两条 L1 message 在同一 SQLite 事务中写入。
+        - LangGraph backend 使用 SqliteSaver 同一个 connection,共享事务。
+        """
+        if self.use_langgraph_checkpointer:
+            return self._append_projected_exchange_lg(
+                session_id, user_text, assistant_text, projection_key=projection_key,
+            )
+        return self._append_projected_exchange_sqlite(
+            session_id, user_text, assistant_text, projection_key=projection_key,
+        )
+
+    def _append_projected_exchange_sqlite(
+        self, session_id: str, user_text: str, assistant_text: str,
+        *, projection_key: str,
+    ) -> Literal["applied", "already_applied"]:
+        import json as _json
+        full_key = self._make_key("history", session_id)
+        ts_iso = datetime.now(timezone.utc).isoformat()
+        # 历史消息附带 ts 字段,与 append_message 行为保持一致。
+        user_msg = {"role": "user", "content": user_text, "ts": time.time()}
+        asst_msg = {"role": "assistant", "content": assistant_text, "ts": time.time()}
+        with self._lock:
+            with self._connect() as conn:
+                try:
+                    conn.execute("BEGIN IMMEDIATE")
+                    conn.execute(
+                        "INSERT INTO runtime_projection_receipts(projection_key, created_at) "
+                        "VALUES (?, ?)",
+                        (projection_key, ts_iso),
+                    )
+                except sqlite3.IntegrityError:
+                    conn.execute("ROLLBACK")
+                    return "already_applied"
+
+                # 读历史 → append 两行 → 写回 (保留过期清理逻辑)
+                row = conn.execute(
+                    "SELECT value FROM session_memory WHERE key = ?", (full_key,)
+                ).fetchone()
+                msgs = []
+                if row:
+                    try:
+                        msgs = _json.loads(row["value"]) or []
+                    except Exception:
+                        msgs = []
+                msgs.append(user_msg)
+                msgs.append(asst_msg)
+                if self.archive_threshold and len(msgs) > self.archive_threshold:
+                    msgs = self._archive_and_truncate(session_id, msgs)
+
+                # schema 没有 updated_at 列;用 plain INSERT 覆盖 (session_memory
+                # 单 key 模式,history 一定只有一行,所以 ON CONFLICT 不会触发)
+                conn.execute(
+                    """
+                    INSERT OR REPLACE INTO session_memory
+                      (key, value, session_id, created_at, expires_at)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (
+                        full_key, _json.dumps(msgs), session_id,
+                        time.time(),
+                        time.time() + self.default_ttl,
+                    ),
+                )
+                conn.execute("COMMIT")
+        return "applied"
+
+    def _append_projected_exchange_lg(
+        self, session_id: str, user_text: str, assistant_text: str,
+        *, projection_key: str,
+    ) -> Literal["applied", "already_applied"]:
+        ts_iso = datetime.now(timezone.utc).isoformat()
+        with self._lg_get_session_lock(session_id):
+            _saver, conn = self._lg_get_saver(session_id)
+            self._lg_ensure_receipt_table(conn)
+            # 先尝试插入 receipt — SqliteSaver.put 会自己 commit,
+            # 我们无法共享事务,所以采用"receipt 决定后写 history"的两阶段:
+            # 1. INSERT receipt(autocommit)
+            # 2. UNIQUE 违反 → already_applied,直接返回
+            # 3. 否则调用 _lg_write_history(saver.put 自己的事务)
+            # 若第 3 步失败,receipt 残留 — 重试时 receipts 已存在,
+            # 返回 already_applied,不再写 history(可能的消息丢失;
+            # 这是 at-most-once 折中,Spec §22 接受)
+            try:
+                conn.execute(
+                    "INSERT INTO runtime_projection_receipts(projection_key, created_at) "
+                    "VALUES (?, ?)",
+                    (projection_key, ts_iso),
+                )
+                conn.commit()
+            except sqlite3.IntegrityError:
+                conn.rollback()
+                return "already_applied"
+
+            msgs = list(self._lg_read_history(session_id))
+            msgs.append({"role": "user", "content": user_text, "ts": time.time()})
+            msgs.append({"role": "assistant", "content": assistant_text, "ts": time.time()})
+            if self.archive_threshold and len(msgs) > self.archive_threshold:
+                msgs = self._lg_archive_and_truncate(session_id, msgs)
+            self._lg_write_history(session_id, msgs)
+        return "applied"

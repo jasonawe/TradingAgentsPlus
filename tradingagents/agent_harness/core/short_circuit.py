@@ -60,12 +60,11 @@ class ShortCircuit:
                 yield ev
             return
 
-        tool_name = self._tool_for_intent(route.intent, slots)
+        symbol = route.symbols[0] if route.symbols else ""
+        tool_name = self._tool_for_intent(route.intent, slots, symbol=symbol)
         if not tool_name:
             yield ("warning", {"message": f"no Tier 1 tool for intent={route.intent}"})
             return
-
-        symbol = route.symbols[0] if route.symbols else ""
         # §Step 18 — symbol-less queries reach Tier 1 when the slot
         # carries an identifier the tool can consume (currently just
         # ``report_id`` → ``get_report``). Without this, "读报告
@@ -120,13 +119,35 @@ class ShortCircuit:
             # string the frontend renders via renderMarkdown().
             friendly = None
             if isinstance(result_payload, dict):
+                # §Step 41 — prefer this ShortCircuit's own registry
+                # metadata for the ``display_view`` lookup. Falling back
+                # to ``Orchestrator._friendly_summary`` still works
+                # (it consults ``get_default_tool_registry``), but in
+                # tests / sandbox the default registry is empty so the
+                # only way to render alpha / quote / news / etc. nicely
+                # is to read the tool's registered metadata here.
+                view_key = None
                 try:
-                    from .orchestrator import Orchestrator as _O
-                    friendly = _O._friendly_summary(
-                        result_payload, tool_name=tool_name,
-                    )
+                    t = self.registry.get(tool_name)
+                    view_key = t.schema.metadata.get("display_view")
                 except Exception:
-                    friendly = None
+                    view_key = None
+                if view_key:
+                    try:
+                        from tradingagents.agent_harness.tools.display_view import (
+                            display_view_for,
+                        )
+                        friendly = display_view_for(result_payload, intent=view_key)
+                    except Exception:
+                        friendly = None
+                if friendly is None:
+                    try:
+                        from .orchestrator import Orchestrator as _O
+                        friendly = _O._friendly_summary(
+                            result_payload, tool_name=tool_name,
+                        )
+                    except Exception:
+                        friendly = None
             yield ("agent_final", {
                 "tier": int(Tier.DIRECT),
                 "result": friendly if friendly is not None else result_payload,
@@ -159,13 +180,13 @@ class ShortCircuit:
         """
         results: list[dict[str, Any]] = []
         for intent, op in route.multi_pairs:
-            tool_name = self._tool_for_intent(intent, slots)
+            symbol = route.symbols[0] if route.symbols else ""
+            tool_name = self._tool_for_intent(intent, slots, symbol=symbol)
             if not tool_name:
                 yield ("warning", {
                     "message": f"no Tier 1 tool for intent={intent.value}",
                 })
                 continue
-            symbol = route.symbols[0] if route.symbols else ""
             try:
                 tool = self.registry.get(tool_name)
                 args_schema = tool.schema.args_schema
@@ -292,7 +313,11 @@ class ShortCircuit:
         return {"value": str(result)}
 
     @staticmethod
-    def _tool_for_intent(intent: Intent, slots: dict | None = None) -> str:
+    def _tool_for_intent(
+        intent: Intent,
+        slots: dict | None = None,
+        symbol: str = "",
+    ) -> str:
         # §7.3 #12 — every read-capable intent gets a default Tier 1
         # read tool so we never emit "no Tier 1 tool for intent=NOTE"
         # warnings. Write intents still go through Tier 2 (CRUD
@@ -300,6 +325,13 @@ class ShortCircuit:
         # §Step 16 — when a report_id slot is present, route to
         # get_report (which fetches full markdown) instead of
         # list_reports (which only returns metadata).
+        # §Step 41 — alpha intent: when a symbol is present, route
+        # to ``compute_alpha_factors`` (real numeric values) instead of
+        # ``list_alpha_factors`` (just the factor name catalogue).
+        # Without this, "算一下 600036.SS 的 alpha158 因子" silently
+        # fell through to the name list.
+        if intent == Intent.ALPHA and symbol:
+            return "compute_alpha_factors"
         if intent == Intent.REPORT and slots and "report_id" in slots:
             return "get_report"
         return {

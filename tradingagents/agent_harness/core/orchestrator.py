@@ -204,6 +204,17 @@ class OrchestratorState:
     tool_results: list[dict[str, Any]] = field(default_factory=list)
     final: Any = None
     error: str | None = None
+    # §P2 — synth retry on L3 fail: turn-level retry counter + the
+    # directive string injected into the next ``_llm_synthesize``
+    # call. Set by ``_stream_chat_impl`` after L3 ungrounded; cleared
+    # by ``_llm_synthesize`` after it consumes the directive. Capped
+    # at ``Orchestrator._SYNTH_TURN_RETRY_LIMIT``.
+    synth_retry_count: int = 0
+    synth_retry_directive: str | None = None
+    # The most recent L3 verdict, set by ``_run_l3_judge`` so the
+    # orchestrator loop can decide whether to retry without
+    # re-running the LLM judge.
+    last_l3: Any = None
     # §7.3 #9 Prefetcher: created by ``_plan`` after the plan is known;
     # ``_execute`` awaits ``drain()`` and consults ``lookup()`` for cache
     # hits so tool calls fired in parallel between plan and execute
@@ -1463,6 +1474,16 @@ class Orchestrator:
                 friendly = self._friendly_summary(
                     final_dump, tool_name=tool_name_hint,
                 )
+            # §Step 23 — unwrap the synthesised payload's ``summary``
+            # when _friendly_summary fell back to a JSON dump. The
+            # synth_node always populates ``summary`` for Tier 2 turns
+            # (see ``_synthesize``); dumping the whole dict on the UI
+            # is a regression vs. just rendering the prose answer.
+            if (friendly
+                and isinstance(final_dump, dict)
+                and isinstance(final_dump.get("summary"), str)
+                and friendly.lstrip().startswith("{")):
+                friendly = final_dump["summary"]
             yield await _emit("agent_final", {
                 "tier": int(Tier.PLAN_EXECUTE),
                 "result": friendly if friendly else final_dump,
@@ -1475,6 +1496,82 @@ class Orchestrator:
             # spinning up the full 5-node state machine.
             async for ev, payload in self._run_l3_judge(state):
                 yield await _emit(ev, payload)
+
+            # §P2 — turn-level synth retry on L3 claim_audit fail.
+            # When the L3 verdict is ungrounded AND the failure came
+            # specifically from claim_audit (unsupported numbers, not
+            # a tool failure), we re-trigger ``_synthesize`` once
+            # with a directive naming the unsupported claims. The
+            # orchestrator caps total attempts at:
+            #   1 initial + intra-synth retry + 1 turn-level retry.
+            l3 = getattr(state, "last_l3", None)
+            if (
+                    l3 is not None
+                    and not l3.ok
+                    and getattr(state, "synth_retry_count", 0)
+                        < self._SYNTH_TURN_RETRY_LIMIT
+            ):
+                # Only retry when the failure mentions unsupported
+                # claims (claim_audit or forward-claim fabrication),
+                # NOT for trivial tool-call failures.
+                unsupported = (
+                    (l3.details or {}).get("claim_audit_unsupported")
+                    if isinstance(l3.details, dict) else None
+                ) or []
+                is_claim_fail = bool(unsupported) or any(
+                    "forward" in (r or "").lower()
+                    or "claim_audit" in (r or "").lower()
+                    or "缺乏出处" in (r or "")
+                    for r in (l3.issues or [])
+                )
+                if is_claim_fail:
+                    state.synth_retry_count += 1
+                    state.synth_retry_directive = (
+                        self._SYNTH_TURN_RETRY_HINT_TMPL.format(
+                            unsupported=", ".join(
+                                str(u) for u in unsupported[:6]
+                            ) or "(see previous issues)"
+                        )
+                    )
+                    LOGGER.info(
+                        "synth turn-level retry #%d due to claim_audit fail",
+                        state.synth_retry_count,
+                    )
+                    async for _ev in _step_start("synthesizing"):
+                        yield _ev
+                    final = await self._synthesize(state)
+                    async for _ev in _step_end("synthesizing", "ok"):
+                        yield _ev
+                    state.final = final
+                    # Re-render the friendly summary with the new
+                    # ``final`` so the agent_final reflects the
+                    # retried answer.
+                    final_dump = self._dump(final)
+                    friendly = None
+                    if isinstance(final_dump, dict):
+                        friendly = self._friendly_summary(
+                            final_dump, tool_name=tool_name_hint,
+                        )
+                    yield await _emit("synth_retried", {
+                        "attempt": state.synth_retry_count,
+                        "unsupported": unsupported,
+                    })
+                    if (friendly
+                        and isinstance(final_dump, dict)
+                        and isinstance(final_dump.get("summary"), str)
+                        and friendly.lstrip().startswith("{")):
+                        friendly = final_dump["summary"]
+                    yield await _emit("agent_final", {
+                        "tier": int(Tier.PLAN_EXECUTE),
+                        "result": friendly if friendly else final_dump,
+                        "result_raw": final_dump,
+                        "scope": (state.slots or {}).get("scope", "user"),
+                    })
+                    # Re-run L3 to surface the new verdict. The
+                    # verdict is appended but we do NOT loop again
+                    # (we've already used our turn-level budget).
+                    async for ev, payload in self._run_l3_judge(state):
+                        yield await _emit(ev, payload)
 
             if self.audit is not None and hasattr(self.audit, "log"):
                 try:
@@ -2250,6 +2347,9 @@ class Orchestrator:
                 tool_results=state.tool_results,
                 llm_answer=llm_answer,
             )
+            # §P2 — stash on state so ``_stream_chat_impl`` can decide
+            # whether to trigger a turn-level synth retry.
+            state.last_l3 = l3
             if not l3.ok:
                 # Spec §D6 back-to-plan on fail.
                 state.plan.append({
@@ -2804,6 +2904,24 @@ class Orchestrator:
         "returned that data — otherwise stick to observed numbers only."
     )
 
+    # §P2 — turn-level synth retry. When the L3 judge fails on
+    # ``claim_audit`` (numbers in the prose not backed by tools), the
+    # orchestrator can re-trigger ``_llm_synthesize`` once with a
+    # specific directive naming the unsupported claims. Default 1
+    # keeps total attempts ≤ 1 initial + 1 intra + 1 turn-level.
+    _SYNTH_TURN_RETRY_LIMIT = 1
+    _SYNTH_TURN_RETRY_HINT_TMPL = (
+        "\n\nIMPORTANT (L3 retry hint): The previous answer was "
+        "flagged by claim_audit for the following unsupported numbers "
+        "or forward claims: {unsupported}.\n"
+        "- If these numbers are NOT in the tool results, REMOVE them "
+        "or replace them with the tool-returned values.\n"
+        "- If they came from general knowledge, mark them with "
+        "\"参考\" / \"常识\" so the L3 judge can "
+        "down-weight them instead of failing.\n"
+        "- Do NOT add new numbers that aren't in the tool results."
+    )
+
     async def _llm_synthesize(self, state: OrchestratorState) -> Any:
         """Real LLM synthesis when configured; fallback dict otherwise.
 
@@ -2833,6 +2951,15 @@ class Orchestrator:
             _has_forward_claim = None
         provider = self.llm_factory.make()
         prompt = self._build_synthesize_prompt(state)
+        # §P2 — turn-level L3 retry directive. If the L3 judge
+        # flagged the previous attempt for unsupported numbers, the
+        # orchestrator stashed a specific directive here. We consume
+        # it on the first attempt and clear it so intra-synth retries
+        # use the citation retry hint instead.
+        l3_directive = getattr(state, "synth_retry_directive", None)
+        if l3_directive:
+            prompt = prompt + "\n\n" + l3_directive
+            state.synth_retry_directive = None
         last_content = None
         # Identify data tools used so we can decide whether citation
         # retry is even meaningful (skip retry on trivial CRUD acks).
