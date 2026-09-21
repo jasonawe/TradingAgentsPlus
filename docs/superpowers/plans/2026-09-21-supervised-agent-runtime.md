@@ -543,35 +543,33 @@ Result: 15/15 policy tests GREEN, 214/214 full regression GREEN. Commit `9dd3c25
 
 **Files:**
 - Create: `tradingagents/agent_harness/runtime/scheduler.py`
+- Create: `tradingagents/agent_harness/runtime/migrations/002_fix_dep_fk.sql` (FK fix)
 - Test: `tests/test_agent_runtime_scheduler.py`
-- Test: `tests/test_agent_runtime_recovery.py`
+- Test: `tests/test_agent_runtime_recovery.py` (3 new scheduler×recovery tests)
 
-- [ ] **Step 1: Write failing scheduler tests**
+- [x] **Step 1: Write failing scheduler tests**
 
 Cover ON_SUCCESS/ON_TERMINAL readiness, parallel ready claims, required vs optional failure, WAITING_MESSAGE vs WAITING_CHILD, child failure policies, cancel/complete CAS races, AGENT_ANALYSIS aggregation, SYSTEM_COMMAND aggregation, NEEDS_RECONCILIATION, and no duplicate releases after recovery.
 
-- [ ] **Step 2: Run tests to verify RED**
+- [x] **Step 2: Run tests to verify RED**
 
 Run: `pytest -q tests/test_agent_runtime_scheduler.py`
 
 Expected: FAIL because TaskScheduler is missing.
 
-- [ ] **Step 3: Implement TaskScheduler**
+- [x] **Step 3: Implement TaskScheduler**
 
 Keep it free of Agent/Tool logic. It queries RuntimeStore for ready tasks, claims with lease/version CAS, resolves persisted waits, propagates cancellation, and invokes the spec run-kind aggregation table after every state transition. Provide `run_once()` for deterministic tests and `run_until_blocked(run_id)` for Runtime.
 
-- [ ] **Step 4: Run scheduler/recovery tests**
+- [x] **Step 4: Run scheduler/recovery tests**
 
 Run: `pytest -q tests/test_agent_runtime_scheduler.py tests/test_agent_runtime_recovery.py`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit scheduler**
+- [x] **Step 5: Commit scheduler**
 
-```bash
-git add tradingagents/agent_harness/runtime/scheduler.py tests/test_agent_runtime_scheduler.py tests/test_agent_runtime_recovery.py
-git commit -m "feat(harness): schedule persistent agent tasks"
-```
+Result: 17/17 scheduler tests GREEN, 28/28 scheduler+recovery GREEN, 234/234 full regression GREEN. Commit `8967115`.
 
 ### Task 12: Implement dispatcher and AgentRuntime facade
 
