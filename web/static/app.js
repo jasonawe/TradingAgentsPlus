@@ -230,6 +230,21 @@
     const judgeModelListEl = $("llm-judge-model-suggestions");
     const saveBtn = $("llm-save");
     const statusEl = $("llm-status");
+    // §P3-4 Phase 3 — per-agent override UI. Each slot has its own
+    // provider <select> + model <input> populated from settings_repo.
+    // A pair with both empty fields means "use main factory"; a pair
+    // with both filled means "this exact (provider, model) wins for
+    // that agent regardless of mode". A partial pair (only one side
+    // filled) is rejected by the backend; the UI surfaces the error
+    // on save.
+    const AGENT_SLOTS = ["planner", "data", "news", "alpha", "synth"];
+    const agentEls = {};
+    for (const slot of AGENT_SLOTS) {
+      const provEl = $(`llm-agent-${slot}-provider`);
+      const modEl = $(`llm-agent-${slot}-model`);
+      if (!provEl || !modEl) continue;
+      agentEls[slot] = { providerEl: provEl, modelEl: modEl };
+    }
     if (!providerEl || !modelEl || !quickModelEl || !deepModelEl ||
         !judgeProviderEl || !judgeModelEl || !saveBtn) return;
 
@@ -288,6 +303,34 @@
     });
     judgeProviderEl.addEventListener("change", () => populateModelSuggestions(judgeModelListEl, judgeProviderEl.value, "all"));
 
+    // §P3-4 Phase 3 — populate per-agent override selects + inputs.
+    // Each agent gets its own provider dropdown (including an empty
+    // option meaning "use main") and a model input wired to a
+    // datalist filtered by the selected provider.
+    function populateAgentModelSuggestions(slot, provider) {
+      const list = $(`llm-agent-${slot}-suggestions`);
+      if (!list) return;
+      const entry = llmModels[provider] || { quick: [], deep: [] };
+      const seen = new Set();
+      const all = [];
+      for (const m of [...(entry.quick || []), ...(entry.deep || [])]) {
+        if (m && m !== "custom" && !seen.has(m)) { seen.add(m); all.push(m); }
+      }
+      list.innerHTML = all.map((m) => `<option value="${escapeHtml(m)}"></option>`).join("");
+    }
+    for (const slot of AGENT_SLOTS) {
+      const refs = agentEls[slot];
+      if (!refs) continue;
+      const provField = fields[`llm.agents.${slot}.provider`] || {};
+      const modField = fields[`llm.agents.${slot}.model`] || {};
+      populateProvider(refs.providerEl, provField.value || "", true);
+      refs.modelEl.value = modField.value || "";
+      populateAgentModelSuggestions(slot, refs.providerEl.value);
+      refs.providerEl.addEventListener("change", () => {
+        populateAgentModelSuggestions(slot, refs.providerEl.value);
+      });
+    }
+
     // showSettings() is invoked multiple times; the save button is a
     // stable DOM node so we guard against double-listener attachment
     // by stashing a sentinel on the element.
@@ -297,6 +340,19 @@
         saveBtn.disabled = true;
         statusEl.textContent = t("settings.llmSaving");
         try {
+          // §P3-4 Phase 3 — per-agent overrides ride along with the
+          // main LLM PATCH so users save everything in one round-trip.
+          // The backend enforces symmetry: both fields empty = clear
+          // that agent's override, both filled = set it, partial = 400.
+          const agentOverrides = {};
+          for (const slot of AGENT_SLOTS) {
+            const refs = agentEls[slot];
+            if (!refs) continue;
+            agentOverrides[slot] = {
+              provider: refs.providerEl.value,
+              model: refs.modelEl.value,
+            };
+          }
           await api("/api/settings/llm", {
             method: "PATCH",
             body: JSON.stringify({
@@ -306,6 +362,7 @@
               deep_model: deepModelEl.value,
               judge_provider: judgeProviderEl.value,
               judge_model: judgeModelEl.value,
+              agent_overrides: agentOverrides,
             }),
             headers: { "Content-Type": "application/json" },
           });

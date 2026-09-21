@@ -48,21 +48,27 @@ class LLMFactory:
     service.
     """
 
-    # §P3-4 mode split — main role resolves per-mode (quick vs deep)
-    # with ``llm.model`` as the backward-compat fallback. Judge role
-    # ignores ``mode`` (always single model).
+    # §P3-4 — ``role`` decides which settings keys the factory reads.
     #
-    # The dict shape is ``{role: (provider_key, {mode: model_key})}``.
-    # For main role: mode="quick" → ``llm.quick_model`` (else
-    # ``llm.model``); mode="deep" → ``llm.deep_model`` (else
-    # ``llm.model``). For judge: any mode → ``llm.judge_model``.
+    # ``_ROLE_KEYS`` shape: ``{role: (provider_key, {mode: model_key})}``.
+    # Mode resolution rules:
+    #
+    # * ``main`` — mode="quick" → ``llm.quick_model``; mode="deep" →
+    #   ``llm.deep_model``; mode="unspecified" → ``llm.model`` (Phase 1
+    #   single-model fallback).
+    # * ``judge`` — every mode → ``llm.judge_model``.
+    # * ``agent_<name>`` (Phase 3) — every mode → the dedicated
+    #   ``llm.agents.<name>.model`` key. Override semantics: "this
+    #   agent always uses this exact (provider, model), period". The
+    #   mode arg is ignored so a quick/deep caller can't accidentally
+    #   bypass the override. The harness only instantiates an
+    #   agent_<name> factory when *both* provider and model are set
+    #   in settings_repo, otherwise the agent falls back to the main
+    #   factory (Phase 2 quick/deep behaviour).
     _ROLE_KEYS: dict[str, tuple[str, dict[str, str]]] = {
         "main": ("llm.provider", {
             "quick": "llm.quick_model",
             "deep": "llm.deep_model",
-            # "unspecified" — explicit mode not declared by caller.
-            # Falls back to the legacy single-model key so Phase 1
-            # callers keep their existing behaviour.
             "unspecified": "llm.model",
         }),
         "judge": ("llm.judge_provider", {
@@ -72,6 +78,19 @@ class LLMFactory:
         }),
     }
     _VALID_MODES = frozenset({"quick", "deep", "unspecified"})
+
+    @classmethod
+    def _agent_role_keys(cls, agent_name: str) -> tuple[str, dict[str, str]]:
+        """Build the (provider_key, model_keys) tuple for an agent
+        override role. Used by ``Harness`` to instantiate per-agent
+        factories when the user has set both override keys in
+        settings_repo.
+
+        The same model key is returned for every mode because the
+        override contract is "this exact model, regardless of mode".
+        """
+        model_keys = {mode: f"llm.agents.{agent_name}.model" for mode in cls._VALID_MODES}
+        return f"llm.agents.{agent_name}.provider", model_keys
 
     def __init__(
         self,

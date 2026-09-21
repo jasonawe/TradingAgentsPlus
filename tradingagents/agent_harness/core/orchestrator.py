@@ -617,10 +617,25 @@ class Orchestrator:
         plan_cache_db_path: str | None = None,
         plan_cache_ttl_seconds: float = 300.0,
         plan_cache_max_entries: int = 256,
+        # §P3-4 Phase 3 — when the harness has per-agent override
+        # factories configured, this callable returns the right one
+        # for the named agent (planner / synthesizer). Falls back to
+        # ``self.llm_factory`` (the main factory) when no override
+        # is set, so callers can blindly invoke
+        # ``self._llm_factory_for(name)`` without first checking
+        # whether the agent has an override.
+        llm_factory_for: "Callable[[str], Any] | None" = None,
     ) -> None:
         self.tool_registry = tool_registry
         self.agent_registry = agent_registry
         self.llm_factory = llm_factory
+        # §P3-4 Phase 3 — when the harness has per-agent override
+        # factories configured, this callable returns the right one
+        # for the named agent (planner / synthesizer). It falls back
+        # to the main ``llm_factory`` when no override is set, so
+        # callers can blindly invoke ``self.llm_factory_for(name)``
+        # without first checking whether the agent has an override.
+        self._llm_factory_for = llm_factory_for or (lambda _name: llm_factory)
         self.context_priority = context_priority
         self.retry_policy = retry_policy
         self.circuit_breaker = circuit_breaker
@@ -2584,7 +2599,12 @@ class Orchestrator:
             # Plan quality drives downstream routing, so a cheaper
             # quick model would risk producing shallow / misrouted
             # plans.
-            provider = self.llm_factory.make(mode="deep")
+            #
+            # §P3-4 Phase 3 — when the harness wired a per-agent
+            # override for the planner slot, use that factory. The
+            # override factory ignores ``mode=`` and always uses
+            # the dedicated (provider, model) the user picked.
+            provider = self._llm_factory_for("planner").make(mode="deep")
             prompt = self._build_plan_prompt(state)
             response = provider.complete_text(prompt=prompt, system=self._PLAN_SYSTEM, temperature=0.0)
             content = getattr(response, "content", response)
@@ -2979,7 +2999,11 @@ class Orchestrator:
         # §P3-4 — synthesise the final user-facing answer on the deep
         # model. The synthesised text is what the user actually sees,
         # so cost/quality tradeoff favours depth here.
-        provider = self.llm_factory.make(mode="deep")
+        #
+        # §P3-4 Phase 3 — when the harness wired a per-agent
+        # override for the synthesizer slot, use that factory
+        # instead of the main one.
+        provider = self._llm_factory_for("synthesizer").make(mode="deep")
         prompt = self._build_synthesize_prompt(state)
         # §P2 — turn-level L3 retry directive. If the L3 judge
         # flagged the previous attempt for unsupported numbers, the

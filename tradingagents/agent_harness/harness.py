@@ -103,6 +103,39 @@ class Harness:
             role="main",
         )
 
+        # 4a. per-agent override factories (Phase 3). When the user
+        # sets both ``llm.agents.<name>.provider`` and
+        # ``llm.agents.<name>.model`` in settings_repo, that agent
+        # gets a dedicated factory with role="agent_<name>" so the
+        # mode-routing short-circuit in ``make(mode=...)`` is
+        # ignored — the override is "this exact model, period".
+        # Agents without overrides keep using ``self.llm_factory``
+        # (Phase 2 quick/deep behaviour).
+        from tradingagents.agent_harness.llm.factory import LLMFactory as _LLMF
+        self._agent_overrides: dict[str, _LLMF] = {}
+        if settings_lookup is not None:
+            for agent_name in ("planner", "data", "news", "alpha", "synth"):
+                try:
+                    p_key, m_keys = _LLMF._agent_role_keys(agent_name)
+                    p_setting = settings_lookup(p_key)
+                    m_setting = settings_lookup(m_keys["unspecified"])
+                except Exception:
+                    p_setting = m_setting = None
+                if p_setting and m_setting:
+                    role = f"agent_{agent_name}"
+                    _LLMF._ROLE_KEYS[role] = _LLMF._agent_role_keys(agent_name)
+                    self._agent_overrides[agent_name] = _LLMF(
+                        default_provider=p_setting,
+                        default_model=m_setting,
+                        identity=self.app_identity,
+                        settings_lookup=settings_lookup,
+                        role=role,
+                    )
+                    LOGGER.info(
+                        "Per-agent LLM override active for %s: %s/%s",
+                        agent_name, p_setting, m_setting,
+                    )
+
         # 4b. judge_factory — L3 LLM-judge 模型 (spec §D6 N89 fix: judge
         # 不复用主 LLM)。
         #
@@ -167,16 +200,52 @@ class Harness:
         # E7: ``scope`` is passed too; agents that declare it (e.g. when
         # subclasses opt in) get the harness default scope.
         self.agent_registry = AgentRegistry()
+        # §P3-4 Phase 3 — map builtin agent names → override slot
+        # names. The override slots use shorter, intent-revealing
+        # names ("data" / "news" / "alpha" / "synth") while the
+        # agent registry uses the long names ("data_agent" /
+        # "news_agent" etc.).
+        _agent_to_slot = {
+            "planner": "planner",
+            "data_agent": "data",
+            "news_agent": "news",
+            "alpha_agent": "alpha",
+            "synthesizer": "synth",
+        }
+
+        def _llm_factory_for(agent_name: str):
+            """Return the dedicated factory for an agent when the
+            user has set both ``llm.agents.<slot>.provider`` and
+            ``llm.agents.<slot>.model``; otherwise return the main
+            factory (Phase 2 quick/deep behaviour).
+
+            Built-in agents that have no override slot configured
+            silently fall back to ``self.llm_factory``; 3rd-party
+            agents registered via entry points likewise get the main
+            factory unless the operator has set their override
+            keys.
+            """
+            slot = _agent_to_slot.get(agent_name)
+            if slot is not None and slot in self._agent_overrides:
+                return self._agent_overrides[slot]
+            return self.llm_factory
+
         build_kwargs = {
-            "llm_factory": self.llm_factory,
+            "llm_factory": self.llm_factory,  # default; overridden per agent below
             "tool_registry": self.tool_registry,
             "judge_factory": self.judge_factory,
             "enable_l3": self.config.enable_l3,
             "scope": self.default_agent_scope,
         }
         for name in self.subagent_provider.list_names():
-            agent = self.subagent_provider.build(name, **build_kwargs)
+            per_agent_kwargs = dict(build_kwargs)
+            per_agent_kwargs["llm_factory"] = _llm_factory_for(name)
+            agent = self.subagent_provider.build(name, **per_agent_kwargs)
             self.agent_registry.register(agent)
+        # Expose the per-agent factory lookup so orchestrator /
+        # runtime components can ask "which factory does agent X
+        # use right now?" without having to know the slot map.
+        self.llm_factory_for = _llm_factory_for
 
         # 5. data_registry (PROVIDERS dict)
         from tradingagents.data.providers.registry import PROVIDERS
@@ -284,6 +353,11 @@ class Harness:
             enable_l3=self.config.enable_l3,
             judge_factory=self.judge_factory,
             memory=self.memory,
+            # §P3-4 Phase 3 — orchestrator's own _llm_plan /
+            # _llm_synthesize paths use the per-agent override factory
+            # when one is configured ("planner" / "synthesizer"),
+            # otherwise the main factory (Phase 2 quick/deep).
+            llm_factory_for=self.llm_factory_for,
         )
 
         # 14. supervised AgentRuntime components (Task 19)

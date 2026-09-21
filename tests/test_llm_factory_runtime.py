@@ -410,3 +410,115 @@ def test_is_configured_respects_mode(mode_settings):
     assert f.is_configured(mode="quick") is True
     assert f.is_configured(mode="deep") is True
     assert f.is_configured(mode="unspecified") is False  # llm.model unset
+
+# ---------------------------------------------------------------------------
+# §P3-4 Phase 3 — per-agent override factory. The user can set
+# ``llm.agents.<slot>.provider`` + ``llm.agents.<slot>.model`` in
+# settings_repo; the harness instantiates a factory with
+# role="agent_<slot>" so the dedicated factory wins for that agent
+# regardless of which mode the caller asks for. Override contract:
+# "this exact model, period" — quick/deep/unspecified all resolve to
+# the same model key.
+# ---------------------------------------------------------------------------
+
+
+def test_agent_role_keys_returns_expected_keys_for_each_slot():
+    """Lock in the slot-to-key contract. Each agent slot owns one
+    provider key + one model key (shared across modes)."""
+    from tradingagents.agent_harness.llm.factory import LLMFactory
+
+    p_key, model_keys = LLMFactory._agent_role_keys("planner")
+    assert p_key == "llm.agents.planner.provider"
+    assert model_keys == {
+        "quick": "llm.agents.planner.model",
+        "deep": "llm.agents.planner.model",
+        "unspecified": "llm.agents.planner.model",
+    }
+    p_key, model_keys = LLMFactory._agent_role_keys("synth")
+    assert p_key == "llm.agents.synth.provider"
+    assert model_keys["quick"] == "llm.agents.synth.model"
+
+
+def test_agent_factory_resolves_override_for_every_mode(mode_settings):
+    """A factory with role="agent_<name>" must return the override
+    (provider, model) regardless of which mode the caller asks for.
+    This is the "this exact model, period" guarantee."""
+    repo = _FakeSettingsRepo({
+        "llm.provider": "openai",
+        "llm.model": "gpt-4o-mini",
+        "llm.agents.planner.provider": "anthropic",
+        "llm.agents.planner.model": "claude-3-5-sonnet-20241022",
+    })
+    # Install the agent_planner role in the global _ROLE_KEYS table
+    # the way ``Harness`` does at boot.
+    from tradingagents.agent_harness.llm.factory import LLMFactory
+    saved = LLMFactory._ROLE_KEYS.copy()
+    LLMFactory._ROLE_KEYS["agent_planner"] = LLMFactory._agent_role_keys("planner")
+    try:
+        f = LLMFactory(settings_lookup=_lookup(repo), role="agent_planner")
+        for mode in ("quick", "deep", "unspecified"):
+            assert f._resolve_cached(mode=mode) == ("anthropic", "claude-3-5-sonnet-20241022"), mode
+    finally:
+        LLMFactory._ROLE_KEYS.clear()
+        LLMFactory._ROLE_KEYS.update(saved)
+
+
+def test_agent_factory_partial_pair_falls_through_to_legacy_model(mode_settings):
+    """The factory's agent_<name> role uses the same fallback
+    contract as ``main``: when ``llm.agents.<name>.model`` is
+    unset, it falls back to ``llm.model`` so a half-configured
+    override still produces a working factory.
+
+    Pair symmetry is enforced one layer up — ``Harness.__init__``
+    only instantiates an ``agent_<name>`` factory when *both*
+    ``llm.agents.<name>.{provider,model}`` are non-empty (see
+    ``tradingagents/agent_harness/harness.py``). The factory
+    itself just resolves whatever keys are present."""
+    repo = _FakeSettingsRepo({
+        "llm.provider": "openai",
+        "llm.model": "gpt-4o-mini",
+        # Only the provider override is set.
+        "llm.agents.data.provider": "anthropic",
+    })
+    from tradingagents.agent_harness.llm.factory import LLMFactory
+    saved = LLMFactory._ROLE_KEYS.copy()
+    LLMFactory._ROLE_KEYS["agent_data"] = LLMFactory._agent_role_keys("data")
+    try:
+        f = LLMFactory(settings_lookup=_lookup(repo), role="agent_data")
+        # Override provider wins; model falls back to llm.model.
+        for mode in ("quick", "deep", "unspecified"):
+            assert f._resolve_cached(mode=mode) == ("anthropic", "gpt-4o-mini"), mode
+    finally:
+        LLMFactory._ROLE_KEYS.clear()
+        LLMFactory._ROLE_KEYS.update(saved)
+
+
+def test_agent_factory_isolated_cache_from_main_factory(mode_settings):
+    """An agent factory's per-mode cache must not leak into (or be
+    leaked by) the main factory. A planner override must not change
+    what a data-agent sees, and vice versa."""
+    from tradingagents.agent_harness.llm.factory import LLMFactory
+
+    repo = _FakeSettingsRepo({
+        "llm.provider": "openai",
+        "llm.model": "gpt-4o-mini",
+        "llm.agents.planner.provider": "anthropic",
+        "llm.agents.planner.model": "claude-3-5-sonnet-20241022",
+        "llm.agents.data.provider": "google",
+        "llm.agents.data.model": "gemini-1.5-flash",
+    })
+    saved = LLMFactory._ROLE_KEYS.copy()
+    LLMFactory._ROLE_KEYS["agent_planner"] = LLMFactory._agent_role_keys("planner")
+    LLMFactory._ROLE_KEYS["agent_data"] = LLMFactory._agent_role_keys("data")
+    try:
+        planner = LLMFactory(settings_lookup=_lookup(repo), role="agent_planner")
+        data = LLMFactory(settings_lookup=_lookup(repo), role="agent_data")
+        # Prime both.
+        assert planner._resolve_cached(mode="deep") == ("anthropic", "claude-3-5-sonnet-20241022")
+        assert data._resolve_cached(mode="deep") == ("google", "gemini-1.5-flash")
+        # Invalidate one; the other must keep its cached value.
+        planner.invalidate()
+        assert data._resolve_cached(mode="deep") == ("google", "gemini-1.5-flash")
+    finally:
+        LLMFactory._ROLE_KEYS.clear()
+        LLMFactory._ROLE_KEYS.update(saved)

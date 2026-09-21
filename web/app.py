@@ -1992,6 +1992,26 @@ def create_app(
             SettingsRepository.LLM_JUDGE_MODEL, _factory_judge_m,
         )
 
+        # §P3-4 Phase 3 — per-agent override fields. Each slot has a
+        # (provider, model) pair. The provider field carries an
+        # ``options`` list so the dropdown stays consistent with
+        # the main + judge provider selectors.
+        for slot in SettingsRepository.LLM_AGENT_NAMES:
+            p_entry = settings_repo.get(f"llm.agents.{slot}.provider") or {}
+            m_entry = settings_repo.get(f"llm.agents.{slot}.model") or {}
+            fields[f"llm.agents.{slot}.provider"] = {
+                "value": p_entry.get("value") or "",
+                "source": p_entry.get("source", "default"),
+                "options": llm_provider_options,
+                # Slot label so the UI can render per-agent groups.
+                "slot": slot,
+            }
+            fields[f"llm.agents.{slot}.model"] = {
+                "value": m_entry.get("value") or "",
+                "source": m_entry.get("source", "default"),
+                "slot": slot,
+            }
+
         # §P3-4 — model suggestions per provider so the settings UI can
         # populate a datalist under each model input. ``quick_models``
         # / ``deep_models`` mirror the entries in
@@ -2170,6 +2190,74 @@ def create_app(
             _check_model(jmodel, "judge_model")
             settings_repo.set(SettingsRepository.LLM_JUDGE_MODEL, jmodel, source="sqlite")
             updated["judge_model"] = jmodel
+
+        # §P3-4 Phase 3 — per-agent overrides. Payload shape:
+        #   "agent_overrides": {
+        #       "planner":    {"provider": "anthropic", "model": "..."},
+        #       "data":       {"provider": "openai",    "model": "..."},
+        #       "news":       {"provider": "...",       "model": "..."},
+        #       "alpha":      {"provider": "...",       "model": "..."},
+        #       "synth":      {"provider": "...",       "model": "..."},
+        #   }
+        # Each agent's pair is independent. Omit an agent (or send
+        # both fields as null/empty) to clear that agent's override
+        # and revert it to the main factory. The validation rule is
+        # symmetric: a partial pair (only provider set, or only
+        # model set) is rejected — both must be present or both
+        # empty.
+        agent_overrides = data.get("agent_overrides")
+        if agent_overrides is not None:
+            if not isinstance(agent_overrides, dict):
+                raise _error(
+                    status.HTTP_400_BAD_REQUEST,
+                    "agent_overrides must be a dict keyed by agent name",
+                )
+            valid_slots = set(SettingsRepository.LLM_AGENT_NAMES)
+            for slot, fields in agent_overrides.items():
+                if slot not in valid_slots:
+                    raise _error(
+                        status.HTTP_400_BAD_REQUEST,
+                        f"unknown agent slot {slot!r}; valid: {sorted(valid_slots)}",
+                    )
+                if not isinstance(fields, dict):
+                    raise _error(
+                        status.HTTP_400_BAD_REQUEST,
+                        f"agent_overrides[{slot!r}] must be a dict",
+                    )
+                provider_value = fields.get("provider")
+                model_value = fields.get("model")
+                # Allow None / empty string for clearing.
+                if provider_value in (None, "") and model_value in (None, ""):
+                    settings_repo.set(
+                        f"llm.agents.{slot}.provider", "", source="sqlite",
+                    )
+                    settings_repo.set(
+                        f"llm.agents.{slot}.model", "", source="sqlite",
+                    )
+                    updated[f"agent_overrides.{slot}"] = "cleared"
+                    continue
+                # Both must be present (non-empty) + provider must be valid.
+                # Empty strings in either field are only valid when the
+                # other side is also empty — that branch already cleared
+                # above. A half-empty pair would otherwise leave a stale
+                # one-sided entry in settings_repo and confuse the
+                # harness at boot (it'd see provider without model and
+                # silently drop the override).
+                if not provider_value or not model_value:
+                    raise _error(
+                        status.HTTP_400_BAD_REQUEST,
+                        f"agent_overrides[{slot!r}] needs both provider and model "
+                        f"(or both empty to clear)",
+                    )
+                _check_provider(provider_value, f"agent_overrides[{slot}].provider")
+                _check_model(model_value, f"agent_overrides[{slot}].model")
+                settings_repo.set(
+                    f"llm.agents.{slot}.provider", provider_value, source="sqlite",
+                )
+                settings_repo.set(
+                    f"llm.agents.{slot}.model", model_value, source="sqlite",
+                )
+                updated[f"agent_overrides.{slot}"] = f"{provider_value}/{model_value}"
 
         # Apply immediately: drop the factory cache so the next ``make()``
         # call (likely the very next LLM call) re-reads settings_repo.

@@ -517,11 +517,23 @@ class SettingsRepository:
     LLM_DEEP_MODEL = "llm.deep_model"
     LLM_JUDGE_PROVIDER = "llm.judge_provider"
     LLM_JUDGE_MODEL = "llm.judge_model"
+    # §P3-4 Phase 3 — per-agent override. When both
+    # ``llm.agents.<name>.provider`` AND ``llm.agents.<name>.model``
+    # are set, the named agent gets its own dedicated factory that
+    # ignores the quick/deep mode split. Verifier is intentionally
+    # omitted — it already has its own dedicated factory via
+    # ``judge_provider`` / ``judge_model``.
+    LLM_AGENT_NAMES = ("planner", "data", "news", "alpha", "synth")
+    LLM_AGENT_OVERRIDE_KEYS = frozenset(
+        key
+        for name in LLM_AGENT_NAMES
+        for key in (f"llm.agents.{name}.provider", f"llm.agents.{name}.model")
+    )
     LLM_KEYS = frozenset({
         LLM_PROVIDER, LLM_MODEL,
         LLM_QUICK_MODEL, LLM_DEEP_MODEL,
         LLM_JUDGE_PROVIDER, LLM_JUDGE_MODEL,
-    })
+    } | LLM_AGENT_OVERRIDE_KEYS)
 
     ALLOWED = frozenset({
         "quote_ttl_seconds",
