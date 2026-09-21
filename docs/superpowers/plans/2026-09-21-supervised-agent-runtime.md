@@ -578,38 +578,34 @@ Result: 17/17 scheduler tests GREEN, 28/28 scheduler+recovery GREEN, 234/234 ful
 - Create: `tradingagents/agent_harness/runtime/runtime.py`
 - Modify: `tradingagents/agent_harness/runtime/__init__.py`
 - Test: `tests/test_agent_runtime_dispatcher.py`
-- Test: `tests/test_agent_runtime_recovery.py`
 
-- [ ] **Step 1: Write failing dispatch/runtime tests**
+- [x] **Step 1: Write failing dispatch/runtime tests**
 
-Assert AGENT tasks call only `AgentRegistry.get(name).run(task, context=context)`; SYSTEM_COMMAND calls only CommandExecutor; outgoing messages pass MessageIngestor before store; AgentReply creates exactly one RESULT; progress persists before projection; start/resume/answer/confirm/cancel/reconcile obey state and correlation; session has one active run; and legacy replacement CAS reuses the same run.
+Assert AGENT tasks call only `AgentRegistry.get(name).run(task, context=context)`; SYSTEM_COMMAND calls only CommandResolver; outgoing messages pass MessageIngestor before store; AgentReply creates exactly one RESULT; progress persists before projection; start/resume/answer/confirm/cancel/reconcile obey state and correlation; session has one active run; and legacy replacement CAS reuses the same run.
 
-- [ ] **Step 2: Run tests to verify RED**
+- [x] **Step 2: Run tests to verify RED**
 
 Run: `pytest -q tests/test_agent_runtime_dispatcher.py tests/test_agent_runtime_recovery.py`
 
 Expected: FAIL because Dispatcher/AgentRuntime are missing.
 
-- [ ] **Step 3: Implement AgentDispatcher**
+- [x] **Step 3: Implement AgentDispatcher**
 
-Define a narrow `ContextProvider` Protocol (`assemble(task) -> AgentContextBundle`) and inject a deterministic fake in this chunk's tests; Chunk 3's ContextAssembler implements it. Also inject AgentRegistry, CommandExecutor, MessageIngestor, ToolExecutor, and LLMExecutor. Dispatcher builds AgentExecutionContext, awaits V2 agent, validates AgentReply, and commits reply/outgoing/state atomically. It never chooses graph topology.
+Define a narrow `ContextProvider` Protocol (`assemble(task) -> AgentContextBundle`) and inject a deterministic fake in this chunk's tests; Chunk 3's ContextAssembler implements it. Also inject AgentRegistry, CommandResolver, MessageIngestor, ToolExecutor, and LLMExecutor. Dispatcher builds AgentExecutionContext, awaits V2 agent, validates AgentReply, and commits reply/outgoing/state atomically. It never chooses graph topology.
 
-- [ ] **Step 4: Implement AgentRuntime public methods**
+- [x] **Step 4: Implement AgentRuntime public methods**
 
 Implement `start_analysis`, `start_command`, `stream`, `resume`, `answer`, `confirm`, `cancel`, `reconcile`, `recover`, and `delete_session`. Compose store/policy/scheduler/dispatcher/outbox without adding business prompts. `stream` reads durable events and appends connection-only control events.
 
-- [ ] **Step 5: Run Runtime tests**
+- [x] **Step 5: Run Runtime tests**
 
 Run: `pytest -q tests/test_agent_runtime_dispatcher.py tests/test_agent_runtime_scheduler.py tests/test_agent_runtime_policy.py tests/test_agent_runtime_recovery.py`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit Runtime facade**
+- [x] **Step 6: Commit Runtime facade**
 
-```bash
-git add tradingagents/agent_harness/runtime/dispatcher.py tradingagents/agent_harness/runtime/runtime.py tradingagents/agent_harness/runtime/__init__.py tests/test_agent_runtime_dispatcher.py tests/test_agent_runtime_recovery.py
-git commit -m "feat(harness): run supervised agent workflows"
-```
+Result: 8/8 dispatcher tests GREEN, 242/242 full regression GREEN.
 
 ---
 

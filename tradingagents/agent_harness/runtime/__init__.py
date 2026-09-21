@@ -1,5 +1,19 @@
 """Public contracts for the supervised AgentRuntime."""
 
+from .dispatcher import AgentDispatcher, ContextProvider
+from .policy import (
+    AgentRegistry,
+    GraphPatch as PolicyGraphPatch,
+    PatchAddTask,
+    PlanGraph as PolicyPlanGraph,
+    PlanNode,
+    PolicyDecision,
+    PolicyGuard,
+)
+from .runtime import AgentRuntime
+from .scheduler import TaskScheduler
+from .store import AgentRuntimeStore
+
 from .models import (
     AddDependencyOp,
     AddTaskOp,
@@ -76,4 +90,16 @@ __all__ = [
     "TaskState",
     "VerifiedEvidenceRef",
     "WaitForTaskOp",
+    "AgentDispatcher",
+    "AgentRegistry",
+    "AgentRuntime",
+    "AgentRuntimeStore",
+    "ContextProvider",
+    "PatchAddTask",
+    "PlanNode",
+    "PolicyDecision",
+    "PolicyGraphPatch",
+    "PolicyGuard",
+    "PolicyPlanGraph",
+    "TaskScheduler",
 ]
