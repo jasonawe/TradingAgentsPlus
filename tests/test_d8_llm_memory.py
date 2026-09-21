@@ -43,7 +43,7 @@ from tradingagents.agent_harness.memory import (  # noqa: E402
 def test_llm_registry_has_all_providers() -> None:
     expected = {
         "openai", "anthropic", "google", "azure", "bedrock",
-        "minimax", "minimax-cn", "minimax_cn",
+        "minimax", "minimax-cn",  # canonical: dash separator
         "ollama", "vllm",
     }
     assert expected.issubset(set(LLM_REGISTRY))

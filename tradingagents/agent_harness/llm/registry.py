@@ -25,8 +25,7 @@ LLM_REGISTRY: dict[str, Callable[..., OpenAICompatibleProvider]] = {
     "azure": make_openai_compatible,
     "bedrock": make_openai_compatible,
     "minimax": make_openai_compatible,
-    "minimax-cn": make_openai_compatible,
-    "minimax_cn": make_openai_compatible,
+    "minimax-cn": make_openai_compatible,  # canonical: dash separator (matches env var / label)
     "ollama": make_openai_compatible,
     "vllm": make_openai_compatible,
     # Catalog-aligned providers (Phase 2)
