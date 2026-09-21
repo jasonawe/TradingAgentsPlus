@@ -1101,8 +1101,13 @@ def list_reports(
 ) -> str:
     """列出历史分析报告(symbol 可选过滤)。
 
-    返回 markdown 表格:report_id / ticker / status / started_at / finished_at。
+    返回 markdown 表格:report_id / ticker / status / generated_at / signal。
     当 ``symbol`` 非空时,只返回该 ticker 的报告(忽略大小写);空时返回全部。
+
+    §Date — 历史 entry 没有 ``started_at`` / ``finished_at`` 字段
+    (那是 RunRecord 的,不是 ReportEntry 的)。改用 ``generated_at``
+    显示报告生成时间,这是历史文件系统索引里实际持久化的字段,
+    否则表格两列永远空着让用户困惑。
     """
     history = _get_report_history()
     try:
@@ -1115,14 +1120,15 @@ def list_reports(
             return f"(无报告,filter={symbol or 'all'})"
         lines = [
             f"共 {len(records)} 份报告(filter={symbol or 'all'}):",
-            "| report_id | ticker | status | started_at | finished_at |",
+            "| report_id | ticker | status | generated_at | signal |",
             "|---|---|---|---|---|",
         ]
         for r in records:
+            gen = r.get("generated_at") or "-"
+            sig = r.get("signal") or r.get("rating") or "-"
             lines.append(
                 f"| {r.get('report_id','')} | {r.get('ticker','')} | "
-                f"{r.get('status','')} | {r.get('started_at','')} | "
-                f"{r.get('finished_at','') or '-'} |"
+                f"{r.get('status','') or '-'} | {gen} | {sig} |"
             )
         return "\n".join(lines)
     except Exception as e:
