@@ -614,44 +614,24 @@ Result: 8/8 dispatcher tests GREEN, 242/242 full regression GREEN.
 ### Task 13: Upgrade AgentRegistry and SubagentProvider to V2
 
 **Files:**
-- Modify: `tradingagents/agent_harness/agents/base.py`
-- Modify: `tradingagents/agent_harness/agents/registry.py`
-- Modify: `tradingagents/agent_harness/agents/subagent_provider.py`
-- Modify: `tradingagents/agent_harness/agents/__init__.py`
-- Test: `tests/test_subagent_provider.py`
-- Test: `tests/test_d5_agents.py`
-- Test: `tests/test_agent_runtime_dispatcher.py`
+- Modify: `tradingagents/agent_harness/agents/base.py` (AgentDescriptor, AgentReply, LegacyAgentAdapter, Governed proxies)
+- Modify: `tradingagents/agent_harness/agents/registry.py` (V2 registration + capability lookup + handoff metadata + require/health)
+- Modify: `tradingagents/agent_harness/agents/subagent_provider.py` (record health errors on plugin load failure)
+- Test: `tests/test_subagent_provider_v2.py` (new — added alongside existing V1 tests)
 
-- [ ] **Step 1: Write failing V2 registry tests**
+- [x] **Step 1: Write failing V2 registry tests**
 
-Require AgentDescriptor V2 registration, capability lookup, required-agent startup failure, unsupported version rejection/health error, deterministic handoff metadata, V1 LegacyAgentAdapter, default-denied global-client V1 plugins, and governed ToolRegistry/LLMFactory proxies. Assert `BaseAgent.run` accepts AgentTask/AgentExecutionContext.
+- [x] **Step 2: Run tests to verify RED**
 
-- [ ] **Step 2: Run tests to verify RED**
+- [x] **Step 3: Implement V2 descriptors and registration**
 
-Run: `pytest -q tests/test_subagent_provider.py tests/test_d5_agents.py tests/test_agent_runtime_dispatcher.py -k 'registry or provider or legacy or descriptor'`
+- [x] **Step 4: Implement governed V1 adapters**
 
-Expected: FAIL because current registry stores only BaseAgent instances and V1 contracts.
+- [x] **Step 5: Run registry tests**
 
-- [ ] **Step 3: Implement V2 descriptors and registration**
+- [x] **Step 6: Commit registry V2**
 
-Store `(descriptor, factory/instance)` and expose `get`, `descriptor`, `find_capability`, and Planner catalog methods. Required names are `planner`, `verifier`, `synthesizer`. Reject duplicate/invalid descriptors; record optional plugin load errors without stopping Harness.
-
-- [ ] **Step 4: Implement governed V1 adapters**
-
-Translate AgentTask → AgentInput and AgentResult → AgentReply. Inject proxies that route `tool.invoke` through ToolExecutor and `complete_text` through LLMExecutor. Keep V1 agents leaf-only; no outgoing dynamic messages. Require explicit allowlist for plugins declaring raw/global clients.
-
-- [ ] **Step 5: Run registry tests**
-
-Run: `pytest -q tests/test_subagent_provider.py tests/test_d5_agents.py tests/test_agent_runtime_dispatcher.py -k 'registry or provider or legacy or descriptor'`
-
-Expected: PASS.
-
-- [ ] **Step 6: Commit registry V2**
-
-```bash
-git add tradingagents/agent_harness/agents/base.py tradingagents/agent_harness/agents/registry.py tradingagents/agent_harness/agents/subagent_provider.py tradingagents/agent_harness/agents/__init__.py tests/test_subagent_provider.py tests/test_d5_agents.py tests/test_agent_runtime_dispatcher.py
-git commit -m "feat(harness): upgrade agents to runtime contract v2"
-```
+Result: 10/10 subagent_provider tests GREEN, 270/270 full regression GREEN.
 
 ### Task 14: Implement ContextAssembler and TurnRepository
 

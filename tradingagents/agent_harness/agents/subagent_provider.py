@@ -40,6 +40,7 @@ class SubagentProvider:
 
     def __init__(self) -> None:
         self._factories: dict[str, AgentFactory] = {}
+        self._health_errors: list[str] = []
 
     # ------------------------------------------------------------------
     # Registration
@@ -123,6 +124,9 @@ class SubagentProvider:
     def __len__(self) -> int:
         return len(self._factories)
 
+    def health_errors(self) -> list[str]:
+        return list(self._health_errors)
+
     # ------------------------------------------------------------------
     # Entry-points discovery (3rd-party subagent plugins)
     # ------------------------------------------------------------------
@@ -161,9 +165,13 @@ class SubagentProvider:
                         "'register' method and isn't callable; skipping",
                         ep.name,
                     )
-            except Exception:
+            except Exception as exc:
                 LOGGER.exception(
                     "subagent entry_point %s failed to load", ep.name,
+                )
+                self._health_errors.append(
+                    f"subagent entry_point {ep.name!r} failed to load: "
+                    f"{type(exc).__name__}: {exc}"
                 )
         return discovered
 
