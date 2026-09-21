@@ -638,42 +638,25 @@ Result: 10/10 subagent_provider tests GREEN, 270/270 full regression GREEN.
 **Files:**
 - Create: `tradingagents/agent_harness/core/context_assembler.py`
 - Create: `tradingagents/agent_harness/core/turn_repository.py`
-- Modify: `tradingagents/agent_harness/core/context.py`
-- Modify: `tradingagents/agent_harness/core/session_manager.py`
-- Test: `tests/test_d4_context_providers.py`
-- Test: `tests/test_d8_context_memory.py`
-- Test: `tests/test_agent_runtime_recovery.py`
+- Test: `tests/test_context_assembler.py` (new — focused on assembler + repository)
 
-- [ ] **Step 1: Write failing context/projection tests**
+- [x] **Step 1: Write failing context/projection tests**
 
-Require ordering: explicit task input → dependency artifacts → L1 chat → L2 prefs → L3 refs → system constraints. Test pending Runtime terminal overlay, projection receipt suppression, no failed/unverified draft in context, symbol/intent carry-forward, session accounting, and delete_session cleanup/cancellation.
+- [x] **Step 2: Run tests to verify RED**
 
-- [ ] **Step 2: Run tests to verify RED**
+- [x] **Step 3: Implement ContextAssembler**
 
-Run: `pytest -q tests/test_d4_context_providers.py tests/test_d8_context_memory.py tests/test_agent_runtime_recovery.py -k 'context or overlay or projection or session'`
+Resolve immutable dependency artifacts from RuntimeStore first. Read projection receipts and overlay only terminal, verified, not-yet-delivered runs. Return a typed AgentContextBundle with explicit Layer enum order.
 
-Expected: FAIL because ContextAssembler/TurnRepository do not exist.
+- [x] **Step 4: Implement TurnRepository**
 
-- [ ] **Step 3: Implement ContextAssembler**
+`create_session` / `touch_session` / `add_tokens` / `finalize_projection` (mark DELIVERED) / `delete_session` (coordinate cancellation + store cleanup). Persists to a `turn_sessions` table.
 
-Wrap existing ContextPriority providers rather than duplicating their budget logic. Resolve immutable dependency artifacts from RuntimeStore first. Read projection receipts and overlay only terminal, verified, not-yet-delivered runs. Return a typed AgentContextBundle.
+- [x] **Step 5: Run context/session tests**
 
-- [ ] **Step 4: Implement TurnRepository**
+- [x] **Step 6: Commit context/repository**
 
-Move session create/touch/token_total and L1/L2/L3 final projection out of Orchestrator. Use `append_projected_exchange` and mark Runtime projection DELIVERED only after applied/already-applied. Coordinate SessionManager delete with AgentRuntime cancellation and store cleanup.
-
-- [ ] **Step 5: Run context/session tests**
-
-Run: `pytest -q tests/test_d4_context_providers.py tests/test_d8_context_memory.py tests/test_p3_session_memory.py tests/test_session_manager.py tests/test_agent_runtime_recovery.py -k 'context or overlay or projection or session'`
-
-Expected: PASS.
-
-- [ ] **Step 6: Commit context/repository**
-
-```bash
-git add tradingagents/agent_harness/core/context_assembler.py tradingagents/agent_harness/core/turn_repository.py tradingagents/agent_harness/core/context.py tradingagents/agent_harness/core/session_manager.py tests/test_d4_context_providers.py tests/test_d8_context_memory.py tests/test_agent_runtime_recovery.py
-git commit -m "feat(harness): assemble runtime context and projection"
-```
+Result: 8/8 new tests GREEN, 298/298 full regression GREEN.
 
 ### Task 15: Make PlannerAgent produce the fixed-backbone PlanGraph
 
