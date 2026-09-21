@@ -88,8 +88,64 @@
     if (state.forkSessionBtnEl) {
       state.forkSessionBtnEl.addEventListener("click", forkCurrentSession);
     }
-    // Kick the initial session picker population.
-    loadSessions();
+    /* §Harness-redesign — sidebar search filter + tab switcher for inspector. */
+    const searchEl = document.getElementById("harness-session-search");
+    if (searchEl) {
+      searchEl.addEventListener("input", () => renderSessionPicker());
+    }
+    /* §Step 24 — sidebar collapse/expand. Default is collapsed (rail
+       mode) so chat takes most of the screen on the standalone
+       /harness page. Click the chevron or "会话总数" badge to toggle. */
+    const sidebarToggle = document.getElementById("harness-sidebar-toggle");
+    const layout = document.querySelector(".harness-layout");
+    function setSidebarExpanded(expanded) {
+      if (!layout) return;
+      layout.classList.toggle("is-sidebar-expanded", !!expanded);
+      if (sidebarToggle) sidebarToggle.textContent = expanded ? "‹" : "›";
+      try { localStorage.setItem("ta.harness.sidebarExpanded", expanded ? "1" : "0"); } catch (_) {}
+    }
+    if (sidebarToggle && layout) {
+      let stored = null;
+      try { stored = localStorage.getItem("ta.harness.sidebarExpanded"); } catch (_) {}
+      // First-time visitors get the collapsed rail; returning users keep their choice.
+      if (stored === "1") setSidebarExpanded(true);
+      sidebarToggle.addEventListener("click", () => {
+        setSidebarExpanded(!layout.classList.contains("is-sidebar-expanded"));
+      });
+    }
+    const railNew = document.getElementById("harness-rail-new");
+    if (railNew) railNew.addEventListener("click", () => createNewSession());
+    const railCount = document.getElementById("harness-rail-count");
+    function updateRailCount() {
+      if (!railCount) return;
+      railCount.textContent = String((state.sessions || []).length);
+    }
+    // Patch renderSessionPicker so it also refreshes the rail counter.
+    const _origRender = renderSessionPicker;
+    renderSessionPicker = function patchedRender() {
+      _origRender.apply(this, arguments);
+      updateRailCount();
+    };
+    const inspectorToggle = document.getElementById("harness-inspector-toggle");
+    if (inspectorToggle) {
+      const _l = document.querySelector(".harness-layout");
+      inspectorToggle.addEventListener("click", () => {
+        _l?.classList.toggle("is-inspector-expanded");
+      });
+    }
+    document.querySelectorAll(".harness-inspector-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const target = tab.dataset.tab;
+        document.querySelectorAll(".harness-inspector-tab").forEach((t) =>
+          t.classList.toggle("is-active", t === tab)
+        );
+        document.querySelectorAll(".harness-inspector-pane").forEach((p) =>
+          p.classList.toggle("is-active", p.dataset.pane === target)
+        );
+      });
+    });
+    // Kick the initial session picker + reconcile active session id.
+    reconcileActiveSession();
     if (state.grantAllBox) {
       state.grantAllBox.addEventListener("change", onGrantAllChange);
       // restore from server (so refreshes don't reset the toggle)
@@ -121,22 +177,31 @@
   // Session 管理(每次清空换新 session,简单实现)
   // ─────────────────────────────────────────────────
 
+  /**
+   * Return a stable session id. Synchronous path: we only ever read
+   * from `state.sessionId` (which is reconciled at boot via
+   * `reconcileActiveSession`). If something asks for a session before
+   * reconciliation finishes, fall back to a deterministic placeholder
+   * and let `reconcileActiveSession` replace it once loadSessions +
+   * the server round-trip completes.
+   *
+   * We no longer mint `hc-*` ids on the client. Every session id the
+   * UI uses must come from the server, otherwise the list/messages
+   * endpoints can 404 and switching silently loses history.
+   */
   function ensureSession() {
-    // §Step 19 — reuse the sessionId the user previously picked. We
-    // mint a new one (and persist it) only when nothing is in
-    // localStorage. This keeps multi-session behaviour seamless across
-    // reloads.
-    if (!state.sessionId) {
-      try {
-        const cached = window.localStorage.getItem(SESSION_STORAGE_KEY);
-        if (cached) state.sessionId = cached;
-      } catch (e) { /* private mode / disabled storage */ }
-    }
-    if (!state.sessionId) {
-      state.sessionId =
-        "hc-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
-      try { window.localStorage.setItem(SESSION_STORAGE_KEY, state.sessionId); } catch (e) {}
-    }
+    if (state.sessionId) return state.sessionId;
+    try {
+      const cached = window.localStorage.getItem(SESSION_STORAGE_KEY);
+      if (cached) {
+        state.sessionId = cached;
+        return state.sessionId;
+      }
+    } catch (e) { /* private mode */ }
+    // Synchronous fallback only — never persists. The async
+    // reconcileActiveSession() will replace it as soon as the server
+    // round-trip finishes.
+    state.sessionId = "pending-" + Date.now().toString(36);
     return state.sessionId;
   }
 
@@ -171,6 +236,79 @@
     }
   }
 
+  /**
+   * Boot-time reconciliation: pick the right `state.sessionId` and
+   * inject it into `state.sessions` so the sidebar always lists the
+   * active session. Order of precedence:
+   *   1. existing state.sessionId if it's already in state.sessions
+   *   2. cached localStorage value if it's still on the server
+   *      (even when the list endpoint didn't include it — e.g. older
+   *      `hc-*` sessions created during the temp-id era)
+   *   3. most-recent server session
+   *   4. freshly POSTed server session
+   * After this resolves, `state.sessionId` is guaranteed to be a real
+   * server id and present in `state.sessions`.
+   */
+  async function reconcileActiveSession() {
+    await loadSessions();
+    const cached = (() => {
+      try { return window.localStorage.getItem(SESSION_STORAGE_KEY); } catch (_) { return null; }
+    })();
+    const candidates = [state.sessionId, cached].filter(Boolean);
+    for (const sid of candidates) {
+      if (state.sessions.find((s) => s.id === sid)) {
+        state.sessionId = sid;
+        persistSessionId();
+        renderSessionPicker();
+        updateMainHeader();
+        return state.sessionId;
+      }
+      // not in list — probe the server directly
+      try {
+        const r = await fetch(`/api/harness/sessions/${encodeURIComponent(sid)}`);
+        if (r.ok) {
+          state.sessionId = sid;
+          const body = await r.json();
+          state.sessions = [body, ...state.sessions.filter((s) => s.id !== sid)];
+          persistSessionId();
+          renderSessionPicker();
+          updateMainHeader();
+          return state.sessionId;
+        }
+      } catch (_) { /* keep probing */ }
+    }
+    // fall back to most-recent server session
+    if (state.sessions.length > 0) {
+      state.sessionId = state.sessions[0].id;
+      persistSessionId();
+      renderSessionPicker();
+      updateMainHeader();
+      return state.sessionId;
+    }
+    // last resort: create a brand-new server session
+    try {
+      const r = await fetch("/api/harness/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "新对话" }),
+      });
+      if (r.ok) {
+        const body = await r.json();
+        if (body.session_id) {
+          state.sessionId = body.session_id;
+          await loadSessions();
+          renderSessionPicker();
+          updateMainHeader();
+          persistSessionId();
+          return state.sessionId;
+        }
+      }
+    } catch (e) {
+      console.warn("[HarnessChat] reconcileActiveSession POST failed", e);
+    }
+    return state.sessionId;
+  }
+
   async function createNewSession() {
     if (state.busy) return;
     try {
@@ -199,14 +337,60 @@
   async function switchSession(sid) {
     if (!sid || sid === state.sessionId) return;
     if (state.busy) {
-      alert("请先等待当前请求结束再切换会话");
+      // Show a transient hint instead of an alert so users can queue
+      // their intent — we just won't act on it until the current
+      // turn finishes.
+      showHarnessToast("当前正在生成回复,请稍候再切换");
       return;
     }
-    state.sessionId = sid;
-    persistSessionId();
-    state.messagesEl.innerHTML = "";
-    renderWelcome();
-    renderSessionPicker();
+    setSessionSwitching(true);
+    try {
+      state.sessionId = sid;
+      persistSessionId();
+      state.messagesEl.innerHTML = "";
+      renderSessionPicker();
+      updateMainHeader();
+      await loadHistory();
+    } finally {
+      setSessionSwitching(false);
+    }
+  }
+
+  /**
+   * Lightweight visual feedback for in-flight session switches. We
+   * dim the messages pane + add a subtle spinner to the active session
+   * row so users don't think nothing happened.
+   */
+  function setSessionSwitching(on) {
+    const main = document.querySelector(".harness-main");
+    if (main) main.classList.toggle("is-switching", !!on);
+    const active = document.querySelector("#harness-session-list .harness-session-item.is-active");
+    if (active) active.classList.toggle("is-loading", !!on);
+    let banner = document.getElementById("harness-switching-banner");
+    if (on && !banner) {
+      banner = document.createElement("div");
+      banner.id = "harness-switching-banner";
+      banner.className = "harness-switching-banner";
+      banner.textContent = "正在加载会话…";
+      const messages = document.getElementById("harness-messages");
+      if (messages) messages.parentNode.insertBefore(banner, messages);
+    } else if (!on && banner) {
+      banner.remove();
+    }
+  }
+
+  function showHarnessToast(text) {
+    let toast = document.getElementById("harness-toast");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "harness-toast";
+      toast.className = "harness-toast";
+      document.body.appendChild(toast);
+    }
+    toast.textContent = text;
+    toast.classList.add("is-visible");
+    clearTimeout(showHarnessToast._t);
+    showHarnessToast._t = setTimeout(() => toast.classList.remove("is-visible"), 2200);
   }
 
   async function forkCurrentSession() {
@@ -271,32 +455,178 @@
     }
   }
 
+  /* §Harness-redesign — render session list as a sidebar with cards
+     grouped by recency (今天 / 昨天 / 本周 / 更早). The old <select>
+     picker still exists in the DOM (hidden) for state compatibility;
+     we render into #harness-session-list instead. */
   function renderSessionPicker() {
-    if (!state.sessionSelectEl) return;
-    const sel = state.sessionSelectEl;
+    // legacy select (hidden) - keep value in sync
+    if (state.sessionSelectEl) {
+      const cur = state.sessionId || "";
+      state.sessionSelectEl.value = cur;
+    }
+    const list = document.getElementById("harness-session-list");
+    if (!list) return;
     const cur = state.sessionId || "";
-    // Build options: current session always shown, plus the rest.
-    const sessions = (state.sessions || []).slice();
-    sel.innerHTML = "";
-    const seen = new Set();
-    const opts = [];
-    if (cur) {
-      const o = document.createElement("option");
-      o.value = cur;
-      o.textContent = shortSessionLabel(cur) + " (当前)";
-      opts.push(o);
-      seen.add(cur);
+    const search = (document.getElementById("harness-session-search")?.value || "").trim().toLowerCase();
+    // We only render server-known sessions now. The active session id
+    // is reconciled at boot via reconcileActiveSession() so it's
+    // guaranteed to be present in state.sessions. If for some reason
+    // it isn't yet (race during boot), surface a single recovery row
+    // so the UI never silently drops the active conversation.
+    const sessionItems = state.sessions || [];
+    const curInList = sessionItems.some((s) => s.id === cur);
+    const recoveryRow = (!curInList && cur && !cur.startsWith("pending-"))
+      ? [{ id: cur, title: "（未同步到列表）", last_active: new Date().toISOString(), message_count: 0, _recovery: true }]
+      : [];
+    const all = [...recoveryRow, ...sessionItems];
+
+    const filtered = search
+      ? all.filter(s => (s.id + " " + (s.title || "")).toLowerCase().includes(search))
+      : all;
+
+    if (filtered.length === 0) {
+      list.innerHTML = "";
+      const empty = document.createElement("div");
+      empty.className = "harness-session-empty";
+      empty.textContent = search ? "未找到匹配的会话" : "暂无会话,点击「新对话」开始";
+      list.appendChild(empty);
+      return;
     }
-    for (const s of sessions) {
-      if (seen.has(s.id)) continue;
-      const o = document.createElement("option");
-      o.value = s.id;
-      o.textContent = shortSessionLabel(s.id, s);
-      opts.push(o);
-      seen.add(s.id);
+
+    // Group by recency
+    const now = new Date();
+    const dayMs = 86400000;
+    const groups = { "今天": [], "昨天": [], "本周": [], "更早": [] };
+    for (const s of filtered) {
+      const t = s.last_active ? new Date(s.last_active) : now;
+      const diffDays = Math.floor((now - t) / dayMs);
+      if (diffDays <= 0) groups["今天"].push({ s, t });
+      else if (diffDays === 1) groups["昨天"].push({ s, t });
+      else if (diffDays <= 7) groups["本周"].push({ s, t });
+      else groups["更早"].push({ s, t });
     }
-    for (const o of opts) sel.appendChild(o);
-    sel.value = cur;
+
+    list.innerHTML = "";
+    for (const [groupName, items] of Object.entries(groups)) {
+      if (items.length === 0) continue;
+      const group = document.createElement("div");
+      group.className = "harness-session-group";
+      const title = document.createElement("div");
+      title.className = "harness-session-group-title";
+      title.textContent = groupName;
+      group.appendChild(title);
+      for (const { s, t } of items) {
+        group.appendChild(buildSessionItem(s, t, cur));
+      }
+      list.appendChild(group);
+    }
+  }
+
+  function buildSessionItem(s, t, currentId) {
+    const item = document.createElement("div");
+    item.className = "harness-session-item" + (s.id === currentId ? " is-active" : "");
+    item.dataset.sessionId = s.id;
+    item.title = s.id;
+
+    const titleEl = document.createElement("span");
+    titleEl.className = "harness-session-item-title";
+    titleEl.textContent = sessionItemTitle(s);
+    item.appendChild(titleEl);
+
+    const meta = document.createElement("span");
+    meta.className = "harness-session-item-meta";
+    const cnt = s.message_count || 0;
+    meta.textContent = cnt > 0 ? `${cnt} 条` : "";
+    item.appendChild(meta);
+
+    const actions = document.createElement("span");
+    actions.className = "harness-session-item-actions";
+    const forkBtn = document.createElement("button");
+    forkBtn.className = "harness-session-item-action";
+    forkBtn.dataset.action = "fork";
+    forkBtn.title = "Fork";
+    forkBtn.textContent = "⎘";
+    forkBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      forkSessionById(s.id);
+    });
+    const delBtn = document.createElement("button");
+    delBtn.className = "harness-session-item-action";
+    delBtn.dataset.action = "delete";
+    delBtn.title = "删除";
+    delBtn.textContent = "×";
+    delBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      deleteSessionById(s.id);
+    });
+    actions.appendChild(forkBtn);
+    actions.appendChild(delBtn);
+    item.appendChild(actions);
+
+    item.addEventListener("click", () => switchSession(s.id));
+    return item;
+  }
+
+  function sessionItemTitle(s) {
+    // Prefer a session title (if backend provides one); otherwise use
+    // a short id label so the sidebar stays scannable.
+    if (s.title) return s.title;
+    return s.id.length > 14 ? s.id.slice(0, 14) + "…" : s.id;
+  }
+
+
+  /* §Harness-redesign — sync the main-header title with the
+     currently selected session. Falls back to "新对话" when no
+     session is open. */
+  function updateMainHeader() {
+    const titleEl = document.getElementById("harness-current-title");
+    if (!titleEl) return;
+    if (!state.sessionId) {
+      titleEl.textContent = "新对话";
+      return;
+    }
+    const s = (state.sessions || []).find((x) => x.id === state.sessionId);
+    titleEl.textContent = sessionItemTitle(s || { id: state.sessionId });
+  }
+
+  async function forkSessionById(sid) {
+    if (state.busy) {
+      alert("请先等待当前请求结束");
+      return;
+    }
+    try {
+      const r = await fetch("/api/harness/sessions/fork", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ source_session_id: sid }),
+      });
+      if (r.ok) {
+        const body = await r.json();
+        await loadSessions();
+        if (body.session_id) switchSession(body.session_id);
+      }
+    } catch (e) {
+      console.warn("[HarnessChat] fork error", e);
+    }
+  }
+
+  async function deleteSessionById(sid) {
+    if (!confirm("删除会话 " + sid + " ?")) return;
+    try {
+      const r = await fetch(`/api/harness/sessions/${encodeURIComponent(sid)}`, { method: "DELETE" });
+      if (r.ok) {
+        await loadSessions();
+        if (sid === state.sessionId) {
+          state.sessionId = null;
+          try { window.localStorage.removeItem(SESSION_STORAGE_KEY); } catch (e) {}
+          state.messagesEl.innerHTML = "";
+          renderWelcome();
+        }
+      }
+    } catch (e) {
+      console.warn("[HarnessChat] delete error", e);
+    }
   }
 
   function shortSessionLabel(sid, sess) {
@@ -314,12 +644,75 @@
   // 消息渲染
   // ─────────────────────────────────────────────────
 
+  /* §Harness-redesign — load + re-render previous messages when the
+     user switches sessions. Server returns [{role, content, ts}, ...]
+     from the L1 memory store; we re-render through the same
+     appendMessage + renderMarkdown path so styling stays consistent. */
+  async function loadHistory() {
+    const sid = state.sessionId;
+    if (!sid) return;
+    try {
+      const r = await fetch(
+        `/api/harness/sessions/${encodeURIComponent(sid)}/messages`,
+        { method: "GET" }
+      );
+      if (!r.ok) {
+        console.warn("[HarnessChat] loadHistory failed", r.status);
+        return;
+      }
+      const body = await r.json();
+      const msgs = Array.isArray(body.messages) ? body.messages : [];
+      state.messagesEl.innerHTML = "";
+      if (msgs.length === 0) {
+        renderWelcome();
+        return;
+      }
+      // Skip the welcome state when history exists.
+      const welcome = state.messagesEl.querySelector(".harness-welcome");
+      if (welcome) welcome.remove();
+      for (const m of msgs) {
+        const role = (m.role === "assistant" || m.role === "user")
+          ? m.role
+          : "user";
+        const content = m.content || "";
+        const meta = m.ts ? formatTs(m.ts) : null;
+        appendMessage(role, renderMarkdown(content), meta);
+      }
+      // Make sure meta doesn't render raw HTML — appendMessage uses
+      // textContent, but renderMarkdown returns HTML, so the bubble
+      // needs innerHTML. Switch the bubble to innerHTML for content.
+      // (appendMessage already uses .textContent; refactor below.)
+      scrollToBottom();
+    } catch (e) {
+      console.warn("[HarnessChat] loadHistory error", e);
+    }
+  }
+
+  function formatTs(ts) {
+    try {
+      const d = new Date(typeof ts === "number" && ts < 1e12 ? ts * 1000 : ts);
+      return d.toLocaleString("zh-CN", {
+        month: "2-digit", day: "2-digit",
+        hour: "2-digit", minute: "2-digit",
+      });
+    } catch (_) { return ""; }
+  }
+
   function appendMessage(role, content, meta) {
     const el = document.createElement("div");
     el.className = `harness-message is-${role}`;
     const bubble = document.createElement("div");
     bubble.className = "harness-message-bubble";
-    bubble.textContent = content;
+    // content may be either a plain string (legacy) or an HTML
+    // string from renderMarkdown. For safety, treat it as HTML only
+    // when it contains HTML tags; otherwise fall back to textContent
+    // so untrusted input can't inject markup. The markdown renderer
+    // already escapes the source, so this is double-safe.
+    if (typeof content === "string" && /<[a-z][^>]*>/i.test(content)) {
+      bubble.innerHTML = content;
+    } else {
+      bubble.textContent = content || "";
+    }
     el.appendChild(bubble);
     if (meta) {
       const m = document.createElement("div");
@@ -536,7 +929,13 @@
       <div class="harness-welcome">
         <div class="harness-welcome-icon">🤖</div>
         <div class="harness-welcome-title">理财通用 Agent (P8 Harness)</div>
-        <div class="harness-welcome-lede">底层:6 sub-agents + 19 tools + LLM + L3 LLM-judge</div>
+        <div class="harness-welcome-stats">
+          <span class="harness-welcome-stat"><b>6</b><span>sub-agents</span></span>
+          <span class="harness-welcome-stat"><b>19</b><span>tools</span></span>
+          <span class="harness-welcome-stat"><b>L3</b><span>judge</span></span>
+          <span class="harness-welcome-stat"><b>7</b><span>写操作需审批</span></span>
+        </div>
+        <div class="harness-welcome-divider"></div>
         <div class="harness-welcome-suggestions">
           ${SUGGESTIONS.map(
             (s) => `<div class="harness-suggestion-chip" data-suggestion="${s.replace(/"/g, "&quot;")}">${s}</div>`
@@ -615,7 +1014,28 @@
       appendError(`网络错误: ${e.message}`);
     } finally {
       setBusy(false);
+      // §Harness-redesign — auto-title the session on first user
+      // message so the sidebar shows a meaningful label.
+      maybeAutoTitleSession(text);
+      updateMainHeader();
+      loadSessions();
     }
+  }
+
+  function maybeAutoTitleSession(text) {
+    const sid = state.sessionId;
+    if (!sid) return;
+    const s = (state.sessions || []).find((x) => x.id === sid);
+    if (s && s.title) return; // already has a title
+    const title = (text || "").slice(0, 24).replace(/\s+/g, " ").trim();
+    if (!title) return;
+    fetch(`/api/harness/sessions/${encodeURIComponent(sid)}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title }),
+    }).catch(() => {});
+    // Update local cache so renderSessionPicker shows the title.
+    if (s) s.title = title;
   }
 
   function handleSseBlock(block, assistant) {
@@ -1161,7 +1581,7 @@
           while ((idx = buf.indexOf("\n\n")) !== -1) {
             const block = buf.slice(0, idx);
             buf = buf.slice(idx + 2);
-            handleSseBlock(block, safeAssistant);
+            handleSseBlock(block, assistant);
           }
         }
       } catch (e) {

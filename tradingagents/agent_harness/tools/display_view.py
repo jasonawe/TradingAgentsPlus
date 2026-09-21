@@ -141,6 +141,43 @@ def _render_ack(r: dict) -> str:
     return f"✅ {label} ({sym})" if sym else f"✅ {label}"
 
 
+def _render_alpha(r: dict) -> str:
+    """Render a compute_alpha_factors payload.
+
+    Input shape:
+        {"symbol": "600036.SS", "values": {"roc_1": 0.012, "rsi_14": 55.6, ...}}
+
+    Layout:
+        - Header with symbol + factor count
+        - Markdown table (factor, value) limited to first 20 entries
+          so the bubble stays scannable; full data lives in result_raw.
+    """
+    sym = r.get("symbol", "?")
+    values = r.get("values") or {}
+    if not isinstance(values, dict) or not values:
+        return f"\u00b1 {sym} \u00b7 (no factor values)"
+    head = f"± {sym} · {len(values)} 个因子最近读数"
+    rows = list(values.items())[:20]
+    # Each row MUST be a valid markdown table line: leading ``|``,
+    # trailing ``|``, NO leading whitespace (otherwise some renderers
+    # break out of the table).  Value is rounded to 6 dp so 32 factors
+    # don't overflow the bubble.
+    def _fmt(v):
+        # Float with zero fractional part → print as int so huge
+        # counts (-308733586.0) and tiny ints (1.0) don't get
+        # 6dp-rendered into the bubble.
+        if isinstance(v, float):
+            if v.is_integer():
+                return str(int(v))
+            return f"{v:.6f}"
+        return str(v)
+    body = "\n".join(f"| `{k}` | {_fmt(v)} |" for k, v in rows)
+    extra = ""
+    if len(values) > 20:
+        extra = f"\n| ... | (其他 {len(values) - 20} 个因子子见原始返回) |"
+    return f"{head}\n| factor | value |\n|---|---|---|\n{body}{extra}"
+
+
 def _render_list(r: dict) -> str:
     """Generic list_X tools. Renders count + first N items."""
     count = r.get("count")
@@ -168,4 +205,5 @@ _RENDERERS = {
     "run_list": _render_list,
     "report_list": _render_list,
     "alpha_list": _render_list,
+    "alpha": _render_alpha,
 }

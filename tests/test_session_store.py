@@ -1,7 +1,12 @@
 """SessionStore — Session 元数据表(roadmap §1.3 A2/A3) — 严格按 spec。
 
 Schema 字段:`id, user_id, created_at, last_active, message_count, status`
-(spec §1.3 A2)。不带 title / token_total / metadata。
+(spec §1.3 A2 基础字段)。
+可选扩展:`title`(首条用户消息自动设置,sidebar 显示用)、
+`token_total`(成本跟踪)。metadata_json 列保留供未来扩展。
+
+历史 rows 在 ALTER 之前创建,to_row / to_dict 通过 ``.get(...)``
+安全回退;不破坏现有数据。
 """
 from __future__ import annotations
 
@@ -40,23 +45,29 @@ class TestSessionDataclass:
         assert s.user_id == "default"
         assert s.status == SESSION_STATUS_ACTIVE
         assert s.message_count == 0
-        # spec: 不应有 title / token_total / metadata
-        assert not hasattr(s, "title")
-        assert not hasattr(s, "token_total")
+        # §Harness-redesign — title + token_total 是可选扩展字段,
+        # 默认 None / 0,保留 ``not hasattr`` 守护 spec 演化。
+        assert hasattr(s, "title") and s.title is None
+        assert hasattr(s, "token_total") and s.token_total == 0
         assert not hasattr(s, "metadata")
 
-    def test_to_row_has_only_spec_fields(self):
+    def test_to_row_has_spec_plus_optional_fields(self):
         s = Session(id="s_xyz", user_id="alice", message_count=5)
         row = s.to_row()
         assert set(row.keys()) == {
-            "id", "user_id", "created_at", "last_active", "message_count", "status"
+            "id", "user_id", "created_at", "last_active",
+            "message_count", "status",
+            # §Harness-redesign optional fields:
+            "title", "token_total",
         }
 
-    def test_to_dict_has_only_spec_fields(self):
+    def test_to_dict_has_spec_plus_optional_fields(self):
         s = Session(id="s_xyz")
         d = s.to_dict()
         assert set(d.keys()) == {
-            "id", "user_id", "created_at", "last_active", "message_count", "status"
+            "id", "user_id", "created_at", "last_active",
+            "message_count", "status",
+            "title", "token_total",
         }
 
     def test_round_trip(self):

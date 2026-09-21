@@ -1,0 +1,22 @@
+# Step 33 — built-in post-execute workflow in YAML.
+#
+# Handlers are looked up in WorkflowSpecRegistry's handlers dict
+# (see core/workflow_spec_registry.py). Aliases map to the
+# orchestrator's bound methods at runtime.
+name: post-execute
+description: "observe -> verify -> synthesize"
+nodes:
+  - id: observe
+    handler: observe
+  - id: verify
+    handler: verify
+  - id: synthesize
+    handler: synthesize
+edges:
+  - from: observe
+    to: verify
+  - from: verify
+    to: synthesize
+  - from: synthesize
+    to: "<end>"
+entry: observe

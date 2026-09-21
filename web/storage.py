@@ -198,6 +198,29 @@ class SQLiteStore:
                 "CREATE INDEX IF NOT EXISTS idx_web_runs_retryable ON web_runs(retryable)"
             )
             return
+
+        if version == 18:
+            # §Harness-redesign — idempotent add of session metadata
+            # columns. The SQL migration runs ALTER TABLE; this hook
+            # re-runs them only when the column is missing so we can
+            # re-apply the migration against DBs that already have
+            # them (e.g. production ALTERed manually).
+            if not conn.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='sessions'"
+            ).fetchone():
+                return
+            existing = {row[1] for row in conn.execute("PRAGMA table_info(sessions)")}
+            session_meta_columns = {
+                "title": "TEXT",
+                "token_total": "INTEGER NOT NULL DEFAULT 0",
+                "metadata_json": "TEXT NOT NULL DEFAULT '{}'",
+            }
+            for name, kind in session_meta_columns.items():
+                if name not in existing:
+                    conn.execute(
+                        f"ALTER TABLE sessions ADD COLUMN {name} {kind}"
+                    )
+            return
         if version != 2:
             return
         if not conn.execute(

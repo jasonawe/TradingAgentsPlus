@@ -42,9 +42,12 @@ def _now_iso() -> str:
 
 @dataclass
 class Session:
-    """严格按 spec: id / created_at / last_active / user_id / message_count / status.
+    """Session row in the harness session store.
 
-    不带 title / token_total / metadata / metadata_json 等扩展字段。
+    Core fields: id / created_at / last_active / user_id / message_count / status.
+    Optional metadata: title (set on first user message so the sidebar
+    shows a meaningful label), token_total (for cost tracking).
+    Older rows without these fields still deserialize cleanly.
     """
     id: str
     user_id: str = "default"
@@ -52,6 +55,8 @@ class Session:
     last_active: str = field(default_factory=_now_iso)
     message_count: int = 0
     status: str = SESSION_STATUS_ACTIVE
+    title: str | None = None
+    token_total: int = 0
 
     def to_row(self) -> dict[str, Any]:
         return {
@@ -61,6 +66,8 @@ class Session:
             "last_active": self.last_active,
             "message_count": self.message_count,
             "status": self.status,
+            "title": self.title,
+            "token_total": self.token_total,
         }
 
     @classmethod
@@ -73,6 +80,8 @@ class Session:
             last_active=d.get("last_active") or _now_iso(),
             message_count=int(d.get("message_count") or 0),
             status=d.get("status") or SESSION_STATUS_ACTIVE,
+            title=d.get("title"),
+            token_total=int(d.get("token_total") or 0),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -83,6 +92,8 @@ class Session:
             "last_active": self.last_active,
             "message_count": self.message_count,
             "status": self.status,
+            "title": self.title,
+            "token_total": self.token_total,
         }
 
 
@@ -107,7 +118,7 @@ class SessionStore:
     # Write
     # ------------------------------------------------------------------
     def upsert(self, session: Session) -> None:
-        """Insert if new, otherwise update ``last_active`` only."""
+        """Insert if new, otherwise update ``last_active`` + ``title``."""
         session.last_active = _now_iso()
         row = session.to_row()
         with self._store._connect() as conn:
@@ -116,18 +127,53 @@ class SessionStore:
             ).fetchone()
             if existing:
                 conn.execute(
-                    "UPDATE sessions SET last_active = ?, status = ? WHERE id = ?",
-                    (row["last_active"], row["status"], session.id),
+                    "UPDATE sessions SET last_active = ?, status = ?, "
+                    "title = COALESCE(?, title) WHERE id = ?",
+                    (row["last_active"], row["status"],
+                     row["title"], session.id),
                 )
             else:
                 conn.execute(
                     "INSERT INTO sessions "
-                    "(id, user_id, created_at, last_active, message_count, status) "
-                    "VALUES (?, ?, ?, ?, ?, ?)",
+                    "(id, user_id, created_at, last_active, "
+                    "message_count, status, title, token_total) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                     (row["id"], row["user_id"], row["created_at"],
-                     row["last_active"], row["message_count"], row["status"]),
+                     row["last_active"], row["message_count"],
+                     row["status"], row["title"], row["token_total"]),
                 )
             conn.commit()
+
+    def update_metadata(
+        self,
+        session_id: str,
+        *,
+        title: str | None = None,
+        token_total: int | None = None,
+    ) -> bool:
+        """Partially update session metadata (title / token_total).
+
+        Returns True when the row was found and updated. Both fields
+        are optional — pass only what changed. Used by the
+        auto-title feature in harness.js (PATCH on first user
+        message) and by the cost-tracking caller.
+        """
+        sets: list[str] = []
+        args: list[Any] = []
+        if title is not None:
+            sets.append("title = ?")
+            args.append(title)
+        if token_total is not None:
+            sets.append("token_total = ?")
+            args.append(int(token_total))
+        if not sets:
+            return False
+        args.append(session_id)
+        sql = f"UPDATE sessions SET {', '.join(sets)} WHERE id = ?"
+        with self._store._connect() as conn:
+            cur = conn.execute(sql, args)
+            conn.commit()
+            return cur.rowcount > 0
 
     def touch(self, session_id: str, *, message_delta: int = 1) -> bool:
         """Bump ``last_active`` + ``message_count`` (spec A2 only)."""
