@@ -179,9 +179,25 @@ def _render_alpha(r: dict) -> str:
 
 
 def _render_list(r: dict) -> str:
-    """Generic list_X tools. Renders count + first N items."""
+    """Generic list_X tools. Renders count + the rich preview body.
+
+    Step 8 / §Date — when a ListXResult has ``display_view()``, the
+    orchestrator's ``_safe_dump`` projects the payload down to
+    ``{summary, preview, count}``. The rich body (markdown table,
+    itemised list, ...) lives in ``preview``; the ``summary`` field is
+    just a one-liner like "1 条记录". Reading only ``text``/``summary``
+    here used to lose the table — bubble showed just "共 1 条\n1 条
+    记录" while the user was really asking for the table. Fall back
+    through ``preview`` so list/notes/alerts/reports/etc. all show
+    their full content.
+    """
     count = r.get("count")
-    text = r.get("text") or r.get("summary") or ""
+    text = (
+        r.get("text")
+        or r.get("preview")
+        or r.get("summary")
+        or ""
+    )
     if isinstance(count, int):
         head = f"共 {count} 条"
         if text:
