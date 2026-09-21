@@ -148,7 +148,7 @@ def test_context_assembler_excludes_projected_exchanges(tmp_path):
         data_dir=str(tmp_path),
     )
     # 投影一次
-    mem.append_projected_exchange("sess-1", "Q1", "A1", projection_key="runtime:r1")
+    mem.append_projected_exchange("sess-1", "Q1", "A1", projection_key="runtime:sess-1:Q1")
     # 再写一条未投影的
     mem.append_message("sess-1", "user", "Q2")
     mem.append_message("sess-1", "assistant", "A2")
