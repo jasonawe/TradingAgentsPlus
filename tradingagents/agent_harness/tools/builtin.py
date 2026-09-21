@@ -32,7 +32,7 @@ from .context import ToolContext
 from .permission import PermissionType
 from .capabilities import Capability
 
-from .schema import ToolSchema
+from .schema import ToolSchema, SideEffectMode
 
 # ----------------------------------------------------------------------
 # Layer 1: read tools
@@ -1637,6 +1637,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=AddToWatchlistResult,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.WATCHLIST.value],
             "display_view": "ack",
             "category": "crud",
@@ -1654,6 +1655,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=RemoveFromWatchlistResult,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.WATCHLIST.value],
             "display_view": "ack",
             "category": "crud",
@@ -1681,6 +1683,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.ALERT.value],
             "display_view": "ack",
             "category": "crud",
@@ -1693,6 +1696,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.ALERT.value],
             "display_view": "ack",
             "category": "crud",
@@ -1705,6 +1709,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.ALERT.value],
             "display_view": "ack",
             "category": "crud",
@@ -1719,6 +1724,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.ALERT.value],
             "display_view": "ack",
             "category": "crud",
@@ -1733,6 +1739,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.NOTE.value],
             "display_view": "ack",
             "category": "crud",
@@ -1747,6 +1754,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.SCHEDULED.value],
             "display_view": "ack",
             "category": "crud",
@@ -1760,6 +1768,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.NOTE.value],
             "display_view": "ack",
             "category": "crud",
@@ -1772,6 +1781,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.NOTE.value],
             "display_view": "ack",
             "category": "crud",
@@ -1784,6 +1794,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.NOTE.value],
             "display_view": "ack",
             "category": "crud",
@@ -1870,6 +1881,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.RUN.value],
             "display_view": "ack",
             "category": "crud",
@@ -1899,6 +1911,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.RUN.value],
             "display_view": "ack",
             "category": "crud",
@@ -1912,6 +1925,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.SCHEDULED.value],
             "display_view": "ack",
             "category": "crud",
@@ -1930,6 +1944,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.SCHEDULED.value],
             "display_view": "ack",
             "category": "crud",
@@ -1943,6 +1958,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.SCHEDULED.value],
             "display_view": "ack",
             "category": "crud",
@@ -1956,6 +1972,7 @@ def install_builtin_tools(registry) -> None:
         result_schema=dict,
         permission=PermissionType.WRITE,
         metadata={
+            "side_effect_mode": SideEffectMode.LOCAL_TRANSACTIONAL.value,
             "capabilities": [Capability.SCHEDULED.value],
             "display_view": "ack",
             "category": "crud",
