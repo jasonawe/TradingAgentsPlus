@@ -11,6 +11,7 @@ plumbing for what is fundamentally a formatting layer.
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
 
 from .capabilities import Capability
@@ -178,6 +179,121 @@ def _render_alpha(r: dict) -> str:
     return f"{head}\n| factor | value |\n|---|---|---|\n{body}{extra}"
 
 
+def _render_report_read(r: dict) -> str:
+    """Parse the get_report ``text`` blob and render meta + content
+    as a friendly markdown report card.
+
+    The tool returns a single ``text`` string shaped like::
+
+        REPORT: <report_id>
+        ---meta---
+        {"ticker": "...", "signal": "...", "status": "completed", ...}
+        ---content---
+        <full complete_report.md markdown body>
+
+    Without this renderer, ``display_view_for`` falls back to JSON
+    dump and the user sees a wall of escaped JSON in the chat bubble
+    ("{status: ok, text: REPORT: run-...\\n---meta---\\{...\\}...").
+    """
+    raw = (
+        r.get("text")
+        or r.get("preview")
+        or r.get("summary")
+        or ""
+    )
+    if not isinstance(raw, str) or not raw.strip():
+        return "(空)"
+    # Split on the section markers. The impl writes them in this
+    # exact order; tolerate leading whitespace and case variants.
+    report_id = None
+    meta_block = None
+    content_block = raw
+    m = re.match(r"^\s*REPORT:\s*(\S+)\s*\n", raw)
+    if m:
+        report_id = m.group(1)
+        rest = raw[m.end():]
+    else:
+        rest = raw
+    # Slice out the meta block if present.
+    meta_match = re.search(
+        r"^---meta---\s*\n(.*?)(?:\n---content---\s*\n|\Z)",
+        rest, flags=re.DOTALL,
+    )
+    if meta_match:
+        meta_block = meta_match.group(1).strip()
+        after = rest[meta_match.end():]
+        # If the impl used ---content--- to split, ``after`` already
+        # starts at the content. Otherwise treat the whole tail as
+        # content (legacy format).
+        if after.startswith("---content---"):
+            content_block = after[len("---content---"):].lstrip("\n")
+        else:
+            content_block = after.lstrip("\n")
+    else:
+        # No meta separator — the entire raw text is the report body.
+        content_block = rest.lstrip("\n")
+    # Try to pretty-print meta as a 2-column table.
+    meta_md = ""
+    if meta_block:
+        try:
+            meta_obj = json.loads(meta_block)
+            if isinstance(meta_obj, dict) and meta_obj:
+                rows = []
+                # Friendly Chinese labels for the common keys.
+                label_map = {
+                    "ticker": "标的",
+                    "asset_type": "类型",
+                    "signal": "信号",
+                    "rating": "评级",
+                    "status": "状态",
+                    "generated_at": "生成时间",
+                    "analysis_date": "分析日期",
+                    "source": "来源",
+                    "report_id": "报告 ID",
+                    "run_id": "运行 ID",
+                }
+                # Stable order: signal/rating first, then dates, then
+                # everything else. Avoid making the user scroll a 30-row
+                # table for a meta block with internal-only fields.
+                priority_keys = [
+                    "ticker", "signal", "rating", "status", "asset_type",
+                    "analysis_date", "generated_at", "source",
+                ]
+                seen = set()
+                for k in priority_keys:
+                    if k in meta_obj:
+                        rows.append((label_map.get(k, k), meta_obj[k]))
+                        seen.add(k)
+                for k, v in meta_obj.items():
+                    if k in seen:
+                        continue
+                    # Skip nested dicts / lists — they're internal
+                    # payloads (e.g. ``analysts: {market: "...long
+                    # text...", news: "..."}``) that already live in
+                    # the report's ``---content---`` body. Showing
+                    # them here just dumps a JSON blob that obscures
+                    # the actual meta. Only scalar fields go in the
+                    # meta table.
+                    if isinstance(v, (dict, list)):
+                        continue
+                    rows.append((label_map.get(k, k), v))
+                rows_md = "\n".join(
+                    f"| {k} | `{v if isinstance(v, (int, float, str, bool)) else str(v)}` |"
+                    for k, v in rows
+                )
+                meta_md = (
+                    "### 元数据\n"
+                    "| 字段 | 值 |\n|---|---|\n" + rows_md + "\n\n"
+                )
+            else:
+                meta_md = f"### 元数据\n\n```\n{meta_block}\n```\n\n"
+        except Exception:
+            # Not valid JSON — show as code fence.
+            meta_md = f"### 元数据\n\n```\n{meta_block}\n```\n\n"
+    head_md = f"## 📑 报告 {report_id}\n\n" if report_id else "## 📑 报告\n\n"
+    return head_md + meta_md + content_block
+
+
 def _render_list(r: dict) -> str:
     """Generic list_X tools. Renders count + the rich preview body.
 
@@ -220,6 +336,7 @@ _RENDERERS = {
     "scheduled_list": _render_list,
     "run_list": _render_list,
     "report_list": _render_list,
+    "report_read": _render_report_read,
     "alpha_list": _render_list,
     "alpha": _render_alpha,
 }
