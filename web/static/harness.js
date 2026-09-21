@@ -93,9 +93,13 @@
     if (searchEl) {
       searchEl.addEventListener("input", () => renderSessionPicker());
     }
-    /* §Step 24 — sidebar collapse/expand. Default is collapsed (rail
-       mode) so chat takes most of the screen on the standalone
-       /harness page. Click the chevron or "会话总数" badge to toggle. */
+    /* §Step 24 — sidebar collapse/expand. Default is **expanded**
+       so first-time visitors land on /harness with the session list
+       visible (the list is the primary navigation on this page — if
+       users don't see it they think the page is broken). Returning
+       users keep whatever they last chose via localStorage; the
+       explicit "0" value means they collapsed it and we honour that
+       (the rail-with-toggle makes re-opening trivial). */
     const sidebarToggle = document.getElementById("harness-sidebar-toggle");
     const layout = document.querySelector(".harness-layout");
     function setSidebarExpanded(expanded) {
@@ -107,8 +111,9 @@
     if (sidebarToggle && layout) {
       let stored = null;
       try { stored = localStorage.getItem("ta.harness.sidebarExpanded"); } catch (_) {}
-      // First-time visitors get the collapsed rail; returning users keep their choice.
-      if (stored === "1") setSidebarExpanded(true);
+      // Default expanded. "0" = user explicitly collapsed last time
+      // (respect that choice); null / "1" / anything else = expand.
+      setSidebarExpanded(stored !== "0");
       sidebarToggle.addEventListener("click", () => {
         setSidebarExpanded(!layout.classList.contains("is-sidebar-expanded"));
       });
