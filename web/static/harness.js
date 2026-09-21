@@ -1391,21 +1391,33 @@
           break;
         }
         // §N2 — multi-intent Tier 1 short-circuit returns
-        // {multi: [{intent, op, tool, result}, ...], count: N}.
-        // Render each section with a heading + formatRawResult output
-        // instead of one combined LLM-synthesized blob.
+        // {multi: [{intent, op, tool, result}, ...], count: N} plus a
+        // backend-computed ``summary`` (one-paragraph prose). Render
+        // the summary as the lead so the bubble reads as a friendly
+        // answer, then tuck the per-section raw tables into a
+        // collapsible <details> for users who want detail.
+        // Previously each section got its own <h4> heading + raw
+        // table dumped into the bubble — that turned "看一下我的
+        // 关注和 600036 的笔记" into a wall of pipe tables the user
+        // already saw one layer down in the reasoning trace.
         if (Array.isArray(result.multi) && result.multi.length >= 1) {
-          const sections = result.multi
-            .map((s) => {
-              const text = formatRawResult(s.result || {}, payload.tier);
-              const heading = intentHeading(s.intent);
-              return `<section class="harness-multi-section">
-  <h4>${heading}</h4>
-  <div class="harness-multi-body">${text}</div>
-</section>`;
-            })
-            .join("");
-          assistant.bubble.innerHTML = sections || "(空)";
+          const summaryHtml = (payload.summary && String(payload.summary).trim())
+            ? `<div class="harness-multi-summary">${renderMarkdown(payload.summary)}</div>`
+            : "";
+          const details = result.multi.map((s) => {
+            const text = formatRawResult(s.result || {}, payload.tier);
+            const heading = intentHeading(s.intent);
+            // §XSS guard — formatRawResult can return user note
+            // bodies which may include markdown / HTML. The renderer
+            // below already escapes, but be explicit about the
+            // boundary so a regression here can't leak raw HTML.
+            const safeText = renderMarkdown(text || "(无内容)");
+            return `<details class="harness-multi-detail">
+  <summary>${heading}</summary>
+  <div class="harness-multi-body">${safeText}</div>
+</details>`;
+          }).join("");
+          assistant.bubble.innerHTML = summaryHtml + details || "(空)";
           appendReasoningDelta(`💡 SynthesizeNode 完成 (multi-intent Tier 1, ${result.multi.length} sections)\n`);
           scrollToBottom();
           return;

@@ -1183,6 +1183,74 @@ details[open] .agent-reasoning-summary::before {
 }
 
 /* Multi-section (multi-intent) */
+.harness-multi-summary {
+  margin: 0.2rem 0 0.6rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--ink);
+}
+.harness-multi-summary p { margin: 0 0 0.4rem; }
+.harness-multi-summary ul { margin: 0.2rem 0 0.4rem 1.1rem; }
+.harness-multi-summary code {
+  background: var(--panel-2);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+.harness-multi-detail {
+  border-top: 1px dashed var(--line);
+  margin: 0.4rem 0 0;
+  padding-top: 0.4rem;
+}
+.harness-multi-detail:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+.harness-multi-detail summary {
+  cursor: pointer;
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 0.2rem 0;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+.harness-multi-detail summary::-webkit-details-marker { display: none; }
+.harness-multi-detail summary::before {
+  content: "▸";
+  color: var(--accent);
+  font-size: 0.7rem;
+  transition: transform 0.15s;
+  display: inline-block;
+  width: 0.7rem;
+}
+.harness-multi-detail[open] summary::before { transform: rotate(90deg); }
+.harness-multi-detail summary:hover { color: var(--ink-2); }
+.harness-multi-detail .harness-multi-body {
+  margin: 0.3rem 0 0.4rem 1rem;
+  font-size: 0.85rem;
+  color: var(--ink-2);
+}
+.harness-multi-detail .harness-multi-body table {
+  border-collapse: collapse;
+  margin: 0.3rem 0;
+  font-size: 0.82rem;
+}
+.harness-multi-detail .harness-multi-body th,
+.harness-multi-detail .harness-multi-body td {
+  border: 1px solid var(--line);
+  padding: 4px 8px;
+  text-align: left;
+}
+.harness-multi-detail .harness-multi-body th {
+  background: var(--panel-2);
+  font-weight: 600;
+}
+/* Legacy section heading — kept for any code paths that still emit
+   the old per-section view. */
 .harness-multi-section { margin: 0.6rem 0; }
 .harness-multi-section:first-child { margin-top: 0; }
 .harness-multi-section:last-child { margin-bottom: 0; }
