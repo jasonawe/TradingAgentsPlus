@@ -57,7 +57,7 @@
   function showLibrary() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; switchView("library"); setConnection("ready"); renderLibrary(); loadLibraryPage(); }
   function showScheduled() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("scheduled"); setConnection("ready"); }
   function showScheduledHistory() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("scheduled-history"); setConnection("ready"); ta("TradingAgentsScheduledHistory")?.refresh?.(); }
-  async function showSettings() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("settings"); setConnection("ready"); try { const [settings, providers] = await Promise.all([api("/api/settings"), api("/api/providers/market-data")]); const fields = settings.fields || {}; $("settings-fields").innerHTML = Object.entries(fields).map(([key, value]) => `<div><dt>${escapeHtml(t(`settings.${key}`))}</dt><dd>${escapeHtml(typeof value === "object" ? `${i18n.displayValue(value.value)}（${t("settings.source", { value: i18n.displayValue(value.source, t("settings.unknownSource")) })}）` : i18n.displayValue(value))}</dd></div>`).join(""); $("provider-status-list").innerHTML = (providers.providers || []).map((item) => `<div class="provider-status"><strong>${escapeHtml(item.label || item.id)}</strong><span class="status-chip ${item.status}">${escapeHtml(i18n.label("provider_status", item.status))}</span></div>`).join("") || `<p class="muted">${escapeHtml(t("settings.noProviders"))}</p>`; renderDataProviderSelector(settings, providers); renderQuoteStrategySelector(settings); renderAuxProviderSelector(settings, "news_provider", "news", "news"); renderAuxProviderSelector(settings, "alpha_provider", "alpha", "alpha"); renderNotifierConfig(settings); } catch (_) { $("settings-fields").innerHTML = `<p class="muted">${escapeHtml(t("settings.unavailable"))}</p>`; } }
+  async function showSettings() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("settings"); setConnection("ready"); try { const [settings, providers] = await Promise.all([api("/api/settings"), api("/api/providers/market-data")]); const fields = settings.fields || {}; $("settings-fields").innerHTML = Object.entries(fields).map(([key, value]) => `<div><dt>${escapeHtml(t(`settings.${key}`))}</dt><dd>${escapeHtml(typeof value === "object" ? `${i18n.displayValue(value.value)}（${t("settings.source", { value: i18n.displayValue(value.source, t("settings.unknownSource")) })}）` : i18n.displayValue(value))}</dd></div>`).join(""); $("provider-status-list").innerHTML = (providers.providers || []).map((item) => `<div class="provider-status"><strong>${escapeHtml(item.label || item.id)}</strong><span class="status-chip ${item.status}">${escapeHtml(i18n.label("provider_status", item.status))}</span></div>`).join("") || `<p class="muted">${escapeHtml(t("settings.noProviders"))}</p>`; renderDataProviderSelector(settings, providers); renderQuoteStrategySelector(settings); renderAuxProviderSelector(settings, "news_provider", "news", "news"); renderAuxProviderSelector(settings, "alpha_provider", "alpha", "alpha"); renderNotifierConfig(settings); renderLlmSelector(settings); } catch (_) { $("settings-fields").innerHTML = `<p class="muted">${escapeHtml(t("settings.unavailable"))}</p>`; } }
   function showAlerts() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("alerts"); setConnection("ready"); if (ta("TradingAgentsAlerts")?.mountAll) ta("TradingAgentsAlerts").mountAll($("alerts-all-list")); }
   function showNotes() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("notes"); setConnection("ready"); if (ta("TradingAgentsNotes")?.mountAll) ta("TradingAgentsNotes").mountAll($("notes-all-list")); }
   function showHarness() { stopElapsed(); if (state.source) state.source.close(); state.source = null; state.runId = null; state.archived = false; switchView("harness"); setConnection("ready"); ta("TradingAgentsHarness")?.init?.(); }
@@ -205,6 +205,98 @@
       }
     });
   }
+  // §P3-4 — LLM provider/model + L3 judge provider/model selector.
+  // Renders two provider dropdowns (with datalist suggestions for
+  // model inputs) and a single save button that PATCHes all four
+  // keys to /api/settings/llm in one round-trip. The factory's
+  // 10s TTL cache + the PATCH handler's invalidate() make the
+  // change effective on the very next LLM call.
+  async function renderLlmSelector(settings) {
+    const container = $("llm-selector");
+    if (!container) return;
+    container.hidden = false;
+    const fields = (settings && settings.fields) || {};
+    const llmModels = (settings && settings.llm_models) || {};
+
+    const providerEl = $("llm-provider");
+    const modelEl = $("llm-model");
+    const modelListEl = $("llm-model-suggestions");
+    const judgeProviderEl = $("llm-judge-provider");
+    const judgeModelEl = $("llm-judge-model");
+    const judgeModelListEl = $("llm-judge-model-suggestions");
+    const saveBtn = $("llm-save");
+    const statusEl = $("llm-status");
+    if (!providerEl || !modelEl || !judgeProviderEl || !judgeModelEl || !saveBtn) return;
+
+    const providerField = fields["llm.provider"] || {};
+    const modelField = fields["llm.model"] || {};
+    const judgeProviderField = fields["llm.judge_provider"] || {};
+    const judgeModelField = fields["llm.judge_model"] || {};
+    const providerOptions = providerField.options || [];
+
+    function populateProvider(select, currentValue, includeEmpty) {
+      const opts = [];
+      if (includeEmpty) {
+        opts.push(`<option value="">${escapeHtml(t("settings.unknownSource"))}</option>`);
+      }
+      for (const p of providerOptions) {
+        const selected = p === currentValue ? "selected" : "";
+        opts.push(`<option value="${escapeHtml(p)}" ${selected}>${escapeHtml(p)}</option>`);
+      }
+      select.innerHTML = opts.join("");
+    }
+    function populateModelSuggestions(datalist, provider) {
+      const entry = llmModels[provider] || { quick: [], deep: [] };
+      const seen = new Set();
+      const all = [];
+      for (const arr of [entry.quick, entry.deep]) {
+        for (const m of arr) {
+          if (m && m !== "custom" && !seen.has(m)) { seen.add(m); all.push(m); }
+        }
+      }
+      datalist.innerHTML = all.map((m) => `<option value="${escapeHtml(m)}"></option>`).join("");
+    }
+
+    populateProvider(providerEl, providerField.value || "", false);
+    populateProvider(judgeProviderEl, judgeProviderField.value || "", true);
+    populateModelSuggestions(modelListEl, providerEl.value);
+    populateModelSuggestions(judgeModelListEl, judgeProviderEl.value);
+    modelEl.value = modelField.value || "";
+    judgeModelEl.value = judgeModelField.value || "";
+
+    providerEl.addEventListener("change", () => populateModelSuggestions(modelListEl, providerEl.value));
+    judgeProviderEl.addEventListener("change", () => populateModelSuggestions(judgeModelListEl, judgeProviderEl.value));
+
+    // showSettings() is invoked multiple times; the save button is a
+    // stable DOM node so we guard against double-listener attachment
+    // by stashing a sentinel on the element.
+    if (!saveBtn.dataset.llmBound) {
+      saveBtn.dataset.llmBound = "1";
+      saveBtn.addEventListener("click", async () => {
+        saveBtn.disabled = true;
+        statusEl.textContent = t("settings.llmSaving");
+        try {
+          await api("/api/settings/llm", {
+            method: "PATCH",
+            body: JSON.stringify({
+              provider: providerEl.value,
+              model: modelEl.value,
+              judge_provider: judgeProviderEl.value,
+              judge_model: judgeModelEl.value,
+            }),
+            headers: { "Content-Type": "application/json" },
+          });
+          statusEl.textContent = t("settings.llmSaved");
+          await showSettings();
+        } catch (error) {
+          statusEl.textContent = t("settings.llmSaveFailed", { error: localizeError(error.message) });
+        } finally {
+          saveBtn.disabled = false;
+        }
+      });
+    }
+  }
+
   async function renderDataProviderSelector(settings, providers) {
     const container = $("data-provider-selector");
     const list = $("data-provider-options");

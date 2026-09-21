@@ -53,8 +53,23 @@ class Harness:
         cfg = HarnessConfig(data_dir=_P(str(data_dir)))
         return cls(config=cfg, **kwargs)
 
-    def __init__(self, config: HarnessConfig | None = None) -> None:
+    def __init__(
+        self,
+        config: HarnessConfig | None = None,
+        *,
+        settings_lookup: "Callable[[str], str | None] | None" = None,
+    ) -> None:
+        """Build a Harness.
+
+        ``settings_lookup`` is the optional runtime-config hook (see
+        ``LLMFactory.settings_lookup``). When provided, the main and
+        judge LLM factories consult it on each TTL miss so the user
+        can switch providers/models via the settings page without
+        restarting the service. Tests + CLI bootstrap pass ``None``
+        to keep the legacy env-var-only behaviour.
+        """
         self.config = config or HarnessConfig.from_env()
+        self.settings_lookup = settings_lookup
 
         # 1b. EventBus (W3-D3 E6) — single unified event bus for plugin
         # cross-cutting hooks. 3rd-party plugins can subscribe to
@@ -76,22 +91,39 @@ class Harness:
 
         # 4. llm_factory — wraps tradingagents/llm_clients (v3 spec §3 llm/).
         # Built BEFORE agents so we can inject it into them.
+        # §P3-4 — when a settings_lookup is provided, the factory
+        # delegates (provider, model) resolution to it on each TTL miss
+        # so users can switch at runtime via the settings page.
         from tradingagents.agent_harness.llm import LLMFactory
         self.llm_factory = LLMFactory(
             default_provider=self.config.llm_provider,
             default_model=self.config.llm_model,
             identity=self.app_identity,
+            settings_lookup=settings_lookup,
+            role="main",
         )
 
         # 4b. judge_factory — L3 LLM-judge 模型 (spec §D6 N89 fix: judge
-        # 不复用主 LLM)。judge_provider/model 为空时回退到主 LLM factory。
-        if self.config.judge_provider and self.config.judge_model:
-            self.judge_factory = LLMFactory(
-                default_provider=self.config.judge_provider,
-                default_model=self.config.judge_model,
-            )
-        else:
-            self.judge_factory = self.llm_factory
+        # 不复用主 LLM)。
+        #
+        # §P3-4 — always create a separate factory with role="judge".
+        # Previously the harness aliased ``self.judge_factory =
+        # self.llm_factory`` when the static HarnessConfig had empty
+        # judge_* fields, which silently ignored any
+        # ``llm.judge_provider`` / ``llm.judge_model`` the user set on
+        # the settings page (since the shared factory's role was
+        # always "main"). A standalone role="judge" factory reads
+        # ``llm.judge_*`` keys first; if both settings and defaults
+        # are empty, ``is_configured()`` returns False and the
+        # verifier falls back to its non-LLM path — preserving the
+        # legacy "no judge configured" behaviour.
+        self.judge_factory = LLMFactory(
+            default_provider=self.config.judge_provider,
+            default_model=self.config.judge_model,
+            identity=self.app_identity,
+            settings_lookup=settings_lookup,
+            role="judge",
+        )
 
         # 3. AgentRegistry + 6 builtin agents (N64 fix, P8 LLM wiring).
         # W3-D1 E5: sub-agents are now wired through SubagentProvider (name

@@ -494,6 +494,18 @@ class SettingsRepository:
         SCHEDULER_OVERRIDES_OUTPUT_LANGUAGE,
     })
 
+    # §P3-4 — LLM (harness main + L3 judge) provider/model. Persisted
+    # so users can switch at runtime via the settings page without
+    # restarting the service. Factory reads these with a 10s TTL cache.
+    LLM_PROVIDER = "llm.provider"
+    LLM_MODEL = "llm.model"
+    LLM_JUDGE_PROVIDER = "llm.judge_provider"
+    LLM_JUDGE_MODEL = "llm.judge_model"
+    LLM_KEYS = frozenset({
+        LLM_PROVIDER, LLM_MODEL,
+        LLM_JUDGE_PROVIDER, LLM_JUDGE_MODEL,
+    })
+
     ALLOWED = frozenset({
         "quote_ttl_seconds",
         "quote_strategy_id",
@@ -513,7 +525,7 @@ class SettingsRepository:
         "prewarmer.enabled",
         "prewarmer.interval_seconds",
         "prewarmer.bootstrap_on_startup",
-    } | SCHEDULER_OVERRIDES_KEYS)
+    } | SCHEDULER_OVERRIDES_KEYS | LLM_KEYS)
     def __init__(self, store: SQLiteStore) -> None:
         self.store = store
         with self.store.connection() as conn:

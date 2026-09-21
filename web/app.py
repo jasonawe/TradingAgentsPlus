@@ -489,7 +489,16 @@ def create_app(
     # startup; errors are logged but never fail create_app).
     try:
         from tradingagents.agent_harness.harness import Harness, mount_health_endpoint
-        app.state.harness = Harness()
+        # §P3-4 — wire the settings_repo into the harness so the LLM
+        # factories can resolve (provider, model) at runtime. Without
+        # this lookup, the factories only know their constructor
+        # defaults (which came from env vars at boot) and the
+        # settings page has no way to switch models at runtime.
+        def _settings_lookup(key: str) -> str | None:
+            entry = settings_repo.get(key)
+            return (entry or {}).get("value") if entry else None
+        app.state.settings_lookup = _settings_lookup
+        app.state.harness = Harness(settings_lookup=_settings_lookup)
         mount_health_endpoint(app, app.state.harness, path="/api/harness/health")
         # Step 33 — wire the WorkflowSpecRegistry so YAML specs under
         # tradingagents/agent_harness/workflows/specs/ are introspectable
@@ -1368,15 +1377,27 @@ def create_app(
         @app.get("/api/harness/status")
         async def _harness_status() -> dict:
             h = app.state.harness
+            # §P3-4 — report the *live* LLM factories (which read from
+            # settings_repo with TTL) instead of the static
+            # HarnessConfig snapshot. After the user changes the
+            # provider/model on the settings page, this endpoint
+            # reflects the new choice on the very next call.
+            main_p, main_m = h.llm_factory._resolve_cached()
+            judge_p, judge_m = h.judge_factory._resolve_cached()
             return {
                 "ok": True,
                 "enable_l3": h.config.enable_l3,
                 "judge": {
-                    "provider": h.config.judge_provider or h.config.llm_provider,
-                    "model": h.config.judge_model or h.config.llm_model,
+                    "provider": judge_p or main_p,
+                    "model": judge_m or main_m,
                     "configured": h.judge_factory.is_configured()
                     if hasattr(h.judge_factory, "is_configured")
                     else bool(h.judge_factory),
+                },
+                "llm": {
+                    "provider": main_p,
+                    "model": main_m,
+                    "configured": h.llm_factory.is_configured(),
                 },
                 "agents": [
                     {
@@ -1909,7 +1930,71 @@ def create_app(
             "source": "sqlite" if persisted_alpha else "env",
             "options": sorted(ALPHA_PROVIDERS),
         }
-        return {"schema_version": 1, "fields": fields, "strategies": [{"id": k, "providers": v["providers"], "available": next((s["available"] for s in catalog["strategies"] if s["id"] == k), False)} for k, v in QUOTE_STRATEGIES.items()], "provider_health": {item["provider"]: item for item in provider_health_repo.list()}}
+
+        # §P3-4 — LLM provider/model (harness main + L3 judge).
+        # Resolution priority for the UI display: user's persisted
+        # choice (sqlite) → harness factory defaults (which absorb the
+        # schema/env defaults at boot). We read from the harness
+        # rather than os.getenv directly so the UI shows the same
+        # value the factory actually uses (HarnessConfig has its own
+        # defaults independent of env vars, e.g. minimax-cn).
+        from tradingagents.agent_harness.llm import LLM_REGISTRY
+        llm_provider_options = sorted(LLM_REGISTRY.keys())
+        _harness = getattr(app.state, "harness", None)
+        _factory_main = getattr(_harness, "llm_factory", None)
+        _factory_judge = getattr(_harness, "judge_factory", None)
+        # _resolve_cached populates the cache so this doubles as a
+        # warm-up that primes the factory's TTL window.
+        _factory_main_p, _factory_main_m = _factory_main._resolve_cached() if _factory_main else ("", "")
+        _factory_judge_p, _factory_judge_m = _factory_judge._resolve_cached() if _factory_judge else ("", "")
+
+        def _llm_field(persisted_key: str, factory_value: str, *, has_options: bool = False) -> dict[str, Any]:
+            entry = settings_repo.get(persisted_key) or {}
+            persisted_value = entry.get("value", "")
+            field: dict[str, Any] = {
+                "value": persisted_value or factory_value,
+                "source": entry.get("source", "default") if persisted_value else "default",
+            }
+            if has_options:
+                field["options"] = llm_provider_options
+            return field
+
+        fields[SettingsRepository.LLM_PROVIDER] = _llm_field(
+            SettingsRepository.LLM_PROVIDER, _factory_main_p, has_options=True,
+        )
+        fields[SettingsRepository.LLM_MODEL] = _llm_field(
+            SettingsRepository.LLM_MODEL, _factory_main_m,
+        )
+        fields[SettingsRepository.LLM_JUDGE_PROVIDER] = _llm_field(
+            SettingsRepository.LLM_JUDGE_PROVIDER, _factory_judge_p, has_options=True,
+        )
+        fields[SettingsRepository.LLM_JUDGE_MODEL] = _llm_field(
+            SettingsRepository.LLM_JUDGE_MODEL, _factory_judge_m,
+        )
+
+        # §P3-4 — model suggestions per provider so the settings UI can
+        # populate a datalist under each model input. ``quick_models``
+        # / ``deep_models`` mirror the entries in
+        # ``tradingagents/llm_clients/model_catalog.MODEL_OPTIONS``;
+        # the UI exposes both lists as autocomplete suggestions while
+        # keeping the model input free-form (custom endpoint model
+        # IDs are allowed).
+        try:
+            providers_catalog, _ = model_catalog(active_config)
+            models_map: dict[str, dict[str, list[str]]] = {}
+            for entry in providers_catalog:
+                models_map[entry["value"]] = {
+                    "quick": [m["value"] for m in entry.get("quick_models", [])],
+                    "deep": [m["value"] for m in entry.get("deep_models", [])],
+                }
+        except Exception:
+            LOGGER.debug("model_catalog unavailable for /api/settings", exc_info=True)
+            models_map = {}
+
+        return {
+            "schema_version": 1,
+            "fields": fields,
+            "llm_models": models_map, "strategies": [{"id": k, "providers": v["providers"], "available": next((s["available"] for s in catalog["strategies"] if s["id"] == k), False)} for k, v in QUOTE_STRATEGIES.items()], "provider_health": {item["provider"]: item for item in provider_health_repo.list()}}
 
     @app.patch("/api/settings/quote-strategy")
     def update_quote_strategy(payload: dict[str, Any]) -> dict[str, Any]:
@@ -1978,6 +2063,85 @@ def create_app(
         settings_repo.set("active_alpha_provider", name, source="sqlite")
         set_active_alpha_provider(name)
         return {"provider": name, "providers": sorted(ALPHA_PROVIDERS)}
+
+    @app.patch("/api/settings/llm")
+    def update_llm(payload: dict[str, Any]) -> dict[str, Any]:
+        """§P3-4 — switch the active LLM provider/model (main + judge).
+
+        Persists to settings_repo. The harness LLMFactory reads these
+        keys on a 10s TTL miss so the change takes effect on the next
+        ``make()`` call without a service restart.
+
+        Body shape (all keys optional — omit to leave unchanged):
+            {
+                "provider": "openai" | "anthropic" | ...,
+                "model": "gpt-4o-mini" | <custom>,
+                "judge_provider": "google" | ... | "",   # "" = disable dedicated judge (falls back to main factory)
+                "judge_model": "gemini-1.5-pro" | <custom> | "",
+            }
+
+        Validation: ``provider`` / ``judge_provider`` (when non-empty)
+        must appear in ``LLM_REGISTRY``. Model strings are free-form
+        because some providers allow custom endpoint model IDs.
+        """
+        from tradingagents.agent_harness.llm import LLM_REGISTRY
+
+        data = payload or {}
+        allowed_providers = set(LLM_REGISTRY.keys())
+        updated: dict[str, str] = {}
+
+        prov = data.get("provider")
+        if prov is not None:
+            if not isinstance(prov, str):
+                raise _error(status.HTTP_400_BAD_REQUEST, "provider must be a string")
+            if prov != "" and prov not in allowed_providers:
+                raise _error(
+                    status.HTTP_400_BAD_REQUEST,
+                    f"unknown LLM provider; known: {sorted(LLM_REGISTRY)}",
+                )
+            settings_repo.set(SettingsRepository.LLM_PROVIDER, prov, source="sqlite")
+            updated["provider"] = prov
+
+        model = data.get("model")
+        if model is not None:
+            if not isinstance(model, str):
+                raise _error(status.HTTP_400_BAD_REQUEST, "model must be a string")
+            settings_repo.set(SettingsRepository.LLM_MODEL, model, source="sqlite")
+            updated["model"] = model
+
+        jprov = data.get("judge_provider")
+        if jprov is not None:
+            if not isinstance(jprov, str):
+                raise _error(status.HTTP_400_BAD_REQUEST, "judge_provider must be a string")
+            if jprov != "" and jprov not in allowed_providers:
+                raise _error(
+                    status.HTTP_400_BAD_REQUEST,
+                    f"unknown judge provider; known: {sorted(LLM_REGISTRY)}",
+                )
+            settings_repo.set(SettingsRepository.LLM_JUDGE_PROVIDER, jprov, source="sqlite")
+            updated["judge_provider"] = jprov
+
+        jmodel = data.get("judge_model")
+        if jmodel is not None:
+            if not isinstance(jmodel, str):
+                raise _error(status.HTTP_400_BAD_REQUEST, "judge_model must be a string")
+            settings_repo.set(SettingsRepository.LLM_JUDGE_MODEL, jmodel, source="sqlite")
+            updated["judge_model"] = jmodel
+
+        # Apply immediately: drop the factory cache so the next ``make()``
+        # call (likely the very next LLM call) re-reads settings_repo.
+        harness = getattr(app.state, "harness", None)
+        if harness is not None:
+            for factory in (getattr(harness, "llm_factory", None),
+                            getattr(harness, "judge_factory", None)):
+                invalidate = getattr(factory, "invalidate", None)
+                if callable(invalidate):
+                    try:
+                        invalidate()
+                    except Exception:
+                        LOGGER.debug("LLMFactory.invalidate failed", exc_info=True)
+
+        return {"updated": updated}
 
     @app.patch("/api/settings/notifier")
     def update_notifier(payload: dict[str, Any]) -> dict[str, Any]:
