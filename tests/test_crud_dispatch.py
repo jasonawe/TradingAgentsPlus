@@ -345,3 +345,141 @@ class TestEndToEndWatchlistDelete:
         result = await remove_from_watchlist(args, ToolContext(session_id="e2e"))
         assert result.status == "deleted"
         assert result.symbol == "600036.SS"
+
+
+# ════════════════════════════════════════════════════════
+# Task 7 — CommandResolver (new API)
+# ════════════════════════════════════════════════════════
+
+class TestCommandResolver:
+    """CommandResolver 是 CommandSpec 的唯一构造者,按 (entity, op) 查表 + 类型化 args factory。"""
+
+    def _resolver(self):
+        from tradingagents.agent_harness.core.command_resolver import CommandResolver
+        return CommandResolver()
+
+    def test_resolve_watchlist_create_returns_command_spec(self):
+        from tradingagents.agent_harness.runtime.models import CommandSpec
+        from tradingagents.agent_harness.tools.permission import PermissionType
+        spec = self._resolver().resolve(
+            intent=Intent.WATCHLIST, op=Op.CREATE,
+            user_message="加入关注 600036.SS",
+            symbols=["600036.SS"],
+        )
+        assert isinstance(spec, CommandSpec)
+        assert spec.entity == "watchlist"
+        assert spec.op == "CREATE"
+        assert spec.tool_name == "add_to_watchlist"
+        assert spec.args["symbol"] == "600036.SS"
+        assert spec.args["asset_type"] == "stock"
+        assert spec.permission == PermissionType.WRITE
+
+    def test_resolve_watchlist_list_returns_direct_read_permission(self):
+        from tradingagents.agent_harness.tools.permission import PermissionType
+        spec = self._resolver().resolve(
+            intent=Intent.WATCHLIST, op=Op.LIST,
+            user_message="我的关注",
+            symbols=[],
+        )
+        assert spec.permission == PermissionType.READ
+
+    def test_resolve_note_create_uses_slot_body_md(self):
+        spec = self._resolver().resolve(
+            intent=Intent.NOTE, op=Op.CREATE,
+            user_message="给 600036 加一个笔记：哈哈打MVP",
+            symbols=["600036.SS"],
+            slots={"body_md": "哈哈打MVP"},
+        )
+        assert spec.tool_name == "create_note"
+        assert spec.args["symbol"] == "600036.SS"
+        # body 来自 slot,不是整条 message
+        assert spec.args["body_md"] == "哈哈打MVP"
+
+    def test_resolve_note_create_fallback_to_message(self):
+        spec = self._resolver().resolve(
+            intent=Intent.NOTE, op=Op.CREATE,
+            user_message="新建笔记 招商银行最近不错",
+            symbols=["600036.SS"],
+            slots={},
+        )
+        # slot 没匹配上时 fallback 到 user_message
+        assert spec.args["body_md"] == "新建笔记 招商银行最近不错"
+
+    def test_resolve_alert_create_uses_threshold_and_direction_slots(self):
+        spec = self._resolver().resolve(
+            intent=Intent.ALERT, op=Op.CREATE,
+            user_message="建告警 600036 涨幅超过 5%",
+            symbols=["600036.SS"],
+            slots={"threshold": 5.0, "direction": "above"},
+        )
+        assert spec.tool_name == "create_alert"
+        assert spec.args["kind"] == "price_above"
+        assert spec.args["params"]["threshold"] == 5.0
+        assert spec.args["params"]["direction"] == "above"
+
+    def test_resolve_scheduled_create_uses_cron_slot(self):
+        spec = self._resolver().resolve(
+            intent=Intent.SCHEDULED, op=Op.CREATE,
+            user_message="每天早上 9 点跑 600036",
+            symbols=["600036.SS"],
+            slots={"cron": "0 9 * * *"},
+        )
+        assert spec.tool_name == "create_scheduled_task"
+        assert spec.args["cron_expression"] == "0 9 * * *"
+        assert spec.args["timezone"] == "Asia/Shanghai"
+
+    def test_resolve_run_create_uses_trade_date_slot(self):
+        spec = self._resolver().resolve(
+            intent=Intent.RUN, op=Op.CREATE,
+            user_message="跑一下 600036 明天",
+            symbols=["600036.SS"],
+            slots={"trade_date": "2026-09-22"},
+        )
+        assert spec.tool_name == "run_trading_agents_analysis"
+        assert spec.args["trade_date"] == "2026-09-22"
+        assert spec.args["research_depth"] == 1
+
+    def test_resolve_note_list_carries_focused_symbol(self):
+        spec = self._resolver().resolve(
+            intent=Intent.NOTE, op=Op.LIST,
+            user_message="看看这个资产的笔记",
+            symbols=[], carry_symbols=["600036.SS"],
+        )
+        assert spec.tool_name == "list_notes"
+        assert spec.args.get("symbol") == "600036.SS"
+
+    def test_resolve_note_list_no_focus_returns_empty_args(self):
+        spec = self._resolver().resolve(
+            intent=Intent.NOTE, op=Op.LIST,
+            user_message="我的所有笔记",
+            symbols=[], carry_symbols=[],
+        )
+        assert spec.tool_name == "list_notes"
+        # 无 focus 时不应硬塞 symbol
+        assert spec.args.get("symbol", "") == ""
+
+    def test_resolve_alert_bulk_delete_uses_focused_symbol(self):
+        spec = self._resolver().resolve(
+            intent=Intent.ALERT, op=Op.BULK_DELETE,
+            user_message="删除这个资产的所有告警",
+            symbols=["600036.SS"], carry_symbols=[],
+        )
+        assert spec.tool_name == "delete_alerts_for_symbol"
+        assert spec.args["symbol"] == "600036.SS"
+
+    def test_resolve_unsupported_pair_raises(self):
+        from tradingagents.agent_harness.core.command_resolver import UnsupportedCommand
+        with pytest.raises(UnsupportedCommand):
+            self._resolver().resolve(
+                intent=Intent.QUOTE, op=Op.CREATE,  # QUOTE 不支持 CREATE
+                user_message="创建报价",
+                symbols=["600036.SS"],
+            )
+
+    def test_resolve_does_not_invoke_tools_or_llm(self):
+        """CommandResolver 只构造 CommandSpec,不能调用 tool 或 LLM。"""
+        import inspect
+        from tradingagents.agent_harness.core import command_resolver
+        src = inspect.getsource(command_resolver)
+        for forbidden in ["llm_factory", "LLMFactory", "tool.invoke", "invoke_tool"]:
+            assert forbidden not in src, f"CommandResolver 不能引用 {forbidden}"
