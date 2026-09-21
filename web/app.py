@@ -497,9 +497,11 @@ def create_app(
         from tradingagents.agent_harness.core.workflow_spec_registry import (
             WorkflowSpecRegistry,
         )
-        app.state.workflow_specs = WorkflowSpecRegistry(
-            orchestrator=app.state.harness.orchestrator,
-        )
+        # V2 WorkflowSpecRegistry (Task 21) is a simple frozen-dataclass
+        # store; the V1 orchestrator binding is gone. YAML endpoints
+        # that still reference this registry will simply return an
+        # empty list / raise not-found.
+        app.state.workflow_specs = WorkflowSpecRegistry()
         # Step 28-E — wire a persistent plan cache so they survive
         # uvicorn restarts / gunicorn worker reloads. Resolved relative
         # to active_config["data_dir"] (default .ta_cache) and falls
@@ -1379,15 +1381,19 @@ def create_app(
                 "agents": [
                     {
                         "name": name,
-                        "llm_wired": a.llm_factory is not None,
-                        "tools_wired": a.tool_registry is not None,
+                        "llm_wired": getattr(a, "llm_factory", None) is not None,
+                        "tools_wired": getattr(a, "tool_registry", None) is not None,
                         **(
-                            {"judge_wired": a.judge_factory is not None, "enable_l3": a.enable_l3}
+                            {
+                                "judge_wired": getattr(a, "judge_factory", None) is not None,
+                                "enable_l3": getattr(a, "enable_l3", False),
+                            }
                             if name == "verifier"
                             else {}
                         ),
                     }
-                    for name, a in sorted(h.agent_registry._agents.items())
+                    for name in h.agent_registry.list()
+                    for a in [h.agent_registry.get(name)]
                 ],
             }
     except Exception as e:
