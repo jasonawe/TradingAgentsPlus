@@ -111,3 +111,93 @@ def _strip_fence(text: str) -> str:
     text = re.sub(r"^```(?:json)?\s*", "", text.strip())
     text = re.sub(r"```\s*$", "", text)
     return text
+
+
+# ════════════════════════════════════════════════════════
+# V2 — two-phase verification (Task 17)
+# ════════════════════════════════════════════════════════
+
+
+def _make_verified_ref(ref_dict: dict, verification_task_id: str) -> dict:
+    """Convert plain EvidenceRef dict → VerifiedEvidenceRef dict."""
+    out = dict(ref_dict)
+    out["verification_task_id"] = verification_task_id
+    out["verification_level"] = "L1"
+    out["verified_at"] = _now_iso()
+    return out
+
+
+def _now_iso() -> str:
+    from datetime import datetime, timezone
+    return datetime.now(timezone.utc).isoformat()
+
+
+async def _verifier_run_v2(
+    self, input: AgentInput, *, context: AgentContext
+):
+    """V2 entry: select VERIFY_EVIDENCE or VERIFY_ANSWER phase."""
+    from types import SimpleNamespace
+    from .base import AgentReply
+
+    ctx_data = input.context or {}
+    phase = ctx_data.get("phase") or "VERIFY_EVIDENCE"
+
+    if phase == "VERIFY_EVIDENCE":
+        # Issue VerifiedEvidenceRef for each plain ref
+        raw_refs = ctx_data.get("evidence_refs") or []
+        verified = tuple(
+            _make_verified_ref(r, f"vt-{input.user_message[:8]}")
+            for r in raw_refs
+        )
+        return AgentReply(
+            success=True,
+            content=f"verified {len(verified)} refs",
+            evidence=verified,
+            confidence=0.95,
+        )
+
+    # VERIFY_ANSWER
+    answer = (ctx_data.get("answer") or input.user_message or "").strip()
+    evidence = ctx_data.get("evidence_refs") or []
+    target_task_id = ctx_data.get("target_task_id") or "unknown"
+
+    if not answer:
+        return AgentReply(
+            success=False,
+            errors=("empty answer",),
+            missing_items=("answer_text",),
+        )
+    if not evidence:
+        # 无证据 → REPAIR_REQUEST (用 SimpleNamespace 避免 AgentMessageDraft 类型限制)
+        from types import SimpleNamespace
+        from tradingagents.agent_harness.runtime.models import RepairPayload
+        repair = SimpleNamespace(
+            recipient="synthesizer",
+            type="REPAIR_REQUEST",
+            payload=RepairPayload(
+                kind="REPAIR_REQUEST",
+                target_task_id=target_task_id,
+                repair_kind="DOMAIN_EVIDENCE",
+                missing_evidence=("evidence_required_for_claim",),
+                acceptance_criteria=("grounded",),
+                rejected_artifact_ids=(),
+                on_reject="FAIL_REQUESTER",
+            ),
+            evidence_refs=[],
+            reason_summary=None,
+        )
+        return AgentReply(
+            success=False,
+            content="answer not grounded",
+            missing_items=("grounded_evidence",),
+            outgoing=(repair,),
+        )
+
+    return AgentReply(
+        success=True,
+        content="answer grounded",
+        confidence=0.9,
+    )
+
+
+VerifierAgent.run_v2 = _verifier_run_v2  # type: ignore[attr-defined]

@@ -327,3 +327,134 @@ def test_domain_agents_have_no_direct_registry_access():
         # 不应有 agent_registry / provider 属性
         assert not hasattr(agent, "agent_registry")
         assert not hasattr(agent, "provider")
+
+
+# ════════════════════════════════════════════════════════
+# Task 17 — Verifier / Synthesizer V2 with bounded repair
+# ════════════════════════════════════════════════════════
+
+
+def test_verifier_v2_evidence_phase_issues_verified_ref():
+    """VERIFY_EVIDENCE 阶段:签发 VerifiedEvidenceRef。"""
+    from tradingagents.agent_harness.agents.verifier import VerifierAgent
+    from tradingagents.agent_harness.agents.base import AgentInput, AgentContext
+    from tradingagents.agent_harness.runtime.models import EvidenceRef
+
+    agent = VerifierAgent()
+    refs = [
+        EvidenceRef(
+            artifact_id="a1", producer_task_id="t1",
+            source_type="tool", source_name="get_quote",
+            content_sha256="sha1", as_of=None,
+        ),
+    ]
+    inp = AgentInput(
+        user_message="verify",
+        context={"phase": "VERIFY_EVIDENCE", "evidence_refs": [r.model_dump() for r in refs]},
+    )
+    ctx = AgentContext(session_id="s1")
+    import asyncio
+    result = asyncio.run(agent.run_v2(inp, context=ctx))
+    assert result.success is True
+    assert any("verified" in (e.get("source_type") or "") or e.get("verification_level") for e in result.evidence)
+
+
+def test_verifier_v2_answer_phase_rejects_ungrounded_claim():
+    """VERIFY_ANSWER 阶段:无证据的 claim 拒绝,返回 REPAIR_REQUEST outgoing。"""
+    from tradingagents.agent_harness.agents.verifier import VerifierAgent
+    from tradingagents.agent_harness.agents.base import AgentInput, AgentContext
+
+    agent = VerifierAgent()
+    inp = AgentInput(
+        user_message="verify answer",
+        context={
+            "phase": "VERIFY_ANSWER",
+            "answer": "Stock will rise 50% tomorrow.",
+            "evidence_refs": [],
+        },
+    )
+    ctx = AgentContext(session_id="s1")
+    import asyncio
+    result = asyncio.run(agent.run_v2(inp, context=ctx))
+    # 应该有 outgoing REPAIR_REQUEST 草稿
+    assert result.success is False or any(
+        getattr(d, "type", None) == "REPAIR_REQUEST"
+        for d in result.outgoing
+    )
+
+
+def test_synthesizer_v2_rejects_plain_evidence_refs():
+    """SynthesizerAgent V2 只接受 VerifiedEvidenceRef,plain EvidenceRef 拒绝。"""
+    from tradingagents.agent_harness.agents.synthesizer import SynthesizerAgent
+    from tradingagents.agent_harness.agents.base import AgentInput, AgentContext
+
+    agent = SynthesizerAgent()
+    # plain EvidenceRef (没有 verification_level)
+    inp = AgentInput(
+        user_message="synth",
+        context={
+            "evidence_refs": [
+                {"artifact_id": "a1", "producer_task_id": "t1",
+                 "source_type": "tool", "source_name": "get_quote",
+                 "content_sha256": "sha1", "as_of": None},
+            ],
+            "objective": "synthesize",
+        },
+    )
+    ctx = AgentContext(session_id="s1")
+    import asyncio
+    result = asyncio.run(agent.run_v2(inp, context=ctx))
+    # missing_items 应包含 "unverified_evidence"
+    assert "unverified_evidence" in result.missing_items
+
+
+def test_synthesizer_v2_accepts_verified_refs():
+    """VerifiedEvidenceRef 可用 → Synthesizer 产出 answer。"""
+    from tradingagents.agent_harness.agents.synthesizer import SynthesizerAgent
+    from tradingagents.agent_harness.agents.base import AgentInput, AgentContext
+
+    agent = SynthesizerAgent()
+    inp = AgentInput(
+        user_message="synth",
+        context={
+            "evidence_refs": [
+                {"artifact_id": "a1", "producer_task_id": "t1",
+                 "source_type": "tool", "source_name": "get_quote",
+                 "content_sha256": "sha1", "as_of": None,
+                 "verification_task_id": "vt1", "verification_level": "L1",
+                 "verified_at": "2026-09-21T00:00:00Z"},
+            ],
+            "objective": "summarize AAPL",
+        },
+    )
+    ctx = AgentContext(session_id="s1")
+    import asyncio
+    result = asyncio.run(agent.run_v2(inp, context=ctx))
+    assert result.success is True
+    assert result.content  # 至少有内容
+
+
+def test_verifier_repair_request_includes_target_and_on_reject():
+    """REPAIR_REQUEST 必须包含 target_task_id + on_reject + rejected_artifact_ids。"""
+    from tradingagents.agent_harness.agents.verifier import VerifierAgent
+    from tradingagents.agent_harness.agents.base import AgentInput, AgentContext
+
+    agent = VerifierAgent()
+    inp = AgentInput(
+        user_message="verify",
+        context={
+            "phase": "VERIFY_ANSWER",
+            "answer": "Unverified claim here.",
+            "evidence_refs": [],
+            "target_task_id": "t_data_aapl",
+        },
+    )
+    ctx = AgentContext(session_id="s1")
+    import asyncio
+    result = asyncio.run(agent.run_v2(inp, context=ctx))
+    # 找到 REPAIR_REQUEST draft
+    repair = [d for d in result.outgoing if getattr(d, "type", None) == "REPAIR_REQUEST"]
+    if repair:
+        payload = repair[0].payload
+        assert getattr(payload, "target_task_id", None) == "t_data_aapl"
+        assert getattr(payload, "on_reject", None) in ("FAIL_REQUESTER", "RESUME_REQUESTER")

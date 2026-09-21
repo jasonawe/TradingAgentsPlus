@@ -53,3 +53,53 @@ class SynthesizerAgent(BaseAgent):
             content=" — ".join(content_parts),
             structured_data={"tool_count": len(tool_results), "symbols": symbols},
         )
+
+
+# ════════════════════════════════════════════════════════
+# V2 — synthesize from verified refs only (Task 17)
+# ════════════════════════════════════════════════════════
+
+
+async def _synthesizer_run_v2(
+    self, input: AgentInput, *, context: AgentContext
+):
+    """V2 entry: synthesize only from VerifiedEvidenceRef."""
+    from .base import AgentReply
+
+    ctx_data = input.context or {}
+    refs = ctx_data.get("evidence_refs") or []
+    objective = ctx_data.get("objective") or input.user_message or ""
+
+    verified = [r for r in refs if r.get("verification_level")]
+    unverified = [r for r in refs if not r.get("verification_level")]
+
+    if unverified:
+        # 拒绝 plain refs
+        return AgentReply(
+            success=False,
+            content="",
+            missing_items=("unverified_evidence",),
+            errors=(f"{len(unverified)} plain refs rejected",),
+        )
+
+    if not verified:
+        return AgentReply(
+            success=False,
+            content="",
+            missing_items=("verified_evidence",),
+        )
+
+    # 构造 answer 文本(简化版本,真实场景会调 LLM)
+    parts = []
+    for r in verified:
+        name = r.get("source_name") or "data"
+        parts.append(f"[{name}] verified")
+    return AgentReply(
+        success=True,
+        content=f"Based on {len(verified)} verified refs: {objective}",
+        evidence=tuple(verified),
+        confidence=0.85,
+    )
+
+
+SynthesizerAgent.run_v2 = _synthesizer_run_v2  # type: ignore[attr-defined]
