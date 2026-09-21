@@ -1466,24 +1466,10 @@ class Orchestrator:
             # kept under ``result_raw`` so audit / L3 still see the
             # structured answer.
             final_dump = self._dump(final)
-            friendly = None
             tool_name_hint = (state.tool_results[0].get("name")
                               if (state.tool_results and isinstance(state.tool_results[0], dict))
                               else None)
-            if isinstance(final_dump, dict):
-                friendly = self._friendly_summary(
-                    final_dump, tool_name=tool_name_hint,
-                )
-            # §Step 23 — unwrap the synthesised payload's ``summary``
-            # when _friendly_summary fell back to a JSON dump. The
-            # synth_node always populates ``summary`` for Tier 2 turns
-            # (see ``_synthesize``); dumping the whole dict on the UI
-            # is a regression vs. just rendering the prose answer.
-            if (friendly
-                and isinstance(final_dump, dict)
-                and isinstance(final_dump.get("summary"), str)
-                and friendly.lstrip().startswith("{")):
-                friendly = final_dump["summary"]
+            friendly = self._render_synth_friendly(final_dump, tool_name_hint)
             yield await _emit("agent_final", {
                 "tier": int(Tier.PLAN_EXECUTE),
                 "result": friendly if friendly else final_dump,
@@ -1547,20 +1533,11 @@ class Orchestrator:
                     # ``final`` so the agent_final reflects the
                     # retried answer.
                     final_dump = self._dump(final)
-                    friendly = None
-                    if isinstance(final_dump, dict):
-                        friendly = self._friendly_summary(
-                            final_dump, tool_name=tool_name_hint,
-                        )
+                    friendly = self._render_synth_friendly(final_dump, tool_name_hint)
                     yield await _emit("synth_retried", {
                         "attempt": state.synth_retry_count,
                         "unsupported": unsupported,
                     })
-                    if (friendly
-                        and isinstance(final_dump, dict)
-                        and isinstance(final_dump.get("summary"), str)
-                        and friendly.lstrip().startswith("{")):
-                        friendly = final_dump["summary"]
                     yield await _emit("agent_final", {
                         "tier": int(Tier.PLAN_EXECUTE),
                         "result": friendly if friendly else final_dump,
@@ -2406,7 +2383,40 @@ class Orchestrator:
             "summary": summary,
         }
 
-    @staticmethod
+    def _render_synth_friendly(
+        self, final_dump: Any, tool_name_hint: str | None
+    ) -> str | None:
+        """Tier 2 ``agent_final`` friendly-summary chooser.
+
+        Background: ``final_dump`` from the synth_node is a *wrapper*
+        dict (``{intent, symbols, results, summary}``), not the raw
+        tool payload. Feeding it to ``_friendly_summary`` makes the
+        per-tool renderers (``_render_quote`` etc.) look for top-level
+        fields they don't find and fall back to ``"?"``/``None``,
+        producing broken bubbles like ``"📈 ? · ¥None"`` even when the
+        underlying tool result is fine and the LLM wrote a perfect
+        ``summary``.
+
+        Resolution: if the payload looks like a synth wrapper
+        (``summary`` or ``results`` key present), prefer ``summary``
+        and skip the per-tool renderer. Otherwise delegate to
+        ``_friendly_summary`` (covers single-tool payloads promoted
+        into Tier 2).
+        """
+        if not isinstance(final_dump, dict):
+            return None
+        synth_summary = final_dump.get("summary")
+        is_synth_payload = (
+            isinstance(synth_summary, str)
+            or "results" in final_dump
+            or "intent" in final_dump
+        )
+        if is_synth_payload:
+            return synth_summary if isinstance(synth_summary, str) else None
+        return self._friendly_summary(
+            final_dump, tool_name=tool_name_hint,
+        )
+
     def _friendly_summary(
         result: Any,
         *,
