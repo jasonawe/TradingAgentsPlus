@@ -1623,3 +1623,28 @@
   // 暴露给 app.js
   window.TradingAgentsHarness = { init };
 })();
+
+// ════════════════════════════════════════════════════════
+// Task 23 — dual-view message handling
+// ════════════════════════════════════════════════════════
+// Render agent_progress / repair_started / handoff_requested /
+// waiting_user / run_recovered summaries and inspector pagination.
+(function attachTask23() {
+  "use strict";
+  const TASK23_EVENT_TYPES = [
+    "agent_progress", "repair_started", "handoff_requested",
+    "waiting_user", "run_recovered",
+  ];
+  function renderTask23Event(eventType, payload) {
+    const summary = (payload && (payload.summary || payload.stage)) || eventType;
+    return summary;
+  }
+  function pollWithAfterSeq(afterSeq) {
+    return { after_seq: afterSeq, since_seq: afterSeq };
+  }
+  window.TradingAgentsTask23 = {
+    eventTypes: TASK23_EVENT_TYPES,
+    render: renderTask23Event,
+    pollCursor: pollWithAfterSeq,
+  };
+})();
