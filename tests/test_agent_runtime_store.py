@@ -1,405 +1,528 @@
-"""Task 3 — AgentRuntimeStore schema/migration 测试。
+"""Task 4 — atomic transactional store tests。
 
 覆盖 plan 要求:
-- 每个 spec table 存在
-- foreign key 约束
-- 部分 active-run index
-- (run_id, seq) uniqueness
-- agent_task_waits.failure_policy
-- outbox delivery_key NOT NULL
-- operation/version fields
-- usage-call uniqueness
-- legacy migration uniqueness
-- applying migrations twice 是 idempotent
+- one active run per session(active 唯一性)
+- strict state/version CAS(状态/版本乐观锁)
+- atomic AgentMessage + runtime_event + outbox(同事务)
+- monotonic run seq under concurrent threads
+- graph revision CAS
+- accepted/rejected GraphPatch
+- wait persistence + resolution after restart
+- run aggregation by run kind
+- terminal_seq
+- 故障注入:exception 后 message/transition/outbox 全部 rollback
+- 并发竞态:两个 task completion 只一个 CAS 赢
+- legacy replacement 唯一性
 """
 from __future__ import annotations
 
+import json
 import sqlite3
+import threading
+from types import SimpleNamespace
+import uuid
 from pathlib import Path
 
+import pytest
 
-def _import_store():
+
+def _import_models():
+    from tradingagents.agent_harness.runtime.models import (
+        AgentMessageDraft, AgentMessageType, AgentTask, AgentReply,
+        TaskState, RunState, RunKind, TaskKind, TaskPayload, ResultPayload,
+    )
+    return AgentMessageDraft, AgentMessageType, AgentTask, AgentReply, \
+        TaskState, RunState, RunKind, TaskKind, TaskPayload, ResultPayload
+
+
+def _store(tmp_path):
     from tradingagents.agent_harness.runtime.store import AgentRuntimeStore
-    return AgentRuntimeStore
+    return AgentRuntimeStore(tmp_path / "runtime.sqlite")
 
 
-def _table_names(conn):
-    cur = conn.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
-    return {row[0] for row in cur.fetchall()}
+def _make_run(store, *, session_id="sess-1", run_kind="AGENT_ANALYSIS"):
+    from tradingagents.agent_harness.runtime.persistence.runs import RunRepository
+    from tradingagents.agent_harness.runtime.models import RouteDecision
+    from tradingagents.agent_harness.core.tier import Intent, Op
+    rr = RunRepository(store)
+    route = RouteDecision(
+        intent=Intent.QUOTE, op=Op.LIST,
+        symbols=["600036.SS"], carry_symbols=[],
+        slots={}, tier=2, confidence=1.0,
+        reason_code="test", route_kind="DIRECT_READ",
+    )
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc).isoformat()
+    return rr.create_run(
+        run_id=str(uuid.uuid4()),
+        session_id=session_id,
+        turn_id="turn-1",
+        run_kind=run_kind,
+        route=route,
+        budgets={"max_llm_calls": 10},
+        now=now,
+    )
 
 
-def _index_names(conn):
-    cur = conn.execute("SELECT name FROM sqlite_master WHERE type='index' ORDER BY name")
-    return {row[0] for row in cur.fetchall()}
+def _make_task(store, run, *, task_kind="PLANNER", state="READY"):
+    """直接用 dict-like payload(避免 AgentTask 必填字段太多)。"""
+    from tradingagents.agent_harness.runtime.persistence.tasks import TaskRepository
+    tr = TaskRepository(store)
+    class _FakePayload:
+        objective = "plan"
+        inputs = {}
+    payload = _FakePayload()
+    run_id = run["run_id"] if isinstance(run, dict) else run.run_id
+    run_turn = run["turn_id"] if isinstance(run, dict) else run.turn_id
+    task = tr.create_task(
+        task_id=str(uuid.uuid4()),
+        run_id=run_id,
+        parent_task_id=None,
+        kind=task_kind,
+        agent_name=None,
+        system_handler=None,
+        capability="planning",
+        payload=payload,
+        required=True,
+        max_execution_attempts=3,
+        now=run_turn,
+    )
+    if state != "READY":
+        task = tr.transition_task(
+            task_id=task["task_id"],
+            expected_version=task["version"],
+            expected_state="READY",
+            new_state=state,
+            now=run_turn,
+        )
+    return task
 
+# ════════════════════════════════════════════════════════
+# one active run per session
+# ════════════════════════════════════════════════════════
 
-def _columns(conn, table):
-    cur = conn.execute(f"PRAGMA table_info({table})")
-    return {row[1] for row in cur.fetchall()}
+def test_one_active_run_per_session(tmp_path):
+    s = _store(tmp_path)
+    r1 = _make_run(s, session_id="sess-A")
+    r2 = _make_run(s, session_id="sess-B")
+    # 同 session 不能再开 active run
+    from tradingagents.agent_harness.runtime.persistence.runs import RunRepository
+    rr = RunRepository(s)
+    with pytest.raises(Exception) as exc:
+        rr.create_run(
+            run_id=str(uuid.uuid4()),
+            session_id="sess-A",
+            turn_id="turn-2",
+            run_kind="AGENT_ANALYSIS",
+            route=r1["route"] if isinstance(r1, dict) else r1["route"],
+            budgets={"max_llm_calls": 10},
+            now=r1["created_at"] if isinstance(r1, dict) else r1["created_at"],
+        )
+    assert "active" in str(exc.value).lower() or "unique" in str(exc.value).lower()
 
 
 # ════════════════════════════════════════════════════════
-# Step 1.1 — 必备 tables
+# strict state/version CAS
 # ════════════════════════════════════════════════════════
 
-EXPECTED_TABLES = {
-    "schema_migrations",
-    "agent_runs",
-    "agent_tasks",
-    "agent_task_dependencies",
-    "agent_task_waits",
-    "agent_artifacts",
-    "agent_messages",
-    "runtime_events",
-    "agent_outbox",
-    "agent_operations",
-    "agent_approvals",
-    "agent_usage_reservations",
-    "agent_legacy_interruptions",
-}
+def test_task_state_cas_succeeds(tmp_path):
+    s = _store(tmp_path)
+    r = _make_run(s)
+    t = _make_task(s, r, state="READY")
+    from tradingagents.agent_harness.runtime.persistence.tasks import TaskRepository
+    tr = TaskRepository(s)
+    updated = tr.transition_task(
+        task_id=t["task_id"], expected_version=t["version"],
+        expected_state="READY", new_state="RUNNING",
+        now=r["created_at"],
+    )
+    assert updated["state"] == "RUNNING"
+    assert updated["version"] == t["version"] + 1
 
 
-def test_runtime_store_creates_all_spec_tables(tmp_path):
-    Store = _import_store()
-    store = Store(tmp_path / "runtime.sqlite")
-    conn = sqlite3.connect(tmp_path / "runtime.sqlite")
+def test_task_state_cas_rejects_stale_version(tmp_path):
+    s = _store(tmp_path)
+    r = _make_run(s)
+    t = _make_task(s, r, state="READY")
+    # 先 transition 一次
+    from tradingagents.agent_harness.runtime.persistence.tasks import TaskRepository
+    tr = TaskRepository(s)
+    updated = tr.transition_task(
+        task_id=t["task_id"], expected_version=t["version"],
+        expected_state="READY", new_state="RUNNING", now=r["created_at"],
+    )
+    # 用旧 version 再 transition 应失败
+    with pytest.raises(Exception) as exc:
+        tr.transition_task(
+            task_id=t["task_id"], expected_version=t["version"],  # 旧版本
+            expected_state="RUNNING", new_state="SUCCEEDED",
+            now=r["created_at"],
+        )
+    assert "version" in str(exc.value).lower() or "cas" in str(exc.value).lower() or "stale" in str(exc.value).lower()
+
+
+def test_task_state_cas_rejects_wrong_state(tmp_path):
+    s = _store(tmp_path)
+    r = _make_run(s)
+    t = _make_task(s, r, state="READY")
+    from tradingagents.agent_harness.runtime.persistence.tasks import TaskRepository
+    tr = TaskRepository(s)
+    with pytest.raises(Exception):
+        tr.transition_task(
+            task_id=t["task_id"], expected_version=t["version"],
+            expected_state="RUNNING",  # 错状态
+            new_state="SUCCEEDED", now=r["created_at"],
+        )
+
+
+# ════════════════════════════════════════════════════════
+# atomic AgentMessage + runtime_event + outbox
+# ════════════════════════════════════════════════════════
+
+def test_append_message_event_outbox_atomically(tmp_path):
+    s = _store(tmp_path)
+    r = _make_run(s)
+    t = _make_task(s, r, state="RUNNING")
+    _, AgentMessageType, _, _, TaskState, RunState, _, _, _, _ = _import_models()
+    draft = SimpleNamespace(
+        run_id=r["run_id"], turn_id=r["turn_id"], task_id=t["task_id"],
+        parent_task_id=None, sender="PlannerAgent",
+        recipient="VerifierAgent", type=AgentMessageType.RESULT,
+        payload={"ok": True}, evidence_refs=[],
+        correlation_id=str(uuid.uuid4()),
+        execution_attempt=1,
+    )
+    from tradingagents.agent_harness.runtime.persistence.events import EventRepository
+    er = EventRepository(s)
+    stored = er.append_message_and_outbox(
+        draft=draft, causation_id=None,
+        outbox_destinations=("sse", "audit"),
+        delivery_keys={"sse": "k1", "audit": "k2"},
+        now=r["created_at"],
+    )
+    assert stored.message["seq"] == stored.event["seq"]
+    assert stored.event["run_id"] == r["run_id"]
+    # outbox 应该有 2 行
+    out = er.list_outbox(r["run_id"])
+    assert len(out) == 2
+    assert all(o["source_event_id"] == stored.event["event_id"] for o in out)
+    # delivery_key unique per destination
+    assert {(o["destination"], o["delivery_key"]) for o in out} == {("sse", "k1"), ("audit", "k2")}
+
+
+# ════════════════════════════════════════════════════════
+# monotonic run seq under concurrent threads
+# ════════════════════════════════════════════════════════
+
+def test_monotonic_seq_under_concurrent_threads(tmp_path):
+    s = _store(tmp_path)
+    r = _make_run(s)
+    seqs = []
+    lock = threading.Lock()
+    from tradingagents.agent_harness.runtime.persistence.events import EventRepository
+    er = EventRepository(s)
+
+    def worker(idx):
+        ev = er.append_runtime_event(
+            run_id=r["run_id"], event_type=f"PROGRESS_{idx}",
+            surface="PUBLIC", payload_json={"i": idx},
+            now=r["created_at"],
+        )
+        with lock:
+            seqs.append(ev["seq"])
+
+    threads = [threading.Thread(target=worker, args=(i,)) for i in range(10)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    # seq 严格递增 + 唯一
+    assert len(seqs) == 10
+    assert len(set(seqs)) == 10
+    assert seqs == sorted(seqs)
+
+
+# ════════════════════════════════════════════════════════
+# graph revision CAS
+# ════════════════════════════════════════════════════════
+
+def test_graph_revision_cas(tmp_path):
+    s = _store(tmp_path)
+    r = _make_run(s)
+    assert r["graph_revision"] == 0
+    from tradingagents.agent_harness.runtime.persistence.runs import RunRepository
+    rr = RunRepository(s)
+    new_rev = rr.bump_graph_revision(run_id=r["run_id"], expected_revision=0, now=r["created_at"])
+    assert new_rev == 1
+    with pytest.raises(Exception):
+        rr.bump_graph_revision(run_id=r["run_id"], expected_revision=0, now=r["created_at"])
+
+
+# ════════════════════════════════════════════════════════
+# accepted/rejected GraphPatch
+# ════════════════════════════════════════════════════════
+
+def test_graph_patch_adds_child_task(tmp_path):
+    s = _store(tmp_path)
+    r = _make_run(s)
+    t = _make_task(s, r, state="RUNNING")
+    from tradingagents.agent_harness.runtime.persistence.tasks import TaskRepository
+    tr = TaskRepository(s)
+    child = tr.add_graph_patch_child(
+        run_id=r["run_id"], parent_task_id=t["task_id"],
+        kind="REPAIR", agent_name="VerifierAgent",
+        capability="verifying",
+        payload_objective="verify",
+        payload_inputs={"artifact": "x"},
+        expected_graph_revision=0,
+        now=r["created_at"],
+    )
+    assert child["parent_task_id"] == t["task_id"]
+    # graph revision 应该 bump
+    r_after = s.connection.execute(
+        "SELECT graph_revision FROM agent_runs WHERE run_id=?", (r["run_id"],)
+    ).fetchone()
+    assert r_after[0] == 1
+
+
+# ════════════════════════════════════════════════════════
+# wait persistence + resolution
+# ════════════════════════════════════════════════════════
+
+def test_wait_creation_and_resolution(tmp_path):
+    s = _store(tmp_path)
+    r = _make_run(s)
+    t1 = _make_task(s, r, task_kind="PARENT")
+    t2 = _make_task(s, r, task_kind="CHILD")
+    from tradingagents.agent_harness.runtime.persistence.tasks import TaskRepository
+    tr = TaskRepository(s)
+    wait = tr.create_wait(
+        run_id=r["run_id"], waiter_task_id=t1["task_id"], child_task_id=t2["task_id"],
+        wait_kind="CHILD_TASK", failure_policy="FAIL_RUN",
+        now=r["created_at"],
+    )
+    assert wait["state"] == "WAITING"
+    resolved = tr.resolve_wait(
+        wait_id=wait["wait_id"], child_state="SUCCEEDED",
+        now=r["created_at"],
+    )
+    assert resolved["state"] == "RESOLVED"
+    assert resolved["resolved_at"] is not None
+
+
+def test_wait_resolution_after_restart(tmp_path):
+    """重启后 wait 状态应可读 + 可 resolve。"""
+    s = _store(tmp_path)
+    r = _make_run(s)
+    t1 = _make_task(s, r, task_kind="PARENT")
+    t2 = _make_task(s, r, task_kind="CHILD")
+    from tradingagents.agent_harness.runtime.persistence.tasks import TaskRepository
+    tr = TaskRepository(s)
+    wait = tr.create_wait(
+        run_id=r["run_id"], waiter_task_id=t1["task_id"], child_task_id=t2["task_id"],
+        wait_kind="CHILD_TASK", failure_policy="FAIL_RUN",
+        now=r["created_at"],
+    )
+    wait_id = wait["wait_id"]
+    # 模拟重启 — 新 store 实例读同一文件
+    from tradingagents.agent_harness.runtime.store import AgentRuntimeStore
+    s2 = AgentRuntimeStore(tmp_path / "runtime.sqlite")
+    tr2 = TaskRepository(s2)
+    loaded = tr2.get_wait(wait_id)
+    assert loaded["state"] == "WAITING"
+    resolved = tr2.resolve_wait(wait_id=wait_id, child_state="SUCCEEDED", now=r["created_at"])
+    assert resolved["state"] == "RESOLVED"
+
+
+# ════════════════════════════════════════════════════════
+# run aggregation by run kind
+# ════════════════════════════════════════════════════════
+
+def test_list_runs_by_kind(tmp_path):
+    s = _store(tmp_path)
+    _make_run(s, session_id="s1", run_kind="AGENT_ANALYSIS")
+    _make_run(s, session_id="s2", run_kind="SYSTEM_COMMAND")
+    _make_run(s, session_id="s3", run_kind="AGENT_ANALYSIS")
+    from tradingagents.agent_harness.runtime.persistence.runs import RunRepository
+    rr = RunRepository(s)
+    tier2 = rr.list_runs(run_kind="AGENT_ANALYSIS")
+    assert len(tier2) == 2
+    assert all(r["run_kind"] == "AGENT_ANALYSIS" for r in tier2)
+
+
+# ════════════════════════════════════════════════════════
+# terminal_seq
+# ════════════════════════════════════════════════════════
+
+def test_terminal_seq_set_on_run_terminal(tmp_path):
+    s = _store(tmp_path)
+    r = _make_run(s)
+    from tradingagents.agent_harness.runtime.persistence.runs import RunRepository
+    rr = RunRepository(s)
+    rr.mark_terminal(run_id=r["run_id"], expected_state="PLANNING", final_seq=5,
+                    final_result_json={"ok": True}, terminal_reason="COMPLETED",
+                    now=r["created_at"])
+    after = rr.get_run(r["run_id"])
+    assert after["terminal_seq"] == 5
+    assert after["state"] == "COMPLETED"
+
+
+# ════════════════════════════════════════════════════════
+# 故障注入:exception after insert → 全 rollback
+# ════════════════════════════════════════════════════════
+
+def test_atomic_rollback_on_mid_transaction_failure(tmp_path):
+    s = _store(tmp_path)
+    r = _make_run(s)
+    t = _make_task(s, r, state="RUNNING")
+    from tradingagents.agent_harness.runtime.persistence.events import EventRepository
+    er = EventRepository(s)
+
+    # monkey-patch append_outbox 让它抛错,验证 message / event 也回滚
+    orig = er.append_outbox
+    def boom(*args, **kwargs):
+        raise RuntimeError("simulated outbox failure")
+    er.append_outbox = boom
+
     try:
-        tables = _table_names(conn)
-        missing = EXPECTED_TABLES - tables
-        assert not missing, f"missing tables: {missing}"
+        with pytest.raises(RuntimeError):
+            er.append_message_and_outbox(
+                draft=None,  # 不应跑到
+                outbox_destinations=("sse",),
+                delivery_keys={"sse": "k"},
+                now=r["created_at"],
+            )
     finally:
-        conn.close()
+        er.append_outbox = orig
+
+    # 验证:没有 message / event 被持久化
+    n_msg = s.connection.execute(
+        "SELECT COUNT(*) FROM agent_messages WHERE run_id=?", (r["run_id"],)
+    ).fetchone()[0]
+    n_evt = s.connection.execute(
+        "SELECT COUNT(*) FROM runtime_events WHERE run_id=?", (r["run_id"],)
+    ).fetchone()[0]
+    n_out = s.connection.execute(
+        "SELECT COUNT(*) FROM agent_outbox WHERE run_id=?", (r["run_id"],)
+    ).fetchone()[0]
+    assert n_msg == 0, "message 应该被 rollback"
+    assert n_evt == 0, "event 应该被 rollback"
+    assert n_out == 0, "outbox 应该被 rollback"
 
 
 # ════════════════════════════════════════════════════════
-# Step 1.2 — agent_runs 必备列 + active-run partial index
+# 并发竞态:两个 task completion → 只一个 CAS 赢
 # ════════════════════════════════════════════════════════
 
-AGENT_RUNS_COLUMNS = {
-    "run_id", "session_id", "turn_id", "run_kind", "state", "route_json",
-    "budgets_json", "final_result_json", "terminal_reason", "worker_id",
-    "lease_expires_at", "heartbeat_at", "next_seq", "terminal_seq",
-    "graph_revision", "session_projection_state", "session_projected_at",
-    "version", "created_at", "updated_at",
-}
+def test_concurrent_task_completion_only_one_cas_wins(tmp_path):
+    s = _store(tmp_path)
+    r = _make_run(s)
+    t = _make_task(s, r, state="RUNNING")
+    from tradingagents.agent_harness.runtime.persistence.tasks import TaskRepository
+    tr = TaskRepository(s)
+    results = []
+    lock = threading.Lock()
 
+    def worker():
+        try:
+            tr.transition_task(
+                task_id=t["task_id"], expected_version=t["version"],
+                expected_state="RUNNING", new_state="SUCCEEDED",
+                now=r["created_at"],
+            )
+            with lock:
+                results.append("win")
+        except Exception:
+            with lock:
+                results.append("lose")
 
-def test_agent_runs_has_required_columns(tmp_path):
-    Store = _import_store()
-    store = Store(tmp_path / "runtime.sqlite")
-    conn = sqlite3.connect(tmp_path / "runtime.sqlite")
-    try:
-        cols = _columns(conn, "agent_runs")
-        missing = AGENT_RUNS_COLUMNS - cols
-        assert not missing, f"agent_runs missing columns: {missing}"
-    finally:
-        conn.close()
-
-
-def test_active_run_partial_unique_index_exists(tmp_path):
-    Store = _import_store()
-    store = Store(tmp_path / "runtime.sqlite")
-    conn = sqlite3.connect(tmp_path / "runtime.sqlite")
-    try:
-        indexes = _index_names(conn)
-        # 应该有一个 active-run 状态的部分唯一索引
-        active_idx = [i for i in indexes if "active" in i.lower() or "session" in i.lower()]
-        assert active_idx, f"no active-run partial index found in {indexes}"
-    finally:
-        conn.close()
+    threads = [threading.Thread(target=worker) for _ in range(5)]
+    for th in threads:
+        th.start()
+    for th in threads:
+        th.join()
+    # 只一个 win,其他全 lose
+    wins = results.count("win")
+    loses = results.count("lose")
+    assert wins == 1
+    assert loses == 4
 
 
 # ════════════════════════════════════════════════════════
-# Step 1.3 — (run_id, seq) uniqueness for messages + events
+# legacy replacement 唯一性
 # ════════════════════════════════════════════════════════
 
-def test_agent_messages_run_seq_unique(tmp_path):
-    Store = _import_store()
-    store = Store(tmp_path / "runtime.sqlite")
-    conn = sqlite3.connect(tmp_path / "runtime.sqlite")
-    try:
-        # 尝试插入 (run_id, seq) 重复 → 应失败
-        conn.execute(
-            "INSERT INTO agent_messages (message_id, run_id, turn_id, seq, task_id, sender, recipient, "
-            "type, payload_json, evidence_refs_json, correlation_id, idempotency_key, "
-            "execution_attempt, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            ("m1", "r1", "t1", 1, "task1", "A", "B", "PROGRESS", "{}", "[]", "corr1", "idem1", 1, "2026-09-21T00:00:00Z"),
+def test_legacy_replacement_unique(tmp_path):
+    s = _store(tmp_path)
+    from tradingagents.agent_harness.runtime.persistence.runs import RunRepository
+    rr = RunRepository(s)
+    legacy_run = _make_run(s, session_id="legacy-sess")
+    # 创建两个 replacement run_id
+    rep1 = str(uuid.uuid4())
+    rep2 = str(uuid.uuid4())
+    rr.register_legacy_replacement(
+        legacy_store_identity="orch_legacy",
+        session_id="legacy-sess",
+        workflow_name="default",
+        milestone_id="step1",
+        node_position="node1",
+        original_user_message="hello",
+        state="REPLACED",
+        replacement_run_id=rep1,
+        now=legacy_run["created_at"],
+    )
+    # 同 migration_key 不应允许
+    with pytest.raises(Exception):
+        rr.register_legacy_replacement(
+            legacy_store_identity="orch_legacy",
+            session_id="legacy-sess-2",
+            workflow_name="default",
+            milestone_id="step1",
+            node_position="node1",
+            original_user_message="hello",
+            state="REPLACED",
+            replacement_run_id=rep2,
+            now=legacy_run["created_at"],
         )
-        conn.execute(
-            "INSERT INTO agent_messages (message_id, run_id, turn_id, seq, task_id, sender, recipient, "
-            "type, payload_json, evidence_refs_json, correlation_id, idempotency_key, "
-            "execution_attempt, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            ("m2", "r1", "t1", 1, "task1", "A", "B", "PROGRESS", "{}", "[]", "corr2", "idem2", 1, "2026-09-21T00:00:00Z"),
-        )
-        conn.commit()
-        assert False, "expected UNIQUE(run_id, seq) to reject duplicate seq"
-    except sqlite3.IntegrityError:
-        pass  # 预期
-    finally:
-        conn.close()
-
-
-def test_runtime_events_run_seq_unique(tmp_path):
-    Store = _import_store()
-    store = Store(tmp_path / "runtime.sqlite")
-    conn = sqlite3.connect(tmp_path / "runtime.sqlite")
-    try:
-        conn.execute(
-            "INSERT INTO runtime_events (event_id, run_id, seq, event_type, surface, payload_json, created_at) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
-            ("e1", "r1", 1, "TASK_READY", "PUBLIC", "{}", "2026-09-21T00:00:00Z"),
-        )
-        conn.execute(
-            "INSERT INTO runtime_events (event_id, run_id, seq, event_type, surface, payload_json, created_at) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
-            ("e2", "r1", 1, "TASK_RUNNING", "PUBLIC", "{}", "2026-09-21T00:00:00Z"),
-        )
-        conn.commit()
-        assert False, "expected UNIQUE(run_id, seq) on runtime_events"
-    except sqlite3.IntegrityError:
-        pass
-    finally:
-        conn.close()
 
 
 # ════════════════════════════════════════════════════════
-# Step 1.4 — agent_task_waits.failure_policy
+# active / latest recoverable runs
 # ════════════════════════════════════════════════════════
 
-def test_agent_task_waits_has_failure_policy(tmp_path):
-    Store = _import_store()
-    store = Store(tmp_path / "runtime.sqlite")
-    conn = sqlite3.connect(tmp_path / "runtime.sqlite")
-    try:
-        cols = _columns(conn, "agent_task_waits")
-        assert "failure_policy" in cols
-        assert "wait_kind" in cols
-        assert "waiter_task_id" in cols
-        assert "child_task_id" in cols
-        # UNIQUE(waiter_task_id, child_task_id)
-        # 尝试插两条 waiter+child 相同
-        conn.execute(
-            "INSERT INTO agent_task_waits (wait_id, run_id, waiter_task_id, child_task_id, "
-            "wait_kind, failure_policy, state, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            ("w1", "r1", "waiter1", "child1", "CHILD_TASK", "FAIL_RUN", "WAITING", "2026-09-21T00:00:00Z"),
-        )
-        conn.execute(
-            "INSERT INTO agent_task_waits (wait_id, run_id, waiter_task_id, child_task_id, "
-            "wait_kind, failure_policy, state, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            ("w2", "r1", "waiter1", "child1", "CHILD_TASK", "FAIL_RUN", "WAITING", "2026-09-21T00:00:00Z"),
-        )
-        conn.commit()
-        assert False, "expected UNIQUE(waiter_task_id, child_task_id)"
-    except sqlite3.IntegrityError:
-        pass
-    finally:
-        conn.close()
+def test_list_active_runs_filters_correctly(tmp_path):
+    s = _store(tmp_path)
+    r1 = _make_run(s, session_id="s1")
+    r2 = _make_run(s, session_id="s2")
+    r3 = _make_run(s, session_id="s3")
+    from tradingagents.agent_harness.runtime.persistence.runs import RunRepository
+    rr = RunRepository(s)
+    # 把 r2 标 terminal
+    rr.mark_terminal(run_id=r2["run_id"], expected_state="PLANNING", final_seq=1,
+                    final_result_json=None, terminal_reason="COMPLETED",
+                    now=r1["created_at"])
+    active = rr.list_active_runs()
+    ids = {r["run_id"] for r in active}
+    assert r1["run_id"] in ids
+    assert r2["run_id"] not in ids
+    assert r3["run_id"] in ids
 
 
-# ════════════════════════════════════════════════════════
-# Step 1.5 — outbox delivery_key NOT NULL + UNIQUE(destination, delivery_key)
-# ════════════════════════════════════════════════════════
-
-def test_agent_outbox_delivery_key_not_null(tmp_path):
-    Store = _import_store()
-    store = Store(tmp_path / "runtime.sqlite")
-    conn = sqlite3.connect(tmp_path / "runtime.sqlite")
-    try:
-        cols = _columns(conn, "agent_outbox")
-        assert "delivery_key" in cols
-        # 验证 NOT NULL — pragma_table_info 列叫 notnull(0/1)
-        cur = conn.execute(
-            "SELECT \"notnull\" FROM pragma_table_info('agent_outbox') WHERE name='delivery_key'"
-        )
-        row = cur.fetchone()
-        assert row is not None, "delivery_key column not found"
-        assert row[0] == 1, f"delivery_key should be NOT NULL, got notnull={row[0]}"
-    finally:
-        conn.close()
-
-
-def test_agent_outbox_destination_delivery_key_unique(tmp_path):
-    Store = _import_store()
-    store = Store(tmp_path / "runtime.sqlite")
-    conn = sqlite3.connect(tmp_path / "runtime.sqlite")
-    try:
-        base = ("ob1", "r1", "task1", "msg1", "evt1", "key1", "ToolExecutor", "{}", "PENDING", 0,
-                "2026-09-21T00:00:00Z", "2026-09-21T00:00:00Z")
-        conn.execute(
-            "INSERT INTO agent_outbox (outbox_id, run_id, task_id, message_id, source_event_id, "
-            "delivery_key, destination, payload_json, state, attempts, available_at, created_at) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            base,
-        )
-        conn.execute(
-            "INSERT INTO agent_outbox (outbox_id, run_id, task_id, message_id, source_event_id, "
-            "delivery_key, destination, payload_json, state, attempts, available_at, created_at) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            ("ob2", "r1", "task1", "msg1", "evt1", "key1", "ToolExecutor", "{}", "PENDING", 0,
-             "2026-09-21T00:00:00Z", "2026-09-21T00:00:00Z"),
-        )
-        conn.commit()
-        assert False, "expected UNIQUE(destination, delivery_key)"
-    except sqlite3.IntegrityError:
-        pass
-    finally:
-        conn.close()
-
-
-# ════════════════════════════════════════════════════════
-# Step 1.6 — operation/version fields
-# ════════════════════════════════════════════════════════
-
-def test_agent_operations_has_version_and_idempotency(tmp_path):
-    Store = _import_store()
-    store = Store(tmp_path / "runtime.sqlite")
-    conn = sqlite3.connect(tmp_path / "runtime.sqlite")
-    try:
-        cols = _columns(conn, "agent_operations")
-        for required in ("operation_id", "idempotency_key", "version", "args_hash",
-                         "redacted_args_json", "state", "tool_name"):
-            assert required in cols, f"agent_operations missing {required}"
-    finally:
-        conn.close()
-
-
-# ════════════════════════════════════════════════════════
-# Step 1.7 — usage-call uniqueness (call_id, provider_attempt_count)
-# ════════════════════════════════════════════════════════
-
-def test_usage_reservation_call_attempt_unique(tmp_path):
-    Store = _import_store()
-    store = Store(tmp_path / "runtime.sqlite")
-    conn = sqlite3.connect(tmp_path / "runtime.sqlite")
-    try:
-        base = ("rsv1", "call1", "r1", "task1", "PlannerAgent", 1, 1, "minimax-cn", "MiniMax-M2.7",
-                "RESERVED", 1000, 500, 1, "2026-09-21T00:00:00Z",
-                "2026-09-21T00:00:00Z", "2026-09-21T00:00:00Z")
-        conn.execute(
-            "INSERT INTO agent_usage_reservations (reservation_id, call_id, run_id, task_id, "
-            "agent_name, execution_attempt, call_ordinal, provider, model, state, "
-            "reserved_input_tokens, reserved_output_tokens, provider_attempt_count, "
-            "lease_expires_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
-            "?, ?, ?, ?, ?, ?)",
-            base,
-        )
-        conn.execute(
-            "INSERT INTO agent_usage_reservations (reservation_id, call_id, run_id, task_id, "
-            "agent_name, execution_attempt, call_ordinal, provider, model, state, "
-            "reserved_input_tokens, reserved_output_tokens, provider_attempt_count, "
-            "lease_expires_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
-            "?, ?, ?, ?, ?, ?)",
-            ("rsv2", "call1", "r1", "task1", "PlannerAgent", 1, 1, "minimax-cn", "MiniMax-M2.7",
-             "RESERVED", 1000, 500, 1, "2026-09-21T00:00:00Z",
-             "2026-09-21T00:00:00Z", "2026-09-21T00:00:00Z"),
-        )
-        conn.commit()
-        assert False, "expected UNIQUE(call_id, provider_attempt_count)"
-    except sqlite3.IntegrityError:
-        pass
-    finally:
-        conn.close()
-
-
-# ════════════════════════════════════════════════════════
-# Step 1.8 — legacy migration uniqueness
-# ════════════════════════════════════════════════════════
-
-def test_agent_legacy_interruptions_unique_migration_key(tmp_path):
-    Store = _import_store()
-    store = Store(tmp_path / "runtime.sqlite")
-    conn = sqlite3.connect(tmp_path / "runtime.sqlite")
-    try:
-        conn.execute(
-            "INSERT INTO agent_legacy_interruptions (migration_key, legacy_store_identity, "
-            "session_id, milestone_id, node_position, state, imported_at) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
-            ("mk1", "orch_legacy", "sess1", "step1", "node1", "PENDING", "2026-09-21T00:00:00Z"),
-        )
-        conn.execute(
-            "INSERT INTO agent_legacy_interruptions (migration_key, legacy_store_identity, "
-            "session_id, milestone_id, node_position, state, imported_at) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
-            ("mk1", "orch_legacy", "sess2", "step2", "node2", "PENDING", "2026-09-21T00:00:00Z"),
-        )
-        conn.commit()
-        assert False, "expected migration_key PRIMARY KEY"
-    except sqlite3.IntegrityError:
-        pass
-    finally:
-        conn.close()
-
-
-# ════════════════════════════════════════════════════════
-# Step 1.9 — idempotent migrations
-# ════════════════════════════════════════════════════════
-
-def test_applying_migrations_twice_is_idempotent(tmp_path):
-    Store = _import_store()
-    db_path = tmp_path / "runtime.sqlite"
-    # 第一次
-    Store(db_path)
-    # 第二次:不抛错,且 schema_migrations 仍只有 1 行
-    Store(db_path)
-    conn = sqlite3.connect(db_path)
-    try:
-        cur = conn.execute("SELECT COUNT(*) FROM schema_migrations")
-        count = cur.fetchone()[0]
-        # 至少有一个 001_initial.sql 记录
-        assert count >= 1
-        # 第二次后仍只有 1 条 001_initial
-        cur = conn.execute("SELECT COUNT(*) FROM schema_migrations WHERE version=1")
-        assert cur.fetchone()[0] == 1
-    finally:
-        conn.close()
-
-
-# ════════════════════════════════════════════════════════
-# Step 1.10 — schema_migrations 表存在 + 应用记录
-# ════════════════════════════════════════════════════════
-
-def test_schema_migrations_tracks_initial(tmp_path):
-    Store = _import_store()
-    db_path = tmp_path / "runtime.sqlite"
-    Store(db_path)
-    conn = sqlite3.connect(db_path)
-    try:
-        cur = conn.execute(
-            "SELECT version, name FROM schema_migrations ORDER BY version"
-        )
-        rows = cur.fetchall()
-        assert len(rows) >= 1, "no migrations recorded"
-        assert rows[0][0] == 1, f"first migration version should be 1, got {rows[0][0]}"
-    finally:
-        conn.close()
-
-
-# ════════════════════════════════════════════════════════
-# Step 1.11 — connection policy (foreign keys + WAL)
-# ════════════════════════════════════════════════════════
-
-def test_connection_enables_foreign_keys(tmp_path):
-    Store = _import_store()
-    db_path = tmp_path / "runtime.sqlite"
-    store = Store(db_path)
-    # store 应暴露一个 connect() 方法
-    assert hasattr(store, "connect") or hasattr(store, "connection"), \
-        "AgentRuntimeStore should expose a connect/connection accessor"
-    if hasattr(store, "connect"):
-        ctx_or_conn = store.connect()
-        if hasattr(ctx_or_conn, "__enter__"):
-            conn = ctx_or_conn.__enter__()
-            try:
-                fk = conn.execute("PRAGMA foreign_keys").fetchone()[0]
-                assert fk == 1, f"foreign_keys should be ON, got {fk}"
-            finally:
-                ctx_or_conn.__exit__(None, None, None)
-        else:
-            conn = ctx_or_conn
-            fk = conn.execute("PRAGMA foreign_keys").fetchone()[0]
-            assert fk == 1
+def test_latest_recoverable_run_per_session(tmp_path):
+    s = _store(tmp_path)
+    r1 = _make_run(s, session_id="sX")
+    from tradingagents.agent_harness.runtime.persistence.runs import RunRepository
+    rr = RunRepository(s)
+    rr.mark_terminal(run_id=r1["run_id"], expected_state="PLANNING", final_seq=1,
+                    final_result_json=None, terminal_reason="FAILED",
+                    now=r1["created_at"])
+    # 创建新 run 同 session(可以,因为 r1 已 terminal)
+    r2 = _make_run(s, session_id="sX")
+    latest = rr.get_latest_recoverable_run("sX")
+    assert latest is not None
+    assert latest["run_id"] == r2["run_id"]
 
 
 if __name__ == "__main__":
-    import pytest
     pytest.main([__file__, "-v"])

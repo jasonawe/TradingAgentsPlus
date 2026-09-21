@@ -9,6 +9,7 @@ from __future__ import annotations
 import contextlib
 import logging
 import sqlite3
+import threading
 from pathlib import Path
 from typing import Iterator
 
@@ -23,11 +24,26 @@ class AgentRuntimeStore:
     def __init__(self, db_path: str | Path):
         self._db_path = Path(db_path).resolve()
         self._conn: sqlite3.Connection | None = None
+        # 单进程内多线程串行化 connection 访问 — Python sqlite3 在共享 connection
+        # 上做跨线程 execute 的事务状态是未定义的,需要在外层加锁保证原子性。
+        self._write_lock = threading.RLock()
         # 立即初始化 — 触发 migration
         with open_connection(self._db_path) as conn:
             # 在迁移完成后关闭,我们后续按需重新 open
             pass
         LOGGER.info("AgentRuntimeStore initialised at %s", self._db_path)
+
+    @contextlib.contextmanager
+    def serial_write(self) -> Iterator[sqlite3.Connection]:
+        """Serialize access to the SQLite connection.
+
+        Multiple threads sharing one sqlite3.Connection produces undefined
+        transaction semantics (per-connection transaction state is not
+        thread-safe). Acquire this lock around any write that needs to
+        observe a consistent CAS outcome.
+        """
+        with self._write_lock:
+            yield self.connection
 
     @property
     def db_path(self) -> Path:

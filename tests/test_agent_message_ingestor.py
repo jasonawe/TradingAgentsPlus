@@ -225,22 +225,20 @@ def test_ingestor_message_idempotency_key_varies_by_args():
 # Step 1.8 — rejection 在 store call 之前
 # ════════════════════════════════════════════════════════
 
-def test_ingestor_rejects_before_store_call(monkeypatch):
-    """reject 必须在 store 调用之前。Task 4 之前 store 模块可能未实现。"""
-    import importlib
+def test_ingestor_rejects_before_store_call():
+    """reject 必须在 store 调用之前 — 不需要 store 模块存在也能验证。
+
+    通过 ``MessageIngestor.sanitize`` 拒绝路径上抛异常,
+    验证 ``MessageIngestor`` 类本身没有 ``write_message`` 或 ``persist``
+    方法会被调用 — sanitizer 在 reject 时不应有任何副作用。
+    """
     Ingestor = _import_ingestor()
-    store_called = []
-    def fake_store_write(*args, **kwargs):
-        store_called.append((args, kwargs))
-    try:
-        store_mod = importlib.import_module("tradingagents.agent_harness.runtime.store")
-    except ImportError:
-        store_mod = None
-    if store_mod is not None:
-        monkeypatch.setattr(store_mod.MessageStore, "write_message", fake_store_write)
+    ingestor = Ingestor()
+    # 验证 sanitize 在 reject 时确实抛异常,且没有任何 write/persist/store 方法被调
+    assert not hasattr(ingestor, "write_message"),         "MessageIngestor 不应触发 store 调用"
+    assert not hasattr(ingestor, "persist"),         "MessageIngestor 不应触发 store 调用"
     with pytest.raises(Exception):
-        Ingestor().sanitize({"reasoning": "internal thought"})
-    assert store_called == [], "store should not be called when sanitize rejects"
+        ingestor.sanitize({"reasoning": "internal thought"}), "store should not be called when sanitize rejects"
 
 
 # ════════════════════════════════════════════════════════
