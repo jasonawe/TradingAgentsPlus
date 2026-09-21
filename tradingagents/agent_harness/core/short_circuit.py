@@ -10,6 +10,7 @@ without touching the StateGraph. Three guarantees:
 from __future__ import annotations
 
 import logging
+import re as _re
 from typing import Any, AsyncIterator
 
 from tradingagents.agent_harness.tools import ToolContext, ToolRegistry
@@ -17,6 +18,11 @@ from tradingagents.agent_harness.tools.schema import ToolSchema
 
 from .tier import Intent, RouteResult, Tier
 from .template import TemplateEngine, should_use_template  # noqa: F401
+
+_LATEST_REPORT_HINT_KW = frozenset({
+    "详情", "详细内容", "打开", "details", "detail", "view", "read",
+    "内容", "看看这份", "这份", "刚才", "最新", "刚才那份", "最近那份",
+})
 
 LOGGER = logging.getLogger(__name__)
 
@@ -61,7 +67,7 @@ class ShortCircuit:
             return
 
         symbol = route.symbols[0] if route.symbols else ""
-        tool_name = self._tool_for_intent(route.intent, slots, symbol=symbol)
+        tool_name = self._tool_for_intent(route.intent, slots, symbol=symbol, message=message)
         if not tool_name:
             yield ("warning", {"message": f"no Tier 1 tool for intent={route.intent}"})
             return
@@ -181,7 +187,7 @@ class ShortCircuit:
         results: list[dict[str, Any]] = []
         for intent, op in route.multi_pairs:
             symbol = route.symbols[0] if route.symbols else ""
-            tool_name = self._tool_for_intent(intent, slots, symbol=symbol)
+            tool_name = self._tool_for_intent(intent, slots, symbol=symbol, message=message)
             if not tool_name:
                 yield ("warning", {
                     "message": f"no Tier 1 tool for intent={intent.value}",
@@ -313,10 +319,68 @@ class ShortCircuit:
         return {"value": str(result)}
 
     @staticmethod
+    def _wants_latest_report(message: str) -> bool:
+        """True when the user clearly wants to open a specific (latest)
+        report but didn't name the id by token. Used to short-circuit
+        straight to get_report(latest) without listing first.
+        """
+        if not message:
+            return False
+        lower = message.lower()
+        # Explicit id already handled by slot extraction; we only step in
+        # when the user wants detail but didn't paste a run-/report- token.
+        if _re.search(r"run-[a-f0-9]{12,}", message, _re.IGNORECASE):
+            return False
+        if _re.search(r"report-[a-z0-9_-]+", message, _re.IGNORECASE):
+            return False
+        return any(kw in lower for kw in _LATEST_REPORT_HINT_KW)
+
+    @staticmethod
+    def _resolve_latest_report_id(symbol: str) -> str | None:
+        """Return the most recent report_id from history.
+
+        Prefers ``symbol`` when provided; falls back to overall latest.
+        Returns ``None`` when the index has no reports at all.
+
+        Resolution order:
+          1. The LangChain-tool side singleton injected by
+             ``tools/impl.py:set_report_history`` — same store the
+             list_reports / get_report tools read from.
+          2. A fresh ``ReportHistory`` over the active results_dir as
+             a last-resort fallback (covers tests + paths where the
+             setter has not been called).
+        """
+        history = None
+        try:
+            from tradingagents.agent_harness.tools.impl import _get_report_history
+            history = _get_report_history()
+        except Exception:
+            pass
+        if history is None:
+            try:
+                from web.history import ReportHistory
+                history = ReportHistory()
+            except Exception:
+                return None
+        try:
+            records = history.list_reports() or []
+        except Exception:
+            return None
+        if not records:
+            return None
+        target = (symbol or "").strip().upper()
+        if target:
+            for r in records:
+                if str(r.get("ticker", "")).upper() == target:
+                    return r.get("report_id")
+        return records[0].get("report_id")
+
+    @staticmethod
     def _tool_for_intent(
         intent: Intent,
         slots: dict | None = None,
         symbol: str = "",
+        message: str = "",
     ) -> str:
         # §7.3 #12 — every read-capable intent gets a default Tier 1
         # read tool so we never emit "no Tier 1 tool for intent=NOTE"
@@ -332,8 +396,23 @@ class ShortCircuit:
         # fell through to the name list.
         if intent == Intent.ALPHA and symbol:
             return "compute_alpha_factors"
-        if intent == Intent.REPORT and slots and "report_id" in slots:
-            return "get_report"
+        if intent == Intent.REPORT:
+            # §Step 42 — when report_id slot is present, full-detail view.
+            if slots and "report_id" in slots:
+                return "get_report"
+            # §Step 42 — when op is READ but no report_id (e.g. user typed
+            # '看一下这份报告的详情' without naming the id), resolve the
+            # most recent report from history. Prefer the symbol the
+            # user mentioned; fall back to overall latest. Without
+            # this the user gets a list_reports recap instead of the
+            # full markdown they asked for.
+            if (slots or {}).get("_report_read") or ShortCircuit._wants_latest_report(message):
+                rid = ShortCircuit._resolve_latest_report_id(symbol)
+                if rid:
+                    if slots is None:
+                        slots = {}
+                    slots["report_id"] = rid
+                    return "get_report"
         return {
             Intent.QUOTE: "get_quote",
             Intent.HISTORY: "get_history",

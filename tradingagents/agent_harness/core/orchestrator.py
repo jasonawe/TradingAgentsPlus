@@ -985,8 +985,21 @@ class Orchestrator:
         # §Step 18 — symbol-less Tier 1 when the route carries a
         # report_id slot (e.g. "读报告 run-55464f..."). Without this
         # guard every symbol-less read falls through to Tier 2.
+        # §Step 42 — also let "看一下这份报告的详情" through Tier 1
+        # (short_circuit resolves the latest report_id from history).
         report_id_slot = (state.slots or {}).get("report_id") if state else None
-        if route.tier == Tier.DIRECT and (route.symbols or report_id_slot):
+        # §Step 42 — "看一下这份报告的详情" / "看看刚才的报告" /
+        # "列出最近一份报告" all want get_report(latest). The user
+        # message might classify as LIST or READ (both are read-only
+        # opcodes), so accept either. The short_circuit's
+        # _wants_latest_report(message) does the actual disambiguation
+        # via hint keywords and resolves the report_id from history.
+        wants_latest_report = (
+            route.intent == Intent.REPORT
+            and route.op in (Op.LIST, Op.READ)
+            and not report_id_slot
+        )
+        if route.tier == Tier.DIRECT and (route.symbols or report_id_slot or wants_latest_report):
             if degraded_reason:
                 # §7.2 #1: surface the LLM-unavailable fallback so users
                 # (and the audit log) know why we skipped Tier 2/3.

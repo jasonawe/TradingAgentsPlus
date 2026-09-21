@@ -544,6 +544,9 @@ _OP_KW: dict[Op, set[str]] = {
                 "盘后跑", "盘前跑", "收盘后跑", "开市前跑", "定时跑"},
     Op.LIST:   {"查看", "列出", "显示", "看看", "show", "list", "有哪些", "有什么",
                 "全部的", "所有的", "列表"},
+    Op.READ:   {"查看详情", "详情", "详细内容", "打开", "读", "阅读",
+                "details", "detail", "view", "show me", "show this",
+                "tell me about", "what's in", "what does it say"},
     Op.UPDATE: {"更新", "修改", "改", "调整", "edit", "update", "改一下",
                 "改一下", "改成", "换一下", "替换"},
     Op.DELETE: {"删除", "移除", "去掉", "删", "delete", "remove", "取消关注", "停用",
@@ -804,10 +807,12 @@ def fast_route_with_op(
         if op in (Op.LIST, Op.READ):
             return RouteResult(
                 intent=intent, tier=Tier.DIRECT, symbols=symbols,
+                op=op,
                 confidence=0.85, reason=f"{intent.value}+{op.value} → Tier 1",
             ), op
         return RouteResult(
             intent=intent, tier=Tier.PLAN_EXECUTE, symbols=symbols,
+            op=op,
             confidence=0.8, reason=f"{intent.value}+{op.value} → Tier 2",
         ), op
     # Fall through to the legacy single-shot route for the read-only intents.
