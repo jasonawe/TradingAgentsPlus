@@ -318,17 +318,32 @@
       }
       list.innerHTML = all.map((m) => `<option value="${escapeHtml(m)}"></option>`).join("");
     }
+    // §P3-4 Phase 3 — keep the row visually highlighted while an
+    // override is active (both fields filled). When the user picks
+    // the "— use main —" empty provider option, mirror that by
+    // clearing the model input so a save won't trip the
+    // "partial pair" 400. Both rows update each other via the
+    // shared ``updateRowState`` helper.
+    function updateRowState(refs) {
+      const active = !!(refs.providerEl.value && refs.modelEl.value);
+      refs.rowEl.classList.toggle("is-active", active);
+    }
     for (const slot of AGENT_SLOTS) {
       const refs = agentEls[slot];
       if (!refs) continue;
+      refs.rowEl = refs.providerEl.closest(".llm-agent-row");
       const provField = fields[`llm.agents.${slot}.provider`] || {};
       const modField = fields[`llm.agents.${slot}.model`] || {};
       populateProvider(refs.providerEl, provField.value || "", true);
       refs.modelEl.value = modField.value || "";
       populateAgentModelSuggestions(slot, refs.providerEl.value);
+      updateRowState(refs);
       refs.providerEl.addEventListener("change", () => {
         populateAgentModelSuggestions(slot, refs.providerEl.value);
+        if (!refs.providerEl.value) refs.modelEl.value = "";
+        updateRowState(refs);
       });
+      refs.modelEl.addEventListener("input", () => updateRowState(refs));
     }
 
     // showSettings() is invoked multiple times; the save button is a

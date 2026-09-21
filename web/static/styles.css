@@ -857,6 +857,128 @@ table.data .num { font-family: var(--mono); font-weight: 600; text-align: right;
 .notifier-channel legend { padding: 0 6px; font-weight: 600; color: var(--text); }
 .notifier-actions-global { margin-top: 4px; min-height: 1.5em; }
 
+/* LLM selector (settings page) — fieldsets, rows, agent overrides */
+.llm-selector { display: flex; flex-direction: column; gap: 16px; }
+.llm-selector fieldset {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 14px 18px 18px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--panel);
+}
+.llm-selector legend {
+  padding: 0 6px;
+  font-weight: 600;
+  color: var(--ink);
+  font-size: 13.5px;
+  letter-spacing: .005em;
+}
+.llm-selector .muted { font-size: 12.5px; color: var(--muted); margin: 0; }
+
+.llm-row { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.llm-row label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: .01em;
+}
+.llm-row select,
+.llm-row input[type="text"] {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13.5px;
+  line-height: 1.5;
+  transition: border-color .12s, box-shadow .12s;
+  box-sizing: border-box;
+}
+.llm-row select:hover,
+.llm-row input[type="text"]:hover { border-color: var(--line-strong, var(--ink-2, #d4d4d4)); }
+.llm-row select:focus,
+.llm-row input[type="text"]:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.llm-row select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%23737373' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+.llm-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.llm-actions #llm-status { margin-left: 4px; }
+
+/* Per-Agent override grid — 5 rows, three columns (name | provider | model). */
+.llm-agent-grid { display: flex; flex-direction: column; gap: 8px; }
+.llm-agent-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.9fr) minmax(140px, 1fr) minmax(180px, 1.4fr);
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  background: var(--panel-2);
+  transition: border-color .15s, background-color .15s;
+}
+.llm-agent-row:hover { border-color: var(--line); }
+.llm-agent-row.is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.llm-agent-row .llm-agent-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: .005em;
+}
+.llm-agent-row.is-active .llm-agent-name { color: var(--accent); }
+.llm-agent-row select,
+.llm-agent-row input[type="text"] {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm, 6px);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  box-sizing: border-box;
+  transition: border-color .12s, box-shadow .12s;
+}
+.llm-agent-row select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%23737373' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
+.llm-agent-row select:hover,
+.llm-agent-row input[type="text"]:hover { border-color: var(--line-strong, var(--ink-2, #d4d4d4)); }
+.llm-agent-row select:focus,
+.llm-agent-row input[type="text"]:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+@media (max-width: 640px) {
+  .llm-agent-row { grid-template-columns: 1fr; gap: 6px; }
+  .llm-agent-row .llm-agent-name { padding-bottom: 4px; border-bottom: 1px solid var(--line); }
+}
+
 /* Unified /alerts and /notes views */
 .view-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
 .view-heading .kicker { margin: 0 0 4px; font-size: 12px; letter-spacing: 0.06em; color: var(--accent); text-transform: uppercase; }
