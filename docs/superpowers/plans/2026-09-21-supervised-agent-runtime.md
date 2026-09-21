@@ -690,33 +690,35 @@ Result: 12/12 planner tests GREEN, 310/310 full regression GREEN.
 - Test: `tests/test_runtime_agents.py`
 - Test: `tests/test_d8_agents_llm.py`
 
-- [ ] **Step 1: Write failing domain-Agent contract tests**
+- [x] **Step 1: Write failing domain-Agent contract tests**
 
 For each Agent assert: descriptor capabilities/tools; AgentTask input; ToolExecutor-only calls; LLMExecutor-only summaries; AgentScope enforcement; RESULT evidence/artifact refs/confidence/missing_items; Data quote+fundamentals concurrency; News lookback freshness; Alpha compute/evaluate behavior; and no direct registry/provider access.
 
-- [ ] **Step 2: Run tests to verify RED**
+- [x] **Step 2: Run tests to verify RED**
 
 Run: `pytest -q tests/test_runtime_agents.py -k 'data or news or alpha'`
 
 Expected: FAIL because current agents use direct tool/LLM injection and return legacy AgentResult.
 
-- [ ] **Step 3: Implement V2 domain Agents**
+- [x] **Step 3: Implement V2 domain Agents**
 
 DataAgent calls `context.tool_executor` concurrently for quote/fundamentals and optionally summarizes through LLMExecutor. NewsAgent validates `as_of`/lookback and emits QUESTION/HANDOFF_REQUEST only through AgentChannel. AlphaAgent selects list/compute/evaluate from objective/inputs without Orchestrator mapping. Persist raw tool outputs as artifacts before returning refs.
 
-- [ ] **Step 4: Verify domain Agents**
+- [x] **Step 4: Verify domain Agents**
 
 Run: `pytest -q tests/test_runtime_agents.py -k 'data or news or alpha' tests/test_d8_agents_llm.py tests/test_data_provider_seam.py tests/test_news_provider_seam.py tests/test_alpha_provider_seam.py`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit domain Agents**
+- [x] **Step 5: Commit domain Agents**
 
 ```bash
 git add tradingagents/agent_harness/agents/data_agent.py tradingagents/agent_harness/agents/news_agent.py tradingagents/agent_harness/agents/alpha_agent.py tests/test_runtime_agents.py tests/test_d8_agents_llm.py
 git commit -m "feat(harness): execute domain agents through runtime"
 ```
 
+
+Result: 17/17 runtime_agents tests GREEN, 315/315 full regression GREEN.
 ### Task 17: Migrate Verifier and Synthesizer with bounded repair
 
 **Files:**

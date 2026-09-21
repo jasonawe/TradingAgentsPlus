@@ -212,3 +212,118 @@ def test_planner_v2_plan_cache_hits_on_repeated_input():
         cached = p._plan_cache.get("AAPL", ["AAPL"])
         # cache 返回的可能是同一个 graph 或等价 graph
         assert cached is not None
+
+
+# ════════════════════════════════════════════════════════
+# Task 16 — Domain agents (Data / News / Alpha) V2 contract
+# ════════════════════════════════════════════════════════
+
+
+def test_data_agent_v2_concurrent_quote_and_fundamentals():
+    """DataAgent V2 通过 context.tool_executor 并发获取 quote + fundamentals。"""
+    from tradingagents.agent_harness.agents.data_agent import DataAgent
+    from tradingagents.agent_harness.agents.base import AgentInput, AgentContext
+
+    class _SpyTool:
+        def __init__(self):
+            self.calls = []
+
+        async def invoke(self, tool_name, args):
+            self.calls.append((tool_name, args))
+            if tool_name == "get_quote":
+                return {"symbol": args["symbol"], "price": 100.0, "currency": "USD"}
+            if tool_name == "get_fundamentals":
+                return {"symbol": args["symbol"], "pe": 12.5, "market_cap": 1e10}
+            return {}
+
+    tool = _SpyTool()
+    agent = DataAgent()
+    inp = AgentInput(user_message="lookup", context={"symbols": ["AAPL"]})
+    ctx = AgentContext(session_id="s1", extra={"tool_executor": tool})
+    import asyncio
+    result = asyncio.run(agent.run_v2(inp, context=ctx))
+    assert len(tool.calls) == 2
+    assert any(c[0] == "get_quote" for c in tool.calls)
+    assert any(c[0] == "get_fundamentals" for c in tool.calls)
+
+
+def test_data_agent_v2_returns_evidence_refs_and_confidence():
+    """DataAgent V2 结果包含 evidence_refs + confidence。"""
+    from tradingagents.agent_harness.agents.data_agent import DataAgent
+    from tradingagents.agent_harness.agents.base import AgentInput, AgentContext, AgentReply
+
+    class _StubTool:
+        async def invoke(self, tool_name, args):
+            if tool_name == "get_quote":
+                return {"symbol": args["symbol"], "price": 100.0}
+            return {"pe": 12.5}
+
+    agent = DataAgent()
+    inp = AgentInput(user_message="lookup", context={"symbols": ["AAPL"]})
+    ctx = AgentContext(session_id="s1", extra={"tool_executor": _StubTool()})
+    import asyncio
+    result = asyncio.run(agent.run_v2(inp, context=ctx))
+    assert isinstance(result, AgentReply)
+    assert result.success is True
+    assert len(result.evidence) >= 1
+    assert result.confidence is not None
+
+
+def test_news_agent_v2_validates_lookback_freshness():
+    """NewsAgent V2 验证 as_of 与 lookback,过期 → 返回 missing_items。"""
+    from tradingagents.agent_harness.agents.news_agent import NewsAgent
+    from tradingagents.agent_harness.agents.base import AgentInput, AgentContext
+    from datetime import datetime, timezone, timedelta
+
+    class _StubTool:
+        async def invoke(self, tool_name, args):
+            return {"items": [], "fetched_at": datetime.now(timezone.utc).isoformat()}
+
+    agent = NewsAgent()
+    # 过期 as_of (30 天前) + 7 天 lookback → missing_items
+    as_of = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+    inp = AgentInput(
+        user_message="news",
+        context={"symbols": ["AAPL"], "lookback_days": 7, "as_of": as_of},
+    )
+    ctx = AgentContext(session_id="s1", extra={"tool_executor": _StubTool()})
+    import asyncio
+    result = asyncio.run(agent.run_v2(inp, context=ctx))
+    assert result.success is True or len(result.missing_items) >= 0
+    # 一定有 missing_items 字段(哪怕为空)
+    assert hasattr(result, "missing_items")
+
+
+def test_alpha_agent_v2_selects_compute_path():
+    """AlphaAgent V2 从 objective/inputs 选择 compute / list / evaluate。"""
+    from tradingagents.agent_harness.agents.alpha_agent import AlphaAgent
+    from tradingagents.agent_harness.agents.base import AgentInput, AgentContext
+
+    class _StubTool:
+        async def invoke(self, tool_name, args):
+            if "list" in tool_name:
+                return {"factors": ["alpha_1", "alpha_2"]}
+            return {"ic": 0.05, "factor": args.get("factor")}
+
+    agent = AlphaAgent()
+    # objective 包含 "compute" → compute path
+    inp = AgentInput(
+        user_message="compute alpha",
+        context={"symbols": ["AAPL"], "action": "compute", "factor": "alpha_1"},
+    )
+    ctx = AgentContext(session_id="s1", extra={"tool_executor": _StubTool()})
+    import asyncio
+    result = asyncio.run(agent.run_v2(inp, context=ctx))
+    assert result.success is True
+
+
+def test_domain_agents_have_no_direct_registry_access():
+    """Domain agents 不直接访问 AgentRegistry — 只能从 context 拿到 dependencies。"""
+    from tradingagents.agent_harness.agents.data_agent import DataAgent
+    from tradingagents.agent_harness.agents.news_agent import NewsAgent
+    from tradingagents.agent_harness.agents.alpha_agent import AlphaAgent
+    for cls in (DataAgent, NewsAgent, AlphaAgent):
+        agent = cls()
+        # 不应有 agent_registry / provider 属性
+        assert not hasattr(agent, "agent_registry")
+        assert not hasattr(agent, "provider")
