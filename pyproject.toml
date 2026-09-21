@@ -80,6 +80,7 @@ include = ["tradingagents*", "cli*", "web*"]
 [tool.setuptools.package-data]
 cli = ["static/*"]
 web = ["static/*", "migrations/*.sql"]
+"tradingagents.agent_harness.runtime" = ["migrations/*.sql"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
