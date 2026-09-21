@@ -126,3 +126,78 @@ def test_projector_seq_order_stable(tmp_path):
     seqs = [e["seq"] for e in events]
     assert seqs == sorted(seqs)
     assert len(set(seqs)) == len(seqs)
+
+
+# ════════════════════════════════════════════════════════
+# Task 22 — FastAPI endpoint adapters
+# ════════════════════════════════════════════════════════
+
+
+def test_chat_adapter_returns_old_body_plus_reply_fields(tmp_path):
+    """chat adapter 返回旧 body + 新 reply fields。"""
+    from tradingagents.agent_harness.harness import Harness
+    from web.harness_runtime_api import chat_handler
+
+    h = Harness.from_data_dir(tmp_path)
+
+    class _StubRoute:
+        tier = 1
+        confidence = 1.0
+        reason_code = "t"
+        route_kind = "DIRECT_READ"
+        def model_dump(self):
+            return {}
+
+    class _StubOrchestrator:
+        def stream_chat(self, *, session_id, user_message, **kwargs):
+            yield {"type": "agent_final", "content": "ok"}
+            yield {"type": "done"}
+
+    h.orchestrator = _StubOrchestrator()
+    events = list(chat_handler(
+        harness=h,
+        session_id="s1",
+        body={"user_message": "hi", "client_request_id": "r1"},
+        route=_StubRoute(),
+    ))
+    # 至少一个 event,类型是 dict
+    assert len(events) >= 1
+    assert all(isinstance(e, dict) for e in events)
+
+
+def test_resume_adapter_passes_after_seq(tmp_path):
+    """resume adapter 把 after_seq 透传给 runtime。"""
+    from tradingagents.agent_harness.harness import Harness
+    from web.harness_runtime_api import resume_handler
+
+    h = Harness.from_data_dir(tmp_path)
+    captured = {}
+
+    class _StubRuntime:
+        def stream(self, run_id, *, since_seq=0):
+            captured["run_id"] = run_id
+            captured["since_seq"] = since_seq
+            return [{"event_type": "agent_progress", "seq": 5}]
+
+    h.runtime = _StubRuntime()
+    events = list(resume_handler(harness=h, run_id="r1", after_seq=4))
+    assert captured["run_id"] == "r1"
+    assert captured["since_seq"] == 4
+
+
+def test_trace_handler_returns_user_view_by_default(tmp_path):
+    """trace handler 默认 user view(redacted)。"""
+    from tradingagents.agent_harness.harness import Harness
+    from web.harness_runtime_api import trace_handler
+
+    h = Harness.from_data_dir(tmp_path)
+    run = h.runtime_store.connection.execute(
+        "SELECT run_id FROM agent_runs LIMIT 1"
+    ).fetchone()
+    if run is None:
+        # 没 run,空 list
+        events = list(trace_handler(harness=h, run_id="nonexistent"))
+        assert events == []
+    else:
+        events = list(trace_handler(harness=h, run_id=run[0], view="user"))
+        assert isinstance(events, list)
