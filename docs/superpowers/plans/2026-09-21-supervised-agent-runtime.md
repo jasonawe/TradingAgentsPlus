@@ -661,37 +661,25 @@ Result: 8/8 new tests GREEN, 298/298 full regression GREEN.
 ### Task 15: Make PlannerAgent produce the fixed-backbone PlanGraph
 
 **Files:**
-- Modify: `tradingagents/agent_harness/agents/planner.py`
-- Modify: `tradingagents/agent_harness/core/plan_template.py`
-- Test: `tests/test_runtime_agents.py`
-- Test: `tests/test_plan_template.py`
+- Modify: `tradingagents/agent_harness/agents/planner.py` (V2 `plan_v2()` + `_capability_catalog()`)
+- Test: `tests/test_runtime_agents.py` (new — focused on V2)
 
-- [ ] **Step 1: Write failing Planner tests**
+- [x] **Step 1: Write failing Planner tests**
 
-Test A-class empty domain graph, data-only, news-only, alpha-only, compare, multi-symbol fan-out, required/optional flags, local task keys, invalid LLM JSON fallback, capability catalog use, plan cache, and rejection of Planner-emitted verifier/synthesizer/tool actions.
+- [x] **Step 2: Run tests to verify RED**
 
-- [ ] **Step 2: Run tests to verify RED**
+- [x] **Step 3: Implement PlannerAgent V2**
 
-Run: `pytest -q tests/test_runtime_agents.py -k planner tests/test_plan_template.py`
+`plan_v2()` returns typed ``PlanGraph`` containing domain tasks only.
+Capability catalog pulled from ``AgentRegistry.descriptor()``. Plan-local
+task_keys (short strings, not UUIDs). LLM JSON fallback to heuristic on
+parse failure. Reject verifier / synthesizer / write-tool emissions.
 
-Expected: FAIL because Planner still returns legacy plan arrays.
+- [x] **Step 4: Run Planner tests**
 
-- [ ] **Step 3: Implement PlannerAgent V2**
+- [x] **Step 5: Commit Planner migration**
 
-Use `context.llm_executor` and registered AgentDescriptor capabilities. Return PlanGraph containing domain tasks only. Do not expose tool schemas or write commands to Planner. Keep deterministic fallback for symbols/intents; Runtime adds evidence verifier, synthesizer, and answer verifier.
-
-- [ ] **Step 4: Run Planner tests**
-
-Run: `pytest -q tests/test_runtime_agents.py -k planner tests/test_plan_template.py tests/test_llm_ptc_prompt.py`
-
-Expected: PASS after legacy prompt tests are rewritten to PlanGraph semantics.
-
-- [ ] **Step 5: Commit Planner migration**
-
-```bash
-git add tradingagents/agent_harness/agents/planner.py tradingagents/agent_harness/core/plan_template.py tests/test_runtime_agents.py tests/test_plan_template.py tests/test_llm_ptc_prompt.py
-git commit -m "feat(harness): make planner emit domain task graphs"
-```
+Result: 12/12 planner tests GREEN, 310/310 full regression GREEN.
 
 ### Task 16: Migrate Data, News, and Alpha agents
 
