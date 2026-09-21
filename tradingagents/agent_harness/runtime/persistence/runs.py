@@ -149,8 +149,21 @@ class RunRepository:
         terminal_reason: str,
         now: str,
     ) -> dict[str, Any]:
-        # terminal_reason 是 run 的终止语义,直接落到 state 列
-        final_state = terminal_reason
+        # terminal_reason 是 run 的终止原因;state 列固定映射到规范终态。
+        # 规范终态直接落地;描述性原因(如 OUTBOX_SCHEDULER_DEAD)映射到 FAILED。
+        CANONICAL_TERMINAL_STATES = {
+            "SUCCEEDED", "PARTIAL_SUCCESS", "FAILED",
+            "CANCELLED", "LEGACY_INTERRUPTED",
+        }
+        REASON_TO_STATE = {
+            "COMPLETED": "SUCCEEDED",
+            "OUTBOX_SCHEDULER_DEAD": "FAILED",
+            "USER_CANCELLED": "CANCELLED",
+        }
+        if terminal_reason in CANONICAL_TERMINAL_STATES:
+            final_state = terminal_reason
+        else:
+            final_state = REASON_TO_STATE.get(terminal_reason, "FAILED")
         cur = self.conn.execute(
             """
             UPDATE agent_runs

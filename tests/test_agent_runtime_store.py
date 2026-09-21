@@ -365,7 +365,9 @@ def test_terminal_seq_set_on_run_terminal(tmp_path):
                     now=r["created_at"])
     after = rr.get_run(r["run_id"])
     assert after["terminal_seq"] == 5
-    assert after["state"] == "COMPLETED"
+    # COMPLETED 映射到规范终态 SUCCEEDED
+    assert after["state"] == "SUCCEEDED"
+    assert after["terminal_reason"] == "COMPLETED"
 
 
 # ════════════════════════════════════════════════════════
