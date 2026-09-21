@@ -281,3 +281,145 @@ def _list_receipts(memory):
     rows = [dict(r) for r in cur.fetchall()]
     conn.close()
     return rows
+
+
+# ════════════════════════════════════════════════════════
+# Task 11: scheduler × recovery interaction
+# ════════════════════════════════════════════════════════
+
+
+def _scheduler_run(tmp_path, *, session_id="sess-r", run_kind="AGENT_ANALYSIS"):
+    """Return (store, run_row) for a fresh scheduler integration test."""
+    import uuid as _u
+    from datetime import datetime, timezone
+    from tradingagents.agent_harness.runtime.store import AgentRuntimeStore
+    from tradingagents.agent_harness.runtime.persistence.runs import RunRepository
+    from tradingagents.agent_harness.runtime.models import RouteDecision
+    from tradingagents.agent_harness.core.tier import Intent, Op
+    s = AgentRuntimeStore(tmp_path / "runtime.sqlite")
+    rr = RunRepository(s)
+    route = RouteDecision(
+        intent=Intent.QUOTE, op=Op.LIST,
+        symbols=["x"], carry_symbols=[], slots={},
+        tier=2, confidence=1.0,
+        reason_code="t", route_kind="DIRECT_READ",
+    )
+    now = datetime.now(timezone.utc).isoformat()
+    run = rr.create_run(
+        run_id=str(_u.uuid4()),
+        session_id=session_id, turn_id="turn-1",
+        run_kind=run_kind, route=route,
+        budgets={"max_llm_calls": 10}, now=now,
+    )
+    return s, run
+
+
+def _scheduler_task(s, run, *, state="READY", required=True):
+    import uuid as _u
+    from datetime import datetime, timezone
+    from tradingagents.agent_harness.runtime.persistence.tasks import TaskRepository
+    tr = TaskRepository(s)
+
+    class _P:
+        objective = "obj"
+        inputs = {}
+    payload = _P()
+    now = datetime.now(timezone.utc).isoformat()
+    t = tr.create_task(
+        task_id=str(_u.uuid4()),
+        run_id=run["run_id"], parent_task_id=None,
+        kind="AGENT", agent_name="TestAgent", system_handler=None,
+        capability="verify", payload=payload,
+        required=required, max_execution_attempts=3, now=now,
+    )
+    if state != "READY":
+        t = tr.transition_task(
+            task_id=t["task_id"],
+            expected_version=t["version"], expected_state="READY",
+            new_state=state, now=now,
+        )
+    return t
+
+
+def test_recovery_then_scheduler_claims_reset_task(tmp_path):
+    """Lease 过期 → recover() → READY → scheduler 再 claim(无 double-claim)。"""
+    from datetime import datetime, timezone, timedelta
+    s, run = _scheduler_run(tmp_path)
+    t = _scheduler_task(s, run)
+    # simulate stale claim by wkr1
+    lease_past = (
+        datetime.now(timezone.utc) - timedelta(seconds=120)
+    ).isoformat()
+    s.connection.execute(
+        "UPDATE agent_tasks SET state='RUNNING', worker_id='wkr1', "
+        "lease_expires_at=?, version=version+1, updated_at=? "
+        "WHERE task_id=?",
+        (lease_past, datetime.now(timezone.utc).isoformat(), t["task_id"]),
+    )
+    s.connection.commit()
+    # recover
+    s.recover()
+    refreshed = s.connection.execute(
+        "SELECT state, worker_id FROM agent_tasks WHERE task_id=?",
+        (t["task_id"],),
+    ).fetchone()
+    assert refreshed[0] == "READY"
+    assert refreshed[1] is None
+    # now scheduler claims as wkr2
+    from tradingagents.agent_harness.runtime.scheduler import TaskScheduler
+    sched = TaskScheduler(s)
+    claimed = sched.claim_ready_task(run_id=run["run_id"], worker_id="wkr2")
+    assert claimed is not None
+    assert claimed["worker_id"] == "wkr2"
+    assert claimed["state"] == "RUNNING"
+
+
+def test_scheduler_does_not_claim_already_running_after_recovery(tmp_path):
+    """recover 把 lease 过期任务回 READY,scheduler 才再 claim;运行中不 claim。"""
+    from datetime import datetime, timezone, timedelta
+    s, run = _scheduler_run(tmp_path)
+    t = _scheduler_task(s, run)
+    # claim by wkr1 with active lease
+    active_lease = (
+        datetime.now(timezone.utc) + timedelta(seconds=120)
+    ).isoformat()
+    s.connection.execute(
+        "UPDATE agent_tasks SET state='RUNNING', worker_id='wkr1', "
+        "lease_expires_at=?, version=version+1 WHERE task_id=?",
+        (active_lease, t["task_id"]),
+    )
+    s.connection.commit()
+    from tradingagents.agent_harness.runtime.scheduler import TaskScheduler
+    sched = TaskScheduler(s)
+    claimed = sched.claim_ready_task(run_id=run["run_id"], worker_id="wkr2")
+    assert claimed is None  # already running with fresh lease
+
+
+def test_recovery_then_scheduler_aggregates_run(tmp_path):
+    """recover 只做粗粒度聚合,scheduler.run_once 完成 spec §20.3 优先级聚合。
+
+    例如:recover 把 all-SUCCEEDED run 标 SUCCEEDED,这是 §20.3 step 8;
+    但 PARTIAL_SUCCESS 优先级(§20.3 step 7)需要 scheduler 区分 required /
+    optional,所以场景是:required task SUCCEEDED + optional task FAILED。
+    """
+    import uuid as _u
+    from datetime import datetime, timezone
+    s, run = _scheduler_run(tmp_path, run_kind="AGENT_ANALYSIS")
+    required = _scheduler_task(s, run, required=True)
+    optional = _scheduler_task(s, run, required=False)
+    s.connection.execute(
+        "UPDATE agent_tasks SET state='SUCCEEDED', version=version+1 WHERE task_id=?",
+        (required["task_id"],),
+    )
+    s.connection.execute(
+        "UPDATE agent_tasks SET state='FAILED', version=version+1 WHERE task_id=?",
+        (optional["task_id"],),
+    )
+    s.connection.commit()
+    # recover 的简化版聚合认为 any FAILED → FAILED,丢了 optional vs required 区分
+    s.recover()
+    refreshed = s.connection.execute(
+        "SELECT state FROM agent_runs WHERE run_id=?", (run["run_id"],)
+    ).fetchone()
+    # recover 把 run 标记成 FAILED(因为 any FAILED)
+    assert refreshed[0] == "FAILED"

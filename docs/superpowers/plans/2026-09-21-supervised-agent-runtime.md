@@ -507,35 +507,37 @@ git commit -m "feat(harness): enforce persistent llm budgets"
 
 **Files:**
 - Create: `tradingagents/agent_harness/runtime/policy.py`
-- Modify: `tradingagents/agent_harness/runtime/store.py`
+- Modify: `tradingagents/agent_harness/runtime/store.py` (deferred — no change required for tests)
 - Test: `tests/test_agent_runtime_policy.py`
 
-- [ ] **Step 1: Write failing policy tests**
+- [x] **Step 1: Write failing policy tests**
 
 Test registered capability/scope checks, graph cycles, max messages/tasks/repairs/handoff depth/deadline/tokens, deterministic handoff ordering `(capability, scope, -priority, name)`, ancestor exclusion, raw GraphPatch rejection, stale graph retry once, accepted repair/handoff child, and `on_reject` FAIL vs RESUME.
 
-- [ ] **Step 2: Run tests to verify RED**
+- [x] **Step 2: Run tests to verify RED**
 
 Run: `pytest -q tests/test_agent_runtime_policy.py`
 
 Expected: FAIL because PolicyGuard is missing.
 
-- [ ] **Step 3: Implement PolicyGuard**
+- [x] **Step 3: Implement PolicyGuard**
 
 Expose pure decisions: `validate_initial_graph`, `select_handoff_agent`, `build_patch_from_message`, and `authorize_patch`. Only accept persisted HANDOFF_REQUEST/REPAIR_REQUEST. Return typed PolicyDecision; RuntimeStore alone applies an approved patch transaction.
 
-- [ ] **Step 4: Verify policy/store integration**
+- [x] **Step 4: Verify policy/store integration**
 
 Run: `pytest -q tests/test_agent_runtime_policy.py tests/test_agent_runtime_store.py -k graph`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit policy**
+- [x] **Step 5: Commit policy**
 
 ```bash
-git add tradingagents/agent_harness/runtime/policy.py tradingagents/agent_harness/runtime/store.py tests/test_agent_runtime_policy.py
+git add tradingagents/agent_harness/runtime/policy.py tests/test_agent_runtime_policy.py
 git commit -m "feat(harness): bound dynamic agent repair"
 ```
+
+Result: 15/15 policy tests GREEN, 214/214 full regression GREEN. Commit `9dd3c25`.
 
 ### Task 11: Implement scheduler and run aggregation
 
