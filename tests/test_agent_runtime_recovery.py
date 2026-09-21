@@ -192,3 +192,92 @@ def _enqueue_outbox(store, run, ev, *, destination="sse", delivery_key=None):
         payload_json={"event_id": ev["event_id"]},
         now=datetime.now(timezone.utc).isoformat(),
     )
+
+
+# ════════════════════════════════════════════════════════
+# Task 6: L1 projection receipts (atomic, idempotent)
+# ════════════════════════════════════════════════════════
+
+def _fresh_l1(tmp_path, *, langgraph: bool = False):
+    from tradingagents.agent_harness.memory.l1_session import SqliteSessionMemory
+    return SqliteSessionMemory(
+        use_langgraph_checkpointer=langgraph,
+        data_dir=str(tmp_path),
+    )
+
+
+def test_append_projected_exchange_applied_idempotent(tmp_path):
+    """同 projection_key 第二次调用应返回 already_applied,不追加重复消息。"""
+    from tradingagents.agent_harness.memory.l1_session import SqliteSessionMemory
+    m = SqliteSessionMemory(db_path=tmp_path / "l1.sqlite")
+
+    r1 = m.append_projected_exchange("s1", "question", "answer", projection_key="runtime:r1")
+    r2 = m.append_projected_exchange("s1", "question", "answer", projection_key="runtime:r1")
+
+    assert r1 == "applied"
+    assert r2 == "already_applied"
+
+    hist = m.get_history("s1")
+    assert len(hist) == 2, f"应该只有 1 对 user/assistant,实际 {len(hist)} 条"
+    assert hist[0]["role"] == "user"
+    assert hist[1]["role"] == "assistant"
+
+    # receipt 表里恰好 1 行
+    receipts = _list_receipts(m)
+    assert len(receipts) == 1
+    assert receipts[0]["projection_key"] == "runtime:r1"
+
+
+def test_append_projected_exchange_idempotent_after_crash(tmp_path):
+    """模拟 crash after target append before Runtime projection DELIVERED:
+    第二次调用(等价于重试)命中 receipt,不重复追加。"""
+    from tradingagents.agent_harness.memory.l1_session import SqliteSessionMemory
+    m = SqliteSessionMemory(db_path=tmp_path / "l1.sqlite")
+
+    m.append_projected_exchange("s1", "Q", "A", projection_key="runtime:r1")
+    # 重试
+    m.append_projected_exchange("s1", "Q", "A", projection_key="runtime:r1")
+    m.append_projected_exchange("s1", "Q", "A", projection_key="runtime:r1")
+
+    hist = m.get_history("s1")
+    assert len(hist) == 2, f"重试后消息数量应保持 2,实际 {len(hist)}"
+
+
+def test_append_projected_exchange_multiple_keys(tmp_path):
+    """不同 projection_key 都应 applied。"""
+    from tradingagents.agent_harness.memory.l1_session import SqliteSessionMemory
+    m = SqliteSessionMemory(db_path=tmp_path / "l1.sqlite")
+
+    assert m.append_projected_exchange("s1", "q1", "a1", projection_key="runtime:r1") == "applied"
+    assert m.append_projected_exchange("s1", "q2", "a2", projection_key="runtime:r2") == "applied"
+
+    hist = m.get_history("s1")
+    assert len(hist) == 4  # 2 pairs
+
+
+def test_append_projected_exchange_langgraph_backend(tmp_path):
+    """LangGraph backend 也走同一 receipt 表(LG SQLite 文件)。"""
+    from tradingagents.agent_harness.memory.l1_session import SqliteSessionMemory
+    m = SqliteSessionMemory(db_path=tmp_path / "lg.db", use_langgraph_checkpointer=True, data_dir=str(tmp_path))
+
+    r1 = m.append_projected_exchange("s1", "Q", "A", projection_key="runtime:r1")
+    r2 = m.append_projected_exchange("s1", "Q", "A", projection_key="runtime:r1")
+    assert r1 == "applied"
+    assert r2 == "already_applied"
+
+    hist = m.get_history("s1")
+    assert len(hist) == 2
+
+
+def _list_receipts(memory):
+    """辅助:读出 receipt 表内容。"""
+    import sqlite3
+    db_path = memory._db_path
+    conn = sqlite3.connect(str(db_path))
+    conn.row_factory = sqlite3.Row
+    cur = conn.execute(
+        "SELECT projection_key, created_at FROM runtime_projection_receipts ORDER BY projection_key"
+    )
+    rows = [dict(r) for r in cur.fetchall()]
+    conn.close()
+    return rows

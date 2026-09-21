@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import Any
 
 from .base import MemoryEntry, MemoryLayer, MemoryScope
-from .l1_session import SqliteSessionMemory
+from .l1_session import SqliteSessionMemory, UnsupportedProjectionBackend
 from .l2_preferences import UserPreferencesMemory
 from .l3_references import AgentReferencesMemory
 
@@ -84,6 +84,25 @@ class MemoryManager:
         if not isinstance(self.l1, SqliteSessionMemory):
             raise RuntimeError("l1 is not SqliteSessionMemory; cannot append_message")
         return self.l1.append_message(session_id, role, content)
+
+    def append_projected_exchange(
+        self, session_id: str, user_text: str, assistant_text: str,
+        *, projection_key: str,
+    ) -> Literal["applied", "already_applied"]:
+        """Spec §22:Runtime projection 投影到 L1 history 的原子入口。
+
+        Pass-through 到 ``SqliteSessionMemory.append_projected_exchange``。
+        重复 ``projection_key`` 调用返回 ``already_applied`` 不追加 — 重启 /
+        重试安全。
+        """
+        from typing import Literal
+        if not isinstance(self.l1, SqliteSessionMemory):
+            raise UnsupportedProjectionBackend(
+                f"l1 is {type(self.l1).__name__}; cannot append_projected_exchange"
+            )
+        return self.l1.append_projected_exchange(
+            session_id, user_text, assistant_text, projection_key=projection_key,
+        )
 
     def get_history(self, session_id: str) -> list[dict[str, Any]]:
         if not isinstance(self.l1, SqliteSessionMemory):
