@@ -64,7 +64,12 @@ _PLAN_SYSTEM = (
     "write tool call.\n"
     "- Use \"agent\":<agent_name> for read-only research agents "
     "(data_agent / alpha_agent / news_agent). The agent picks the tool.\n"
-    "- Add a final synthesizer step when the answer needs synthesis."
+    "- Add a final synthesizer step when the answer needs synthesis.\n"
+    "- Re-analysis pattern: if the user says 基于之前的报告 / 基于 run-xxx "
+    "再分析 / 用上次的报告再跑 / re-look with the prior context, first emit "
+    "list_reports (read agent) to resolve the report_id, then dispatch "
+    "run_trading_agents_analysis with based_on_report_id set so the prior "
+    "context flows into the new run. The tool description lists the param."
 )
 
 

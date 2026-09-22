@@ -522,6 +522,14 @@ _OP_KW: dict[Op, set[str]] = {
                 # dispatch table maps (RUN, CREATE) to
                 # run_trading_agents_analysis so these belong here.
                 "跑一下", "跑起来", "跑个", "跑", "启动", "run-it", "开始",
+                # §P3-5 — re-analysis verbs. Combined with the
+                # report-reference check in _wants_reanalysis()
+                # (below), these route "基于之前那份报告再分析 X" to
+                # (RUN, CREATE) so the dispatch picks
+                # run_trading_agents_analysis with
+                # based_on_report_id set.
+                "再分析", "再跑一次", "再跑一遍", "再看看", "再评估", "再研究",
+                "re-analyze", "re-analyse", "re-look", "relook", "rerun",
                 # Schedule-creation phrases (e.g. "每天早上 9 点跑 X" / "盘后跑 Y")
                 # that imply the user wants to *create* a scheduled task.
                 "每天跑", "每日跑", "定时跑", "周期跑", "按周期跑", "排个任务",
@@ -558,6 +566,33 @@ _OP_KW: dict[Op, set[str]] = {
 }
 
 
+# §P3-5 — re-analysis detection. A user message that contains BOTH a
+# re-run verb (再分析 / re-analyze / ...) AND a report reference
+# (报告 / run- / 之前 / ...) routes to (RUN, CREATE) so the existing
+# dispatch entry fires run_trading_agents_analysis with
+# based_on_report_id set. Without this, the entity detector would
+# match the 报告 keyword and route to REPORT/LIST → list_reports,
+# and the user has to discover the hidden re-analysis parameter on
+# their own.
+_REANALYZE_VERBS = frozenset({
+    "再分析", "再跑一次", "再跑一遍", "再看看", "再评估", "再研究",
+    "基于之前的报告", "再跑",
+    "re-analyze", "re-analyse", "re-look", "relook", "rerun",
+})
+_REANALYZE_REPORT_REFS = frozenset({
+    "报告", "之前", "上次", "那份", "prior", "previous", "run-", "report-",
+})
+
+
+def _wants_reanalysis(message: str) -> bool:
+    text = (message or "").lower()
+    if not text:
+        return False
+    has_verb = any(v in text for v in _REANALYZE_VERBS)
+    has_ref = any(r in text for r in _REANALYZE_REPORT_REFS)
+    return has_verb and has_ref
+
+
 def classify(message: str) -> tuple[Intent, Op]:
     """§P3-3 — entity × op classifier.
 
@@ -575,6 +610,18 @@ def classify(message: str) -> tuple[Intent, Op]:
        with ``Op.READ`` since the legacy intents are read-only.
     """
     text = (message or "").lower()
+
+    # §P3-5 — re-analysis override. "基于之前那份报告再分析 X" must
+    # route to run_trading_agents_analysis with based_on_report_id,
+    # not to list_reports (the default REPORT entity match). Without
+    # this, the user has to say "分析 600036" AND remember to
+    # mention the prior id — but the whole point of the feature is
+    # that the agent should figure out the prior context from
+    # conversation alone. Force (RUN, CREATE) so the existing dispatch
+    # entry kicks in; _run_create_args extracts the prior id from the
+    # message (run-/report- token or "the latest for this symbol").
+    if _wants_reanalysis(message):
+        return Intent.RUN, Op.CREATE
 
     # 0. §Step3 — slot-aware override FIRST. When extract_slots has
     # already produced structured params (trade_date / body_md / cron),

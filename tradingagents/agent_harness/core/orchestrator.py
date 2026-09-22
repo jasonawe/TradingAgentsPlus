@@ -2571,6 +2571,13 @@ class Orchestrator:
         # this, every "no quote data" path forces the LLM to hallucinate an
         # answer (e.g. "SS = 上证综指"), which then fails L3
         # grounding. A short plain-string fallback is much safer.
+        # P0 — local aliases: this function previously referenced
+        # `tool_results` and `base` as if they were in scope, which raised
+        # NameError on every "all-no-data" plan path. Define them here so
+        # the short-circuit branch returns cleanly instead of crashing the
+        # turn (which previously masked the LLM hallucination problem).
+        tool_results = state.tool_results
+        base: dict[str, Any] = {}
         all_no_data = bool(tool_results) and all(
             isinstance(r, dict) and (
                 r.get("status") in ("no_data", "error")
@@ -2734,7 +2741,17 @@ class Orchestrator:
         "- create_alert / update_alert / delete_alert / delete_alerts_for_symbol\n"
         "- add_to_watchlist / remove_from_watchlist\n"
         "- create_scheduled_task / update_scheduled_task / delete_scheduled_task / run_scheduled_task\n"
-        "Use ``{\"action\": \"<tool_name>\", \"args\": {...}}`` for these."
+        "Use ``{\"action\": \"<tool_name>\", \"args\": {...}}`` for these.\n"
+        "\n"
+        "Re-analysis (基于报告再分析): when the user asks to re-analyze / "
+        "re-look / 基于某份报告再分析 / 用上次的报告再跑一遍, dispatch a "
+        "READ step of ``list_reports\" first to find the prior report_id, "
+        "then emit ``run_trading_agents_analysis`` with "
+        "``based_on_report_id=<that id>`` so the new run inherits the "
+        "prior's signal / rating / summary in every analyst prompt and "
+        "the resulting report auto-renders a \"对比前次\" delta section. "
+        "The hitl gate still asks for approval because the call is async + "
+        "expensive (full pipeline)."
     )
 
     _INTENT_AGENT_WHITELIST: dict[str, set[str]] = {

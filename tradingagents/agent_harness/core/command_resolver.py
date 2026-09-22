@@ -31,12 +31,24 @@ class UnsupportedCommand(ValueError):
 # Args factories — 从 OrchestratorState 派生 tool args
 # ---------------------------------------------------------------------------
 
-def _focused_symbol(state: dict) -> str:
-    """``state.symbols[0]`` > ``state.carry_symbols[0]`` > ``""``。"""
-    syms = list(state.get("symbols") or [])
+def _focused_symbol(state) -> str:
+    """``state.symbols[0]`` > ``state.carry_symbols[0]`` > ``""``.
+
+    Accepts either a ``dict`` (legacy tests) or an ``OrchestratorState``
+    dataclass — both expose ``symbols`` / ``carry_symbols`` either as a
+    dict key or as a dataclass field.
+    """
+    syms = list(_state_attr(state, "symbols") or [])
     if not syms:
-        syms = list(state.get("carry_symbols") or [])
+        syms = list(_state_attr(state, "carry_symbols") or [])
     return syms[0] if syms else ""
+
+
+def _state_attr(state, name: str):
+    """Read a field from either a dict or a dataclass."""
+    if isinstance(state, dict):
+        return state.get(name)
+    return getattr(state, name, None)
 
 
 def _watchlist_crud_args(state: dict) -> dict[str, Any]:
@@ -163,14 +175,74 @@ def _scheduled_id_args(state: dict) -> dict[str, Any]:
     return {"job_id": m.group(0) if m else ""}
 
 
-def _run_create_args(state: dict) -> dict[str, Any]:
-    slots = state.get("slots") or {}
-    return {
+def _run_create_args(state) -> dict[str, Any]:
+    import sys
+    print(f"[DBG2] _run_create_args called state_type={type(state).__name__}", file=sys.stderr, flush=True)
+    slots = _state_attr(state, "slots") or {}
+    args = {
         "symbol": _focused_symbol(state),
         "trade_date": slots.get("trade_date", ""),
         "asset_type": "stock",
         "research_depth": slots.get("research_depth", 1),
     }
+    # §P3-5 — when the user asked for re-analysis (基于之前的报告 /
+    # 再分析 / re-look), pull the prior report id out of the message
+    # or fall back to the latest report for the symbol. The runner
+    # then injects that report's signal / rating / summary into every
+    # analyst prompt and writes a "对比前次" delta section to the
+    # new report. Without this, the call still works but the new run
+    # wouldn't carry the prior context — defeating the whole feature.
+    prior_id = _resolve_prior_report_id(state)
+    import sys
+    print(f"[DBG2] _run_create_args prior_id={prior_id}", file=sys.stderr, flush=True)
+    if prior_id:
+        args["based_on_report_id"] = prior_id
+    return args
+
+
+def _resolve_prior_report_id(state) -> str | None:
+    """§P3-5 — best-effort resolution of the prior report id for a
+    re-analysis request.
+
+    Resolution order:
+      1. Explicit ``run-`` or ``report-`` token in the user message.
+      2. ``state.slots["based_on_report_id"]`` (caller-supplied).
+      3. Most recent report for the focused symbol (falls back to
+         global latest when no symbol is anchored).
+
+    Accepts both ``OrchestratorState`` (dataclass-like, has .symbols /
+    .user_message / .slots) and a plain dict — the harness test
+    harness passes OrchestratorState; the command_resolver pytest tests
+    feed dicts.
+    """
+    msg = getattr(state, "user_message", None) or state.get("user_message") or ""
+    m = re.search(r"(?:run|report)-[A-Za-z0-9_-]+", msg)
+    if m:
+        return m.group(0)
+    slots = getattr(state, "slots", None)
+    if slots is None:
+        slots = state.get("slots") or {}
+    if isinstance(slots, dict) and slots.get("based_on_report_id"):
+        return str(slots["based_on_report_id"])
+    try:
+        from tradingagents.agent_harness.tools.impl import _get_report_history
+        history = _get_report_history()
+    except Exception:
+        return None
+    if history is None:
+        return None
+    try:
+        records = history.list_reports() or []
+    except Exception:
+        return None
+    if not records:
+        return None
+    target = (_focused_symbol(state) or "").strip().upper()
+    if target:
+        for r in records:
+            if str(r.get("ticker", "")).upper() == target:
+                return r.get("report_id")
+    return records[0].get("report_id")
 
 
 def _run_id_args(state: dict) -> dict[str, Any]:

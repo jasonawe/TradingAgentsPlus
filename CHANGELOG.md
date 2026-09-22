@@ -2,6 +2,60 @@
 
 All notable changes to TradingAgents are documented here.
 
+## [0.4.6] — 2026-09-22
+
+Harness reliability + invalid-symbol protection: orchestrator NameError fix,
+``get_report`` payload capping, per-symbol quote circuit breaker, plus the
+remaining ``§P3-5`` re-analysis plumbing.
+
+### Fixed
+
+- **Orchestrator ``_llm_plan`` referenced undefined locals.** The "all no-data"
+  short-circuit branch read ``tool_results`` and ``base`` without defining
+  them, so every such turn raised ``NameError`` and silently fell back to
+  the heuristic planner. Alias to ``state.tool_results`` and initialise
+  ``base = {}`` so the short-circuit returns cleanly and downstream
+  reasoning sees the structured summary instead of an opaque heuristic plan.
+- **``get_report`` tool dumped 400KB+ into a single SSE event.** The tool
+  surfaced the full record (``analysts`` blobs, ``complete_report_html``,
+  per-section ``*_html``) as the meta payload, which round-tripped through
+  ``JSON.stringify + innerHTML`` on the chat bubble and froze the tab.
+  Cap meta to a whitelist of summary fields (ticker / signal / status /
+  models / based_on_report_id / …) and keep the 8KB content truncation but
+  point users to ``/reports/<id>`` for the full detail.
+- **Cooldown early-return leaked the singleflight slot.** When the new
+  per-(symbol, asset_type) circuit breaker short-circuited, the inflight
+  entry was never unregistered, so subsequent callers became waiters on a
+  stale event and kept returning the cached cooldown snapshot forever.
+  Wrap the cooldown branch in ``try / finally`` and call
+  ``_unregister_inflight`` so the slot is released.
+
+### Added
+
+- **Per-symbol quote circuit breaker** in ``QuoteService``. After
+  ``TRADINGAGENTS_QUOTE_CIRCUIT_THRESHOLD`` (default 3) failures within
+  ``TRADINGAGENTS_QUOTE_CIRCUIT_WINDOW_SECONDS`` (default 60), the
+  upstream chain is skipped for ``TRADINGAGENTS_QUOTE_CIRCUIT_COOLDOWN_SECONDS``
+  (default 300). While open, ``get_quote`` returns a snapshot with
+  ``cache_status="cooldown"`` / ``provider_status="cooldown"`` instead of
+  timing out, so a single bad ticker (e.g. a stray ``TEST.SS``) can no
+  longer wedge the prewarmer or the watchlist API. ``NOT_CONFIGURED`` is
+  excluded so provider-disabled responses don't trip the breaker, and
+  ``QuoteService.reset_circuit()`` is exposed for manual clearing.
+- **QuoteSnapshot status literals extended** with ``"cooldown"`` for both
+  ``cache_status`` and ``provider_status`` to surface the breaker state to
+  the UI without breaking the Pydantic validators.
+
+### Misc
+
+- §P3-5 re-analysis routing plumbing: planner prompt adds the
+  re-analysis pattern hint, command resolver accepts both ``dict`` and
+  ``OrchestratorState``, tier detection picks up re-run verbs
+  (``再分析`` / ``re-analyze`` / ``re-look`` / …) so
+  ``基于 600036.SS 之前那份报告再分析一下`` reaches
+  ``run_trading_agents_analysis`` with ``based_on_report_id`` set.
+ to TradingAgents are documented here.
+
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Breaking changes within the 0.x line are called out explicitly.

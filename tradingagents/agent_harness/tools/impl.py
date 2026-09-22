@@ -1334,11 +1334,24 @@ def get_report(
         record = history.get_report(report_id)
         # §Step 16 — ReportHistory returns 'complete_report' (raw
         # markdown) not 'body_md'. Read it first, fall back to legacy.
-        meta = {
-            k: v for k, v in record.items()
-            if k not in ("body_md", "content", "complete_report",
-                         "complete_report_html")
-        }
+        #
+        # §Report-Size — keep the meta payload small. The full record
+        # includes ``analysts`` (each agent's multi-KB text),
+        # ``complete_report_html`` (rendered HTML) and per-section
+        # ``*_html`` blobs. Round-tripping all of that through the
+        # chat SSE stream produced 400KB+ payloads which froze the
+        # browser markdown renderer. Surface only the lightweight
+        # summary-level fields the LLM actually uses for follow-up
+        # reasoning.
+        light_meta_keys = (
+            "report_id", "run_id", "source", "ticker",
+            "analysis_date", "generated_at", "signal", "rating",
+            "status", "asset_type", "research_depth",
+            "provider", "quick_model", "deep_model",
+            "output_language", "summary_status", "data_status",
+            "based_on_report_id",
+        )
+        meta = {k: record.get(k) for k in light_meta_keys if k in record}
         content = (
             record.get("complete_report")
             or record.get("body_md")
@@ -1352,7 +1365,7 @@ def get_report(
             + "\n---content---\n"
         )
         if len(content) > 8000:
-            content = content[:8000] + "\n... (truncated)"
+            content = content[:8000] + "\n... (truncated; full report at /reports/" + report_id + ")"
         return header + content
     except Exception as e:
         return f"ERROR: get_report - {type(e).__name__}: {e}"

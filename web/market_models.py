@@ -92,8 +92,8 @@ class QuoteSnapshot(BaseModel):
     market_status: str | None = None
     exchange: str | None = None
     raw_summary: str | None = None
-    cache_status: Literal["live", "hit", "miss", "stale"] | None = None
-    provider_status: Literal["ready", "degraded", "not_configured", "error"] | None = None
+    cache_status: Literal["live", "hit", "miss", "stale", "cooldown"] | None = None
+    provider_status: Literal["ready", "degraded", "not_configured", "error", "cooldown"] | None = None
     stale_seconds: int | None = None
     payload: dict[str, Any] = Field(default_factory=dict)
 

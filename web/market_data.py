@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import logging
+LOGGER = logging.getLogger(__name__)
+
 import os
 import queue
 import threading
@@ -318,6 +321,22 @@ class QuoteService:
         # an in-flight user request from both hitting the provider.
         self._inflight: dict[tuple[str, str, bool], QuoteService._InflightEntry] = {}
         self._inflight_lock = threading.Lock()
+        # Per-(symbol, asset_type) failure circuit breaker. When a symbol keeps
+        # failing in a short window, skip the upstream call for a cooldown so the
+        # prewarmer / API don't keep hammering a known-bad ticker. Knobs are
+        # tunable via TRADINGAGENTS_QUOTE_CIRCUIT_* env vars.
+        self._circuit_threshold = max(
+            1, int(os.getenv("TRADINGAGENTS_QUOTE_CIRCUIT_THRESHOLD", "3"))
+        )
+        self._circuit_window = max(
+            5, int(os.getenv("TRADINGAGENTS_QUOTE_CIRCUIT_WINDOW_SECONDS", "60"))
+        )
+        self._circuit_cooldown = max(
+            30, int(os.getenv("TRADINGAGENTS_QUOTE_CIRCUIT_COOLDOWN_SECONDS", "300"))
+        )
+        self._circuit_failures: dict[tuple[str, str], list[float]] = {}
+        self._circuit_open_until: dict[tuple[str, str], float] = {}
+        self._circuit_lock = threading.Lock()
 
     @dataclass
     class _InflightEntry:
@@ -429,6 +448,33 @@ class QuoteService:
             import threading as _t
             return self._wait_inflight(entry)
         import threading as _t
+        # Circuit breaker: if this (symbol, asset_type) keeps failing upstream,
+        # skip the network round-trip and serve from cache (or a cooldown
+        # snapshot) instead of holding the prewarmer / API hostage.
+        open_now, remaining = self._circuit_status(symbol, asset_type)
+        if open_now:
+            try:
+                if cached:
+                    cached.cache_status = "cooldown"
+                    cached.provider_status = "cooldown"
+                    cached.stale_seconds = self._quote_age(cached, now)
+                    return cached
+                return QuoteSnapshot(
+                    symbol=symbol.upper(),
+                    asset_type=asset_type,
+                    fetched_at=now,
+                    freshness="unavailable",
+                    cache_status="cooldown",
+                    provider_status="cooldown",
+                )
+            finally:
+                # Early-return path skips the outer try/finally, so make sure the
+                # inflight slot is released. Otherwise concurrent / repeat callers
+                # for the same key would block on a stale waiter that never
+                # resolves, and the next call would return the same cooldown
+                # snapshot forever.
+                self._publish_inflight(entry, result=None)
+                self._unregister_inflight(key, entry)
         # Fetcher: drain a small window for any concurrent waiter to register.
         # In production, real HTTP I/O between this point and the actual
         # ``router.get_quote`` call naturally yields the GIL; this wait just
@@ -448,7 +494,12 @@ class QuoteService:
             self.repository.upsert_quote(fresh.model_dump(mode="json"))
             self._publish_inflight(entry, result=fresh)
             return fresh
-        except ProviderError:
+        except ProviderError as exc:
+            # Only count upstream errors as circuit failures (NOT_CONFIGURED
+            # means the provider is disabled for this user, so it doesn't
+            # tell us anything about the ticker itself).
+            if exc.code is not ProviderErrorCode.NOT_CONFIGURED:
+                self._record_circuit_failure(symbol, asset_type)
             if cached:
                 age = cached.stale_seconds or 0
                 cached.freshness = "stale" if age > self.ttl_seconds else cached.freshness
@@ -517,6 +568,57 @@ class QuoteService:
         entry.error = error
         entry.done.set()
         import threading as _t
+
+    def _record_circuit_failure(self, symbol: str, asset_type: str) -> None:
+        """Track an upstream failure for (symbol, asset_type); open the circuit when the
+        recent-failure count crosses ``_circuit_threshold`` within ``_circuit_window``."""
+        key = (symbol.upper(), asset_type)
+        now = time.monotonic()
+        with self._circuit_lock:
+            recent = self._circuit_failures.setdefault(key, [])
+            recent.append(now)
+            cutoff = now - self._circuit_window
+            while recent and recent[0] < cutoff:
+                recent.pop(0)
+            if len(recent) >= self._circuit_threshold:
+                self._circuit_open_until[key] = now + self._circuit_cooldown
+                LOGGER.warning(
+                    "quote circuit OPEN %s/%s for %ss after %d failures in %ss",
+                    symbol, asset_type, self._circuit_cooldown, len(recent), self._circuit_window,
+                )
+
+    def _circuit_status(self, symbol: str, asset_type: str) -> tuple[bool, float]:
+        """Return (open?, seconds_remaining). Auto-closes when cooldown elapses."""
+        key = (symbol.upper(), asset_type)
+        now = time.monotonic()
+        with self._circuit_lock:
+            until = self._circuit_open_until.get(key)
+            if until is None:
+                return False, 0.0
+            if now >= until:
+                self._circuit_open_until.pop(key, None)
+                self._circuit_failures.pop(key, None)
+                return False, 0.0
+            return True, until - now
+
+    def reset_circuit(self, symbol: str | None = None, asset_type: str | None = None) -> int:
+        """Manually close the circuit; useful when a user edits a watchlist entry or
+        re-adds a previously-bad ticker. Returns the number of entries cleared."""
+        with self._circuit_lock:
+            if symbol is None and asset_type is None:
+                n = len(self._circuit_open_until) + len(self._circuit_failures)
+                self._circuit_open_until.clear()
+                self._circuit_failures.clear()
+                return n
+            keys = [
+                k for k in list(self._circuit_open_until)
+                if (symbol is None or k[0] == symbol.upper())
+                and (asset_type is None or k[1] == asset_type)
+            ]
+            for k in keys:
+                self._circuit_open_until.pop(k, None)
+                self._circuit_failures.pop(k, None)
+            return len(keys)
 
     def _unregister_inflight(
         self, key: tuple[str, str, bool], entry: QuoteService._InflightEntry
