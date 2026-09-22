@@ -865,6 +865,31 @@
     },
   };
 
+  // §Step 24 P3 — extract a readable prefix from a stringified
+  // tool result. Handles two flavours:
+  //   1. Python ``repr(QuoteResult(...))`` (default=str fallback for
+  //      Pydantic models in the SSE serialiser). We surface the
+  //      ``symbol=...`` and the first few keyword=value pairs.
+  //   2. A plain JSON object string (defensive). Slice the leading
+  //      braces / key=value pairs verbatim.
+  // Returns a 240-char preview safe to drop into a chat bubble.
+  function _previewStringifiedToolResult(s) {
+    if (!s) return "(empty)";
+    // Heuristic: drop a Python repr header like "QuoteResult(" or
+    // "Foo(" so the reader sees the field list, not the class name.
+    let body = s;
+    const reprMatch = s.match(/^[A-Z][A-Za-z0-9_.]*\((.*)\)\s*$/);
+    if (reprMatch) body = reprMatch[1];
+    // Pull symbol/asset_name prefix for context, then a key=value run.
+    const fields = body.match(/symbol='([^']+)'|symbol="([^"]+)"|asset_name='([^']+)'|"asset_name":"([^"]+)"/);
+    const symField = fields ? (fields[1] || fields[2]) : null;
+    const assetField = fields ? (fields[3] || fields[4]) : null;
+    const kvSlice = body.slice(0, 200);
+    const header = symField ? `${symField}` : "";
+    const name = assetField ? ` (${assetField})` : "";
+    return (header + name + " · " + kvSlice).slice(0, 240);
+  }
+
   function appendToolResult(name, payload) {
     if (payload?.error) {
       return appendMessage("tool-result", `❌ ${name || "tool"}: ${payload.error}`);
@@ -900,9 +925,22 @@
     // (some tools return multi-KB text blobs that would lock the
     // browser). Use the .text field directly if present, otherwise
     // stringify a shallow clone with bounded size.
+    //
+    // §Step 24 P3 — special-case string results. When a Pydantic
+    // ``QuoteResult`` (or any non-JSON-native object) is emitted
+    // through the SSE default=str fallback, payload.result arrives
+    // here as the Python ``repr(...)`` string. Iterating
+    // ``Object.keys(<string>)`` yields char indices and produces the
+    // bug ``{"0":"s","1":"y",...}``. Detect strings first and slice
+    // directly so the preview is the raw repr (or a friendly subset).
     let preview;
     try {
-      if (result && typeof result.text === "string") {
+      if (typeof result === "string") {
+        // Server-side repr(...) or a JSON-encoded payload. Pull a
+        // reader-friendly prefix by skipping the long Python repr
+        // header and showing the leading ``symbol=...`` / JSON keys.
+        preview = _previewStringifiedToolResult(result);
+      } else if (result && typeof result.text === "string") {
         preview = result.text.slice(0, 240);
       } else if (result && typeof result.summary === "string") {
         preview = result.summary.slice(0, 240);

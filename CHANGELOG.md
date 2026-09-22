@@ -604,3 +604,24 @@ results (e.g. `QuoteResult` from `get_quote`).
 - `tests/test_agent_scope.py` — already had
   `test_harness_wires_scope_into_agents`; was pre-existing red on
   main, now green.
+
+## [0.4.10] — 2026-09-22
+
+Frontend render fix for stringified Pydantic tool results + cache
+version bump so the user's browser picks up the new JS.
+
+### Fixed
+
+- `web/static/harness.js:appendToolResult` (§Step 24 P3) — when the
+  SSE `default=str` fallback stringifies a non-JSON-native result
+  (e.g. Pydantic `QuoteResult`), `payload.result` arrives as the
+  Python `repr(...)` string. The previous generic-safety branch did
+  `Object.keys(result).forEach(...)`, which on a string returns
+  character indices and produced the bug
+  ``📥 get_quote: {"0":"s","1":"y","2":"m","3":"b",...}``. Now
+  string results short-circuit to a small helper that surfaces
+  `symbol='...' · key=value, key=value...` instead.
+- `web/static/index.html` / `web/static/harness.html` — bumped the
+  `harness.js?v=` cache key from `20260917-harness-9` to
+  `20260922-harness-l3` so existing browser caches pick up the new
+  JS without manual hard-refresh.
