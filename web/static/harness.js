@@ -120,16 +120,34 @@
     }
     const railNew = document.getElementById("harness-rail-new");
     if (railNew) railNew.addEventListener("click", () => createNewSession());
+    const railExpand = document.getElementById("harness-rail-expand");
+    if (railExpand) railExpand.addEventListener("click", () => setSidebarExpanded(true));
     const railCount = document.getElementById("harness-rail-count");
     function updateRailCount() {
       if (!railCount) return;
       railCount.textContent = String((state.sessions || []).length);
+    }
+    const railActive = document.getElementById("harness-rail-active-title");
+    function updateRailActive() {
+      if (!railActive) return;
+      const sid = state.sessionId || "";
+      const s = (state.sessions || []).find((x) => x.id === sid);
+      const title = s ? sessionItemTitle(s) : (sid ? "当前会话" : "暂无活动会话");
+      const isPending = sid.startsWith("pending-");
+      railActive.textContent = title;
+      railActive.title = title;
+      railActive.dataset.tip = title;
+      railActive.classList.toggle("is-empty", !s || isPending);
+    }
+    if (railActive) {
+      railActive.addEventListener("click", () => setSidebarExpanded(true));
     }
     // Patch renderSessionPicker so it also refreshes the rail counter.
     const _origRender = renderSessionPicker;
     renderSessionPicker = function patchedRender() {
       _origRender.apply(this, arguments);
       updateRailCount();
+      updateRailActive();
     };
     const inspectorToggle = document.getElementById("harness-inspector-toggle");
     if (inspectorToggle) {

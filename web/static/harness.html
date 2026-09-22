@@ -37,8 +37,12 @@
               <button type="button" id="harness-rail-new" class="harness-sidebar-rail-btn" data-tip="新对话" title="新对话" aria-label="新对话">
                 <svg width="16" height="16" aria-hidden="true"><use href="#i-plus"/></svg>
               </button>
+              <button type="button" id="harness-rail-expand" class="harness-sidebar-rail-btn" data-tip="展开会话列表" title="展开会话列表" aria-label="展开会话列表">
+                <svg width="16" height="16" aria-hidden="true"><use href="#i-menu"/></svg>
+              </button>
               <span class="harness-sidebar-rail-divider"></span>
               <span id="harness-rail-count" class="harness-sidebar-rail-count" data-tip="会话总数">0</span>
+              <span id="harness-rail-active-title" class="harness-sidebar-rail-active" data-tip="" title="" aria-hidden="true"></span>
             </div>
             <div class="harness-sidebar-header">
               <button type="button" id="harness-new-session-btn" class="harness-new-chat-btn" title="新建会话">
@@ -239,7 +243,7 @@
       // caller can highlight the right nav item.
       try { window.parent.postMessage({ type: "ta-route", view: "harness" }, "*"); } catch (_) {}
     </script>
-    <script src="/static/harness.js?v=20260922-harness-l3" defer></script>
+    <script src="/static/harness.js?v=20260922-harness-rail9" defer></script>
     <script>
       // Minimal page bootstrap — call TradingAgentsHarness.init() once
       // the harness module is available. The page doesn't have the

@@ -2,6 +2,36 @@
 
 All notable changes to TradingAgents are documented here.
 
+## [0.4.11] — 2026-09-22
+
+Harness sidebar: surface session list on collapsed rail so users who
+accidentally collapse the sidebar (or land here with `sidebarExpanded`
+= "0" from a previous Codex in-app browser session) can still find
+their conversations.
+
+### Added
+
+- **Rail "展开会话列表" button** (`#harness-rail-expand`). Visible only
+  when the sidebar is collapsed; clicking it expands the session list.
+  Replaces the small 24×24 circular toggle as the primary discovery
+  surface in the rail.
+- **Rail "current session" caption** (`#harness-rail-active-title`).
+  Vertical-text preview of the active session's title at the bottom
+  of the rail so the user always knows which conversation is open
+  even when the full sidebar is collapsed. Click it to expand.
+- **Accent-coloured toggle in collapsed mode**. The existing
+  `#harness-sidebar-toggle` is now rendered with the accent background
+  + white text in collapsed mode so the rail surfaces a clear
+  affordance to re-open the list.
+
+### Files
+
+- `web/static/harness.html` (rail markup)
+- `web/static/agent.css` (collapsed-only visibility + accent toggle)
+- `web/static/harness.js` (wire `#harness-rail-expand` click →
+  `setSidebarExpanded(true)`; sync active title from
+  `state.sessionId + state.sessions`)
+
 ## [0.4.7] — 2026-09-22
 
 Harness L3 LLM-judge verification + orchestrator robustness.
