@@ -873,7 +873,69 @@
     const status = result?.status;
     const badge = STATUS_BADGE[status];
     if (badge) return appendMessage("tool-result", badge(name || "tool", payload));
-    return appendMessage("tool-result", `📥 ${name || "tool"}: ${JSON.stringify(result).slice(0, 240)}`);
+
+    // §P3-5 — render a compact summary for get_report instead of
+    // dumping the multi-KB markdown blob into the chat. The full
+    // content is huge (8000+ chars) and would freeze the page when
+    // JSON.stringify + innerHTML runs over it. We pull ticker /
+    // signal / rating / date out of the result text and emit them
+    // as a one-liner, plus an "open detail" link.
+    if (name === "get_report" && result?.status === "ok") {
+      const text = String(result.text || "");
+      const idMatch = text.match(/REPORT:\s*(\S+)/);
+      const reportId = (idMatch && idMatch[1])
+        || (payload && payload.args && payload.args.report_id)
+        || "";
+      const meta = extractReportMeta(text);
+      const label = reportId ? `📄 ${reportId}` : "📄 报告";
+      const line = [meta.ticker, meta.date, meta.signal].filter(Boolean).join(" · ");
+      const link = reportId
+        ? ` · <a href="/reports/${encodeURIComponent(reportId)}" target="_blank" rel="noopener">在新页面打开 →</a>`
+        : "";
+      const body = line ? ` ${escapeHtml(line)}` : "";
+      return appendMessage("tool-result", `${label}${body}${link}`);
+    }
+
+    // §P3-5 — generic safety: avoid JSON.stringify on a huge payload
+    // (some tools return multi-KB text blobs that would lock the
+    // browser). Use the .text field directly if present, otherwise
+    // stringify a shallow clone with bounded size.
+    let preview;
+    try {
+      if (result && typeof result.text === "string") {
+        preview = result.text.slice(0, 240);
+      } else if (result && typeof result.summary === "string") {
+        preview = result.summary.slice(0, 240);
+      } else {
+        const shallow = {};
+        for (const k of Object.keys(result || {})) {
+          const v = result[k];
+          shallow[k] = typeof v === "string" ? v.slice(0, 120) : v;
+        }
+        preview = JSON.stringify(shallow).slice(0, 240);
+      }
+    } catch (_) {
+      preview = "(result too large to render)";
+    }
+    return appendMessage("tool-result", `📥 ${name || "tool"}: ${preview}`);
+  }
+
+  // §P3-5 — pull ticker / date / signal out of a get_report text
+  // blob. The blob is ``REPORT: <id>\n---meta---\n{...json...}\n
+  // ---content---\n<md>``. We only need a few headline fields, so
+  // we scan for them with simple regex rather than parsing the
+  // meta JSON (which can be malformed by the LLM tool output).
+  function extractReportMeta(text) {
+    const meta = { ticker: "", date: "", signal: "" };
+    if (!text) return meta;
+    const ticker = text.match(/"ticker"\s*:\s*"([^"]+)"/);
+    if (ticker) meta.ticker = ticker[1];
+    const date = text.match(/"analysis_date"\s*:\s*"([^"]+)"/);
+    if (date) meta.date = date[1];
+    const signal = text.match(/"signal"\s*:\s*"([^"]+)"/)
+      || text.match(/"rating"\s*:\s*"([^"]+)"/);
+    if (signal) meta.signal = signal[1];
+    return meta;
   }
 
   function appendVerified(payload) {
