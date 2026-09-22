@@ -456,8 +456,27 @@ PlannerAgent._capability_catalog = _planner_capability_catalog  # type: ignore[a
 _orig_init = PlannerAgent.__init__
 
 
-def _patched_init(self, *, agent_registry=None, **kwargs):
-    _orig_init(self, **kwargs)
+def _patched_init(
+    self,
+    *,
+    agent_registry=None,
+    llm_factory=None,
+    tool_registry=None,
+    scope=None,
+    **kwargs,
+):
+    # §Step 24 — declare the BaseAgent kwargs explicitly so
+    # ``SubagentProvider.build`` (which filters on
+    # ``key in inspect.signature(factory).parameters``) keeps them.
+    # Previously the **kwargs catch-all hid scope from the filter,
+    # so planner.scope was silently dropped at wiring time
+    # (regression caught by test_harness_wires_scope_into_agents).
+    _orig_init(
+        self,
+        llm_factory=llm_factory,
+        tool_registry=tool_registry,
+        scope=scope,
+    )
     self.agent_registry = agent_registry
     self._plan_cache = _PlanCache()
 

@@ -26,8 +26,21 @@ class VerifierAgent(BaseAgent):
         tool_registry=None,
         judge_factory=None,
         enable_l3: bool = False,
+        scope=None,
     ) -> None:
-        super().__init__(llm_factory=llm_factory, tool_registry=tool_registry)
+        # §Step 24 — accept ``scope`` and forward to super(). The
+        # ``SubagentProvider.build`` filter
+        # (``key in inspect.signature(factory).parameters``) drops any
+        # kwarg that is not an explicit parameter, so dropping scope
+        # here made verifier.scope silently None despite the harness
+        # passing harness.default_agent_scope. Symptom: the regression
+        # test test_harness_wires_scope_into_agents also caught
+        # verifier.
+        super().__init__(
+            llm_factory=llm_factory,
+            tool_registry=tool_registry,
+            scope=scope,
+        )
         self.judge_factory = judge_factory
         self.enable_l3 = enable_l3
 

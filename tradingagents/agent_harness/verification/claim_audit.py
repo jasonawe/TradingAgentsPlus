@@ -103,6 +103,37 @@ def _flatten_tool_values(tool_results: Iterable[dict]) -> list[str]:
 
 
 def _walk(value: object, out: list[str]) -> None:
+    # §Step 24 — handle Pydantic BaseModel. Tools like get_quote
+    # return a ``QuoteResult(BaseModel)`` that lives in
+    # ``state.tool_results[i]["result"]``. The previous walk only
+    # recursed into dict/list/str/numbers, which silently dropped the
+    # entire QuoteResult and left the haystack empty — making
+    # claim_audit return 0.0 with every number flagged as
+    # unsupported. Use ``model_dump()`` (v2) / ``.dict()`` (v1) so
+    # numeric fields (price / change_pct / amplitude / …) reach the
+    # number-extraction regex.
+    if value is None:
+        return
+    # Pydantic v2 first (``model_dump``), then v1 (``dict``).
+    if hasattr(value, "model_dump") and callable(value.model_dump):
+        try:
+            _walk(value.model_dump(), out)
+            return
+        except Exception:
+            pass
+    if hasattr(value, "dict") and callable(value.dict) and not isinstance(value, type):
+        try:
+            _walk(value.dict(), out)
+            return
+        except Exception:
+            pass
+    # dataclass fallback for non-Pydantic structured objects.
+    if hasattr(value, "__dict__") and not isinstance(value, type):
+        try:
+            _walk(vars(value), out)
+            return
+        except Exception:
+            pass
     if isinstance(value, dict):
         for vv in value.values():
             _walk(vv, out)
@@ -121,26 +152,47 @@ def _number_in_haystack(num: str, haystack: list[str]) -> bool:
     """Return True if ``num`` matches something in ``haystack``.
 
     Accepts:
-    - exact substring match
+    - exact substring match (after stripping leading ``+`` so a sign
+      prefix in the answer (``+0.22%``) still matches ``0.22`` in data)
     - rounded-to-2dp match (so "5" in answer matches "5.00" in data)
     - percentage match ("5.2%" in answer matches "5.2" in data)
+    - numeric tokenisation of multi-value haystack strings (e.g.
+      ``"price=26.9 open=26.83"``) so each numeric value inside is
+      compared individually — previously the whole blob was fed to
+      ``_to_float`` which returned None and skipped the float
+      comparison path silently.
     """
     n_float = _to_float(num)
-    if n_float is None:
-        # Non-numeric token (shouldn't happen after extract_numbers)
-        return any(num in h for h in haystack)
-    needle = num.rstrip("%")
+    # Strip optional sign prefix when doing substring search so
+    # ``+0.22`` still matches ``0.22``. The float comparison path is
+    # sign-agnostic.
+    sign_stripped = num.lstrip("+")
+    needle = sign_stripped.rstrip("%")
+    # Tokenise haystack strings into their numeric substrings once per
+    # call so multi-value blobs (``price=26.9 open=26.83 ...``) yield
+    # per-number floats we can compare against ``n_float``.
+    haystack_numbers: list[float] = []
     for h in haystack:
-        if needle in h:
+        if n_float is None:
+            # Numeric token matching not applicable; fall back to
+            # substring search below.
+            pass
+        else:
+            for m in _NUMBER_RE.finditer(h or ""):
+                tok = m.group(1).replace(",", "")
+                h_float = _to_float(tok)
+                if h_float is not None:
+                    haystack_numbers.append(h_float)
+        if needle in (h or ""):
             return True
-        # Try matching as a number against numeric tokens
-        h_float = _to_float(h)
-        if h_float is None:
-            continue
+    if n_float is None:
+        return False
+    # Numeric comparison against the tokenised haystack.
+    for h_float in haystack_numbers:
         if abs(h_float - n_float) < 1e-6:
             return True
-        # Percent normalization: if the answer says "5.2%" and the data
-        # has "5.2" we treat them as the same number.
+        # Percent normalization: if the answer says "5.2%" and the
+        # data has "5.2" we treat them as the same number.
         if num.endswith("%") and abs(h_float - n_float) < 1e-6:
             return True
         # Loose match: 2-decimal tolerance for floats

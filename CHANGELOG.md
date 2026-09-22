@@ -554,3 +554,53 @@ call. Restores L3 trigger (L3 requires `len(tool_results) > 4`).
   the §Step 23 compare-style guards (multi-symbol today / multi-symbol
   no-verb / compare-verb single-symbol / multi-symbol ISO date /
   analysis-multi-symbol still extracts / end-to-end routing).
+
+## [0.4.9] — 2026-09-22
+
+Two L3 grounding bugs fixed: planner-agent scope wiring was silently
+dropped for the monkey-patched `PlannerAgent` and the hand-written
+`VerifierAgent`, and `claim_audit` lost every tool-derived number
+because the haystack walker didn't recognise Pydantic BaseModel
+results (e.g. `QuoteResult` from `get_quote`).
+
+### Fixed
+
+- `tradingagents/agent_harness/agents/planner.py:_patched_init`
+  (§Step 24) — declare `llm_factory` / `tool_registry` / `scope`
+  explicitly instead of relying on a bare `**kwargs` catch-all.
+  `SubagentProvider.build` filters kwargs against
+  `inspect.signature(factory).parameters`, and `**kwargs` shows up
+  in `sig.parameters` under the name `kwargs` — so any explicit
+  kwarg name (e.g. `scope`) was silently dropped, leaving
+  `planner.scope = None`. Caught by
+  `test_harness_wires_scope_into_agents`.
+- `tradingagents/agent_harness/agents/verifier.py:VerifierAgent.__init__`
+  (§Step 24) — added explicit `scope` kwarg and forwarded it to
+  `super().__init__()`; same root cause as the planner fix.
+- `tradingagents/agent_harness/verification/claim_audit.py:_walk`
+  (§Step 24 P2) — recurse into Pydantic v2 models via
+  `model_dump()` (and v1 via `.dict()`), and fall back to
+  `vars(value)` for non-Pydantic structured objects. Previously a
+  `QuoteResult(BaseModel)` stored in `state.tool_results[i]["result"]`
+  was silently dropped from the haystack, leaving every number in
+  the answer reported as unsupported and `claim_audit_score = 0.0`.
+  Production impact: L3 was always returned `ungrounded` because
+  claim_audit dragged the score down even when the LLM judge
+  confirmed the numbers came from tool data.
+- `tradingagents/agent_harness/verification/claim_audit.py:_number_in_haystack`
+  (§Step 24 P1) — strip leading `+` from the needle so `+0.22%`
+  matches `0.22` in tool data, and tokenise multi-value haystack
+  strings (e.g. `repr(QuoteResult)` blobs) with `_NUMBER_RE` so
+  each numeric value is compared individually instead of feeding
+  the whole blob to `_to_float` (which returned None and skipped
+  the float comparison path).
+
+### Tests
+
+- `tests/test_step30_claim_audit.py` — 6 new cases: leading-plus
+  sign, multi-value haystack tokenisation, full 6-stock compare
+  on stringified blobs, fabricated-number negative regression, and
+  2 Pydantic `QuoteResult` end-to-end cases.
+- `tests/test_agent_scope.py` — already had
+  `test_harness_wires_scope_into_agents`; was pre-existing red on
+  main, now green.
