@@ -50,6 +50,11 @@ from .harness_checkpoint import (
 from .short_circuit import ShortCircuit
 from .tier import Intent, Op, RouteResult, Tier, fast_route, fast_route_with_op, maybe_degrade_to_tier1
 from .verification import VerificationLevel, Verifier
+# §0.4.13 — Plan B + D (tool routing hints). Imported as a small
+# module so the planner's intent routing hint (§B) and the synthesizer's
+# cheat sheet (§D) live in one place; see tool_routing_hint.py for the
+# dictionary + the cheat-sheet block.
+from .tool_routing_hint import cheat_sheet, routing_hint
 
 # ════════════════════════════════════════════════════════════════════
 # §P3-3+ §7.3 — short-window dedupe for destructive tool calls.
@@ -2721,12 +2726,20 @@ class Orchestrator:
                 f"about them: {state.carry_symbols}.\n"
                 f"Prior turn user message: {state.prior_user_msg!r}\n"
             )
+        # §0.4.13 — Plan B: per-intent routing hint. Injected right
+        # after the "Detected intent" line so the planner sees the
+        # correct agent + tool to pick before reading the full agent
+        # catalogue. For UNKNOWN we still surface a recovery paragraph
+        # (walks the LLM through the keyword heuristic) so ambiguous
+        # turns degrade gracefully instead of picking at random.
+        intent_hint = routing_hint(state.intent)
         return (
             f"User message: {state.user_message}\n\n"
             f"Current date: {self._format_now_cst()}\n"
             f"Detected symbols (current): {state.symbols}\n"
             f"Detected symbols (carry-forward from previous turn): {state.carry_symbols}\n"
             f"Detected intent: {state.intent.value}\n"
+            f"Routing hint: {intent_hint}\n"
             f"{carry_hint}\n"
             "Available agents:\n" + "\n".join(agent_caps) +
             ptc_hint +
@@ -3136,6 +3149,11 @@ class Orchestrator:
         "- The L3 judge reads this block; answers without it are down-weighted "
         "even when the numbers are correct \u2014 verifiability matters.\n"
         "- Trivial CRUD acks (\"Delete a single note\") do NOT need a citation block.\n"
+        # §0.4.13 Plan D — append the Tool Routing Cheat Sheet so the
+        # synthesizer can anchor its tool-name citations when tool_results
+        # cover multiple tools. See tool_routing_hint.cheat_sheet().
+        + cheat_sheet()
+        + "\n"
     )
 
 

@@ -2,6 +2,68 @@
 
 All notable changes to TradingAgents are documented here.
 
+## [0.4.13] — 2026-09-22
+
+Harness LLM tool-routing: per-intent planner hint + tool routing cheat
+sheet (Plan B + D from the §0.4.12 review of the "走势/N天 → get_quote"
+classifier failure and the broader LLM tool-selection question).
+
+### Added
+
+- **`tradingagents/agent_harness/core/tool_routing_hint.py`** — single
+  source of truth for both Plan B's planner hint (per-intent one-liner
+  with "do NOT pick X" warnings) and Plan D's synthesizer cheat sheet
+  (keyword → tool mapping across all 33 tools). Imported as a small
+  module so future tweaks stay in one file.
+- **Plan B — per-intent planner hint.** `_build_plan_prompt` now
+  injects a `Routing hint: <intent-specific paragraph>` line right
+  after `Detected intent:`. Each paragraph names the correct
+  agent + tool, and includes a "do NOT pick" warning for the
+  classifier failure mode the intent is most likely to mis-fire on:
+  - `quote` → data_agent · `get_quote` (warns against get_history etc.)
+  - `history` → data_agent · `get_history` with explicit `time_range`
+    (warns against get_quote — the §0.4.12 regression)
+  - `fundamentals` → data_agent · `get_fundamentals`
+  - `news` → news_agent · `get_news`
+  - `alpha` → alpha_agent · `compute_alpha_factors` (with ticker) /
+    `list_alpha_factors` (catalogue)
+  - `compare` → PTC mode with `get_quotes_batch` (warns against serial)
+  - `analysis` → data_agent + news_agent; explicit opt-in for
+    `run_trading_agents_analysis` only when the user said "跑一下"
+  - CRUD intents (note/alert/watchlist/scheduled) → _CRUD_DISPATCH;
+    planner told NOT to re-plan writes.
+  - `report` / `run` → list_reports + get_report; list_runs +
+    get_analysis_status + cancel_analysis_run.
+  - `unknown` → recovery paragraph that walks the LLM through the
+    keyword heuristic (ticker + N天 → history, ticker + 市盈率 →
+    fundamentals, etc.) so ambiguous input still degrades gracefully.
+- **Plan D — Tool Routing Cheat Sheet appended to `_SYNTH_SYSTEM`.**
+  The synthesizer's system prompt now ends with a "Tool Routing
+  Cheat Sheet" block listing every tool name grouped by category
+  (行情数据 / CRUD 实体 / 分析与报告). SynthesizeNode reads it as a
+  few-shot anchor when tool_results cover multiple tools or when
+  intent was ambiguous at planning time. Names are byte-identical
+  to the registered tool names so the citation block's
+  `> 来源: <tool_name> (<symbol>)` format matches.
+
+### Tests
+
+- `tests/test_step46_intent_routing_hint.py` — 9 cases covering
+  hint module coverage, str/Intent dual input, history-vs-quote
+  regression, plan-prompt injection, unknown recovery, cheat-sheet
+  completeness (all 33 tools present), synth system prompt
+  integration, and `_PLAN_SYSTEM` byte-stability.
+
+### Files
+
+- new: `tradingagents/agent_harness/core/tool_routing_hint.py` (177 LoC)
+- new: `tests/test_step46_intent_routing_hint.py` (206 LoC)
+- changed: `tradingagents/agent_harness/core/orchestrator.py`
+  - +5 lines import
+  - +7 lines routing-hint injection in `_build_plan_prompt`
+  - +5 lines cheat-sheet append in `_SYNTH_SYSTEM`
+- changed: `pyproject.toml` (version bump 0.4.12 → 0.4.13)
+
 ## [0.4.12] — 2026-09-22
 
 Harness tools: auto-normalise bare 6-digit A-share tickers, route history
