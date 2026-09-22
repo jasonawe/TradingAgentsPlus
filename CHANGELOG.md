@@ -2,6 +2,86 @@
 
 All notable changes to TradingAgents are documented here.
 
+## [0.4.15] — 2026-09-22
+
+`get_fundamentals` tool surfaces real provider data instead of
+returning all-None for every numeric field (regression for the
+"看一下 AAPL 的基本面数据 → PE: null, PB: null, market cap: null"
+report).
+
+### Fixed
+
+- **`get_fundamentals` no longer reads fields off
+  `AssetIdentity`.** `tradingagents/agent_harness/tools/builtin.py`
+  used to call `get_identity` (which only carries name /
+  exchange / currency) and then `getattr(identity, "pe_ratio",
+  None)` against a Pydantic model that never declared them. Every
+  numeric field silently came back as `None` for every provider,
+  every symbol. Now it calls the new
+  `Provider.get_fundamentals(symbol, asset_type)` and copies
+  the populated fields.
+- **New `FundamentalsSnapshot` model** in `web/market_models.py`
+  carrying PE / PB / market cap / circulating cap / ROE / revenue /
+  net income / EPS / dividend yield / 52-week high-low / source.
+  Default values are `None` so providers can fill only what they
+  have; the harness tool surfaces missing fields as "未提供".
+- **`YFinanceProvider.get_fundamentals` override** reads
+  `ticker.info` directly: marketCap → market_cap, trailingPE →
+  pe_ratio, priceToBook → pb_ratio, returnOnEquity → roe,
+  trailingEps → eps, dividendYield → dividend_yield,
+  fiftyTwoWeekHigh → fifty_two_week_high,
+  fiftyTwoWeekLow → fifty_two_week_low. Provider-specific
+  extras (forward_pe / peg_ratio / beta / profit margin /
+  operating margin / debt_to_equity / free_cashflow / sector /
+  industry) flow into the `payload` dict for downstream consumers.
+- **`Provider.get_fundamentals` default impl** merges
+  `get_quote` (akshare + eastmoney fill market_cap / pe_ratio on
+  their A-share QuoteSnapshot) with `get_identity`. When *neither*
+  layer produces any fundamentals field (only the name comes
+  back), it raises `ProviderError(NO_DATA)` so the failover walks
+  to the next provider instead of short-circuiting with an empty
+  snapshot.
+- **`ProviderFailover` treats NO_DATA on `get_fundamentals` as
+  transient** (`tradingagents/agent_harness/observability/
+  failover.py`). Each provider covers a different universe —
+  eastmoney / akshare have A-share fundamentals on the quote
+  snapshot, yfinance has US ticker fundamentals from ticker.info.
+  Without this, eastmoney raising NO_DATA for AAPL short-circuited
+  the chain and yfinance never got a turn. `get_quote` still
+  treats NO_DATA as terminal.
+- **Expanded `_render_fundamentals` view** in
+  `tradingagents/agent_harness/tools/display_view.py` to surface
+  the new fields: name, 流通市值, EPS, 股息率, 52周高/低, 货币.
+  Renders big numbers (market cap, revenue) with thousand-separators
+  and small ratios with 2-decimal precision.
+
+### Tests
+
+- `tests/test_step48_fundamentals_tool.py` — 7 cases covering:
+  - model field surface
+  - Provider ABC declares `get_fundamentals`
+  - YFinanceProvider overrides (not just inherits)
+  - default impl raises NO_DATA for non-fundamentals symbols
+  - failover walks past eastmoney to yfinance for AAPL
+  - harness tool returns real PE / market_cap for AAPL
+  - harness tool returns real PE for 600036.SS
+
+### Files
+
+- changed: `web/market_models.py` (new model, +40 LoC)
+- changed: `tradingagents/data/providers/base.py` (new default
+  `get_fundamentals`, +60 LoC)
+- changed: `tradingagents/data/providers/yfinance_provider.py`
+  (override + helper, +90 LoC)
+- changed: `tradingagents/agent_harness/tools/builtin.py` (tool
+  rewrite, +50 LoC)
+- changed: `tradingagents/agent_harness/observability/failover.py`
+  (per-method NO_DATA handling, +12 LoC)
+- changed: `tradingagents/agent_harness/tools/display_view.py`
+  (richer rendering, +25 LoC)
+- new: `tests/test_step48_fundamentals_tool.py` (181 LoC, 7 cases)
+- changed: `pyproject.toml` (version bump 0.4.14 → 0.4.15)
+
 ## [0.4.14] — 2026-09-22
 
 Harness sidebar: default to expanded unless the user has explicitly

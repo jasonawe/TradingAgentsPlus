@@ -69,20 +69,53 @@ def _render_history(r: dict) -> str:
 
 
 def _render_fundamentals(r: dict) -> str:
+    """§0.4.15 — show whatever the provider returned, not just 4 fields.
+
+    YFinance returns a much richer snapshot (EPS, dividend yield, 52w
+    range, revenue, net income, sector, beta, profit margin, ...)
+    than the §0.4.10-era view. We surface the most useful ones first
+    (PE / PB / market cap / ROE / EPS) and append the rest as a
+    secondary block so the answer doesn't become a wall of numbers.
+    """
     sym = r.get("symbol", "?")
+    name = r.get("name") or ""
+    currency = r.get("currency") or ""
     lines = [f"💼 {sym}"]
-    for k, label in [
+    if name:
+        lines[0] = f"💼 {sym} · {name}"
+
+    def _fmt(v, label):
+        if v is None:
+            return None
+        if isinstance(v, (int, float)):
+            # Big numbers (market cap, revenue, net income) get
+            # thousand-separators; small ratios (PE/PB/ROE/EPS) get
+            # 2 decimals.
+            if abs(v) >= 1e6:
+                return f"  {label}: {int(v):,}"
+            return f"  {label}: {v:.2f}"
+        return f"  {label}: {v}"
+
+    primary = [
         ("pe_ratio", "PE"),
         ("pb_ratio", "PB"),
         ("market_cap", "市值"),
+        ("circulating_cap", "流通市值"),
         ("roe", "ROE"),
-    ]:
-        v = r.get(k)
-        if v is not None:
-            if isinstance(v, (int, float)):
-                lines.append(f"  {label}: {v:.2f}" if abs(v) < 1e6 else f"  {label}: {int(v):,}")
-            else:
-                lines.append(f"  {label}: {v}")
+        ("eps", "EPS"),
+        ("dividend_yield", "股息率"),
+        ("fifty_two_week_high", "52周高"),
+        ("fifty_two_week_low", "52周低"),
+    ]
+    for k, label in primary:
+        line = _fmt(r.get(k), label)
+        if line:
+            lines.append(line)
+    if currency:
+        # Append currency suffix only if at least one numeric row
+        # was emitted (so a totally-empty snapshot stays terse).
+        if any(line.startswith("  ") for line in lines[1:]):
+            lines.append(f"  货币: {currency}")
     return "\n".join(lines)
 
 

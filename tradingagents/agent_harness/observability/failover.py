@@ -94,14 +94,27 @@ class ProviderFailover:
             try:
                 result = fn(*args, **kwargs)
             except ProviderError as e:
-                # INVALID_SYMBOL is terminal for THIS provider but may be
-                # answerable by another (e.g. eastmoney doesn't know NVDA,
-                # but yfinance does). Promote INVALID_SYMBOL to transient
-                # only when the symbol looks non-A-share (no .SS/.SZ/.SH
-                # suffix) so we don't double-roundtrip on truly bad A-share codes.
-                if e.code not in _TRANSIENT_CODES and not (
-                    e.code == ProviderErrorCode.INVALID_SYMBOL
-                    and _is_non_a_share(args)
+                # §0.4.15 — for ``get_fundamentals`` specifically,
+                # NO_DATA is transient: each provider covers a
+                # different universe (eastmoney / akshare = A-share
+                # fundamentals on the quote snapshot; yfinance = US
+                # ticker fundamentals from ``ticker.info``). Without
+                # this, eastmoney raising NO_DATA for NVDA would
+                # short-circuit the chain and yfinance would never
+                # get a turn. ``get_quote`` still treats NO_DATA as
+                # terminal (we don't want to round-trip every
+                # provider when the symbol is genuinely unknown).
+                no_data_is_transient = (
+                    method == "get_fundamentals"
+                    and e.code == ProviderErrorCode.NO_DATA
+                )
+                if (
+                    e.code not in _TRANSIENT_CODES
+                    and not no_data_is_transient
+                    and not (
+                        e.code == ProviderErrorCode.INVALID_SYMBOL
+                        and _is_non_a_share(args)
+                    )
                 ):
                     raise
                 last_err = e

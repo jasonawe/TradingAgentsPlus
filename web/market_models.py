@@ -144,6 +144,42 @@ class Candle(BaseModel):
         return _utc(value)
 
 
+class FundamentalsSnapshot(BaseModel):
+    """§0.4.15 — financial fundamentals payload returned by providers.
+
+    The harness ``get_fundamentals`` tool previously read these fields
+    off :class:`AssetIdentity` (which never had them) so every call
+    came back with all-null values. This dedicated model lets each
+    provider report the metrics it actually knows (A-share sources
+    expose PE/PB/market_cap on the quote snapshot; yfinance exposes
+    the same fields via ``ticker.info``).
+
+    Fields default to ``None`` so providers can fill only what they
+    have. The harness tool surfaces missing fields as
+    "未提供" instead of fabricating numbers.
+    """
+
+    symbol: str
+    asset_type: str = "stock"
+    name: str | None = None
+    exchange: str | None = None
+    currency: str | None = None
+    market_cap: float | None = None
+    circulating_cap: float | None = None
+    pe_ratio: float | None = None
+    pb_ratio: float | None = None
+    roe: float | None = None
+    revenue: float | None = None
+    net_income: float | None = None
+    eps: float | None = None
+    dividend_yield: float | None = None
+    fifty_two_week_high: float | None = None
+    fifty_two_week_low: float | None = None
+    source: str | None = None
+    as_of: datetime | None = None
+    payload: dict[str, Any] = Field(default_factory=dict)
+
+
 class AssetIdentity(BaseModel):
     symbol: str
     asset_type: str

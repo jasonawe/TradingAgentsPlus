@@ -14,6 +14,8 @@ from typing import Any, Iterable, Optional
 from web.market_models import (
     AssetIdentity,
     Candle,
+    FundamentalsSnapshot,
+    ProviderError,
     QuoteSnapshot,
 )
 
@@ -69,3 +71,89 @@ class Provider(ABC):
     def listed_symbols(self) -> Iterable[str]:
         """Optional: return a list of symbols the provider can quote."""
         return ()
+
+    # ------------------------------------------------------------------
+    # §0.4.15 — fundamentals (PE / PB / market cap / ROE / ...)
+    # ------------------------------------------------------------------
+    # Default impl pulls from ``get_quote`` (which already carries
+    # market_cap / circulating_cap / pe_ratio for akshare + eastmoney
+    # A-share snapshots) and merges with ``get_identity`` for name /
+    # exchange / currency. Providers that fetch fundamentals from a
+    # different upstream (e.g. yfinance's ``ticker.info``) override
+    # this to surface those richer fields (PB / ROE / EPS / etc.).
+    def get_fundamentals(
+        self, symbol: str, asset_type: str = "stock",
+    ) -> FundamentalsSnapshot:
+        """Return the fundamentals snapshot for ``symbol``.
+
+        §0.4.15 — default impl merges :meth:`get_quote` (which carries
+        market_cap / circulating_cap / pe_ratio on akshare + eastmoney
+        A-share snapshots) with :meth:`get_identity` (name / exchange /
+        currency). When NEITHER layer yields anything meaningful
+        (every numeric field is ``None`` AND the provider doesn't even
+        know the symbol's name) this raises :class:`ProviderError`
+        with ``NO_DATA`` so :class:`ProviderFailover` walks to the
+        next provider in the chain instead of returning an
+        all-empty snapshot that would short-circuit failover.
+
+        Providers that fetch fundamentals from a different upstream
+        (e.g. yfinance's ``ticker.info``) override this to surface
+        their richer fields (PB / ROE / EPS / 52-week range / etc.).
+        """
+        snap = FundamentalsSnapshot(
+            symbol=str(symbol).strip().upper(), asset_type=asset_type,
+        )
+        identity_known = False
+        # 1) Quote layer — fills market_cap / circulating_cap / pe_ratio
+        #    on akshare + eastmoney; raises on US symbols those providers
+        #    don't recognise.
+        try:
+            quote = self.get_quote(symbol, asset_type)
+            snap.market_cap = quote.market_cap
+            snap.circulating_cap = quote.circulating_cap
+            snap.pe_ratio = quote.pe_ratio
+            snap.amplitude = getattr(quote, "amplitude", None)
+            snap.exchange = quote.exchange
+            snap.currency = quote.currency
+            snap.name = quote.raw_summary
+            snap.as_of = quote.as_of
+            snap.source = quote.source
+        except ProviderError:
+            pass
+        except Exception:
+            pass
+        # 2) Identity layer — fills name / exchange / currency for
+        #    providers that recognise the symbol even when quote fails.
+        try:
+            ident = self.get_identity(symbol, asset_type)
+            snap.name = snap.name or ident.name
+            snap.exchange = snap.exchange or ident.exchange
+            snap.currency = snap.currency or ident.currency
+            if ident.name or ident.exchange:
+                identity_known = True
+        except ProviderError:
+            pass
+        except Exception:
+            pass
+        # 3) Bail out if neither layer produced any fundamentals.
+        #    §0.4.15 — even when the provider knows the symbol's
+        #    name (e.g. eastmoney recognises 600036.SS as 招商银行),
+        #    if it can't supply ANY fundamentals field the caller is
+        #    still better served by walking to the next provider
+        #    (yfinance reads ``ticker.info`` and has full PE/PB/
+        #    market_cap). Without this, eastmoney would short-
+        #    circuit the chain with a name-only snapshot.
+        fundamentals_fields = (
+            snap.market_cap, snap.circulating_cap, snap.pe_ratio,
+            snap.pb_ratio, snap.roe, snap.revenue, snap.net_income,
+            snap.eps, snap.dividend_yield,
+            snap.fifty_two_week_high, snap.fifty_two_week_low,
+        )
+        if not any(v is not None for v in fundamentals_fields):
+            from web.market_models import ProviderErrorCode
+            raise ProviderError(
+                ProviderErrorCode.NO_DATA,
+                f"provider {self.name} has no fundamentals for {symbol}",
+            )
+        return snap
+

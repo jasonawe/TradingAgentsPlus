@@ -310,24 +310,64 @@ class FundamentalsArgs(BaseModel):
 
 
 class FundamentalsResult(BaseModel):
+    """Fundamentals payload returned by the harness ``get_fundamentals`` tool.
+
+    §0.4.15 — extended with PB / ROE / EPS / 52w range / dividend
+    yield / revenue / net income so the user-facing answer can show
+    real numbers instead of all-null placeholders (the §0.4.10-era
+    impl used ``getattr`` against ``AssetIdentity`` which never had
+    any of these attributes and silently returned ``None`` for
+    every numeric field). All optional — providers fill only what
+    they have.
+    """
     symbol: str
+    name: Optional[str] = None
+    exchange: Optional[str] = None
+    currency: Optional[str] = None
     pe_ratio: Optional[float] = None
     pb_ratio: Optional[float] = None
     market_cap: Optional[float] = None
+    circulating_cap: Optional[float] = None
     roe: Optional[float] = None
+    revenue: Optional[float] = None
+    net_income: Optional[float] = None
+    eps: Optional[float] = None
+    dividend_yield: Optional[float] = None
+    fifty_two_week_high: Optional[float] = None
+    fifty_two_week_low: Optional[float] = None
     provider: str
+    payload: dict = Field(default_factory=dict)
 
 
 async def get_fundamentals(args: FundamentalsArgs) -> FundamentalsResult:
+    """§0.4.15 — call the provider's ``get_fundamentals`` instead of
+    reading fields off :class:`AssetIdentity` (which never carried
+    PE / PB / market_cap / ROE). Each provider overrides
+    ``get_fundamentals`` to surface the metrics it actually has:
+    akshare + eastmoney populate from their quote snapshot
+    (A-share fundamentals); yfinance reads ``ticker.info`` (US
+    fundamentals).
+    """
     fo = ProviderFailover(primary=get_active_provider_name())
-    identity = fo.call("get_identity", args.symbol, args.asset_type)
+    snap = fo.call("get_fundamentals", args.symbol, args.asset_type)
     return FundamentalsResult(
-        symbol=identity.symbol,
-        pe_ratio=getattr(identity, "pe_ratio", None),
-        pb_ratio=getattr(identity, "pb_ratio", None),
-        market_cap=getattr(identity, "market_cap", None),
-        roe=getattr(identity, "roe", None),
+        symbol=snap.symbol,
+        name=snap.name,
+        exchange=snap.exchange,
+        currency=snap.currency,
+        pe_ratio=snap.pe_ratio,
+        pb_ratio=snap.pb_ratio,
+        market_cap=snap.market_cap,
+        circulating_cap=snap.circulating_cap,
+        roe=snap.roe,
+        revenue=snap.revenue,
+        net_income=snap.net_income,
+        eps=snap.eps,
+        dividend_yield=snap.dividend_yield,
+        fifty_two_week_high=snap.fifty_two_week_high,
+        fifty_two_week_low=snap.fifty_two_week_low,
         provider=fo.last_used_name or fo.primary_name,
+        payload=snap.payload or {},
     )
 
 
