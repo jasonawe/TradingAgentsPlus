@@ -2356,12 +2356,22 @@ class Orchestrator:
             # whether to trigger a turn-level synth retry.
             state.last_l3 = l3
             if not l3.ok:
-                # Spec §D6 back-to-plan on fail.
-                state.plan.append({
-                    "step": len(state.plan) + 1,
-                    "action": "synthesize",
-                    "args": {"replan_reason": l3.reason, "judge": l3.details or {}},
-                })
+                # Spec §D6 back-to-plan on fail. ``state.plan`` is a
+                # ``list[dict]`` for sequential plans and a ``dict`` for
+                # PTC programs (see OrchestratorState.plan). PTC plans
+                # have already finished executing all tool calls, so we
+                # can't append a fresh synthesize step there; instead
+                # stash the replan intent on a side-channel attribute
+                # that the post-synth retry path consumes.
+                if isinstance(state.plan, list):
+                    state.plan.append({
+                        "step": len(state.plan) + 1,
+                        "action": "synthesize",
+                        "args": {"replan_reason": l3.reason, "judge": l3.details or {}},
+                    })
+                else:
+                    setattr(state, "replan_reason", l3.reason)
+                    setattr(state, "replan_details", l3.details or {})
             yield (
                 "answer_verified",
                 {

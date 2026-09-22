@@ -2,6 +2,37 @@
 
 All notable changes to TradingAgents are documented here.
 
+## [0.4.7] — 2026-09-22
+
+Harness L3 LLM-judge verification + orchestrator robustness.
+
+### Added
+
+- **L3 LLM-judge opt-in.** Set ``TRADINGAGENTS_ENABLE_L3=1`` in ``.env`` and
+  restart; the verifier fires on every Tier 2 / Tier 3 turn whose plan
+  produced ≥5 tool calls (``state.tool_results > 4``) and whose judge
+  factory is configured (default uses the main LLM unless
+  ``TRADINGAGENTS_JUDGE_PROVIDER`` / ``TRADINGAGENTS_JUDGE_MODEL`` are set).
+  On an ungrounded verdict with ``claim_audit`` failures the orchestrator
+  automatically triggers a single turn-level synth retry with a directive
+  listing the unsupported numbers. Visible to the chat bubble via the new
+  ``answer_verified`` SSE event (``{"level": 3, "score": 0.45, ...}``).
+- **Bootstrap probe**: when 6+ watchlist symbols are quoted in one turn
+  (PTC mode), the L3 path runs end-to-end — verified that the judge
+  caught a real hallucination ("市场 cap 缩小 10x") in a 6-stock compare.
+
+### Fixed
+
+- **L3 replan blew up in PTC mode.** ``state.plan.append(...)`` raised
+  ``AttributeError: 'dict' object has no attribute 'append'`` whenever
+  the orchestrator used a PTC (parallel-tool-call) program (multi-symbol
+  fan-out), which is exactly the workload that pushes ``tool_results > 4``
+  and triggers L3. ``state.plan`` is ``list[dict] | dict``; for the dict
+  (PTC) case, the replan intent is now stashed on
+  ``state.replan_reason`` / ``state.replan_details`` so the post-synth
+  retry path can still consume it.
+
+
 ## [0.4.6] — 2026-09-22
 
 Harness reliability + invalid-symbol protection: orchestrator NameError fix,
