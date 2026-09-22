@@ -525,3 +525,32 @@ PRs from late 2025 also landed here.
 [0.2.0]: https://github.com/TauricResearch/TradingAgents/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/TauricResearch/TradingAgents/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/TauricResearch/TradingAgents/releases/tag/v0.1.0
+
+## [0.4.8] — 2026-09-22
+
+Fix planner slot override so multi-symbol compare / quote queries route
+to PTC with N parallel `get_quote` calls instead of being hijacked by
+the (RUN, CREATE) override into a single `run_trading_agents_analysis`
+call. Restores L3 trigger (L3 requires `len(tool_results) > 4`).
+
+### Fixed
+
+- `tradingagents/agent_harness/core/tier.py:extract_slots` (§Step 23) —
+  compare-style messages (multi-symbol **or** explicit compare verb)
+  no longer set `trade_date` from bare "今天 / 今日 / today" or bare-ISO
+  matches, so the slot-aware override at `classify()` no longer flips
+  the intent to (RUN, CREATE). Six-stock compare queries now dispatch
+  6 parallel `get_quote` calls via the planner's PTC mode, restoring
+  L3 firing conditions.
+- `tradingagents/agent_harness/core/tier.py:_ENTITY_KW[Intent.SCHEDULED]`
+  (§Step 23) — removed bare "收盘" / "开盘" keywords that substring-matched
+  "收盘价" / "开盘价" (closing/opening price) and hijacked every quote
+  flow to `list_scheduled_tasks`. Compound forms ("收盘后" / "盘后" /
+  "盘后跑" / etc.) are unambiguous and kept.
+
+### Tests
+
+- `tests/test_step22_trade_date_analysis_gate.py` — 6 new cases covering
+  the §Step 23 compare-style guards (multi-symbol today / multi-symbol
+  no-verb / compare-verb single-symbol / multi-symbol ISO date /
+  analysis-multi-symbol still extracts / end-to-end routing).

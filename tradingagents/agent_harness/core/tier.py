@@ -396,8 +396,24 @@ def extract_slots(message: str) -> dict[str, Any]:
         "valuation", "深度分析",
     )
     has_analysis_verb = any(kw in (message or "") for kw in _ANALYSIS_VERBS)
+    # §Step 23 — compare-style queries (multi-symbol OR explicit
+    # compare verb) must NOT extract trade_date. Otherwise the slot
+    # override at ``classify()`` flips intent to (RUN, CREATE) and the
+    # planner routes to ``run_trading_agents_analysis`` (a single
+    # deep-analysis call) instead of N parallel ``get_quote`` calls —
+    # which kills L3 (``len(tool_results) <= 4``) and blocks 6-stock
+    # compare flows.
+    _COMPARE_VERBS = (
+        "对比", "比较", "对比一下", "比较一下", "对比看",
+        "比较看", "compare", "vs", "对比一下", "比较一下",
+    )
+    has_compare_verb = any(kw in (message or "") for kw in _COMPARE_VERBS)
+    symbol_count = len(extract_symbols(message or ""))
+    is_compare_style = (
+        (symbol_count >= 2 and not has_analysis_verb) or has_compare_verb
+    )
     has_analysis_ctx = has_ticker or has_analysis_verb
-    if has_analysis_ctx:
+    if has_analysis_ctx and not is_compare_style:
         if any(kw in message for kw in ("今天", "今日", "today")):
             out["trade_date"] = today.isoformat()
         elif any(kw in message for kw in ("明天", "明日", "tomorrow")):
@@ -412,8 +428,11 @@ def extract_slots(message: str) -> dict[str, Any]:
                 # leaks into trade_date. The "explicit 分析日 /
                 # 交易日 / 用 / 以" keywords (added in §Step6.B)
                 # still flow through here by virtue of being
-                # analysis-shaped messages.
-                if has_analysis_ctx:
+                # analysis-shaped messages. §Step 23 — also gated on
+                # ``not is_compare_style`` so a stray ISO date inside a
+                # multi-symbol compare (e.g. "对比 6 只 2026-09-21 的
+                # 收盘价") doesn't flip routing to deep run.
+                if has_analysis_ctx and not is_compare_style:
                     out["trade_date"] = d.isoformat()
             except ValueError:
                 pass
@@ -504,9 +523,14 @@ _ENTITY_KW: dict[Intent, tuple[set[str], Op]] = {
                       # without a verb they stay scheduled/LIST (default).
                       "每天", "每日", "周期", "schedule", "scheduler", "cron-job",
                       # market-session phrases (暗示 schedule): 盘后 / 盘前 /
-                      # 收盘后 / 开市前 / 收盘 / 开盘. Combined with a verb they
-                      # route to SCHEDULED/CREATE; alone they stay SCHEDULED/LIST.
-                      "盘后", "盘前", "收盘后", "开市前", "收盘", "开盘", "盘后跑", "盘前跑"}, Op.LIST),
+                      # 收盘后 / 开市前 / 盘后跑 / 盘前跑. Combined with a verb
+                      # they route to SCHEDULED/CREATE; alone they stay
+                      # SCHEDULED/LIST (default). §Step 23 — bare "收盘"/"开盘"
+                      # were removed because they substring-match "收盘价"/
+                      # "开盘价" (closing/opening price) and hijacked every
+                      # quote/compare flow to list_scheduled_tasks. Compound
+                      # forms ("收盘后" / "盘后跑") are unambiguous and kept.
+                      "盘后", "盘前", "收盘后", "开市前", "盘后跑", "盘前跑"}, Op.LIST),
     Intent.RUN:       ({"分析任务", "运行", "跑一下", "analyse", "analyze", "analysis", "run"}, Op.LIST),
     Intent.REPORT:    ({"分析报告", "报告", "report"}, Op.LIST),
 }
