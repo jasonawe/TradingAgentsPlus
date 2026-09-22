@@ -15,6 +15,23 @@ def write_report_tree(final_state: dict, ticker: str, save_path) -> Path:
     save_path = Path(save_path)
     save_path.mkdir(parents=True, exist_ok=True)
     sections = []
+    # §P3-5 — when the run was anchored on a prior report, prepend a
+    # "对比前次" section so the reader can see prior signal +
+    # conclusion side-by-side with what this run found. The
+    # ``prior_context_meta`` payload was rendered upstream by
+    # ``prior_report_context.render_context_for_report`` and pushed
+    # into the initial state by the runner.
+    prior_meta = final_state.get("prior_context_meta") or {}
+    if isinstance(prior_meta, dict) and prior_meta:
+        try:
+            from tradingagents.agents.utils.prior_report_context import (
+                render_context_for_report,
+            )
+            prior_md = render_context_for_report(prior_meta)
+        except Exception:
+            prior_md = ""
+        if prior_md:
+            sections.append(prior_md)
 
     # 1. Analysts
     analysts_dir = save_path / "1_analysts"

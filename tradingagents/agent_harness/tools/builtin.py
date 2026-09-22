@@ -617,6 +617,13 @@ class RunTradingAgentsAnalysisArgs(BaseModel):
     asset_type: Literal["stock", "crypto"] = "stock"
     research_depth: int = 1
     scope: str = "user"
+    # §P3-5 — when set, the new run is anchored on the conclusions
+    # of a prior report: the prior signal / key numbers / summary
+    # are injected into every analyst prompt and the resulting
+    # complete_report.md gets a delta section that explicitly
+    # answers "what changed since then". Pass ``None`` (omit) for a
+    # standalone run.
+    based_on_report_id: Optional[str] = None
 
 
 class GetAnalysisStatusArgs(BaseModel):

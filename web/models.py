@@ -69,6 +69,15 @@ class AnalysisRequest(BaseModel):
     quick_model: str | None = Field(default=None, min_length=1, max_length=128)
     deep_model: str | None = Field(default=None, min_length=1, max_length=128)
     quote_strategy_id: str | None = Field(default=None, min_length=1, max_length=64)
+    # §P3-5 — when set, the run is "based on" a prior report. The
+    # runner fetches that report, extracts a structured
+    # ``prior_context`` (signal, key numbers, summary), injects it
+    # into every analyst's prompt, and prepends a "对比前次" delta
+    # section to the resulting complete_report.md so the new run
+    # explicitly answers "what changed since the last look".
+    based_on_report_id: str | None = Field(
+        default=None, min_length=1, max_length=128,
+    )
 
     @field_validator("ticker", mode="before")
     @classmethod

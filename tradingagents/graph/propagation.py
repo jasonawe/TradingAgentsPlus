@@ -26,6 +26,8 @@ class Propagator:
         asset_type: str = "stock",
         past_context: str = "",
         instrument_context: str = "",
+        prior_context: str = "",
+        prior_context_meta: dict[str, str] | None = None,
     ) -> dict[str, Any]:
         """Create the initial state for the agent graph.
 
@@ -34,6 +36,15 @@ class Propagator:
         ``TradingAgentsGraph.resolve_instrument_context``). When empty, agents
         fall back to ticker-only context via
         ``get_instrument_context_from_state``.
+
+        ``prior_context`` (§P3-5) is the rendered comparison block from a
+        prior report (signal + summary + raw excerpt). When empty, analysts
+        behave exactly as in a standalone run; when present, each analyst's
+        prompt is prefixed with a "compare with prior" directive and the
+        resulting ``complete_report.md`` carries a delta section. The
+        original structured payload is kept in ``prior_context_meta`` so
+        ``reporting.write_report_tree`` can render the delta section
+        without re-parsing the rendered text.
         """
         return {
             "messages": [("human", company_name)],
@@ -42,6 +53,8 @@ class Propagator:
             "instrument_context": instrument_context,
             "trade_date": str(trade_date),
             "past_context": past_context,
+            "prior_context": prior_context,
+            "prior_context_meta": prior_context_meta or {},
             "investment_debate_state": InvestDebateState(
                 {
                     "bull_history": "",

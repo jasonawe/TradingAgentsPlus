@@ -387,6 +387,13 @@ class TradingAgentsGraph:
         *,
         on_chunk: Callable[[dict[str, Any]], None] | None = None,
         should_cancel: Callable[[], bool] | None = None,
+        # §P3-5 — when set, the graph seeds every analyst's state
+        # with this comparison block ("前次结论是 Overweight…"),
+        # and the resulting ``complete_report.md`` carries a delta
+        # section rendered from ``prior_context_meta``. Default
+        # ``""`` / ``None`` = standalone run (no comparison).
+        prior_context: str = "",
+        prior_context_meta: dict[str, str] | None = None,
     ):
         """Run the trading agents graph for a company on a specific date.
 
@@ -463,8 +470,16 @@ class TradingAgentsGraph:
         *,
         on_chunk: Callable[[dict[str, Any]], None] | None = None,
         should_cancel: Callable[[], bool] | None = None,
+        prior_context: str = "",
+        prior_context_meta: dict[str, str] | None = None,
     ):
-        """Execute the graph and write the resulting state to disk and memory log."""
+        """Execute the graph and write the resulting state to disk and memory log.
+
+        §P3-5 — ``prior_context`` / ``prior_context_meta`` are passed
+        through to the initial state so analysts see the prior
+        analysis as a sidecar and the resulting report can render a
+        delta section. Both default to empty (standalone run).
+        """
         # Initialize state — inject memory log context for PM and the
         # deterministically resolved instrument identity for all agents.
         past_context = self.memory_log.get_past_context(company_name)
@@ -475,6 +490,8 @@ class TradingAgentsGraph:
             asset_type=asset_type,
             past_context=past_context,
             instrument_context=instrument_context,
+            prior_context=prior_context,
+            prior_context_meta=prior_context_meta,
         )
         args = self.propagator.get_graph_args()
 

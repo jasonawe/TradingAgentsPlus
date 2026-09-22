@@ -32,6 +32,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from tradingagents.agents.schemas import SentimentReport, render_sentiment_report
 from tradingagents.agents.utils.agent_utils import (
     get_instrument_context_from_state,
+    get_prior_context_from_state,
     get_language_instruction,
     get_news,
 )
@@ -63,6 +64,7 @@ def create_sentiment_analyst(llm):
         end_date = state["trade_date"]
         start_date = _seven_days_back(end_date)
         instrument_context = get_instrument_context_from_state(state)
+        prior_context = get_prior_context_from_state(state)
 
         # Pre-fetch all three sources. Each fetcher degrades gracefully and
         # returns a string (no exceptions surface from here), so the LLM
@@ -90,7 +92,7 @@ def create_sentiment_analyst(llm):
                     # No tool-calling here: the data is pre-fetched into the
                     # prompt, so tool-range wording would only invite a
                     # hallucinated tool call (#1130).
-                    " Today's date is {current_date}; treat it as 'now' for all analysis. {instrument_context}"
+                    " Today's date is {current_date}; treat it as 'now' for all analysis. {instrument_context}{prior_context}"
                     " " + NO_EXTERNAL_TOOLS +
                     "\n{system_message}",
                 ),
@@ -101,6 +103,7 @@ def create_sentiment_analyst(llm):
         prompt = prompt.partial(system_message=system_message)
         prompt = prompt.partial(current_date=end_date)
         prompt = prompt.partial(instrument_context=instrument_context)
+        prompt = prompt.partial(prior_context=prior_context)
 
         # Format the template into a concrete message list so the structured
         # and free-text paths receive the same input. No bind_tools — the

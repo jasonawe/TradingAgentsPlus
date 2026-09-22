@@ -18,6 +18,7 @@ from typing import Any
 from tradingagents.dataflows.utils import safe_ticker_component
 from tradingagents.default_config import DEFAULT_CONFIG
 from tradingagents.graph.propagation import PropagationCancelled
+from tradingagents.agent_harness.tools.impl import _get_report_history
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 
 from .artifacts import ArtifactRepository
@@ -195,12 +196,39 @@ class WebRunRunner:
 
         publishing = False
         try:
+            # §P3-5 — when the request is anchored on a prior report
+            # (``based_on_report_id`` set), fetch the report, render a
+            # compact prior-context block, and pass it through so
+            # every analyst sees it and the resulting
+            # ``complete_report.md`` carries a delta section.
+            prior_context = ""
+            prior_context_meta: dict[str, str] = {}
+            based_on = getattr(request, "based_on_report_id", None)
+            if based_on:
+                try:
+                    from tradingagents.agents.utils.prior_report_context import (
+                        extract_prior_context,
+                        render_context_for_prompt,
+                    )
+                    history = _get_report_history()
+                    prior_context_meta = extract_prior_context(based_on, history)
+                    prior_context = render_context_for_prompt(prior_context_meta)
+                except Exception as e:
+                    LOGGER.warning(
+                        "could not load prior report %s: %s; "
+                        "falling back to standalone run",
+                        based_on, e,
+                    )
+                    prior_context = ""
+                    prior_context_meta = {}
             result = graph.propagate(
                 request.ticker,
                 str(request.analysis_date),
                 asset_type=getattr(request.asset_type, "value", str(request.asset_type)),
                 on_chunk=on_chunk,
                 should_cancel=lambda: self.manager.is_cancelled(run_id),
+                prior_context=prior_context,
+                prior_context_meta=prior_context_meta,
             )
             self._heartbeat(run_id)
             final_state, signal = result

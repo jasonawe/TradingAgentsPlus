@@ -942,6 +942,9 @@ def run_trading_agents_analysis(
     trade_date: Annotated[str, "YYYY-MM-DD;空 = 今天"] = "",
     asset_type: Annotated[str, "stock / crypto"] = "stock",
     research_depth: Annotated[int, "1 / 3 / 5 轮辩论深度"] = 1,
+    based_on_report_id: Annotated[
+        str, "可选:基于这份报告做再分析(由 list_reports 返回的 report_id)"
+    ] = "",
 ) -> str:
     """启动 TradingAgents 主图跑完整 pipeline(基本面/市场/新闻/辩论/风险管理)。
 
@@ -973,6 +976,7 @@ def run_trading_agents_analysis(
             asset_type=atype,
             analysts=[AnalystType.MARKET, AnalystType.FUNDAMENTALS],
             research_depth=research_depth,
+            based_on_report_id=(based_on_report_id or None),
         )
         record = runner.start_run(req)
         run_id = getattr(record, "run_id", None) or getattr(record, "id", None)

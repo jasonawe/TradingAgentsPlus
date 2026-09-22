@@ -42,6 +42,7 @@ __all__ = [
     "build_instrument_context",
     "resolve_instrument_identity",
     "get_instrument_context_from_state",
+    "get_prior_context_from_state",
     "get_language_instruction",
     "create_msg_delete",
 ]
@@ -167,6 +168,21 @@ def build_instrument_context(
             "assume company fundamentals are available."
         )
     return context
+
+
+def get_prior_context_from_state(state: Mapping[str, Any]) -> str:
+    """Return the prior-report comparison block ("" if not set).
+
+    §P3-5 — the runner populates ``state["prior_context"]`` from
+    ``prior_report_context.render_context_for_prompt`` when the
+    user runs an analysis with ``based_on_report_id``. When empty,
+    analysts skip the comparison instruction entirely so a
+    standalone run behaves exactly as before.
+    """
+    val = state.get("prior_context")
+    if isinstance(val, str):
+        return val
+    return ""
 
 
 def get_instrument_context_from_state(state: Mapping[str, Any]) -> str:
