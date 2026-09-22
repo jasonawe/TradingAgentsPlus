@@ -2,6 +2,56 @@
 
 All notable changes to TradingAgents are documented here.
 
+## [0.4.14] — 2026-09-22
+
+Harness sidebar: default to expanded unless the user has explicitly
+chosen otherwise (regression for "首次进 /harness 仍然没有 session 列表").
+
+### Fixed
+
+- **Stale `sidebarExpanded='0'` from prior builds no longer traps
+  the sidebar in collapsed mode.** `web/static/harness.js` now
+  reads a new localStorage flag `ta.harness.userChoseSidebar` that
+  is set to `'1'` ONLY when the user actually clicks the sidebar
+  toggle, the rail-expand button, or the rail-active title. Until
+  that flag is present, the page treats any persisted
+  `sidebarExpanded='0'` value as stale (left over from the
+  §0.4.10/§0.4.11 builds, a browser sync, or an accidental
+  double-click) and **defaults to expanded**.
+- **JS cache key bumped** to `20260922-harness-rail10` in
+  `web/static/harness.html` and `web/static/index.html` so
+  existing browser caches reload the new init logic.
+
+### Why this regressed
+
+- §0.4.11 added the rail-expand button so collapsed users had a
+  way back, but the underlying `setSidebarExpanded()` still
+  persisted `'0'` immediately on page load (via the init-time
+  call). Users whose stale `'0'` predated the §0.4.11 fix kept
+  seeing only the 56-px rail-with-toggle on every subsequent
+  visit and concluded the session list was missing.
+- §0.4.14 separates "user has expressed a preference" from
+  "the page has rendered once": only the former locks the
+  state. Once the user actively clicks the toggle, their
+  choice is preserved across reloads (same as before); the
+  legacy value is only authoritative when paired with the
+  new flag.
+
+### Tests
+
+- `tests/test_step47_sidebar_default_expanded.py` — 4 Playwright
+  scenarios: fresh user, stale legacy `'0'`, explicit collapse,
+  explicit expand. All pass against the live harness.
+
+### Files
+
+- changed: `web/static/harness.js` (~12 LoC added for the
+  ``userChoseSidebar`` flag + init guard).
+- changed: `web/static/harness.html` + `web/static/index.html`
+  (cache-key bump).
+- new: `tests/test_step47_sidebar_default_expanded.py` (129 LoC).
+- changed: `pyproject.toml` (version bump 0.4.13 → 0.4.14).
+
 ## [0.4.13] — 2026-09-22
 
 Harness LLM tool-routing: per-intent planner hint + tool routing cheat

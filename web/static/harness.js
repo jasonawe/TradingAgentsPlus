@@ -102,26 +102,46 @@
        (the rail-with-toggle makes re-opening trivial). */
     const sidebarToggle = document.getElementById("harness-sidebar-toggle");
     const layout = document.querySelector(".harness-layout");
-    function setSidebarExpanded(expanded) {
+    function setSidebarExpanded(expanded, _userInitiated) {
       if (!layout) return;
       layout.classList.toggle("is-sidebar-expanded", !!expanded);
       if (sidebarToggle) sidebarToggle.textContent = expanded ? "‹" : "›";
-      try { localStorage.setItem("ta.harness.sidebarExpanded", expanded ? "1" : "0"); } catch (_) {}
+      // §0.4.14 — only persist the user’s explicit choice.
+      try {
+        localStorage.setItem("ta.harness.sidebarExpanded", expanded ? "1" : "0");
+        if (_userInitiated) localStorage.setItem("ta.harness.userChoseSidebar", "1");
+      } catch (_) {}
     }
     if (sidebarToggle && layout) {
       let stored = null;
-      try { stored = localStorage.getItem("ta.harness.sidebarExpanded"); } catch (_) {}
-      // Default expanded. "0" = user explicitly collapsed last time
-      // (respect that choice); null / "1" / anything else = expand.
-      setSidebarExpanded(stored !== "0");
+      let userChose = null;
+      try {
+        stored = localStorage.getItem("ta.harness.sidebarExpanded");
+        userChose = localStorage.getItem("ta.harness.userChoseSidebar");
+      } catch (_) {}
+      // §0.4.14 — explicit user choice wins; otherwise default
+      // expanded. Un-sticks users who had ``sidebarExpanded='0'``
+      // baked in by an older build (e.g. §0.4.10/§0.4.11 had
+      // stale '0' values surviving across upgrades even though
+      // the rail-expand button was added later) and users who
+      // accidentally double-clicked the toggle once and got stuck
+      // collapsed. The legacy value is preserved so once the user
+      // does click the toggle we still respect their collapse.
+      let initialExpanded;
+      if (userChose === "1") {
+        initialExpanded = stored !== "0";
+      } else {
+        initialExpanded = true;
+      }
+      setSidebarExpanded(initialExpanded, false);
       sidebarToggle.addEventListener("click", () => {
-        setSidebarExpanded(!layout.classList.contains("is-sidebar-expanded"));
+        setSidebarExpanded(!layout.classList.contains("is-sidebar-expanded"), true);
       });
     }
     const railNew = document.getElementById("harness-rail-new");
     if (railNew) railNew.addEventListener("click", () => createNewSession());
     const railExpand = document.getElementById("harness-rail-expand");
-    if (railExpand) railExpand.addEventListener("click", () => setSidebarExpanded(true));
+    if (railExpand) railExpand.addEventListener("click", () => setSidebarExpanded(true, true));
     const railCount = document.getElementById("harness-rail-count");
     function updateRailCount() {
       if (!railCount) return;
@@ -140,7 +160,7 @@
       railActive.classList.toggle("is-empty", !s || isPending);
     }
     if (railActive) {
-      railActive.addEventListener("click", () => setSidebarExpanded(true));
+      railActive.addEventListener("click", () => setSidebarExpanded(true, true));
     }
     // Patch renderSessionPicker so it also refreshes the rail counter.
     const _origRender = renderSessionPicker;
