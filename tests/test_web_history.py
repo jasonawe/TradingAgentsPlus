@@ -212,3 +212,44 @@ def test_exact_detail_falls_back_to_cached_canonical_path_when_index_fails(
     monkeypatch.setattr(repo, "get", lambda _report_id: (_ for _ in ()).throw(RuntimeError("down")))
 
     assert history.get_report("run-fallback")["ticker"] == "AAPL"
+
+
+# §P3-5 — based_on_report_id roundtrip. The chain link must survive:
+#   sidecar (run.json)  ->  _record_for_entry (repository shape)
+#                     ->  _list_records (list endpoint shape)
+#                     ->  get_report (detail endpoint shape).
+# Without the patch to _record_for_entry, the list endpoint silently
+# drops the field and the UI can't render "衍生自" badges.
+def test_based_on_report_id_roundtrips_through_history_endpoints(tmp_path):
+    web_root = tmp_path / "web_reports"
+    write_report(
+        web_root,
+        "AAPL/2026-08-26/run-current",
+        sidecar={
+            "report_id": "run-current",
+            "ticker": "AAPL",
+            "based_on_report_id": "run-prior",
+        },
+    )
+    write_report(
+        web_root,
+        "AAPL/2026-08-25/run-prior",
+        sidecar={
+            "report_id": "run-prior",
+            "ticker": "AAPL",
+            "based_on_report_id": None,
+        },
+    )
+    history = ReportHistory(results_dir=tmp_path, cwd=tmp_path)
+
+    detail = history.get_report("run-current")
+    assert detail["based_on_report_id"] == "run-prior"
+
+    listing = history.list_reports()
+    record = next(l for l in listing if l["report_id"] == "run-current")
+    assert record["based_on_report_id"] == "run-prior"
+
+    # Standalone run should also expose based_on_report_id (None).
+    standalone = next(l for l in listing if l["report_id"] == "run-prior")
+    assert "based_on_report_id" in standalone
+    assert standalone["based_on_report_id"] is None

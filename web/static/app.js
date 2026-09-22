@@ -984,6 +984,45 @@
       setConnection("failed");
     }
   }
+  function renderChainPanel(report) {
+    const host = $("report-chain-panel");
+    if (!host) return;
+    const priorId = report && report.based_on_report_id;
+    if (!priorId) { host.hidden = true; host.innerHTML = ""; return; }
+    // Render a placeholder while we fetch the prior summary, so the
+    // panel layout doesn't jump in/out as the request resolves.
+    host.hidden = false;
+    host.innerHTML = `<details class="prior-panel" open><summary>${escapeHtml(t("report.compareWithPrior"))}</summary><div class="prior-panel-body"><p class="muted">${escapeHtml(t("common.loading"))}</p></div></details>`;
+    api(`/api/history/${encodeURIComponent(priorId)}/prior`)
+      .then((payload) => {
+        const prior = payload && payload.prior;
+        const body = host.querySelector(".prior-panel-body");
+        if (!body) return;
+        if (!prior) { host.hidden = true; host.innerHTML = ""; return; }
+        if (prior.missing) {
+          body.innerHTML = `<p class="muted">${escapeHtml(t("report.priorMissing", { report_id: prior.report_id }))}</p>`;
+          return;
+        }
+        const signalLabel = formatRating(prior.rating || prior.signal);
+        const dateLabel = prior.analysis_date || (prior.generated_at ? prior.generated_at.slice(0, 10) : "");
+        const meta = [prior.ticker, dateLabel, signalLabel].filter(Boolean).join(" · ");
+        const summaryExcerpt = prior.summary ? `<blockquote>${escapeHtml(prior.summary)}</blockquote>` : "";
+        body.innerHTML = `
+          <div class="prior-meta">
+            <span class="mono">${escapeHtml(meta)}</span>
+            <button type="button" class="text-button" data-report-id="${escapeHtml(prior.report_id)}">${escapeHtml(t("report.viewPriorReport"))}</button>
+          </div>
+          ${summaryExcerpt}
+        `;
+        bindReportLinks(body);
+      })
+      .catch(() => {
+        // Network or upstream hiccup — drop the panel rather than
+        // showing a permanent spinner.
+        host.hidden = true;
+        host.innerHTML = "";
+      });
+  }
   async function loadReport(reportId, { route = true, replace = true } = {}) { if (route) setRoute("report", { reportId, replace }); try { const report = await api(`/api/history/${encodeURIComponent(reportId)}`); renderReport(report); } catch (error) { switchView("report"); $("report-panel").hidden = false; $("report-content").innerHTML = `<p class="form-error">${escapeHtml(error.message)}</p>`; setConnection("failed"); } }
   function renderReport(report) { switchView("report"); $("report-panel").hidden = false; $("report-title").textContent = t("report.title", { ticker: report.ticker || t("report.decisionReport") }); const request = state.runRecord?.request || {}; const metadata = [["report.signal", formatRating(report.rating || report.signal)], ["report.date", report.analysis_date || request.analysis_date], ["report.asset", report.asset_type === "crypto" ? t("assets.crypto") : report.asset_type === "stock" ? t("assets.stock") : report.asset_type], ["report.depth", report.research_depth || request.research_depth], ["report.provider", report.provider || request.provider], ["report.quickModel", report.quick_model || request.quick_model], ["report.deepModel", report.deep_model || request.deep_model], ["report.language", languageLabel(report.output_language || request.output_language)], ["report.source", report.source === "legacy" ? t("library.legacy") : report.source], ["report.dataStatus", report.data_status || t("common.unknown")], ["report.snapshot", report.data_snapshot_id || t("common.notGenerated")]].filter(([, value]) => value !== null && value !== undefined && value !== ""); const KEY_TO_DATA = {
           "report.signal": "signal",
@@ -1004,7 +1043,14 @@
           const isSignal = label === "report.signal";
           const ddClass = `${mono ? "mono " : ""}${isSignal ? "signal" : ""}`.trim();
           return `<div><dt data-key="${dataKey}">${escapeHtml(t(label))}</dt><dd${ddClass ? ` class="${ddClass}"` : ""}>${escapeHtml(value)}</dd></div>`;
-        }).join(""); $("download-report").onclick = () => { window.location.href = `/api/history/${encodeURIComponent(report.report_id)}/download`; }; const summary = report.executive_summary || ""; $("executive-summary").hidden = !summary; const summaryContent = $("executive-summary-content"); summaryContent.innerHTML = summary ? renderReportMarkdown(report.executive_summary_html, summary) : ""; wrapReportTables(summaryContent); $("detail-report").open = !summary; const sections = REPORT_GROUPS.map(([title, group, sectionList]) => { const blocks = sectionList.map(([label, key]) => { const markdown = report[group]?.[key] || ""; const html = report[`${group}_html`]?.[key]; return markdown ? `<article class="report-section"><h3>${escapeHtml(t(label))}</h3>${renderReportMarkdown(html, markdown)}</article>` : ""; }).join(""); return blocks ? `<section><h2>${escapeHtml(t(title))}</h2>${blocks}</section>` : ""; }).join(""); const reportContent = $("report-content"); reportContent.innerHTML = sections || renderReportMarkdown(report.complete_report_html, report.complete_report || t("library.metadataUnavailable")); wrapReportTables(reportContent);
+        }).join(""); $("download-report").onclick = () => { window.location.href = `/api/history/${encodeURIComponent(report.report_id)}/download`; };
+    // §P3-5 — "对比前次" chain panel. Fetch the immediate prior
+    // report metadata asynchronously so this render stays sync; on
+    // failure or null we leave the panel hidden so the report layout
+    // is unchanged for standalone runs.
+    renderChainPanel(report);
+    const summary = report.executive_summary || "";
+    $("executive-summary").hidden = !summary; const summaryContent = $("executive-summary-content"); summaryContent.innerHTML = summary ? renderReportMarkdown(report.executive_summary_html, summary) : ""; wrapReportTables(summaryContent); $("detail-report").open = !summary; const sections = REPORT_GROUPS.map(([title, group, sectionList]) => { const blocks = sectionList.map(([label, key]) => { const markdown = report[group]?.[key] || ""; const html = report[`${group}_html`]?.[key]; return markdown ? `<article class="report-section"><h3>${escapeHtml(t(label))}</h3>${renderReportMarkdown(html, markdown)}</article>` : ""; }).join(""); return blocks ? `<section><h2>${escapeHtml(t(title))}</h2>${blocks}</section>` : ""; }).join(""); const reportContent = $("report-content"); reportContent.innerHTML = sections || renderReportMarkdown(report.complete_report_html, report.complete_report || t("library.metadataUnavailable")); wrapReportTables(reportContent);
 
     const notesEl = $("report-notes-list");
     const ticker = report.ticker || state.runRecord?.request?.ticker || "";
@@ -1044,8 +1090,16 @@
     if (freshness) metadataParts.push(freshness);
     const metadata = metadataParts.join(" · ");
     const signalChip = `<span class="signal-chip is-${escapeHtml(statusKey)}">${escapeHtml(status)}</span>`;
+    // §P3-5 — chain link badge. Shown when this report was anchored
+    // on a prior run (based_on_report_id). The badge links to the
+    // prior report detail so they can be diffed without rebuilding
+    // the chain in the UI.
+    const priorId = record.based_on_report_id;
+    const derivedBadge = priorId
+      ? `<button type="button" class="chain-link" data-report-id="${escapeHtml(priorId)}" title="${escapeHtml(t("library.derivedFrom", { report_id: priorId }))}">↳ ${escapeHtml(t("library.derivedFrom", { report_id: priorId }))}</button>`
+      : "";
     const actions = library ? "" : `<button class="text-button" type="button" data-report-id="${escapeHtml(record.report_id)}">${escapeHtml(t("actions.open"))}</button>`;
-    return `<article class="${library ? "library-item" : "history-item"}"><button type="button" class="library-row" data-report-id="${escapeHtml(record.report_id)}"><span class="library-row-asset">${tickerCell}</span><span class="library-row-date">${escapeHtml(record.analysis_date || "")}</span><span class="library-row-meta">${escapeHtml(metadata)}</span>${signalChip}<svg class="library-row-arrow" width="14" height="14" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>${actions}</article>`;
+    return `<article class="${library ? "library-item" : "history-item"}"><button type="button" class="library-row" data-report-id="${escapeHtml(record.report_id)}"><span class="library-row-asset">${tickerCell}</span><span class="library-row-date">${escapeHtml(record.analysis_date || "")}</span><span class="library-row-meta">${escapeHtml(metadata)}</span>${signalChip}<svg class="library-row-arrow" width="14" height="14" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>${derivedBadge}${actions}</article>`;
   }
 
   async function refreshLibraryQuotes() {

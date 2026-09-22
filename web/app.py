@@ -2812,6 +2812,36 @@ def create_app(
         except ReportNotFound as exc:
             raise _error(status.HTTP_404_NOT_FOUND, "report not found") from exc
 
+    @app.get("/api/history/{report_id}/prior")
+    def history_prior(report_id: str) -> dict[str, Any]:
+        """§P3-5 — return the prior report this one was anchored on.
+
+        Used by the report-detail UI to render the "对比前次" panel
+        without the client having to walk the chain itself. Returns
+        ``{"prior": null}`` when the report is standalone (no
+        ``based_on_report_id``) — the UI then hides the panel
+        entirely.
+        """
+        try:
+            from web.report_chain import resolve_prior_summary
+            prior = resolve_prior_summary(active_history, report_id)
+        except Exception as e:
+            LOGGER.warning("history_prior failed for %s: %s", report_id, e)
+            prior = None
+        return {"prior": prior}
+
+    @app.get("/api/history/{report_id}/chain")
+    def history_chain(report_id: str) -> dict[str, Any]:
+        """§P3-5 — full chain (current + N priors) for breadcrumb /
+        lineage UI. Capped at 10 to keep response size bounded."""
+        try:
+            from web.report_chain import walk_report_chain
+            chain = walk_report_chain(active_history, report_id)
+        except Exception as e:
+            LOGGER.warning("history_chain failed for %s: %s", report_id, e)
+            chain = []
+        return {"chain": chain, "depth": len(chain)}
+
     @app.get("/api/history/{report_id}/data-snapshot")
     def history_snapshot(report_id: str) -> dict[str, Any]:
         try:

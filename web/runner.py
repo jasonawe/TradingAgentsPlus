@@ -294,6 +294,11 @@ class WebRunRunner:
                         "quick_model": request.quick_model,
                         "deep_model": request.deep_model,
                         "output_language": request.output_language,
+                        # §P3-5 — record the chain link so future list /
+                        # detail endpoints can surface "衍生自 run-xxx"
+                        # badges and walk the chain for the
+                        # "对比前次" panel in the report detail UI.
+                        "based_on_report_id": getattr(request, "based_on_report_id", None),
                         "summary_status": summary_status,
                         "quote_strategy_id": request.quote_strategy_id,
                         "effective_quote_strategy_id": request.quote_strategy_id,

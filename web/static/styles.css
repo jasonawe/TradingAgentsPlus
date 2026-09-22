@@ -506,6 +506,20 @@ table.data .num { font-family: var(--mono); font-weight: 600; text-align: right;
 .summary-content { color: var(--ink); line-height: 1.65; font-size: 14px; }
 .detail-report { background: var(--panel-2); border-radius: var(--r-md); padding: 16px 20px; margin-bottom: 20px; }
 .detail-report > summary { cursor: pointer; font-weight: 600; font-size: 13px; color: var(--ink); user-select: none; }
+
+/* §P3-5 — chain-link badge + "对比前次" panel. */
+.report-chain-panel { margin-bottom: 20px; }
+.prior-panel { background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: var(--r-md); padding: 14px 20px; }
+.prior-panel > summary { cursor: pointer; font-weight: 600; font-size: 13px; color: var(--accent); user-select: none; }
+.prior-panel-body { margin-top: 12px; font-size: 13px; color: var(--ink); line-height: 1.55; }
+.prior-panel-body .muted { color: var(--muted); margin: 0; }
+.prior-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+.prior-meta .mono { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.prior-panel-body blockquote { border-left: 2px solid var(--accent); padding: 4px 14px; margin: 8px 0 0; color: var(--muted); background: var(--panel); border-radius: 0 var(--r-sm) var(--r-sm) 0; font-size: 12px; max-height: 220px; overflow: auto; }
+.chain-link { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; padding: 4px 10px; background: var(--accent-soft); color: var(--accent); border: 0; border-radius: var(--r-sm); font-size: 11px; font-family: var(--mono); cursor: pointer; transition: background .15s, color .15s; }
+.chain-link:hover { background: var(--accent); color: #fff; }
+.library-item .chain-link, .history-item .chain-link { margin-left: 20px; }
+
 .report-content { font-size: 14px; line-height: 1.7; color: var(--ink); }
 .report-content h1, .report-content h2, .report-content h3 { color: var(--ink); margin: 24px 0 12px; }
 .report-content h1 { font-size: 20px; font-weight: 700; }

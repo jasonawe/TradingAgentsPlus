@@ -280,6 +280,11 @@ class ReportHistory:
             "reproducibility": entry.reproducibility,
             "quote_strategy_id": entry.quote_strategy_id,
             "effective_quote_provider_chain": entry.effective_quote_provider_chain,
+            # §P3-5 — chain link to the prior report this run was
+            # anchored on. ``None`` for standalone runs. The chain
+            # walker (see ``walk_report_chain``) follows this
+            # backwards to build the full lineage.
+            "based_on_report_id": entry.sidecar.get("based_on_report_id"),
             "complete_report": complete,
             "complete_report_html": render_markdown(complete),
         }
@@ -331,6 +336,9 @@ class ReportHistory:
                 "reproducibility": entry.reproducibility,
                 "quote_strategy_id": entry.quote_strategy_id,
                 "effective_quote_provider_chain": entry.effective_quote_provider_chain,
+                # §P3-5 — chain link to the prior report this run
+                # was anchored on. ``None`` for standalone runs.
+                "based_on_report_id": entry.sidecar.get("based_on_report_id"),
                 "decision_preview": self._decision_preview(entry.path, entry.root),
             }
             for entry in ordered
@@ -366,6 +374,10 @@ class ReportHistory:
             "quote_strategy_id": entry.quote_strategy_id,
             "effective_quote_provider_chain": entry.effective_quote_provider_chain,
             "decision_preview": self._decision_preview(entry.path, entry.root, limit=512),
+            # §P3-5 — chain link. Persisted through the repository so
+            # the list endpoint exposes it (otherwise the in-memory
+            # _list_records path is the only one with the field).
+            "based_on_report_id": entry.sidecar.get("based_on_report_id"),
             "root_name": root_name,
             "relative_path": entry.relative,
             "index_status": "indexed",

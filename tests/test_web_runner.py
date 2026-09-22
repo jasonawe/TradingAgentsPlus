@@ -24,7 +24,7 @@ class FakeGraph:
         self.debug = debug
         self.deep_thinking_llm = None
 
-    def propagate(self, ticker, date, *, asset_type, on_chunk, should_cancel):
+    def propagate(self, ticker, date, *, asset_type, on_chunk, should_cancel, **kwargs):
         supplier = self.config.get("deadline_supplier")
         FakeGraph.last_remaining_deadline = supplier() if callable(supplier) else None
         on_chunk({"market_report": "report"})
