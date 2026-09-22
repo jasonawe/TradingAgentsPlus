@@ -455,6 +455,28 @@ def extract_slots(message: str) -> dict[str, Any]:
 
     return out
 
+# §Step 25 — history intents checked BEFORE quote so the L1 short-circuit
+# routes "最近 30 天价格走势" / "K线" / "过去 1 周收盘价" to get_history instead
+# of get_quote. Without the explicit precedence, the Tier-1 QUOTE keyword
+# "价格" substring-matches these queries and we serve only a snapshot.
+_TIER1_HISTORY_KEYWORDS = {
+    # plain Chinese verbs that mean "look at the trend"
+    "走势", "趋势", "k线", "K线", "历史", "行情走势", "价格走势",
+    "K线图", "k线图", "candles", "candle", "ohlcv", "OHLCV",
+    # English aliases
+    "trend", "trends", "history", "historical",
+}
+# Bare "最近/近" alone is too greedy (matches "最近 30 分钟的行情" too —
+# we want it to also imply history when followed by 天/周/月). Keep this
+# regex-only path so we don't hijack 5-minute intraday quote queries.
+_TIER1_HISTORY_WINDOW_RE = re.compile(
+    # "最近一周的行情" / "过去几个月走势" — Chinese "一二两七八九十" as
+    # the digit, then a unit. Without the Chinese digit the bare regex
+    # misses "一周" / "几个月".
+    r"(?:最近|近|过去|过去几天|过去一周|过去一个月)\s*[一二两七八九十0-9]*\s*(?:个)?\s*(?:天|日|周|月|交易日)"
+    r"|[一二两七八九十0-9]+\s*个?\s*(?:天|日|周|月|交易日)"
+    r"|\d+\s*(?:天|日|周|月|交易日)\s*(?:走势|K线|趋势|历史|k线)"
+)
 _TIER1_KEYWORDS = {"价格", "多少钱", "报价", "quote", "价格?", "price", "rsi", "换手", "成交", "行情", "股价", "现在", "today", "今日"}
 _TIER2_KEYWORDS = {"估值", "分析", "对比", "compare", "估值合理性", "对比一下"}
 _TIER3_KEYWORDS = {"深度", "综合", "详细", "全维度", "深度分析", "全面分析"}
@@ -782,6 +804,13 @@ def classify_intent(message: str) -> Intent:
     entity-level intent. New code should use :func:`classify` which
     also returns the :class:`Op` discriminator.
     """
+    # §Step 25 — HISTORY wins over QUOTE so "最近 30 天价格" goes to
+    # get_history instead of get_quote. Both intents are Tier 1, but
+    # the tools differ (snapshot vs candles).
+    if _hit(_TIER1_HISTORY_KEYWORDS, message):
+        return Intent.HISTORY
+    if _TIER1_HISTORY_WINDOW_RE.search(message or ""):
+        return Intent.HISTORY
     if _hit(_TIER1_KEYWORDS, message):
         return Intent.QUOTE
     if _hit({"新闻", "消息", "news"}, message):

@@ -2,6 +2,49 @@
 
 All notable changes to TradingAgents are documented here.
 
+## [0.4.12] — 2026-09-22
+
+Harness tools: auto-normalise bare 6-digit A-share tickers, route history
+queries to `get_history` instead of `get_quote`, fix provider signature
+mismatch in the history tool.
+
+### Fixed
+
+- **`get_quote` / `get_history` accept bare 6-digit codes** like `513880`.
+  New `_normalize_a_share_symbol()` prepends `.SS` (5/6/9xxxxx) or `.SZ`
+  (0/2/3xxxxx) when the user types a plain A-share code. Stops the
+  `no_data` returns that every user reported on first contact with a
+  Chinese ETF or bank stock.
+- **Tier-1 routing routes history queries to `get_history`**, not
+  `get_quote`. The previous classifier fell through to QUOTE because
+  `价格` substring-matched `_TIER1_KEYWORDS` and the user got a
+  snapshot instead of candles. New `_TIER1_HISTORY_KEYWORDS` +
+  `_TIER1_HISTORY_WINDOW_RE` (Chinese digit aware) win over QUOTE so
+  "最近 30 天的价格走势", "过去一周行情", "history of NVDA" all reach
+  the right tool. Existing QUOTE / NEWS / ANALYSIS / COMPARE / WATCHLIST
+  paths unchanged.
+- **`get_history` no longer crashes with `TypeError: takes 5 positional
+  arguments but 6 were given`**. The provider chain's
+  `get_candles(symbol, interval, start, end)` is 4-positional; the tool
+  was passing a stray `asset_type` 5th arg. Dropped it — the supported
+  asset type is `stock` only and adding it later is a one-line change
+  to the tool when the providers grow `fund` / `crypto` history.
+
+### Added
+
+- `tests/test_normalize_a_share_symbol.py` — 23 cases (SH/SZ ETF,
+  主板/创业板/科创板, suffixes, edge cases).
+- `tests/test_step25_history_intent.py` — 8 HISTORY + 4 QUOTE cases.
+
+### Files
+
+- `tradingagents/agent_harness/tools/builtin.py` (`_normalize_a_share_symbol`,
+  `get_quote` / `get_history` use it; tool descriptions mention
+  auto-normalise and history vs quote split).
+- `tradingagents/agent_harness/core/tier.py`
+  (`_TIER1_HISTORY_KEYWORDS`, `_TIER1_HISTORY_WINDOW_RE`,
+  `classify_intent` checks them before QUOTE).
+
 ## [0.4.11] — 2026-09-22
 
 Harness sidebar: surface session list on collapsed rail so users who

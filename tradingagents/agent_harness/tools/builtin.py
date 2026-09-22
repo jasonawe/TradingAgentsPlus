@@ -39,6 +39,37 @@ from .schema import ToolSchema, SideEffectMode
 # ----------------------------------------------------------------------
 
 
+def _normalize_a_share_symbol(symbol: str | None) -> str | None:
+    """Append a default A-share exchange suffix to a bare 6-digit ticker.
+
+    The LLM planner often drops the ``.SS`` / ``.SZ`` suffix when users
+    type a plain 6-digit code like ``513880`` (the canonical SHH listing
+    of the Huaan Nikkei 225 ETF). Without the suffix every provider
+    returns ``None`` and the tool bubbles up ``NO_DATA``.
+
+    Heuristic — purely syntactic, no network call:
+
+    * Already has a ``.`` → leave alone (Yahoo / IB / Crypto suffixes).
+    * 6 digits → Shanghai (``600/601/603/605/688/689/5/9``) or
+      Shenzhen (``000/001/002/003/300/301``) exchange suffix.
+    * Anything else → leave alone.
+
+    This runs *before* the provider chain so the cache key
+    (``(symbol.upper(), asset_type, ...)``) sees the canonical form and
+    avoids duplicate cache slots for ``513880`` and ``513880.SS``.
+    """
+    if not symbol:
+        return symbol
+    s = symbol.strip().upper()
+    if "." in s or not s.isdigit() or len(s) != 6:
+        return symbol
+    if s[0] in "569":  # 6xxxxx / 9xxxxx / 5xxxxx → 上交所
+        return s + ".SS"
+    if s[0] in "023":  # 0xxxxx / 2xxxxx / 3xxxxx → 深交所
+        return s + ".SZ"
+    return symbol
+
+
 class QuoteArgs(BaseModel):
     """Schema for get_quote. Either ``symbol`` (one) or ``symbols`` (many).
 
@@ -117,8 +148,9 @@ async def get_quote(args: QuoteArgs) -> "QuoteResult | BatchQuoteResult":
     if not args.symbol:
         raise ValueError("get_quote requires either `symbol` or `symbols`")
 
+    canonical_symbol = _normalize_a_share_symbol(args.symbol)
     fo = ProviderFailover(primary=get_active_provider_name())
-    snap = fo.call("get_quote", args.symbol, args.asset_type)
+    snap = fo.call("get_quote", canonical_symbol, args.asset_type)
     # EastMoney and AKShare put the ticker name in raw_summary; quote
     # providers typically expose .name too. Use raw_summary as a fallback
     # chain.
@@ -127,7 +159,7 @@ async def get_quote(args: QuoteArgs) -> "QuoteResult | BatchQuoteResult":
         or getattr(snap, "raw_summary", None)
     )
     return QuoteResult(
-        symbol=snap.symbol,
+        symbol=snap.symbol if snap is not None else canonical_symbol,
         price=getattr(snap, "price", None),
         open=getattr(snap, "open", None),
         high=getattr(snap, "high", None),
@@ -245,12 +277,17 @@ class HistoryResult(BaseModel):
 
 async def get_history(args: HistoryArgs) -> HistoryResult:
     fo = ProviderFailover(primary=get_active_provider_name())
+    canonical_symbol = _normalize_a_share_symbol(args.symbol)
+    # The provider chain only knows ``get_candles(symbol, interval, start,
+    # end)`` today; asset_type is fixed at ``stock``. Sending the extra
+    # positional arg trips ``TypeError: takes 5 positional arguments but 6
+    # were given`` on every registered provider.
     candles = fo.call(
         "get_candles",
-        args.symbol, args.interval, args.start, args.end, args.asset_type,
+        canonical_symbol, args.interval, args.start, args.end,
     )
     return HistoryResult(
-        symbol=args.symbol,
+        symbol=canonical_symbol,
         interval=args.interval,
         candles=[
             CandleSchema(
@@ -1495,7 +1532,10 @@ def install_builtin_tools(registry) -> None:
             "For 2+ symbols in one call, prefer `get_quotes_batch` \u2014 "
             "it runs the provider chain once and returns a list. "
             "`get_quote` also accepts an optional `symbols` list and will "
-            "internally dispatch to the batch path."
+            "internally dispatch to the batch path. Bare 6-digit A-share "
+            "codes (e.g. `513880`) are auto-normalised to `513880.SS` / "
+            "`.SZ`. For historical K-lines or a trend chart use "
+            "`get_history` instead."
         ),
         args_schema=QuoteArgs,
         result_schema=QuoteResult,
@@ -1531,7 +1571,13 @@ def install_builtin_tools(registry) -> None:
 
     registry.register(
         name="get_history",
-        description="Get OHLCV candles for one symbol across an interval/window.",
+        description=(
+            "Get historical OHLCV candles (K-lines) for one symbol over a "
+            "time window. **Use this for price trends, charts, \"\u6700\u8fd1 N \u5929\", "
+            "\"\u5386\u53f2 K \u7ebf\", \"\u8d70\u52bf\", MA / RSI / \u632f\u5e45 trend analysis, "
+            "and multi-day comparisons.** For a current single-ticker "
+            "snapshot use `get_quote` instead."
+        ),
         args_schema=HistoryArgs,
         result_schema=HistoryResult,
         permission=PermissionType.READ,
