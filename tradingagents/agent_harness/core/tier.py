@@ -918,19 +918,37 @@ def fast_route_with_op(
     # Fall through to the legacy single-shot route for the read-only intents.
     # §Step 20 — propagate carry_symbols so ANALYSIS / COMPARE / UNKNOWN
     # paths still benefit from the previous turn's asset reference.
-    legacy = fast_route(message)
+    # §0.4.16 — pass carry_symbols directly into fast_route so the
+    # Tier.DIRECT predicate (intent in QUOTE/HISTORY/... AND symbols)
+    # sees the merged list. Without this, ``fast_route`` recomputed
+    # symbols from message alone, missed the carry-forward, and dropped
+    # implicit-asset history queries like '看一下这个资产最近30天走势'
+    # to the PLAN_EXECUTE default.
+    legacy = fast_route(message, carry_symbols=carry_symbols)
     if carry_symbols and not legacy.symbols:
         legacy.symbols = list(carry_symbols)
     return legacy, op
 
 
-def fast_route(message: str) -> RouteResult:
+def fast_route(
+    message: str,
+    carry_symbols: list[str] | None = None,
+) -> RouteResult:
     """Single-shot tier + intent classifier.
 
     N44 fix: ``fast_route`` returns tier directly; callers MUST NOT
     re-route via ``classify_tier`` (deprecated — keep single entry).
+
+    §0.4.16 — optional ``carry_symbols`` is merged with the message's
+    explicit ones before the Tier.DIRECT predicate runs, so a
+    implicit-asset query like '看一下这个资产最近30天走势' with
+    carry-forward AAPL reaches Tier.DIRECT instead of dropping to the
+    default PLAN_EXECUTE fallback. Caller ordering still prefers
+    explicit (message) symbols; carry-forward only fills the gap.
     """
     symbols = extract_symbols(message)
+    if carry_symbols and not symbols:
+        symbols = list(carry_symbols)
     intent = classify_intent(message)
     lower = (message or "").lower()
 

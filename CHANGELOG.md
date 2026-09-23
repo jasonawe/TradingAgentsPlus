@@ -2,6 +2,22 @@
 
 All notable changes to TradingAgents are documented here.
 
+## [0.4.16] — 2026-09-22
+
+### Fixed
+- **tier**: thread `carry_symbols` into `fast_route` so implicit-asset follow-ups
+  (e.g. "看一下这个资产最近 30 天价格走势") reach `Tier.DIRECT` instead of
+  falling through to `PLAN_EXECUTE`.
+  - `fast_route_with_op(msg, carry_symbols=...)` 之前调用 `fast_route(message)`
+    时丢了 `carry_symbols`，导致 Tier.DIRECT 的 `(HISTORY/QUOTE/...) and symbols`
+    谓词失败。
+  - `fast_route(message, carry_symbols=None)` 新增可选参数；当消息抽取为空且
+    `carry_symbols` 非空时沿用。
+  - ~15 LoC in `tradingagents/agent_harness/core/tier.py`.
+
+### Tests
+- 新增 `tests/test_step49_carry_forward_fast_route.py` (6 cases, all green).
+
 ## [0.4.15] — 2026-09-22
 
 `get_fundamentals` tool surfaces real provider data instead of
