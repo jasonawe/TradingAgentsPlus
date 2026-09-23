@@ -2,6 +2,14 @@
 
 All notable changes to TradingAgents are documented here.
 
+## [0.4.20] — 2026-09-23
+
+### Fixed
+- **harness sidebar (§0.4.19.fix b)**: 之前默认展开逻辑被包在 ``if (sidebarToggle && layout) { ... }`` 里——但 SPA 的 `/harness` 视图（`index.html` 里的 `#harness-view`）不包含 `#harness-sidebar-toggle` DOM（那是 standalone `harness.html` 路由才有），所以 ``setSidebarExpanded`` 永远不执行、``is-sidebar-expanded`` 类从不落地，session 列表不可见。修复后默认展开决策提到 if 外、toggle click 绑定仍在 if 内。
+
+### Tests
+- 更新 `tests/test_step53_sidebar_default_expanded.py` 反映新的源码结构（4 cases）。
+
 ## [0.4.19] — 2026-09-23
 
 ### Fixed

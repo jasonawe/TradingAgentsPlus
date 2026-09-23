@@ -112,32 +112,34 @@
         if (_userInitiated) localStorage.setItem("ta.harness.userChoseSidebar", "1");
       } catch (_) {}
     }
+    // §0.4.19.fix — apply the default-expanded decision up-front, before
+    // the toggle button check. Previously the whole sidebar-expand block
+    // was gated on ``sidebarToggle && layout``, but the SPA /harness view
+    // (index.html §harness-view) doesn't ship a #harness-sidebar-toggle
+    // element — that DOM only exists on the standalone harness.html
+    // route. With the toggle absent, the block was skipped and the
+    // layout's ``is-sidebar-expanded`` class never got set, so the
+    // session list stayed hidden even on the very first visit. We now:
+    //   • Always compute the default-expanded decision from localStorage.
+    //   • Always call ``setSidebarExpanded`` so the layout class lands.
+    //   • Only bind the toggle click handler when the toggle DOM exists
+    //     (i.e. on the standalone /harness route, not the SPA one).
+    let stored = null;
+    let userChose = null;
+    try {
+      stored = localStorage.getItem("ta.harness.sidebarExpanded");
+      userChose = localStorage.getItem("ta.harness.userChoseSidebar");
+    } catch (_) {}
+    // Default expanded unless the user explicitly clicked the toggle
+    // AND chose to collapse it. Returning users who never clicked the
+    // toggle get the un-stuck expanded state (handles legacy
+    // ``sidebarExpanded='0'`` written by older builds).
+    let initialExpanded = true;
+    if (userChose === "1" && stored === "0") {
+      initialExpanded = false;
+    }
+    setSidebarExpanded(initialExpanded, false);
     if (sidebarToggle && layout) {
-      let stored = null;
-      let userChose = null;
-      try {
-        stored = localStorage.getItem("ta.harness.sidebarExpanded");
-        userChose = localStorage.getItem("ta.harness.userChoseSidebar");
-      } catch (_) {}
-      // §0.4.19.fix — default **expanded** on every load unless the
-      // user has explicitly clicked the toggle (``userChose === "1"``).
-      // Previously the localStorage ``sidebarExpanded === '0'`` value
-      // (auto-written by older builds without an explicit user choice)
-      // could keep the sidebar collapsed on /harness entry, making the
-      // session list invisible — users landing via "/ → /harness"
-      // thought the page was broken. After this fix:
-      //   • First-time visitors: always see the session list.
-      //   • Returning users who never clicked the toggle: always see
-      //     the session list (un-sticks legacy "0" values).
-      //   • Returning users who explicitly collapsed: keep their
-      //     collapse (``userChose === "1" && stored === "0"``).
-      let initialExpanded;
-      if (userChose === "1") {
-        initialExpanded = stored !== "0";
-      } else {
-        initialExpanded = true;
-      }
-      setSidebarExpanded(initialExpanded, false);
       sidebarToggle.addEventListener("click", () => {
         setSidebarExpanded(!layout.classList.contains("is-sidebar-expanded"), true);
       });
