@@ -2,6 +2,19 @@
 
 All notable changes to TradingAgents are documented here.
 
+## [0.4.18] — 2026-09-23
+
+### Feature
+- **history renderer polish (§0.4.18)**: 前端 CSS 美化（`.history-card / .hc-metrics / .m / .up / .down / .hc-chart / .hc-table / .hc-rest`），并让 ``harness.js#renderMarkdown`` 信任以 `<div class="history-card">` 或 `<div class="compare-card">` 开头的 HTML（此前会被 escape）。
+- **multi-asset compare (§0.4.20)**: 新增 `renderers/compare_sparkline.render_compare_card`，8 色 palette、多资产归一化到 100、图例 + 表格。
+- **hover tooltip (§0.4.21)**: SVG `<polyline>` 携带 `data-points` / `data-series-points`，`harness.js#attachChartTooltip` 装一个 delegated mouseover 监听，悬停显示价格/日期。
+- **interval 自适应接通 (§0.4.19)**: `HistoryArgs.lookback_days` 字段 + `get_history` 按它推导 ISO 起止；`short_circuit._build_args` 在调用 `HistoryArgs` 时根据 message 推断 interval + lookback 并支持显式 slot 覆盖。
+
+### Tests
+- 新增 `tests/test_step51_history_lookback.py` (6 cases)。
+- 新增 `tests/test_step52_compare_sparkline.py` (5 cases)。
+- `tests/test_step50_history_sparkline.py` 仍 18/18 pass。
+
 ## [0.4.17] — 2026-09-23
 
 ### Feature

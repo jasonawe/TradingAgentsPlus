@@ -1202,6 +1202,12 @@
   // before applying markdown so injected scripts can\'t break out.
   function renderMarkdown(md) {
     if (!md) return "";
+    // §0.4.18 — friendly HTML cards (history, multi-asset compare) ship as raw HTML
+    // from the backend (see ``tradingagents/agent_harness/tools/display_view.py``).
+    // Detect the well-known root tag so we can render them without escaping.
+    if (typeof md === "string" && /^(<div\s+class="history-card"|<div\s+class="compare-card")/i.test(md.trim())) {
+      return md;
+    }
     const esc = md
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -1802,4 +1808,113 @@
     render: renderTask23Event,
     pollCursor: pollWithAfterSeq,
   };
+})();
+
+
+// §0.4.21 — hover tooltip for history-card and compare-card SVG sparklines.
+// The backend emits <polyline data-points='[{x,y,v}, ...]'> (single-series
+// cards) or <polyline data-series-points='...' data-symbol='AAPL'> (multi-
+// asset compare). We attach one delegated handler to document.body so we
+// never need to re-bind when new cards arrive via SSE.
+(function attachChartTooltip() {
+  "use strict";
+
+  function _findClosest(points, x) {
+    if (!Array.isArray(points) || !points.length) return null;
+    let best = points[0];
+    let bestDx = Math.abs(best.x - x);
+    for (let i = 1; i < points.length; i++) {
+      const dx = Math.abs(points[i].x - x);
+      if (dx < bestDx) { bestDx = dx; best = points[i]; }
+    }
+    return best;
+  }
+
+  function _positionTooltip(host, tip, clientX) {
+    const rect = host.getBoundingClientRect();
+    const tipRect = tip.getBoundingClientRect();
+    const x = clientX - rect.left + 12;
+    const y = rect.height - tipRect.height - 6;
+    tip.style.left = Math.min(Math.max(0, x), rect.width - tipRect.width) + "px";
+    tip.style.top = Math.max(0, y) + "px";
+  }
+
+  function _showTip(tip, html) {
+    tip.innerHTML = html;
+    tip.style.display = "block";
+  }
+
+  function _hideTip(tip) {
+    tip.style.display = "none";
+  }
+
+  function _handleSingleSeries(svg, host, tip, evt) {
+    const rect = svg.getBoundingClientRect();
+    const x = ((evt.clientX - rect.left) / rect.width) * 560; // matches viewBox width
+    const ptsRaw = svg.getAttribute("data-points");
+    if (!ptsRaw) return;
+    let pts;
+    try { pts = JSON.parse(ptsRaw); } catch { return; }
+    const closest = _findClosest(pts, x);
+    if (!closest) return;
+    const currency = svg.getAttribute("data-stroke") || "";
+    _showTip(
+      tip,
+      `<div class="tt-date">#${pts.indexOf(closest) + 1}</div>` +
+      `<div>¥${closest.v.toFixed(2)}</div>`
+    );
+    _positionTooltip(host, tip, evt.clientX);
+  }
+
+  function _handleMultiSeries(svg, host, tip, evt) {
+    const rect = svg.getBoundingClientRect();
+    const x = ((evt.clientX - rect.left) / rect.width) * 560;
+    const lines = svg.querySelectorAll("polyline[data-series-points]");
+    if (!lines.length) return;
+    let rows = "";
+    lines.forEach((ln) => {
+      const sym = ln.getAttribute("data-symbol") || "?";
+      const color = ln.getAttribute("data-series") || "#94a3b8";
+      let pts = [];
+      try { pts = JSON.parse(ln.getAttribute("data-series-points")); } catch {}
+      const closest = _findClosest(pts, x);
+      if (closest) {
+        rows += `<div><span style="display:inline-block;width:8px;height:2px;background:${color};margin-right:4px;vertical-align:middle"></span>${sym}: ¥${closest.v.toFixed(2)}</div>`;
+      }
+    });
+    if (!rows) return;
+    _showTip(tip, rows);
+    _positionTooltip(host, tip, evt.clientX);
+  }
+
+  function _bindCard(root) {
+    const singleSvg = root.querySelector(".hc-chart svg[data-points]");
+    const singleTip = root.querySelector(".hc-chart .hc-tooltip");
+    if (singleSvg && singleTip) {
+      singleSvg.addEventListener("mousemove", (e) => _handleSingleSeries(singleSvg, singleSvg.parentElement, singleTip, e));
+      singleSvg.addEventListener("mouseleave", () => _hideTip(singleTip));
+    }
+    const multiSvg = root.querySelector(".cc-chart svg");
+    const multiTip = root.querySelector(".cc-chart .cc-tooltip");
+    if (multiSvg && multiTip) {
+      multiSvg.addEventListener("mousemove", (e) => _handleMultiSeries(multiSvg, multiSvg.parentElement, multiTip, e));
+      multiSvg.addEventListener("mouseleave", () => _hideTip(multiTip));
+    }
+  }
+
+  function _scan(root) {
+    if (!root || !root.querySelectorAll) return;
+    root.querySelectorAll(".history-card, .compare-card").forEach(_bindCard);
+  }
+
+  // Initial bind + observer for SSE-injected cards.
+  document.addEventListener("DOMContentLoaded", () => _scan(document.body));
+  if (document.body) _scan(document.body);
+  const obs = new MutationObserver((muts) => {
+    muts.forEach((m) => m.addedNodes.forEach((n) => {
+      if (n.nodeType === 1) _scan(n);
+    }));
+  });
+  obs.observe(document.body, { childList: true, subtree: true });
+  window.TradingAgentsChartTooltip = { _scan };
 })();

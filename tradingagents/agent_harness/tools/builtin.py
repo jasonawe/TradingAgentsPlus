@@ -20,6 +20,7 @@ Layer 2 (write) — HITL required:
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from datetime import timedelta as _td
 from typing import Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator
@@ -256,6 +257,11 @@ class HistoryArgs(BaseModel):
     interval: Literal["1d", "1h", "5m"] = "1d"
     start: Optional[str] = None
     end: Optional[str] = None
+    # §0.4.19 — when ``start``/``end`` are unset, ``lookback_days`` lets
+    # the agent / Tier 1 short-circuit request "最近 N 天 K 线" without
+    # computing ISO timestamps. 0 keeps the provider default (≈ 20
+    # daily bars from today).
+    lookback_days: int = 0
     asset_type: Literal["stock", "crypto", "fund"] = "stock"
 
 
@@ -278,13 +284,28 @@ class HistoryResult(BaseModel):
 async def get_history(args: HistoryArgs) -> HistoryResult:
     fo = ProviderFailover(primary=get_active_provider_name())
     canonical_symbol = _normalize_a_share_symbol(args.symbol)
+    # §0.4.19 — translate ``lookback_days`` into an ISO start string when
+    # the agent/caller didn't supply one. Only kicks in if both ``start``
+    # and ``end`` are empty so explicit ranges still win.
+    start_str = args.start
+    end_str = args.end
+    if not start_str and not end_str and args.lookback_days > 0:
+        from datetime import datetime, timezone
+        end_dt = datetime.now(timezone.utc)
+        # Rough "step back N days" — works for 1d / 1h intervals.
+        step_map = {"1d": 1, "1h": 1 / 24, "5m": 5 / (24 * 60)}
+        step = step_map.get(args.interval, 1)
+        lookback_bars = max(1, args.lookback_days)
+        start_dt = end_dt - _td(days=lookback_bars * step * 1.5)  # +50% padding
+        end_str = end_dt.isoformat(timespec="seconds")
+        start_str = start_dt.isoformat(timespec="seconds")
     # The provider chain only knows ``get_candles(symbol, interval, start,
     # end)`` today; asset_type is fixed at ``stock``. Sending the extra
     # positional arg trips ``TypeError: takes 5 positional arguments but 6
     # were given`` on every registered provider.
     candles = fo.call(
         "get_candles",
-        canonical_symbol, args.interval, args.start, args.end,
+        canonical_symbol, args.interval, start_str, end_str,
     )
     return HistoryResult(
         symbol=canonical_symbol,

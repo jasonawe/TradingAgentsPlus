@@ -44,20 +44,30 @@ def render_sparkline_svg(closes, width=560, height=120, pad=8, stroke="#2563eb")
     vals = [v for v in (_f(c) for c in closes) if v is not None]
     if len(vals) < 2:
         return ""
+    import json as _json
     lo, hi = min(vals), max(vals)
     rng = hi - lo or 1.0
     inner_w, inner_h = width - 2 * pad, height - 2 * pad
     pts = []
+    xy = []  # §0.4.21 — store (x, y, value) for hover tooltip
     for i, v in enumerate(vals):
         x = pad + (i / (len(vals) - 1)) * inner_w
         y = pad + (1 - (v - lo) / rng) * inner_h
         pts.append(f"{x:.2f},{y:.2f}")
+        xy.append({"x": round(x, 2), "y": round(y, 2), "v": v})
     color = "#10b981" if vals[-1] >= vals[0] else "#ef4444"
     fx, fy = pts[0].split(",")
     lx, ly = pts[-1].split(",")
+    pts_json = _json.dumps(xy)
+    data_attrs = (
+        ' data-points=\'' + pts_json + '\''
+        f' data-min="{lo}" data-max="{hi}"'
+        f' data-stroke="{color}"'
+    )
     return (
         f'<svg viewBox="0 0 {width} {height}" width="100%" height="{height}" '
-        f'role="img" aria-label="价格走势 sparkline">'
+        f'role="img" aria-label="价格走势 sparkline"{data_attrs}>'
+        f'<rect x="0" y="0" width="{width}" height="{height}" fill="transparent"/>'
         f'<polyline fill="none" stroke="{stroke}" stroke-width="1.5" '
         f'stroke-linejoin="round" stroke-linecap="round" points="{" ".join(pts)}"/>'
         f'<circle cx="{fx}" cy="{fy}" r="2.5" fill="#94a3b8"/>'
@@ -175,7 +185,10 @@ def render_history_card(history) -> str:
 
     body = ""
     if svg:
-        body += f'<div class="hc-chart">{svg}</div>'
+        # §0.4.21 — tooltip element rendered next to the chart so a
+        # delegated mouseover handler (see web/static/agent.js:
+        # ``attachHcChartTooltip``) can position and populate it.
+        body += f'<div class="hc-chart">{svg}<div class="hc-tooltip"></div></div>'
 
     preview_n = 10
     rows = []

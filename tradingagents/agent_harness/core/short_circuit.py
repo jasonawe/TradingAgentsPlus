@@ -84,7 +84,7 @@ class ShortCircuit:
         try:
             tool = self.registry.get(tool_name)
             args_schema = tool.schema.args_schema
-            args = self._build_args(args_schema, symbol, slots=slots)
+            args = self._build_args(args_schema, symbol, slots=slots, message=message)
             yield ("tool_call", {"name": tool_name, "args": self._safe_dump(args)})
             result = await tool.invoke(args, context)
             result_payload = self._safe_dump(result)
@@ -196,7 +196,7 @@ class ShortCircuit:
             try:
                 tool = self.registry.get(tool_name)
                 args_schema = tool.schema.args_schema
-                args = self._build_args(args_schema, symbol, slots=slots)
+                args = self._build_args(args_schema, symbol, slots=slots, message=message)
                 yield ("tool_call", {
                     "name": tool_name,
                     "args": self._safe_dump(args),
@@ -428,7 +428,7 @@ class ShortCircuit:
         }.get(intent, "")
 
     @staticmethod
-    def _build_args(args_schema: type, symbol: str, slots: dict | None = None) -> Any:
+    def _build_args(args_schema: type, symbol: str, slots: dict | None = None, message: str | None = None) -> Any:
         """Instantiate the tool's args schema with sensible defaults.
 
         §Step4 — merge ``state.slots`` (limit / threshold / ...) on top
@@ -455,8 +455,12 @@ class ShortCircuit:
         # those fields). Only ``limit`` and ``time_range`` flow through
         # to read_* args.
         if slots:
-            for k in ("limit", "include_disabled"):
-                if k in slots:
+            # §0.4.19 — allow ``lookback_days`` / ``interval`` slots for
+            # HistoryArgs so explicit overrides win over message-derived
+            # defaults. We gate by schema field to keep the safe list
+            # tight.
+            for k in ("limit", "include_disabled", "lookback_days", "interval"):
+                if k in slots and k in getattr(args_schema, "model_fields", {}):
                     payload[k] = slots[k]
             # §Step 16 — forward report_id slot to GetReportArgs so the
             # single-intent Tier 1 path can call get_report instead of
@@ -479,6 +483,22 @@ class ShortCircuit:
                         payload["until_ts"] = int(_dt.datetime.fromisoformat(until_iso).timestamp())
                 except Exception:
                     pass
+        # §0.4.19 — for HistoryArgs, derive ``lookback_days`` from the
+        # caller's message when it isn't already in slots. Keeps Tier 1
+        # short-circuit (``get_history``) honest about "最近 30 天" / "3
+        # 个月" — without this, the user sees 20 bars no matter what
+        # they asked for.
+        if message and "lookback_days" not in payload and "HistoryArgs" in getattr(args_schema, "__name__", ""):
+            try:
+                from tradingagents.agent_harness.renderers.history_sparkline import infer_history_params
+                interval, lookback = infer_history_params(message)
+                if "interval" in getattr(args_schema, "model_fields", {}):
+                    payload.setdefault("interval", interval)
+                if "lookback_days" in getattr(args_schema, "model_fields", {}):
+                    payload["lookback_days"] = lookback
+            except Exception:
+                pass
+
         if hasattr(args_schema, "model_validate"):
             try:
                 return args_schema.model_validate(payload)
