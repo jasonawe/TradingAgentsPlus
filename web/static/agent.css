@@ -1789,3 +1789,50 @@ details[open] .agent-reasoning-summary::before {
   font-size: 11px;
   color: #475569;
 }
+
+
+/* ════════════════════════════════════════════════════════
+   §0.4.22.fix — error card (no_data / provider_error / ...)
+   ════════════════════════════════════════════════════════ */
+.error-card {
+  border: 1px solid #fde68a;
+  border-left: 4px solid #f59e0b;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 8px 0;
+  background: #fffbeb;
+  font-size: 13px;
+}
+.error-card .ec-head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.error-card .ec-icon { font-size: 16px; }
+.error-card .ec-tool {
+  font-weight: 700;
+  color: #92400e;
+  font-size: 13px;
+}
+.error-card .ec-symbol {
+  font-size: 13px;
+  color: #78350f;
+  font-variant-numeric: tabular-nums;
+}
+.error-card .ec-body {
+  color: #78350f;
+  margin-bottom: 4px;
+}
+.error-card .ec-extras {
+  font-size: 11px;
+  color: #92400e;
+  display: flex;
+  gap: 12px;
+}
+.error-card .ec-code {
+  background: #fef3c7;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}

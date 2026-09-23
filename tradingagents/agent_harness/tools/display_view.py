@@ -21,6 +21,7 @@ from tradingagents.agent_harness.renderers.history_sparkline import render_histo
 from tradingagents.agent_harness.renderers.friendly_cards import (
     render_quote_card, render_fundamentals_card,
     render_news_card, render_alpha_card, render_ack_card,
+    render_error_card,
 )
 
 
@@ -33,6 +34,16 @@ def display_view_for(result: Any, *, intent: str) -> str:
     """
     if not isinstance(result, dict):
         return json.dumps(result, ensure_ascii=False, default=str)
+
+    # §0.4.22.fix — short-circuit on error / no_data so the user gets a
+    # friendly "⚠️ get_history: 暂无数据" card instead of a raw
+    # ``❌ tool: no_data: historical candles unavailable`` text dump.
+    # The error can live on the top-level result (most common) or nested
+    # under ``result.error`` (some pipelines).
+    err = result.get("error")
+    err_code = result.get("error_code") or result.get("code")
+    if err or (err_code and err_code != "ok"):
+        return render_error_card(result, tool_name=intent)
 
     renderer = _RENDERERS.get(intent)
     if renderer is None:

@@ -2,6 +2,20 @@
 
 All notable changes to TradingAgents are documented here.
 
+## [0.4.23] — 2026-09-23
+
+### Fixed
+- **error card for tool failures (§0.4.22.fix)**: tool 失败时（no_data / provider_error / invalid_symbol / rate_limited / timeout）不再返回 raw `❌ tool: no_data: historical candles unavailable` 文本，而是友好 error card（⚠️ 图标 + 工具名 + 标的代码 + 中文错误标签 + 错误码徽章）。三处入口：
+  - 后端 `display_view_for` 在 result 含 `error` 字段时短路到 `render_error_card`。
+  - 前端 `appendToolResult` 在 `payload.error` 时构造 `renderErrorCard` 而不是返回 raw 文本。
+  - `renderMarkdown` trusted class 列表新增 `error-card`。
+
+### Feature
+- 新增 `renderers/friendly_cards.render_error_card` + `render_error_card_from_tool_result`，支持 `{error, error_code, symbol}` 顶字段或 `{result: {error, ...}}` 嵌套形态。
+
+### Tests
+- 新增 `tests/test_step57_error_card.py`（9 cases）。
+
 ## [0.4.22] — 2026-09-23
 
 ### Fixed

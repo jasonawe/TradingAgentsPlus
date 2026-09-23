@@ -245,3 +245,61 @@ def render_ack_card(r: dict) -> str:
     extras = f'<div class="ack-extras">{" · ".join(extra)}</div>' if extra else ""
 
     return f'<div class="ack-card">{head}{extras}</div>'
+
+
+# ──────────────────────────────────────────────────────────────
+# Error card — friendly fallback when a tool returns error / no_data
+# ──────────────────────────────────────────────────────────────
+
+_ERROR_LABEL = {
+    "no_data": "暂无数据",
+    "provider_error": "数据源异常",
+    "invalid_symbol": "无效代码",
+    "rate_limited": "请求过快",
+    "timeout": "请求超时",
+}
+
+
+def render_error_card(payload: dict, tool_name: str = "") -> str:
+    """Friendly error card for tool_result.error / no_data / etc.
+
+    Falls back gracefully: shows the raw ``error`` string when we don't
+    have a friendlier label for the code. Supports ``payload.error``,
+    ``payload.error_code`` (e.g. NO_DATA), ``payload.symbol`` /
+    ``payload.tool_name``.
+    """
+    code = payload.get("error_code") or payload.get("code") or ""
+    raw = payload.get("error") or payload.get("message") or "执行失败"
+    sym = payload.get("symbol") or payload.get("ticker") or ""
+    label = _ERROR_LABEL.get(code, raw if raw else "执行失败")
+    sym_disp = f' <span class="ec-symbol">{sym}</span>' if sym else ""
+    head = (
+        f'<div class="ec-head">'
+        f'<span class="ec-icon">⚠️</span>'
+        f'<span class="ec-tool">{escape(tool_name or payload.get("tool_name") or "tool")}</span>'
+        f'{sym_disp}'
+        f'</div>'
+    )
+    extra = []
+    if code:
+        extra.append(f'<span class="ec-code">{escape(str(code))}</span>')
+    extras = f'<div class="ec-extras">{" · ".join(extra)}</div>' if extra else ""
+    return (
+        f'<div class="error-card">'
+        f'{head}'
+        f'<div class="ec-body">{escape(str(label))}</div>'
+        f'{extras}'
+        f'</div>'
+    )
+
+
+def render_error_card_from_tool_result(tool_name: str, payload: dict) -> str:
+    """Build an error card from a ``tool_result`` SSE payload.
+
+    Accepts both shapes:
+      { error: "...", error_code: "...", symbol: "..." }
+      { result: { error: "...", ... } }
+    """
+    inner = payload.get("result") if isinstance(payload.get("result"), dict) else {}
+    candidate = inner if inner.get("error") else payload
+    return render_error_card(candidate, tool_name=tool_name)

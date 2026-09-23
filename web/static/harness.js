@@ -934,9 +934,44 @@
     return (header + name + " · " + kvSlice).slice(0, 240);
   }
 
+  // §0.4.22.fix — shared error-card renderer (kept light-weight on the
+  // frontend so the reasoning trace stays slim; full CSS lives in
+  // web/static/agent.css under ``.error-card``).
+  function renderErrorCard(p, toolName) {
+    const code = p.error_code || p.code || "";
+    const raw = p.error || p.message || "执行失败";
+    const labels = {
+      no_data: "暂无数据",
+      provider_error: "数据源异常",
+      invalid_symbol: "无效代码",
+      rate_limited: "请求过快",
+      timeout: "请求超时",
+    };
+    const label = labels[code] || raw;
+    const sym = p.symbol || p.ticker || "";
+    const symHtml = sym ? ` <span class="ec-symbol">${escapeHtml(sym)}</span>` : "";
+    const codeHtml = code ? `<div class="ec-extras"><span class="ec-code">${escapeHtml(code)}</span></div>` : "";
+    return (
+      `<div class="error-card">` +
+      `<div class="ec-head"><span class="ec-icon">⚠️</span><span class="ec-tool">${escapeHtml(toolName)}</span>${symHtml}</div>` +
+      `<div class="ec-body">${escapeHtml(label)}</div>` +
+      codeHtml +
+      `</div>`
+    );
+  }
+
   function appendToolResult(name, payload) {
     if (payload?.error) {
-      return appendMessage("tool-result", `❌ ${name || "tool"}: ${payload.error}`);
+      // §0.4.22.fix — friendly error card instead of raw ``❌ tool: msg``.
+      // Builds a minimal {error, error_code, symbol} payload and emits
+      // the same <div class="error-card"> backend would produce.
+      const errPayload = {
+        error: payload.error,
+        error_code: payload.error_code || payload.code,
+        symbol: payload.symbol || (payload.args && payload.args.symbol),
+      };
+      const card = renderErrorCard(errPayload, name || "tool");
+      return appendMessage("tool-result", card);
     }
     const result = payload?.result || payload;
     const status = result?.status;
@@ -1211,7 +1246,7 @@
     // §0.4.18 — friendly HTML cards (history, multi-asset compare) ship as raw HTML
     // from the backend (see ``tradingagents/agent_harness/tools/display_view.py``).
     // Detect the well-known root tag so we can render them without escaping.
-    if (typeof md === "string" && /^(<div\s+class="(history|compare|quote|fundamentals|news|alpha|ack)-card")/i.test(md.trim())) {
+    if (typeof md === "string" && /^(<div\s+class="(history|compare|quote|fundamentals|news|alpha|ack|error)-card")/i.test(md.trim())) {
       return md;
     }
     const esc = md
