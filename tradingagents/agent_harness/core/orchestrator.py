@@ -937,9 +937,51 @@ class Orchestrator:
         # symbol-blind and CRUD dispatch sees an empty symbol.
         _session_ctx = self._load_session_context(session_id)
         _carry = list(_session_ctx.get("symbols") or [])
-        route, op_from_route = fast_route_with_op(
-            user_message, carry_symbols=_carry,
+        # §0.4.30 — router-first: run the LLM router first. If it
+        # emits a plan (source=="llm"/"cache" with calls), bypass
+        # fast_route keyword entirely and force Tier.PLAN_EXECUTE so
+        # _plan() uses the router plan. If router fails / returns
+        # empty / factory disabled, fall back to the legacy fast_route
+        # keyword path below. Repeat queries hit the in-memory router
+        # cache (~5 min TTL) so the LLM cost is one round-trip per
+        # unique query.
+        from .llm_router import RouterPlan as _RouterPlan
+        router_plan = await self._llm_router.route(
+            user_message,
+            carry_symbols=_carry,
+            context=None,  # stream_chat constructs ToolContext later
         )
+        # Note: state is built further below (line ~1071). state.router_plan
+        # is set there once state exists. Until then ``router_plan`` is
+        # kept in the local var.
+        if router_plan.source in ("llm", "cache") and router_plan.calls:
+            # Router produced a usable plan. Synthesise a Tier-2
+            # RouteResult so downstream _plan() goes through the router
+            # branch instead of fast_route keyword.
+            inferred_intent, inferred_op = self._infer_intent_op_from_router(
+                router_plan
+            )
+            route = RouteResult(
+                intent=inferred_intent,
+                tier=Tier.PLAN_EXECUTE,
+                symbols=list(
+                    set(_carry + self._extract_router_symbols(router_plan))
+                ),
+                confidence=router_plan.confidence or 0.85,
+                reason="router LLM plan (router-first)",
+            )
+            op = inferred_op
+            op_from_route = inferred_op
+            LOGGER.info(
+                "stream_chat: router-first, %d calls, intent=%s op=%s",
+                len(router_plan.calls), route.intent.value, op.value,
+            )
+        else:
+            # Router unavailable / empty — keyword fast_route fallback
+            # (preserves existing Tier 1 short-circuit for simple reads).
+            route, op_from_route = fast_route_with_op(
+                user_message, carry_symbols=_carry,
+            )
         # §P3-3+: detect multi-intent CRUD queries ("看看告警和笔记")
         # so the plan layer can fan out to multiple tools.
         multi_pairs = _classify_multi(user_message)
@@ -1039,6 +1081,9 @@ class Orchestrator:
             op=op,
             extra_crud_dispatch=extra,
         )
+        # §0.4.30 — propagate router plan (set above) onto state so
+        # _plan() reuses it without a second LLM call.
+        state.router_plan = router_plan
 
         # Session lifecycle (roadmap A2): auto-create or update metadata.
         if self._session_store is not None:
@@ -1887,6 +1932,68 @@ class Orchestrator:
         }
 
     @staticmethod
+    def _infer_intent_op_from_router(
+        router_plan: Any,
+    ) -> tuple[Any, Any]:
+        """§0.4.30 — derive (intent, op) from a RouterPlan.
+
+        Used by the router-first stream_chat path so downstream
+        _plan() / state plumbing keeps the legacy (intent, op)
+        fields populated even though the LLM never picked them.
+
+        Heuristic (cheap; downstream code only uses state.intent for
+        labelling and state.op for backward-compat assertions):
+
+        - If any emitted tool is a write tool → op = CREATE / UPDATE
+          (we don't need to disambiguate exactly — VERIFY passes).
+        - If 2+ distinct (intent, op) reads → ANALYZE / READ.
+        - Otherwise → QUOTE / READ.
+        """
+        from .tier import Intent, Op
+        if not router_plan or not router_plan.calls:
+            return Intent.ANALYSIS, Op.READ
+        # If any tool is a write, surface CREATE op (HITL marker).
+        write_ops = {
+            "create_alert", "update_alert", "delete_alert",
+            "delete_alerts_for_symbol", "create_note", "update_note",
+            "delete_note", "delete_notes_for_symbol",
+            "add_to_watchlist", "remove_from_watchlist",
+            "create_scheduled_task", "update_scheduled_task",
+            "delete_scheduled_task", "delete_scheduled_tasks_for_symbol",
+            "run_trading_agents_analysis", "cancel_analysis_run",
+            "run_scheduled_task",
+        }
+        if any(c.tool in write_ops for c in router_plan.calls):
+            return Intent.ANALYSIS, Op.CREATE
+        # Read intent — choose based on tool mix.
+        tool_names = {c.tool for c in router_plan.calls}
+        if len(tool_names) >= 2:
+            return Intent.ANALYSIS, Op.READ
+        return Intent.QUOTE, Op.READ
+
+    @staticmethod
+    def _extract_router_symbols(router_plan: Any) -> list[str]:
+        """§0.4.30 — pull all ticker symbols from a RouterPlan's calls.
+
+        Used by stream_chat so state.symbols / route.symbols include
+        every ticker the router fan-out targets (not just the ones the
+        legacy ``_extract_symbols`` regex picks from the user message).
+        """
+        out: list[str] = []
+        seen: set[str] = set()
+        for call in router_plan.calls or []:
+            args = dict(getattr(call, "args", {}) or {})
+            sym = args.get("symbol")
+            if isinstance(sym, str) and sym and sym not in seen:
+                seen.add(sym)
+                out.append(sym)
+            for s in args.get("symbols") or []:
+                if isinstance(s, str) and s and s not in seen:
+                    seen.add(s)
+                    out.append(s)
+        return out
+
+    @staticmethod
     def _plan_from_router(
         router_plan: Any,
         state: OrchestratorState,
@@ -1997,25 +2104,32 @@ class Orchestrator:
             return cached
 
         # Path 1: DeepSeek-style LLM router.
-        try:
-            router_plan = await self._llm_router.route(
-                state.user_message,
-                carry_symbols=list(getattr(state, "carry_symbols", []) or []),
-                context=context,
-            )
-            state.router_plan = router_plan
-            if router_plan.source in ("llm", "cache") and router_plan.calls:
-                plan = self._plan_from_router(router_plan, state)
-                plan = await self.pre_plan_hook(plan, state, context)
-                if plan:
-                    self.plan_cache.put(state.user_message, plan)
-                    return plan
-                # pre_plan_hook rejected (returned falsy) -> fall back.
-                LOGGER.info(
-                    "_plan: pre_plan_hook rejected LLM plan, falling back to keyword path"
+        # §0.4.30 — router-first: stream_chat may have already invoked
+        # the router and stored state.router_plan. Reuse it (no second
+        # LLM round-trip). When state.router_plan is missing (legacy
+        # Tier 1 path that bypassed stream_chat's router call), run
+        # the router now.
+        router_plan = getattr(state, "router_plan", None)
+        if router_plan is None:
+            try:
+                router_plan = await self._llm_router.route(
+                    state.user_message,
+                    carry_symbols=list(getattr(state, "carry_symbols", []) or []),
+                    context=context,
                 )
-        except Exception as e:
-            LOGGER.info("_plan: LLM router raised: %s", e)
+                state.router_plan = router_plan
+            except Exception as e:
+                LOGGER.info("_plan: LLM router raised: %s", e)
+                router_plan = None
+        if router_plan is not None and router_plan.source in ("llm", "cache") and router_plan.calls:
+            plan = self._plan_from_router(router_plan, state)
+            plan = await self.pre_plan_hook(plan, state, context)
+            if plan:
+                self.plan_cache.put(state.user_message, plan)
+                return plan
+            LOGGER.info(
+                "_plan: pre_plan_hook rejected LLM plan, falling back to keyword path"
+            )
 
         # Path 2: keyword fallback (verbatim legacy path).
         return await self._plan_keyword(state, context)
