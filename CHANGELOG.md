@@ -2,6 +2,14 @@
 
 All notable changes to TradingAgents are documented here.
 
+## [0.4.22] — 2026-09-23
+
+### Fixed
+- **get_history lookback (§0.4.19.fix)**: §0.4.19 引入 `lookback_days` 时把 `start`/`end` 序列化成 ISO 字符串传给 provider，但 yfinance 的 `ticker.history(start=..., end=...)` 只接受 datetime 对象，ISO 字符串触发 `unconverted data remains: T03:09:46+00:00` 异常，被 ProviderFailover 当作 transient error 跳过，最终所有 provider 全部 NO_DATA、用户看到 `historical candles unavailable`。修复后 `get_history` 直接传 datetime 对象（start = now − lookback_days × step × 1.5，end = now）。
+
+### Tests
+- 在 `tests/test_step51_history_lookback.py` 新增 2 cases：`test_get_history_passes_datetime_objects`（断言 datetime 类型 + timezone-aware + 时长正确）、`test_get_history_with_explicit_start_passes_through`（断言显式 start/end 不会被 lookback_days 覆盖）。
+
 ## [0.4.21] — 2026-09-23
 
 ### Feature

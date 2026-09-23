@@ -284,28 +284,32 @@ class HistoryResult(BaseModel):
 async def get_history(args: HistoryArgs) -> HistoryResult:
     fo = ProviderFailover(primary=get_active_provider_name())
     canonical_symbol = _normalize_a_share_symbol(args.symbol)
-    # §0.4.19 — translate ``lookback_days`` into an ISO start string when
-    # the agent/caller didn't supply one. Only kicks in if both ``start``
-    # and ``end`` are empty so explicit ranges still win.
-    start_str = args.start
-    end_str = args.end
-    if not start_str and not end_str and args.lookback_days > 0:
-        from datetime import datetime, timezone
+    # §0.4.19.fix — translate ``lookback_days`` into a ``datetime``
+    # range when caller didn't supply explicit start/end. We pass
+    # datetime objects (not ISO strings) because yfinance's
+    # ``ticker.history(start=..., end=...)`` expects datetime; sending
+    # ISO strings trips ``unconverted data remains: T03:09:46+00:00``
+    # and ProviderFailover silently rolls to NO_DATA. Only kicks in
+    # when both args.start / args.end are empty so explicit ranges win.
+    from datetime import datetime, timezone
+    start_arg = args.start
+    end_arg = args.end
+    if not start_arg and not end_arg and args.lookback_days > 0:
         end_dt = datetime.now(timezone.utc)
         # Rough "step back N days" — works for 1d / 1h intervals.
         step_map = {"1d": 1, "1h": 1 / 24, "5m": 5 / (24 * 60)}
         step = step_map.get(args.interval, 1)
         lookback_bars = max(1, args.lookback_days)
         start_dt = end_dt - _td(days=lookback_bars * step * 1.5)  # +50% padding
-        end_str = end_dt.isoformat(timespec="seconds")
-        start_str = start_dt.isoformat(timespec="seconds")
+        start_arg = start_dt
+        end_arg = end_dt
     # The provider chain only knows ``get_candles(symbol, interval, start,
     # end)`` today; asset_type is fixed at ``stock``. Sending the extra
     # positional arg trips ``TypeError: takes 5 positional arguments but 6
     # were given`` on every registered provider.
     candles = fo.call(
         "get_candles",
-        canonical_symbol, args.interval, start_str, end_str,
+        canonical_symbol, args.interval, start_arg, end_arg,
     )
     return HistoryResult(
         symbol=canonical_symbol,
