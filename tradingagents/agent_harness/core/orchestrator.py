@@ -447,10 +447,28 @@ def _alert_create_args(state: Any) -> dict[str, Any]:
 
     §Step2 — when :func:`extract_slots` populated threshold / direction
     on the state (e.g. "价格超过 50 提醒我"), prefer those over the
-    legacy 0.0 default. direction "above" → kind=price_above; "below"
-    → kind=price_below. The ``params`` dict carries both fields so
+    defaults. direction "above" → kind=price_above; "below" →
+    kind=price_below. The ``params`` dict carries both fields so
     ``tools_bridge.create_alert``'s _translate_alert_args can match
     either variant.
+
+    §0.4.27 — when neither direction nor threshold was extracted
+    (e.g. user said "监控告警" / "看一下告警" / "alert monitor" without
+    any numeric threshold), the previous fallback returned
+    ``kind="price"`` which is **not** in
+    :class:`CreateAlertArgs.kind`'s Literal enum and triggered
+    ``args coerce failed: kind: Input should be 'price_above' /
+    'price_below' / 'change_pct' / 'volume_spike'``. Now we:
+    1. Emit a valid enum literal (``price_above``) so the args coerce
+       cleanly — the HITL gate then shows the user a confirm dialog
+       they can cancel.
+    2. Log a structured warning so the planner team can later detect
+       this case and downgrade to ``(ALERT, LIST)`` at the
+       classify() layer instead of reaching the dispatch table.
+
+    Long-term fix: classify() should recognise "监控" / "我的告警"
+    without numeric threshold as (ALERT, LIST), not (ALERT, CREATE).
+    Tracked separately so this fallback doesn't get stale.
     """
     slots = getattr(state, "slots", {}) or {}
     direction = slots.get("direction")
@@ -459,8 +477,17 @@ def _alert_create_args(state: Any) -> dict[str, Any]:
         kind = "price_above" if direction == "above" else "price_below"
         params = {"threshold": threshold, "direction": direction}
     else:
-        kind = "price"
-        params = {"threshold": 0.0}
+        # §0.4.27 — empty slots path. Default to ``price_above`` to
+        # keep the args Literal-valid; warn so the planner loop can
+        # spot "monitor with no threshold" → swap to LIST later.
+        LOGGER.warning(
+            "create_alert invoked with no threshold/direction slots "
+            "(message=%r) — defaulting to kind=price_above with empty "
+            "params. User will see a HITL confirm they can cancel.",
+            getattr(state, "user_message", None) or "",
+        )
+        kind = "price_above"
+        params = {}
     # §Step 15 — forward scope slot.
     scope = slots.get("scope", "user")
     return {

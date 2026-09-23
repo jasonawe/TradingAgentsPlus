@@ -2,6 +2,18 @@
 
 All notable changes to TradingAgents are documented here.
 
+## [0.4.27] — 2026-09-23
+
+### Fixed
+- **create_alert args default was invalid Literal (§0.4.27)**: `_alert_create_args` 的兜底分支返回 `kind="price"` — 不在 `CreateAlertArgs.kind` 的 Literal (`price_above` / `price_below` / `change_pct` / `volume_spike`) 里,触发 `args coerce failed: kind: Input should be 'price_above' / ...`。复现场景:`完整分析:基础面+估值+新闻+近期走势+同业对比+监控告警` — 用户没说具体阈值,planner 走到了 (ALERT, CREATE) 路径,默认 `kind="price"` 在 Pydantic 验证层直接报错。
+
+  修复后兜底 `kind="price_above"` (Schema 自己的 default),配合 `params={}`,HITL gate 给用户弹"价格涨破 ¥0"的提示,他们可以直接取消。同时打 `LOGGER.warning` 记录空槽位事件,留给后续 planner team 把 "监控告警 无阈值" 在 classify() 层降级为 (ALERT, LIST)。
+
+  已知未修(留作后续 workstream):LLM planner 在"基础面+估值+新闻+近期走势+同业对比"这种多维度请求下只跑 2 个 `get_quote`,未 fan-out 到 fundamentals / history / news / list_alerts / 同业 quote。完整补齐需要重写 _build_plan_prompt 或者在 classify() 里加 keyword→tool 映射。
+
+### Tests
+- 新增 `tests/test_step63_alert_create_args.py` (19 cases):empty slots → Literal-valid kind + warning;direction+threshold → 正常 price_above / price_below;scope / symbol fallback / asset_type 默认;参数化回归矩阵覆盖 8 种中文/英文短语,确保 `kind="price"` 永远不出现。
+
 ## [0.4.26] — 2026-09-23
 
 ### Fixed
