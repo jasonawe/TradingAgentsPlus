@@ -58,8 +58,28 @@ class _MockQuoteTool(BaseTool):
         return {"symbol": sym, "price": 10.0, "provider": "mock"}
 
 
-def _make_orchestrator(*, quote_sleep_ms: int = 30):
-    """Build an Orchestrator with mock tool registry (no LLM, no judge)."""
+class _NoOpLLMFactory:
+    """Reports configured=True so maybe_degrade_to_tier1 leaves Tier 2
+    paths alone, but ``make()`` raises if the orchestrator actually
+    tries to invoke an LLM (most tests route through the heuristic
+    planner instead)."""
+
+    def is_configured(self) -> bool:
+        return True
+
+    def make(self, *, mode: str = "deep"):
+        raise RuntimeError(
+            "_NoOpLLMFactory.make() should not be invoked in this test "
+            "— the orchestrator should route via the heuristic planner."
+        )
+
+
+def _make_orchestrator(*, quote_sleep_ms: int = 30, llm_factory=None):
+    """Build an Orchestrator with mock tool registry (no LLM, no judge).
+
+    Pass ``llm_factory=_NoOpLLMFactory()`` to opt out of Tier 1
+    degradation while still routing through the heuristic plan layer.
+    """
     registry = ToolRegistry()
     mock = _MockQuoteTool(sleep_ms=quote_sleep_ms)
     registry.add(mock)
@@ -68,7 +88,7 @@ def _make_orchestrator(*, quote_sleep_ms: int = 30):
     return Orchestrator(
         tool_registry=registry,
         agent_registry=MM(list_names=lambda: [], get=lambda n: (_ for _ in ()).throw(KeyError(n))),
-        llm_factory=None,            # forces heuristic plan
+        llm_factory=llm_factory,
         context_priority=ContextPriority(),
         retry_policy=RetryPolicy(max_retries=0),
         circuit_breaker=cb,
@@ -229,7 +249,7 @@ class TestExecutePTC:
 # --------------------------------------------------------------------------
 class TestStreamChatPTCDispatch:
     def test_two_symbols_stream_emits_ptc_events(self):
-        orch, _mock, _cb = _make_orchestrator()
+        orch, _mock, _cb = _make_orchestrator(llm_factory=_NoOpLLMFactory())
 
         async def _collect():
             events = []
@@ -272,6 +292,7 @@ class TestPTCPipelineIntegration:
                     args_schema=dict,
                     result_schema=dict,
                     permission=PermissionType.WRITE,
+                    metadata={"side_effect_mode": "remote_reconcilable"},
                 )
             @property
             def name(self): return self.schema.name
@@ -338,6 +359,7 @@ class TestPTCPipelineIntegration:
                     args_schema=dict,
                     result_schema=dict,
                     permission=PermissionType.WRITE,
+                    metadata={"side_effect_mode": "remote_reconcilable"},
                 )
             @property
             def name(self): return self.schema.name

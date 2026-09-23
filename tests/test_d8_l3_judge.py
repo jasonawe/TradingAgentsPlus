@@ -464,7 +464,19 @@ def test_harness_wires_judge_factory_from_config(monkeypatch) -> None:
 
 
 def test_harness_judge_factory_falls_back_to_main_llm() -> None:
-    """When judge_provider/model are empty, judge_factory == llm_factory."""
+    """When judge_provider/model are empty, judge_factory is a separate
+    factory (since §P3-4) but reports not-configured so the verifier
+    falls back to its non-LLM path. The legacy alias
+    ``judge_factory is llm_factory`` is gone — instead we verify the
+    effective equivalence via ``is_configured()``."""
     from tradingagents.agent_harness.harness import Harness
     h = Harness()
-    assert h.judge_factory is h.llm_factory
+    # §P3-4 — judge_factory is its own LLMFactory (role="judge"),
+    # distinct from llm_factory.
+    assert h.judge_factory is not h.llm_factory
+    # But when judge_* config is empty, judge_factory reports not
+    # configured, so the verifier falls back to its non-LLM path —
+    # equivalent to the legacy alias without sharing state. The main
+    # llm_factory may be configured via env vars / settings; we just
+    # assert the judge factory is not.
+    assert h.judge_factory.is_configured() is False

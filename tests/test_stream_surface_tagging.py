@@ -15,7 +15,20 @@ from tradingagents.agent_harness.core.tier import Intent
 from tradingagents.agent_harness.tools import ToolContext, ToolRegistry
 
 
-def _make_orch():
+class _NoOpLLMFactory:
+    """Reports configured=True so maybe_degrade_to_tier1 leaves Tier 2
+    paths alone; heuristic planner does not invoke LLM."""
+
+    def is_configured(self) -> bool:
+        return True
+
+    def make(self, *, mode: str = "deep"):
+        raise RuntimeError(
+            "_NoOpLLMFactory.make() should not be invoked — heuristic plan path"
+        )
+
+
+def _make_orch(*, llm_factory=None):
     registry = ToolRegistry()
     from tradingagents.agent_harness.tools.base import BaseTool
     from tradingagents.agent_harness.tools.schema import ToolSchema
@@ -40,7 +53,7 @@ def _make_orch():
     return Orchestrator(
         tool_registry=registry,
         agent_registry=MM(list_names=lambda: [], get=lambda n: (_ for _ in ()).throw(KeyError(n))),
-        llm_factory=None,  # heuristic plan
+        llm_factory=llm_factory,
         context_priority=ContextPriority(),
         retry_policy=RetryPolicy(max_retries=0),
         circuit_breaker=CircuitBreaker(failure_threshold=5, reset_seconds=30.0),
@@ -71,7 +84,7 @@ class TestEveryEventTagged:
                 f"event {ev} has unknown surface {payload['surface']!r}"
 
     def test_ui_events_classified_as_ui(self):
-        events = _collect(_make_orch())
+        events = _collect(_make_orch(llm_factory=_NoOpLLMFactory()))
         ui_events = [ev for ev, p in events if p["surface"] == "ui"]
         # At minimum, plan_started + plan_ready_ptc + tool_result + agent_final
         assert "plan_started" in ui_events

@@ -208,13 +208,30 @@ def test_verifier_l2_passes_for_history_with_warnings() -> None:
 # ---------------------------------------------------------------------------
 
 
-def _build_orchestrator() -> Orchestrator:
+class _NoOpLLMFactory:
+    """No-op LLM factory that reports configured but never produces text.
+
+    Used by Tier 2 tests so ``maybe_degrade_to_tier1`` (which checks
+    ``llm_factory.is_configured()``) does not force Tier 1. The plan
+    router / synthesizer never actually call this factory in these
+    scenarios — they hit keyword / pre_plan_hook short-circuits before
+    needing an LLM response.
+    """
+
+    def is_configured(self) -> bool:
+        return True
+
+    def make(self, *, mode: str = "deep"):
+        raise RuntimeError("NoOpLLMFactory: tests should not need real LLM calls")
+
+
+def _build_orchestrator(*, llm_factory=None) -> Orchestrator:
     reg = ToolRegistry()
     install_builtin_tools(reg)
     return Orchestrator(
         tool_registry=reg,
         agent_registry=None,
-        llm_factory=None,
+        llm_factory=llm_factory,
         context_priority=ContextPriority(),
         retry_policy=RetryPolicy(max_retries=1, backoff_seconds=0),
         circuit_breaker=CircuitBreaker(failure_threshold=10, reset_seconds=30),
@@ -234,7 +251,7 @@ def test_orchestrator_tier1_short_circuit_emits_agent_final(monkeypatch) -> None
 
 def test_orchestrator_tier2_emits_plan_ready(monkeypatch) -> None:
     _install_mock_provider(monkeypatch)
-    orch = _build_orchestrator()
+    orch = _build_orchestrator(llm_factory=_NoOpLLMFactory())
     events = asyncio.run(_collect(orch.stream_chat("s1", "分析 600036.SS 估值")))
     names = [e[0] for e in events]
     assert "plan_started" in names
@@ -244,7 +261,7 @@ def test_orchestrator_tier2_emits_plan_ready(monkeypatch) -> None:
 
 def test_orchestrator_tier2_executes_quote_tool(monkeypatch) -> None:
     _install_mock_provider(monkeypatch)
-    orch = _build_orchestrator()
+    orch = _build_orchestrator(llm_factory=_NoOpLLMFactory())
     events = asyncio.run(_collect(orch.stream_chat("s1", "分析 600036.SS 估值合理性")))
     tool_results = [p for ev, p in events if ev == "tool_result"]
     assert len(tool_results) >= 1
