@@ -225,6 +225,11 @@ class OrchestratorState:
     # hits so tool calls fired in parallel between plan and execute
     # short-circuit the actual ``tool.invoke``.
     prefetcher: Any = None  # tradingagents.agent_harness.core.prefetch.Prefetcher
+    # §0.4.31 — plan emitted by the LLM router (LLMRouter). When set,
+    # _plan() reuses this directly instead of running the router again.
+    # ``None`` means router-first fell back to the keyword path (or the
+    # legacy Tier 1 short-circuit consumed the turn before _plan ran).
+    router_plan: Any = None  # tradingagents.agent_harness.core.llm_router.RouterPlan
     # Q1 / P2-4: live turn + step bookkeeping. Filled in by ``_stream_chat_impl``.
     turn: Any = None
     current_step_id: int = 0
@@ -740,25 +745,14 @@ class Orchestrator:
         else:
             self.plan_cache: PlanTemplateCache = PlanTemplateCache()
 
-        # §0.4.30 — DeepSeek-style plan router (primary routing path).
-        # Replaces LLMIntentRouter (§0.4.29). Emits the plan directly in
-        # one LLM call — no (intent, op) intermediate layer. The legacy
-        # LLMIntentRouter is kept imported + constructed (read-only)
-        # so the ``intent_router_stats`` endpoint keeps reporting
-        # backward-compat metrics until we remove it in §0.4.31.
-        from .llm_intent_router import LLMIntentRouter
+        # §0.4.31 — router-first: only the DeepSeek-style plan router
+        # is wired into stream_chat. The legacy LLMIntentRouter
+        # (§0.4.29) was disabled in §0.4.30 and removed in §0.4.31.
+        # The orchestrator no longer spends an extra LLM round-trip
+        # on (intent, op) classification before the plan router —
+        # _infer_intent_op_from_router() derives them from the plan.
         from .llm_router import LLMRouter
         from .llm_catalog import build_catalog
-        from tradingagents.agent_harness.core.plan_template import (
-            PlanTemplateCache as _IntentCache,
-        )
-        # Keep the legacy router for diagnostics / fallback metrics;
-        # it is no longer wired into stream_chat's primary path.
-        self._intent_router = LLMIntentRouter(
-            llm_factory=self.llm_factory,
-            cache=_IntentCache(ttl_seconds=300.0, max_entries=128),
-            enabled=False,  # §0.4.30 — disabled; LLMRouter is primary
-        )
         self._tool_catalog = build_catalog(self.tool_registry)
         # §0.4.30 — router has its OWN cache so the plan-level cache
         # miss / hit counts (asserted by test_plan_template.py) only
@@ -915,21 +909,14 @@ class Orchestrator:
             classify_multi as _classify_multi,
             fast_route_with_op,
         )
-        # §0.4.29 — LLM intent router is the primary path. The router
-        # owns (intent, op) classification; keyword _classify() is
-        # reachable only via LLM failure / parse error / disabled
-        # factory. stats on the instance let us monitor the fallback
-    # rate (target: < 5 % in steady state). The result also feeds
-        # ``route.intent`` later in the function, so any divergence
-        # between LLM intent and the legacy fast_route_with_op intent
-        # gets reconciled at the assert below.
-        intent_route = await self._intent_router.route(user_message)
-        intent, op = intent_route.intent, intent_route.op
-        if intent_route.source != "llm" or intent_route.confidence < 0.5:
-            LOGGER.info(
-                "intent route fallback: source=%s confidence=%.2f intent=%s op=%s msg=%r",
-                intent_route.source, intent_route.confidence, intent, op, user_message[:80],
-            )
+        # §0.4.31 — router-first: the LLM plan router is the ONLY
+        # primary classification path. The legacy LLMIntentRouter
+        # (§0.4.29) was disabled in §0.4.30 and removed here to save
+        # one LLM round-trip per turn. (intent, op) are now derived
+        # from the plan via _infer_intent_op_from_router() — for the
+        # router-wins branch — or from fast_route_with_op() for the
+        # keyword fallback. There is no separate intent-router call.
+        #
         # §Step 20 — load the previous turn's session context before
         # routing so carry-forward symbols can populate the route when
         # the user message has no ticker ("加入我的关注" after
@@ -937,14 +924,6 @@ class Orchestrator:
         # symbol-blind and CRUD dispatch sees an empty symbol.
         _session_ctx = self._load_session_context(session_id)
         _carry = list(_session_ctx.get("symbols") or [])
-        # §0.4.30 — router-first: run the LLM router first. If it
-        # emits a plan (source=="llm"/"cache" with calls), bypass
-        # fast_route keyword entirely and force Tier.PLAN_EXECUTE so
-        # _plan() uses the router plan. If router fails / returns
-        # empty / factory disabled, fall back to the legacy fast_route
-        # keyword path below. Repeat queries hit the in-memory router
-        # cache (~5 min TTL) so the LLM cost is one round-trip per
-        # unique query.
         from .llm_router import RouterPlan as _RouterPlan
         router_plan = await self._llm_router.route(
             user_message,
@@ -979,22 +958,27 @@ class Orchestrator:
         else:
             # Router unavailable / empty — keyword fast_route fallback
             # (preserves existing Tier 1 short-circuit for simple reads).
+            # §0.4.31 — both ``op`` and ``op_from_route`` come from
+            # fast_route_with_op() so state.op is consistent with the
+            # route. The legacy intent-router call that previously fed
+            # ``op`` is gone.
             route, op_from_route = fast_route_with_op(
                 user_message, carry_symbols=_carry,
             )
+            op = op_from_route
         # §P3-3+: detect multi-intent CRUD queries ("看看告警和笔记")
         # so the plan layer can fan out to multiple tools.
         multi_pairs = _classify_multi(user_message)
         if len(multi_pairs) >= 2:
-            primary = (intent, op)
+            primary = (route.intent, op)
             extra = [pair for pair in multi_pairs if pair != primary]
         else:
             extra = []
-        # Reconcile: state.op comes from classify() (more precise for
-        # our 8-case vocabulary); the route's op matches but keep both
-        # for backward compat with tests that inspect state.op directly.
+        # §0.4.31 — both branches of the router-first if/else now set
+        # ``op`` and ``op_from_route`` to the same value, so the legacy
+        # reconcile assert is a no-op kept as a defensive guard.
         assert op == op_from_route or op_from_route in (Op.LIST, Op.READ) or op in (Op.LIST, Op.READ), \
-            f"classify vs fast_route_with_op disagree: {op} vs {op_from_route}"
+            f"router vs fast_route_with_op disagree: {op} vs {op_from_route}"
         del op_from_route
         # §7.2 #1: degrade Tier 2/3 → Tier 1 when LLM is unavailable
         # (no factory wired, factory not configured, or circuit open).
