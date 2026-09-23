@@ -559,7 +559,7 @@ _ENTITY_KW: dict[Intent, tuple[set[str], Op]] = {
 
 _OP_KW: dict[Op, set[str]] = {
     Op.CREATE: {"新建", "创建", "添加", "加入", "新增", "写", "建", "create", "add",
-                "schedule", "安排", "新建一个", "建一个", "做一个",
+                "schedule", "安排", "新建一个", "建一个",
                 # 口语化:"加一下 / 加个 / 加一条 / 加一个 / 加关注 / 加笔记"
                 "加",   # bare 加 — most common Chinese verb for "add"
                 "加一下", "加一个", "加个", "加一条", "加个新的",

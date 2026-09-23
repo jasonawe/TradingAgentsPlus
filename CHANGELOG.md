@@ -2,6 +2,19 @@
 
 All notable changes to TradingAgents are documented here.
 
+## [0.4.28] — 2026-09-23
+
+### Fixed
+- **classify() '做一个' substring hijack (§0.4.28)**: `_OP_KW[Op.CREATE]` 关键词表里有 `"做一个"`,`classify()` 用 `kw in text` substring 匹配 — 用户写 "我做一个完整分析:基础面+估值+新闻+近期走势+同业对比+监控告警" 时,前半截 "我做一个完整分析" 里的 "做一个" 命中了 CREATE verb,加上 ALERT entity keyword "告警" → classify 返回 `(Intent.ALERT, Op.CREATE)`,CRUD dispatch 直接调 `create_alert`,而用户根本没想新建告警。
+
+  修复: 从 `_OP_KW[Op.CREATE]` 移除 `"做一个"`,改用更明确的 CREATE verb (`"建一个"` / `"新建一个"` / `"加一下"` / `"提醒我"` / `"设置提醒"` 等)。这些都需要明确的 noun 上下文才能在普通句子里出现,不会误伤 "做一个 分析 / 决定" 这种 read-only 表达。
+
+### Tests
+- 新增 `tests/test_step64_classify_keyword_conflict.py` (24 cases):
+  - bug 案例:`完整分析 + 监控告警` 必须 `(ALERT, LIST)` 不能 CREATE
+  - 12 个明确的 CREATE verb (中/英) 全部 CREATE: `建一个` / `新建` / `加一下` / `提醒我` / `设置提醒` / `加上` / `设个` / `加个` / `提醒一下` / `新建一个` / `create alert` / `add alert`
+  - 7 个 read-only 告警查询全部 LIST: `看一下告警` / `列出告警` / `我有什么告警` / `我的告警` / `所有告警` / `show alerts` / `list alerts`
+  - 源文件 regex pin:`_OP_KW[Op.CREATE]` 必须不含 `"做一个"`,且必须含关键 CREATE verb
 ## [0.4.27] — 2026-09-23
 
 ### Fixed
