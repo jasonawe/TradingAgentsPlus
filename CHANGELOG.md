@@ -2,6 +2,18 @@
 
 All notable changes to TradingAgents are documented here.
 
+## [0.4.17] — 2026-09-23
+
+### Feature
+- **history renderer**: friendly `get_history` 升级为 SVG sparkline + 关键指标 + 可折叠价格表。
+  - 新增 `tradingagents/agent_harness/renderers/history_sparkline.py`。
+  - 自适应价格量级（AAPL/513880/加密同一份 SVG 逻辑）；candles < 2 跳过图，缺字段显示"—"。
+  - 接入 `tools/display_view.py:_render_history`，替代旧的纯文本摘要。
+- **interval 自适应**: 用户文案（"日内"/"周"/"3 个月"/"半年"/"1 年"/"N 天"）→ `(interval, lookback)`。
+
+### Tests
+- 新增 `tests/test_step50_history_sparkline.py`（18 cases, all green）。
+
 ## [0.4.16] — 2026-09-22
 
 ### Fixed

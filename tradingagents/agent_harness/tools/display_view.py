@@ -17,6 +17,9 @@ from typing import Any
 from .capabilities import Capability
 
 
+from tradingagents.agent_harness.renderers.history_sparkline import render_history_card
+
+
 def display_view_for(result: Any, *, intent: str) -> str:
     """Render a friendly summary for ``result`` based on ``intent``.
 
@@ -55,17 +58,8 @@ def _render_quote(r: dict) -> str:
 
 
 def _render_history(r: dict) -> str:
-    sym = r.get("symbol", "?")
-    candles = r.get("candles") or []
-    last = candles[-1] if candles else {}
-    last_line = (
-        f"  最新: ¥{last.get('close'):.2f} @ {last.get('timestamp', '?')}"
-        if last.get("close") is not None else ""
-    )
-    return "\n".join(filter(None, [
-        f"📊 {sym} ({r.get('interval', '')}, {len(candles)} 根)",
-        last_line,
-    ]))
+    """§0.4.17 — SVG sparkline + 关键指标 + 可折叠价格表."""
+    return render_history_card(r)
 
 
 def _render_fundamentals(r: dict) -> str:
