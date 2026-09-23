@@ -740,23 +740,38 @@ class Orchestrator:
         else:
             self.plan_cache: PlanTemplateCache = PlanTemplateCache()
 
-        # §0.4.29 — LLM-based intent + op router (primary routing path).
-        # Replaces keyword classify() in stream_chat(). The router falls
-        # back to keyword on LLM failure / parse error, so the existing
-        # §0.4.28 keyword tables (deprecation in tier.py) still serve
-        # as the safety net. Cache is process-local PlanTemplateCache
-        # (in-memory, TTL'd); persistent disk cache is not used here
-        # because intent routes change more often than plan templates
-        # and the per-instance cost of a stale entry is low (a single
-        # extra LLM call).
+        # §0.4.30 — DeepSeek-style plan router (primary routing path).
+        # Replaces LLMIntentRouter (§0.4.29). Emits the plan directly in
+        # one LLM call — no (intent, op) intermediate layer. The legacy
+        # LLMIntentRouter is kept imported + constructed (read-only)
+        # so the ``intent_router_stats`` endpoint keeps reporting
+        # backward-compat metrics until we remove it in §0.4.31.
         from .llm_intent_router import LLMIntentRouter
+        from .llm_router import LLMRouter
+        from .llm_catalog import build_catalog
         from tradingagents.agent_harness.core.plan_template import (
             PlanTemplateCache as _IntentCache,
         )
+        # Keep the legacy router for diagnostics / fallback metrics;
+        # it is no longer wired into stream_chat's primary path.
         self._intent_router = LLMIntentRouter(
             llm_factory=self.llm_factory,
             cache=_IntentCache(ttl_seconds=300.0, max_entries=128),
-            enabled=True,
+            enabled=False,  # §0.4.30 — disabled; LLMRouter is primary
+        )
+        self._tool_catalog = build_catalog(self.tool_registry)
+        # §0.4.30 — router has its OWN cache so the plan-level cache
+        # miss / hit counts (asserted by test_plan_template.py) only
+        # reflect _plan() calls, not the inner router call. Sharing
+        # plan_cache would inflate misses on every LLM failure
+        # (router cache miss counts as a plan miss).
+        from tradingagents.agent_harness.core.plan_template import (
+            PlanTemplateCache as _RouterCache,
+        )
+        self._llm_router = LLMRouter(
+            llm_factory=self.llm_factory,
+            catalog=self._tool_catalog,
+            cache=_RouterCache(ttl_seconds=300.0, max_entries=64),
         )
 
     # ------------------------------------------------------------------
@@ -1871,7 +1886,142 @@ class Orchestrator:
             }],
         }
 
-    async def _plan(self, state: OrchestratorState, context: ToolContext) -> list[dict[str, Any]]:
+    @staticmethod
+    def _plan_from_router(
+        router_plan: Any,
+        state: OrchestratorState,
+    ) -> dict[str, Any] | list[dict[str, Any]]:
+        """Translate RouterPlan into an internal plan dict or list.
+
+        Groups RouterPlan.calls by parallel_group so we can return a
+        PTC program when the LLM fan-out intends parallel execution
+        (and a sequential list when it does not). Single-call plans
+        collapse to a one-step sequential plan to keep the executor
+        path simple.
+        """
+        calls = list(getattr(router_plan, "calls", []) or [])
+        if not calls:
+            return []
+        if len(calls) == 1:
+            only = calls[0]
+            return [{
+                "step": 1,
+                "action": only.tool,
+                "args": dict(only.args or {}),
+            }]
+        groups: dict[int, list[dict[str, Any]]] = {}
+        group_order: list[int] = []
+        for idx_c, call in enumerate(calls):
+            g = int(getattr(call, "parallel_group", 0) or 0)
+            if g not in groups:
+                groups[g] = []
+                group_order.append(g)
+            groups[g].append({
+                "name": call.tool,
+                "args": dict(call.args or {}),
+                "_idx": idx_c,
+            })
+        program_groups: list[dict[str, Any]] = []
+        prev_id: str | None = None
+        for g in group_order:
+            gid = "g" + str(g)
+            grp_calls = [
+                {"name": c["name"], "args": c["args"]}
+                for c in groups[g]
+            ]
+            grp: dict[str, Any] = {"id": gid, "calls": grp_calls}
+            if prev_id is not None:
+                grp["depends_on"] = [prev_id]
+            program_groups.append(grp)
+            prev_id = gid
+        return {
+            "mode": "ptc",
+            "groups": program_groups,
+        }
+
+    async def pre_plan_hook(
+        self,
+        plan: Any,
+        state: OrchestratorState,
+        context: Any,
+    ) -> Any:
+        """DeepSeek agent/pre-step equivalent.
+
+        Single interception point between plan generation and
+        execution. Plugins (or built-in logic) can:
+
+        - rewrite the plan (mutate plan dict)
+        - reject the plan (return None or a replacement)
+        - ask the user (return ("ask", payload) to surface a
+          disambiguation prompt)
+
+        Default: pass the plan through. The harness already has a
+        per-tool lifecycle hook (pre_tool_use); this hook is for
+        whole-plan rewrites.
+        """
+        try:
+            from tradingagents.agent_harness.core.lifecycle import HookContext
+            hook_ctx = HookContext(
+                name="agent/pre-plan",
+                session_id=getattr(context, "session_id", None),
+                turn_id=getattr(state.turn, "turn_id", None),
+                plan=plan,
+                user_message=getattr(state, "user_message", None),
+            )
+            await self.lifecycle.fire("agent/pre-plan", hook_ctx)
+            mutated = getattr(hook_ctx, "plan", None)
+            if mutated is not None:
+                return mutated
+        except Exception as e:
+            LOGGER.debug("pre_plan_hook: lifecycle fire failed: %s", e)
+        return plan
+
+    async def _plan(self, state: OrchestratorState, context: ToolContext):
+        """PlanNode dispatcher.
+
+        Two paths:
+
+        1. LLM router (DeepSeek-style primary): one LLM call emits the
+           plan directly. We translate :class:`RouterPlan` into a PTC
+           program / sequential list, then run :meth:`pre_plan_hook`
+           before returning.
+        2. Keyword fallback (legacy): preserved verbatim below. Fires
+           when the router returns empty / fails / is disabled. Keeps
+           the existing CRUD dispatch, multi-CRUD, legacy LLM plan,
+           and heuristic fan-out behaviour (and therefore the test_step64
+           24-case regression matrix).
+        """
+        # Plan cache: short-circuit both paths.
+        cached = self.plan_cache.get(state.user_message)
+        if cached is not None:
+            return cached
+
+        # Path 1: DeepSeek-style LLM router.
+        try:
+            router_plan = await self._llm_router.route(
+                state.user_message,
+                carry_symbols=list(getattr(state, "carry_symbols", []) or []),
+                context=context,
+            )
+            state.router_plan = router_plan
+            if router_plan.source in ("llm", "cache") and router_plan.calls:
+                plan = self._plan_from_router(router_plan, state)
+                plan = await self.pre_plan_hook(plan, state, context)
+                if plan:
+                    self.plan_cache.put(state.user_message, plan)
+                    return plan
+                # pre_plan_hook rejected (returned falsy) -> fall back.
+                LOGGER.info(
+                    "_plan: pre_plan_hook rejected LLM plan, falling back to keyword path"
+                )
+        except Exception as e:
+            LOGGER.info("_plan: LLM router raised: %s", e)
+
+        # Path 2: keyword fallback (verbatim legacy path).
+        return await self._plan_keyword(state, context)
+
+
+    async def _plan_keyword(self, state: OrchestratorState, context: ToolContext) -> list[dict[str, Any]]:
         """PlanNode — turn ``state.user_message`` into a JSON plan.
 
         The plan is a list of ``{"step": int, "action": tool_name, "args": {...}}``.
@@ -1888,10 +2038,6 @@ class Orchestrator:
         RUN / REPORT) with a recognised ``state.op`` are dispatched via
         ``self._CRUD_DISPATCH`` (one place; no per-entity branches).
         """
-        cached = self.plan_cache.get(state.user_message)
-        if cached is not None:
-            return cached
-        # §P3-3+ multi-intent FIRST (e.g. "看一下笔记和告警").
         # Single-CRUD below short-circuits on the primary pair and
         # would silently drop the secondary tools — multi must win
         # whenever extra_crud_dispatch is non-empty.
@@ -2379,12 +2525,34 @@ class Orchestrator:
                 break
 
         if not l1_ok:
-            # Plan-first retry: bump plan with re-attempt entry.
-            state.plan.append({
-                "step": len(state.plan) + 1,
+            # Plan-first retry: bump plan with re-attempt entry. The
+            # plan may be a list (sequential) or a dict (PTC program)
+            # — handle both shapes so §0.4.30 PTC plans still benefit
+            # from the L1 retry pass.
+            retry_step = {
+                "step": (
+                    len(state.plan) + 1
+                    if isinstance(state.plan, list)
+                    else len((state.plan or {}).get("groups", []) or []) + 1
+                ),
                 "action": "get_quote",
                 "args": {"symbol": state.symbols[0]} if state.symbols else {},
-            })
+            }
+            if isinstance(state.plan, list):
+                state.plan.append(retry_step)
+            elif isinstance(state.plan, dict):
+                # Append as a new PTC group depending on the last group.
+                groups = state.plan.setdefault("groups", [])
+                if groups:
+                    groups.append({
+                        "id": f"g_retry_{len(groups)}",
+                        "calls": [{"name": retry_step["action"], "args": retry_step["args"]}],
+                    })
+                else:
+                    state.plan["groups"] = [{
+                        "id": "g0",
+                        "calls": [{"name": retry_step["action"], "args": retry_step["args"]}],
+                    }]
         l2 = self._verifier.verify_l2(state.intent.value, state.tool_results)
 
         # L3 LLM-judge intentionally NOT run here — runs in

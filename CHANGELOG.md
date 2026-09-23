@@ -2,6 +2,97 @@
 
 All notable changes to TradingAgents are documented here.
 
+
+## [0.4.30] — 2026-09-23
+
+### Added
+- `core/llm_catalog.py` (NEW, 186 lines) — DeepSeek-style tool catalog
+  builder. Walks `ToolRegistry.list_all()` and emits one
+  `ToolCatalogEntry` per tool with `name` / `description` /
+  `parameters` (JSON-Schema derived from Pydantic `args_schema`) /
+  `is_write` (from `permission`) / `concurrency_safe` (read=True /
+  write=False by default; opt-out via `metadata["concurrency_safe"]`).
+  Tolerates legacy mock registries that expose only `list_names` +
+  `get`. ~+180 lines.
+- `core/llm_router.py` (NEW, 445 lines) — DeepSeek-style single-call
+  plan router. Replaces the two-step (§0.4.29) intent+op router +
+  plan LLM flow with one LLM call that emits the plan directly as a
+  JSON array `[{tool, args, parallel_group?}, ...]`. Validates every
+  emitted tool against the catalog whitelist (drops unknown tools),
+  coerces args against the tool's JSON-Schema, and caches successful
+  plans in a process-local TTL cache. Returns
+  `RouterPlan(calls=[ToolCall...], source="llm"|"cache"|"keyword_fallback"|"empty")`
+  with `fallback_reason` set on LLM failure.
+- `core/tool_policy.py` (NEW, 186 lines) — DeepSeek `tools/pre-execute`
+  equivalent. Each tool call runs through
+  `apply_policies(tool_name, args, context=..., is_write=...)` which
+  returns a `PolicyDecision(verdict=ALLOW|ASK|REJECT, ...)`. Write
+  tools get the HITL policy; read tools get passthrough. Plugins can
+  override via `register_policy(tool_name, fn)`. ~+180 lines.
+- `Orchestrator._plan_from_router` (NEW) — translates a
+  `RouterPlan` into a PTC program (`{mode: "ptc", groups: [...]}`) or
+  sequential list (`[{step, action, args}, ...]`). Single-call plans
+  collapse to sequential; multi-call plans group by `parallel_group`
+  with `depends_on` chained across groups. ~+90 lines.
+- `Orchestrator.pre_plan_hook` (NEW) — DeepSeek `agent/pre-step`
+  equivalent. Single interception point between plan generation and
+  execution; plugins can rewrite the plan, reject, or ask the user.
+  Fires a lifecycle hook (`agent/pre-plan`) so plugin code can mutate
+  the plan via `HookContext.plan`. ~+50 lines.
+- `Orchestrator._llm_router` (NEW init field) — owns the router,
+  separate process-local cache so plan-level cache hit / miss counts
+  (asserted by `test_plan_template.py`) only reflect `_plan()` calls,
+  not inner router calls.
+- `tests/test_step66_deepseek_router.py` (NEW, 24 cases) — full
+  router / catalog / policy test matrix: 5 catalog tests (Optional
+  field collapsing, dict + None args, list_names-only mock
+  registry, write-tool `is_write` derivation, metadata override), 13
+  router tests (single + parallel plan parsing, markdown-fence strip,
+  unknown-tool drop, missing-required-field drop, dedupe, A-class
+  empty, LLM error fallback, factory disabled, cache hit), 4 policy
+  tests (passthrough, HITL ask, lookup, custom override), 4
+  `_plan_from_router` tests (empty, single, multi, sequential groups).
+
+### Changed
+- `core/orchestrator.py:_plan` — replaced §0.4.29's two-step
+  (intent+op router -> plan LLM) with a DeepSeek-style dispatcher:
+  Path 1: `_llm_router.route(user_message)`; if `source in ("llm",
+  "cache")` and `calls` non-empty -> `_plan_from_router` + `pre_plan_hook`
+  -> cache + return. Path 2: legacy `_plan_keyword(state, context)`
+  preserved verbatim. `_CRUD_DISPATCH` is no longer invoked from
+  `_plan`; it remains in the legacy path for backward compat
+  (test_step64 24-case regression matrix stays green).
+- `core/orchestrator.py:_verify` — L1 retry now appends a step in
+  both list and PTC shapes (was list-only). §0.4.30 PTC plans now
+  benefit from the L1 retry pass.
+- `core/orchestrator.py:_plan_keyword` — duplicate cache check
+  removed (caller `_plan()` already checks). Plan-level miss /
+  hit counts (asserted by `test_plan_template.py`) now reflect
+  `_plan()` calls only, not `_plan_keyword`'s inner check.
+- `core/llm_intent_router.py` — kept for diagnostics / legacy
+  fallback metrics; `enabled=False` by default since §0.4.30 owns
+  the primary path.
+- `pyproject.toml` — `version = "0.4.29" -> "0.4.30"`.
+
+### Tests
+- 76 failed / 3108 passed (+24 vs. baseline). All failures are
+  pre-existing (unrelated web storage / market data / runner recovery
+  tests; same 76 baseline + same 5 skipped). 0 regressions introduced
+  by §0.4.30.
+
+### Architecture notes
+- **No (intent, op) intermediate layer** — the LLM picks tools +
+  args directly. The legacy `Intent` / `Op` enums and `_CRUD_DISPATCH`
+  table are kept as the keyword-fallback safety net (preserves §0.4.28
+  test_step64 24-case regression).
+- **One LLM call per turn** (was 2 — router + planner). Plan-level
+  cache TTL 5 min so repeat queries skip the LLM.
+- **is_write / concurrency_safe derived from permission** — no per-tool
+  metadata needed; tools opt into concurrency via
+  `metadata["concurrency_safe"]`.
+- **HITL gate is now a policy**, not a `_CRUD_DISPATCH` call site.
+  All write tools get the gate automatically; the gate payload
+  rides on the tool call (`gate_payload` attribute on `PolicyDecision`).
 ## [0.4.29] — 2026-09-23
 ### Added
 - `core/llm_intent_router.py` — LLM-backed intent + op classifier (DeepSeek-style
