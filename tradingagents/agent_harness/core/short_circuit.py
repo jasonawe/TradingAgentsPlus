@@ -287,6 +287,10 @@ class ShortCircuit:
                 })
                 result = await tool.invoke(args, context)
                 result_payload = self._safe_dump(result)
+                # §0.4.25.1 — attach display_html so the frontend
+                # multi-intent bubble can render each section as a
+                # friendly card instead of a pipe-table dump.
+                result_payload = self._attach_display_html(tool_name, result_payload)
                 yield ("tool_result", {
                     "name": tool_name,
                     "result": result_payload,
@@ -389,15 +393,18 @@ class ShortCircuit:
         return obj
 
 
-    # §0.4.25 — tool-name → Capability/intent mapping. Centralised so
-    # every ``tool_result`` emit site uses the same intent string and
-    # the friendly-card renderer is the single source of truth.
+    # §0.4.25 / §0.4.27 — tool-name → Capability/intent mapping. Acts
+    # as the fallback when ``tool.schema.metadata['display_view']`` is
+    # unavailable (e.g. tests calling ``_attach_display_html`` with
+    # ``registry=None``, or legacy tools registered without the
+    # metadata bag). The metadata path produces the same intent string
+    # so behaviour is identical either way.
     _TOOL_INTENT_MAP: dict[str, str] = {
         "get_quote": "quote",
         "get_history": "history",
         "get_fundamentals": "fundamentals",
         "get_news": "news",
-        "list_alpha_factors": "alpha",
+        "list_alpha_factors": "alpha_list",
         "list_reports": "list",
         "list_runs": "list",
         "list_watchlist": "list",
@@ -420,26 +427,51 @@ class ShortCircuit:
     }
 
     def _attach_display_html(self, tool_name: str, payload: Any) -> Any:
-        """§0.4.25 — render ``payload`` through ``display_view_for`` and
-        attach ``display_html`` so the frontend can skip its own
-        ``formatRawResult`` pipe-table duplication.
+        """§0.4.25 / §0.4.27 — render ``payload`` through
+        ``display_view_for`` and attach ``display_html`` so the
+        frontend can skip its own ``formatRawResult`` pipe-table
+        duplication.
+
+        §0.4.27 — prefer ``tool.schema.metadata['display_view']`` when
+        the registry has the tool. This keeps the mapping
+        self-describing: registering a new tool with the right
+        Capability auto-wires the friendly card without needing to
+        update a hardcoded dict.
 
         Only attaches when payload is a dict (most tool results).
-        Renderer failures never crash the SSE stream — graceful fallback
-        to the raw payload.
+        Renderer failures never crash the SSE stream.
         """
         if not isinstance(payload, dict):
             return payload
         try:
             from tradingagents.agent_harness.tools.display_view import display_view_for
-            intent = self._TOOL_INTENT_MAP.get(tool_name, "")
-            if intent:
-                html = display_view_for(payload, intent=intent)
-                if isinstance(html, str) and "<div" in html:
-                    payload["display_html"] = html
+
+            # §0.4.27 — prefer metadata-derived intent.
+            intent = self._intent_for_tool(tool_name)
+            if not intent:
+                return payload
+
+            html = display_view_for(payload, intent=intent)
+            if isinstance(html, str) and "<div" in html:
+                payload["display_html"] = html
         except Exception:
             pass
         return payload
+
+    def _intent_for_tool(self, tool_name: str) -> str:
+        """§0.4.27 — derive friendly-card intent from the tool's own
+        metadata first, then fall back to the legacy hardcoded dict."""
+        try:
+            tool = self.registry.get(tool_name)
+            md = getattr(getattr(tool, "schema", None), "metadata", {}) or {}
+            dv = md.get("display_view") or md.get("capabilities")
+            if isinstance(dv, list) and dv:
+                return str(dv[0])
+            if isinstance(dv, str) and dv:
+                return dv
+        except (KeyError, AttributeError):
+            pass
+        return self._TOOL_INTENT_MAP.get(tool_name, "")
 
     def _ctx_for_template(result: Any) -> dict:
         """Flatten a tool result (dict / dict-like / Pydantic) into a

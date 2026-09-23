@@ -1264,6 +1264,14 @@
       appendError(`网络错误: ${e.message}`);
     } finally {
       setBusy(false);
+      // §0.4.24.1 — reset every in-flight retry button so the user can
+      // click them again after a failed/successful request.
+      if (state.messagesEl) {
+        state.messagesEl.querySelectorAll('[data-action="retry-tool"]').forEach((btn) => {
+          btn.disabled = false;
+          btn.textContent = "🔄 重试";
+        });
+      }
       // §Harness-redesign — auto-title the session on first user
       // message so the sidebar shows a meaningful label.
       maybeAutoTitleSession(text);
@@ -1655,17 +1663,19 @@
           const summaryHtml = (payload.summary && String(payload.summary).trim())
             ? `<div class="harness-multi-summary">${renderMarkdown(payload.summary)}</div>`
             : "";
+          // §0.4.25.1 — prefer backend-rendered ``display_html`` per
+          // section so each multi-intent item becomes a friendly card.
+          // Fall back to ``formatRawResult`` only when the backend
+          // didn't emit display_html (legacy tools).
           const details = result.multi.map((s) => {
-            const text = formatRawResult(s.result || {}, payload.tier);
             const heading = intentHeading(s.intent);
-            // §XSS guard — formatRawResult can return user note
-            // bodies which may include markdown / HTML. The renderer
-            // below already escapes, but be explicit about the
-            // boundary so a regression here can't leak raw HTML.
-            const safeText = renderMarkdown(text || "(无内容)");
+            const cardHtml = s.result && typeof s.result.display_html === "string"
+              && /^<div\s+class="(history|compare|quote|fundamentals|news|alpha|ack|error)-card"/i.test(s.result.display_html.trim())
+              ? s.result.display_html
+              : renderMarkdown(formatRawResult(s.result || {}, payload.tier) || "(无内容)");
             return `<details class="harness-multi-detail">
   <summary>${heading}</summary>
-  <div class="harness-multi-body">${safeText}</div>
+  <div class="harness-multi-body">${cardHtml}</div>
 </details>`;
           }).join("");
           assistant.bubble.innerHTML = summaryHtml + details || "(空)";

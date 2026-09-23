@@ -2,6 +2,22 @@
 
 All notable changes to TradingAgents are documented here.
 
+## [0.4.25] — 2026-09-23
+
+### Feature
+- **multi-intent display_html (§0.4.25.1)**: `_run_multi` 在每个 `tool_result` emit 前统一调用 `_attach_display_html(tool_name, payload)`。前端 multi-intent bubble 优先用 `s.result.display_html`（card 正则匹配 `(history|compare|quote|fundamentals|news|alpha|ack|error)-card`），回退到 `formatRawResult` pipe-table，避免重复转义。
+- **retry button SSE reset (§0.4.24.1)**: `sendMessage` 加 `finally` 块 — 设置 `[data-action="retry-tool"]` 按钮 `disabled=false`、恢复 `🔄 重试` 文案。前后端网络抖动时按钮不会卡死。
+- **tool metadata auto-mapping (§0.4.27)**: `_intent_for_tool` 优先查 `tool.schema.metadata['display_view']` / `['capabilities']`，fallback 才是硬编码 `_TOOL_INTENT_MAP`。新增 read 工具不用动 short_circuit.py，只要 metadata 写好就自动出 friendly card。
+
+### Refactor
+- **`_TOOL_INTENT_MAP` 去重**：之前 commit 0a72546 + 3798c3c 留了两份定义，合并为一份完整的 fallback map（25 个工具）。Metadata path 和 fallback path 同一份默认值，行为一致。
+
+### Tests
+- 新增 `tests/test_step59_display_view_matrix.py`（23 cases）：`display_view_for` 对 9 种 intent × 2–3 种 payload shape 的覆盖矩阵；并锁定前端 bubble regex 必须含 `quote/fundamentals/history/news/alpha/ack/error` 7 个 card class。
+- 新增 `tests/test_step60_multi_intent_display_html.py`（7 cases）：mock ToolRegistry + 2 个 read tools，触发 multi-intent 路径，断言每个 tool_result payload 都有 `display_html` 且 card class 正确；失败工具不中断 batch。
+- 新增 `tests/test_step61_retry_button_reset.py`（4 cases）：源文件 regex 锁定 `sendMessage` finally 块 + 重试按钮 listener 行为 + `node -c` 语法校验。
+- 新增 `tests/test_step62_tool_metadata_intent.py`（9 cases）：mock 2 个 tool 验证 `_intent_for_tool` 优先用 metadata，legacy map 仅做 fallback。
+
 ## [0.4.24] — 2026-09-23
 
 ### Feature
