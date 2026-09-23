@@ -2,6 +2,14 @@
 
 All notable changes to TradingAgents are documented here.
 
+## [0.4.19] — 2026-09-23
+
+### Fixed
+- **harness sidebar (§0.4.19.fix)**: 从 `/` 进入 `/harness` 时若 localStorage 里有遗留的 ``sidebarExpanded='0'``（早期版本自动写入，无用户主动选择），sidebar 会收起、session 列表不可见。修复后仅当 ``userChoseSidebar='1'``（用户主动点过 toggle）时才尊重该偏好；其它情况默认展开，让 session 列表可见。
+
+### Tests
+- 新增 `tests/test_step53_sidebar_default_expanded.py`（3 cases，断言源码决策树）。
+
 ## [0.4.18] — 2026-09-23
 
 ### Feature

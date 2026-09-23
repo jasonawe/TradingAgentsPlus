@@ -119,14 +119,18 @@
         stored = localStorage.getItem("ta.harness.sidebarExpanded");
         userChose = localStorage.getItem("ta.harness.userChoseSidebar");
       } catch (_) {}
-      // §0.4.14 — explicit user choice wins; otherwise default
-      // expanded. Un-sticks users who had ``sidebarExpanded='0'``
-      // baked in by an older build (e.g. §0.4.10/§0.4.11 had
-      // stale '0' values surviving across upgrades even though
-      // the rail-expand button was added later) and users who
-      // accidentally double-clicked the toggle once and got stuck
-      // collapsed. The legacy value is preserved so once the user
-      // does click the toggle we still respect their collapse.
+      // §0.4.19.fix — default **expanded** on every load unless the
+      // user has explicitly clicked the toggle (``userChose === "1"``).
+      // Previously the localStorage ``sidebarExpanded === '0'`` value
+      // (auto-written by older builds without an explicit user choice)
+      // could keep the sidebar collapsed on /harness entry, making the
+      // session list invisible — users landing via "/ → /harness"
+      // thought the page was broken. After this fix:
+      //   • First-time visitors: always see the session list.
+      //   • Returning users who never clicked the toggle: always see
+      //     the session list (un-sticks legacy "0" values).
+      //   • Returning users who explicitly collapsed: keep their
+      //     collapse (``userChose === "1" && stored === "0"``).
       let initialExpanded;
       if (userChose === "1") {
         initialExpanded = stored !== "0";
