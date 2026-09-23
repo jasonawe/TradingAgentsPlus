@@ -2,6 +2,11 @@
 
 All notable changes to TradingAgents are documented here.
 
+## [0.4.26] — 2026-09-23
+
+### Fixed
+- **harness.js cache bump (§0.4.26)**: 用户反馈 §0.4.25 multi-intent display_html 改动在浏览器看不到 — `harness.js?v=20260923-harness-retry` cache key 与 §0.4.24 retry 那次共用，导致新 JS 被浏览器命中 stale cache。Cache key 升到 `20260923-harness-display-html-0.4.25`，强制重新加载。验证：`GET /harness/` 返回的 script tag 已是新 key，curl 拉下来 md5 与 `web/static/harness.js` 一致。
+
 ## [0.4.25] — 2026-09-23
 
 ### Feature
@@ -11,6 +16,7 @@ All notable changes to TradingAgents are documented here.
 
 ### Refactor
 - **`_TOOL_INTENT_MAP` 去重**：之前 commit 0a72546 + 3798c3c 留了两份定义，合并为一份完整的 fallback map（25 个工具）。Metadata path 和 fallback path 同一份默认值，行为一致。
+
 
 ### Tests
 - 新增 `tests/test_step59_display_view_matrix.py`（23 cases）：`display_view_for` 对 9 种 intent × 2–3 种 payload shape 的覆盖矩阵；并锁定前端 bubble regex 必须含 `quote/fundamentals/history/news/alpha/ack/error` 7 个 card class。
