@@ -336,13 +336,34 @@ def test_router_dedupes_repeated_calls():
     assert len(plan.calls) == 1
 
 
-def test_router_returns_empty_for_a_class_question():
+def test_router_short_circuits_a_class_question():
+    # §0.4.31 — pure A-class (date/weekday/time) queries are short-circuited
+    # BEFORE the LLM call, so source="empty" (deterministic) instead of
+    # "llm" (which costs an API roundtrip just to learn the answer is
+    # already known). The previous "当您 == 下m" expectation is replaced
+    # with the empty / fallback_reason contract.
     cat = _mini_catalog()
     factory = _MockLLMFactory(response="[]")
     router = LLMRouter(llm_factory=factory, catalog=cat)
     plan = _run(router.route("今天是周几"))
-    assert plan.source == "llm"
+    assert plan.source == "empty"
     assert plan.calls == []
+    assert "A-class" in (plan.fallback_reason or "")
+
+
+def test_router_does_not_short_circuit_b_class_today():
+    # §0.4.31 — "今天 600036.SS 的收盘价" is B-class (has a ticker), the
+    # A-class short-circuit must NOT fire — the LLM still gets to plan
+    # the get_quote call.
+    cat = _mini_catalog()
+    factory = _MockLLMFactory(
+        response='[{"tool": "get_quote", "args": {"symbol": "600036.SS"}}]'
+    )
+    router = LLMRouter(llm_factory=factory, catalog=cat)
+    plan = _run(router.route("今天 600036.SS 的收盘价"))
+    assert plan.source == "llm"
+    assert len(plan.calls) == 1
+    assert plan.calls[0].tool == "get_quote"
 
 
 def test_router_falls_back_on_llm_error():

@@ -1658,7 +1658,7 @@ class Orchestrator:
                     "forward" in (r or "").lower()
                     or "claim_audit" in (r or "").lower()
                     or "缺乏出处" in (r or "")
-                    for r in (l3.issues or [])
+                    for r in ((l3.details or {}).get("issues") or [])
                 )
                 if is_claim_fail:
                     state.synth_retry_count += 1

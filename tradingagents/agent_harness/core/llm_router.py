@@ -51,6 +51,80 @@ from .llm_catalog import ToolCatalogEntry, catalog_to_prompt
 LOGGER = logging.getLogger(__name__)
 
 
+# §0.4.31 — deterministic A-class short-circuit. The system prompt
+# already tells the LLM to return ``[]`` for date/weekday/concept
+# queries, but in practice the LLM still hallucinates get_quote calls
+# when the session carries a focus asset (e.g. user asks "今天周几"
+# and the LLM over-emits 6 banking peers). This pattern list catches
+# the obvious cases BEFORE the LLM call — no tool, no LLM cost.
+#
+# The list is intentionally narrow: it must NOT fire on messages with
+# any ticker or analysis verb. "今天 600036 收盘价" stays B-class.
+_A_CLASS_PATTERNS: tuple[str, ...] = (
+    # weekday / date
+    r"^今天\s*(周几|星期几|几号|日期|几月几号)\s*[?]?$",
+    r"^周几\s*[?]?$",
+    r"^星期几\s*[?]?$",
+    r"^(今天|现在)\s*(几\s*号|几\s*月|日期)\s*[?]?$",
+    r"^今天\s*是\s*(\d{4}年)?(\d{1,2}月)?(\d{1,2}日)?.*[?]?$",
+    # time
+    r"^(现在|当前)\s*(几点|几点钟|时间)\s*[?]?$",
+    r"^几\s*点(了)?\s*[?]?$",
+    # weekend / weekday check
+    r"^(今天|明天|昨天|后天)\s*(周|星期|是\s*周|是\s*星期).*[?]?$",
+    r"^(是\s*|今天\s*)?(周\s*末|星期\s*末|周末|周末了吗|周末了没|今天\s*周末吗)\s*[?]?$",
+    # weather / small talk
+    r"^(今天|现在)\s*(天气|气温)\s*(如何|怎么样|怎样)?\s*[?]?$",
+    # English equivalents
+    r"^(what\s*day(\s*is\s*it)?\s*(today)?|what\s*is\s*today(\s*\'s\s*date)?)\s*[?]?$",
+    r"^(what\s*time(\s*is\s*it)?|current\s*time)\s*[?]?$",
+    r"^(is\s*it\s*)(weekend|saturday|sunday|monday)\s*(yet|now|today)?\s*[?]?$",
+)
+_A_CLASS_RE = re.compile("|".join(_A_CLASS_PATTERNS), re.IGNORECASE)
+
+# Re-use the keyword extractor's analysis-verb list so this gate
+# stays in sync with tier.py's own has_analysis_ctx check.
+_ANALYSIS_VERBS = (
+    "分析", "研究", "估值", "评估", "跑", "深度", "行情",
+    "走势", "compare", "evaluate", "analyze", "analyse",
+    "valuation", "深度分析",
+)
+
+
+def _is_pure_a_class(message: str, carry_symbols: list[str] | None) -> bool:
+    """Return True iff the message is a pure date/weekday/time question
+    with NO financial context (no ticker, no analysis verb, no carry).
+    """
+    msg = (message or "").strip()
+    if not msg:
+        return False
+    # Carry-forward symbols are an anchor — if the prior turn named
+    # 600036 and the user says "今天周几", we still treat it as pure
+    # A-class (the carry is just conversational, not financial).
+    # But if the user wrote "今天" + a ticker, that's B-class.
+    if not _A_CLASS_RE.search(msg):
+        return False
+    # Strip matched A-class tokens to look for residual financial context.
+    residual = _A_CLASS_RE.sub("", msg).strip(" ,，.。?？!！")
+    if not residual:
+        return True
+    # If residual contains an analysis verb, this is NOT a pure A-class query.
+    low = residual.lower()
+    if any(kw in residual or kw in low for kw in _ANALYSIS_VERBS):
+        return False
+    # If residual looks like a ticker (digits + letters + . + length 4-12),
+    # treat as B-class.
+    if re.search(r"\b[A-Z0-9]{1,6}(?:\.[A-Z]{1,3})?\b", residual):
+        return False
+    # If carry_symbols is non-empty AND residual references it ("这个",
+    # "它", "the one"), keep B-class.
+    if carry_symbols:
+        for ref in ("这个", "那只", "它", "this one", "that one", "it"):
+            if ref in residual:
+                return False
+    return True
+
+
 # ----------------------------------------------------------------------
 # Plan data classes
 # ----------------------------------------------------------------------
@@ -216,6 +290,26 @@ class LLMRouter:
                     source="cache",
                     elapsed_ms=_elapsed_ms(start),
                 )
+
+        # 1b. §0.4.31 — pure A-class short-circuit (date/weekday/time).
+        # The system prompt already tells the LLM to return [] for these,
+        # but the LLM still over-emits get_quote when carry_symbols is
+        # non-empty. Catch the obvious cases BEFORE the LLM call.
+        if _is_pure_a_class(user_message, carry_symbols):
+            self.stats["a_class_short_circuits"] = (
+                self.stats.get("a_class_short_circuits", 0) + 1
+            )
+            self.stats["empty_plans"] += 1
+            LOGGER.debug(
+                "LLMRouter A-class short-circuit: %r",
+                (user_message or "")[:60],
+            )
+            return RouterPlan(
+                calls=[],
+                source="empty",
+                fallback_reason="A-class (date/weekday/time) short-circuit",
+                elapsed_ms=_elapsed_ms(start),
+            )
 
         # 2. LLM not configured -> empty plan; orchestrator decides
         if self._llm_factory is None or not self._llm_factory.is_configured():
