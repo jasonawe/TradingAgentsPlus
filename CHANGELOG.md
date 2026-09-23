@@ -2,6 +2,21 @@
 
 All notable changes to TradingAgents are documented here.
 
+## [0.4.21] — 2026-09-23
+
+### Feature
+- **SPA /harness rail (§0.4.21)**: `index.html` 里的 `#harness-view` 现在带 `#harness-sidebar-toggle` + rail 容器（`#harness-rail-new/-expand/-count/-active-title`）+ i-plus/i-menu icon。SPA 视图的 sidebar 现在能切到 rail 模式。
+- **统一友好卡片 (§0.4.22)**: 新增 `renderers/friendly_cards.py`，把 quote / fundamentals / news / alpha / ack 五种 tool result 全部升级为统一卡片样式（共享 `.qc-metrics` / `.fc-metrics` grid、`.m-k` / `.m-v` 关键指标、icon + symbol + name + meta 头部、`.up` / `.down` / `.flat` 涨跌色）。
+- **compare intent Tier 1 (§0.4.23)**: `short_circuit._run_compare` 在 `Intent.COMPARE` + ≥2 symbols 时 fan-out 到每个 symbol 调 `get_history`，合并给 `render_compare_card`。`infer_history_params` 自动按用户文案选 interval/lookback，单 symbol 走原 Tier 1 路径不变。
+
+### Fixed
+- **renderMarkdown**: §0.4.17/0.4.20 的 trusted-card 检测扩展到 7 种（quote / fundamentals / news / alpha / ack / history / compare），不再被 escape。
+
+### Tests
+- 新增 `tests/test_step54_unified_friendly_cards.py`（12 cases）。
+- 新增 `tests/test_step55_compare_intent_tier1.py`（3 cases，async）。
+- 新增 `tests/test_step56_spa_rail_dom.py`（4 cases）。
+
 ## [0.4.20] — 2026-09-23
 
 ### Fixed

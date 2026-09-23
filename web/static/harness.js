@@ -1211,7 +1211,7 @@
     // §0.4.18 — friendly HTML cards (history, multi-asset compare) ship as raw HTML
     // from the backend (see ``tradingagents/agent_harness/tools/display_view.py``).
     // Detect the well-known root tag so we can render them without escaping.
-    if (typeof md === "string" && /^(<div\s+class="history-card"|<div\s+class="compare-card")/i.test(md.trim())) {
+    if (typeof md === "string" && /^(<div\s+class="(history|compare|quote|fundamentals|news|alpha|ack)-card")/i.test(md.trim())) {
       return md;
     }
     const esc = md

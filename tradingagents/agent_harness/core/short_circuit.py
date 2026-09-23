@@ -66,6 +66,18 @@ class ShortCircuit:
                 yield ev
             return
 
+        # §0.4.23 — Tier 1 compare intent. When the user says "对比 A/B/C"
+        # with 2+ symbols we fan out to one ``get_history`` call per symbol
+        # (so each line gets a proper candlestick window), merge the
+        # results, and emit a single ``agent_final`` with the
+        # ``render_compare_card`` HTML. Falls back to PLAN_EXECUTE when
+        # only 1 symbol is given (handled by the regular single-symbol
+        # path below).
+        if route.intent == Intent.COMPARE and len(route.symbols) >= 2:
+            async for ev in self._run_compare(route, message, context, slots=slots):
+                yield ev
+            return
+
         symbol = route.symbols[0] if route.symbols else ""
         tool_name = self._tool_for_intent(route.intent, slots, symbol=symbol, message=message)
         if not tool_name:
@@ -164,6 +176,74 @@ class ShortCircuit:
         except Exception as e:
             LOGGER.warning("Tier 1 short-circuit failed: %s", e)
             yield ("error", {"tier": int(Tier.DIRECT), "error": str(e)})
+
+    async def _run_compare(
+        self,
+        route: RouteResult,
+        message: str,
+        context: ToolContext,
+        slots: dict | None = None,
+    ) -> AsyncIterator[tuple[str, dict]]:
+        """§0.4.23 — fan-out ``get_history`` for every symbol in
+        ``route.symbols`` and merge into a compare card.
+
+        Each per-symbol tool_call / tool_result is yielded so the
+        reasoning trace still shows the user what's happening. The
+        final ``agent_final`` carries the rendered HTML in
+        ``result`` (string) so the frontend's harness.js detects the
+        ``<div class="compare-card">`` prefix and emits it as raw
+        HTML (not markdown).
+        """
+        from tradingagents.agent_harness.renderers.history_sparkline import infer_history_params
+        from tradingagents.agent_harness.renderers.compare_sparkline import render_compare_card
+
+        tool = self.registry.get("get_history")
+        args_schema = tool.schema.args_schema
+        # Honor explicit interval / lookback_days slots when present.
+        interval, lookback = infer_history_params(message or "")
+        per_call_slots = dict(slots or {})
+        if "interval" not in per_call_slots:
+            per_call_slots["interval"] = interval
+        if "lookback_days" not in per_call_slots:
+            per_call_slots["lookback_days"] = lookback
+
+        series: list[dict] = []
+        for sym in route.symbols:
+            try:
+                args = self._build_args(args_schema, sym, slots=per_call_slots)
+            except Exception as e:
+                yield ("warning", {"message": f"compare build_args {sym} failed: {e}"})
+                continue
+            yield ("tool_call", {"name": "get_history", "args": self._safe_dump(args)})
+            try:
+                result = await tool.invoke(args, context)
+            except Exception as e:
+                yield ("tool_result", {"name": "get_history", "result": {"symbol": sym, "error": str(e)}})
+                continue
+            payload = self._safe_dump(result)
+            yield ("tool_result", {"name": "get_history", "result": payload})
+            candles = payload.get("candles") or []
+            closes = [c.get("close") for c in candles if c.get("close") is not None]
+            series.append({
+                "symbol": payload.get("symbol", sym),
+                "name": payload.get("name") or "",
+                "exchange": payload.get("exchange") or "",
+                "currency": payload.get("currency") or "",
+                "closes": closes,
+            })
+
+        title = f"对比 {' / '.join(s.get('symbol', '?') for s in series)}"
+        rendered = render_compare_card(series, title=title)
+        yield ("agent_final", {
+            "tier": int(Tier.DIRECT),
+            "intent": route.intent.value,
+            "tool_name": "get_history",
+            "result": rendered,
+            "rendered": True,
+            "symbols": [s.get("symbol") for s in series],
+            "summary": f"对比 {len(series)} 只标的走势",
+        })
+
 
     async def _run_multi(
         self,

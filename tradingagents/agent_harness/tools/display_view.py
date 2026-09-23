@@ -18,6 +18,10 @@ from .capabilities import Capability
 
 
 from tradingagents.agent_harness.renderers.history_sparkline import render_history_card
+from tradingagents.agent_harness.renderers.friendly_cards import (
+    render_quote_card, render_fundamentals_card,
+    render_news_card, render_alpha_card, render_ack_card,
+)
 
 
 def display_view_for(result: Any, *, intent: str) -> str:
@@ -42,19 +46,10 @@ def display_view_for(result: Any, *, intent: str) -> str:
 
 
 def _render_quote(r: dict) -> str:
-    sym = r.get("symbol", "?")
-    price = r.get("price")
-    price_str = f"{price:.2f}" if isinstance(price, (int, float)) else str(price)
-    lines = [f"📈 {sym} · ¥{price_str}"]
-    if isinstance(r.get("change"), (int, float)):
-        sign = "+" if r["change"] >= 0 else ""
-        ch = f"{sign}{r['change']:.2f}"
-        if isinstance(r.get("change_pct"), (int, float)):
-            ch += f" ({sign}{r['change_pct']:.2f}%)"
-        lines.append(f"  涨跌: {ch}")
-    if isinstance(r.get("volume"), (int, float)):
-        lines.append(f"  成交量: {r['volume']:,}")
-    return "\n".join(lines)
+    """§0.4.22 — unified quote card."""
+    return render_quote_card(r)
+
+
 
 
 def _render_history(r: dict) -> str:
@@ -63,147 +58,31 @@ def _render_history(r: dict) -> str:
 
 
 def _render_fundamentals(r: dict) -> str:
-    """§0.4.15 — show whatever the provider returned, not just 4 fields.
+    """§0.4.22 — unified fundamentals card."""
+    return render_fundamentals_card(r)
 
-    YFinance returns a much richer snapshot (EPS, dividend yield, 52w
-    range, revenue, net income, sector, beta, profit margin, ...)
-    than the §0.4.10-era view. We surface the most useful ones first
-    (PE / PB / market cap / ROE / EPS) and append the rest as a
-    secondary block so the answer doesn't become a wall of numbers.
-    """
-    sym = r.get("symbol", "?")
-    name = r.get("name") or ""
-    currency = r.get("currency") or ""
-    lines = [f"💼 {sym}"]
-    if name:
-        lines[0] = f"💼 {sym} · {name}"
 
-    def _fmt(v, label):
-        if v is None:
-            return None
-        if isinstance(v, (int, float)):
-            # Big numbers (market cap, revenue, net income) get
-            # thousand-separators; small ratios (PE/PB/ROE/EPS) get
-            # 2 decimals.
-            if abs(v) >= 1e6:
-                return f"  {label}: {int(v):,}"
-            return f"  {label}: {v:.2f}"
-        return f"  {label}: {v}"
-
-    primary = [
-        ("pe_ratio", "PE"),
-        ("pb_ratio", "PB"),
-        ("market_cap", "市值"),
-        ("circulating_cap", "流通市值"),
-        ("roe", "ROE"),
-        ("eps", "EPS"),
-        ("dividend_yield", "股息率"),
-        ("fifty_two_week_high", "52周高"),
-        ("fifty_two_week_low", "52周低"),
-    ]
-    for k, label in primary:
-        line = _fmt(r.get(k), label)
-        if line:
-            lines.append(line)
-    if currency:
-        # Append currency suffix only if at least one numeric row
-        # was emitted (so a totally-empty snapshot stays terse).
-        if any(line.startswith("  ") for line in lines[1:]):
-            lines.append(f"  货币: {currency}")
-    return "\n".join(lines)
 
 
 def _render_news(r: dict) -> str:
-    sym = r.get("symbol", "?")
-    items = (r.get("items") or [])[:3]
-    head = f"📰 {sym} ({len(r.get('items') or [])} 条)"
-    if not items:
-        return head
-    body = "\n".join(f"  - {it.get('title', '(无标题)')}" for it in items)
-    return f"{head}\n{body}"
+    """§0.4.22 — unified news card."""
+    return render_news_card(r)
+
+
 
 
 def _render_ack(r: dict) -> str:
-    """Friendly rendering for write tool acks.
+    """§0.4.22 — unified ack card."""
+    return render_ack_card(r)
 
-    Mirrors the JS-side ``renderWriteAck`` so behaviour stays
-    consistent between frontend and backend (e.g. for
-    automated test fixtures that look at summary strings).
-    """
-    status = r.get("status")
-    raw = r.get("raw") or ""
-    verb_map = {
-        "NOTE_CREATED": "笔记已创建",
-        "NOTE_UPDATED": "笔记已更新",
-        "NOTE_DELETED": "笔记已删除",
-        "ALERT_CREATED": "告警已创建",
-        "ALERT_UPDATED": "告警已更新",
-        "ALERT_DELETED": "告警已删除",
-        "WATCHLIST_ADDED": "已加入关注",
-        "WATCHLIST_REMOVED": "已移除关注",
-        "ADDED": "已加入关注",
-        "REMOVED": "已移除关注",
-        "DUPLICATE": "已存在(未重复添加)",
-        "UPDATED": "已更新",
-        "DELETED": "已删除",
-        "CREATED": "已创建",
-    }
-    # Find a verb prefix in raw.
-    label = None
-    sym = ""
-    for verb, lab in verb_map.items():
-        if raw.startswith(verb):
-            label = lab
-            payload = raw[len(verb):].lstrip(": ").strip()
-            if payload.startswith("{"):
-                try:
-                    parsed = json.loads(payload)
-                    sym = parsed.get("symbol", "")
-                except Exception:
-                    pass
-            elif payload and not payload.startswith("{"):
-                sym = payload
-            break
-    if label is None:
-        label = "已保存" if status in {"created", "updated", "deleted"} else "完成"
-    return f"✅ {label} ({sym})" if sym else f"✅ {label}"
+
 
 
 def _render_alpha(r: dict) -> str:
-    """Render a compute_alpha_factors payload.
+    """§0.4.22 — unified alpha card."""
+    return render_alpha_card(r)
 
-    Input shape:
-        {"symbol": "600036.SS", "values": {"roc_1": 0.012, "rsi_14": 55.6, ...}}
 
-    Layout:
-        - Header with symbol + factor count
-        - Markdown table (factor, value) limited to first 20 entries
-          so the bubble stays scannable; full data lives in result_raw.
-    """
-    sym = r.get("symbol", "?")
-    values = r.get("values") or {}
-    if not isinstance(values, dict) or not values:
-        return f"\u00b1 {sym} \u00b7 (no factor values)"
-    head = f"± {sym} · {len(values)} 个因子最近读数"
-    rows = list(values.items())[:20]
-    # Each row MUST be a valid markdown table line: leading ``|``,
-    # trailing ``|``, NO leading whitespace (otherwise some renderers
-    # break out of the table).  Value is rounded to 6 dp so 32 factors
-    # don't overflow the bubble.
-    def _fmt(v):
-        # Float with zero fractional part → print as int so huge
-        # counts (-308733586.0) and tiny ints (1.0) don't get
-        # 6dp-rendered into the bubble.
-        if isinstance(v, float):
-            if v.is_integer():
-                return str(int(v))
-            return f"{v:.6f}"
-        return str(v)
-    body = "\n".join(f"| `{k}` | {_fmt(v)} |" for k, v in rows)
-    extra = ""
-    if len(values) > 20:
-        extra = f"\n| ... | (其他 {len(values) - 20} 个因子子见原始返回) |"
-    return f"{head}\n| factor | value |\n|---|---|---|\n{body}{extra}"
 
 
 def _render_report_read(r: dict) -> str:

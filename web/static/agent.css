@@ -1642,3 +1642,150 @@ details[open] .agent-reasoning-summary::before {
 }
 .history-card .hc-tooltip .tt-date,
 .compare-card .cc-tooltip .tt-date { color: #cbd5e1; font-size: 10px; }
+
+
+/* ════════════════════════════════════════════════════════
+   §0.4.22 — unified friendly card styles
+   ├── fundamentals-card, news-card, alpha-card, ack-card
+   ════════════════════════════════════════════════════════ */
+
+/* §Shared metrics grid (used by every card) — keeps visual rhythm. */
+.quote-card,
+.fundamentals-card,
+.news-card,
+.alpha-card,
+.ack-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin: 8px 0;
+  background: #ffffff;
+  font-size: 13px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.quote-card .qc-head,
+.fundamentals-card .fc-head,
+.news-card .nc-head,
+.alpha-card .ac-head,
+.ack-card .ack-head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 8px;
+}
+.quote-card .qc-icon,
+.fundamentals-card .fc-icon,
+.news-card .nc-icon,
+.alpha-card .ac-icon,
+.ack-card .ack-icon { font-size: 16px; }
+.quote-card .qc-symbol,
+.fundamentals-card .fc-symbol,
+.news-card .nc-symbol,
+.alpha-card .ac-symbol { font-weight: 700; font-size: 14px; color: #0f172a; }
+.quote-card .qc-name,
+.fundamentals-card .fc-name { color: #334155; font-size: 12px; }
+.quote-card .qc-meta,
+.fundamentals-card .fc-meta,
+.news-card .nc-meta,
+.alpha-card .ac-meta { color: #94a3b8; font-size: 11px; margin-left: 4px; }
+
+/* §Metrics grid — 4 columns by default. */
+.quote-card .qc-metrics,
+.fundamentals-card .fc-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px 16px;
+}
+.fundamentals-card .fc-metrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.quote-card .qc-empty,
+.fundamentals-card .fc-empty,
+.news-card .nc-empty,
+.alpha-card .ac-empty,
+.ack-card .ack-empty {
+  padding: 12px 0;
+  color: #6b7280;
+}
+
+.quote-card .qc-extras,
+.ack-card .ack-extras {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 11px;
+  color: #64748b;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* §News card list */
+.news-card .nc-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.news-card .nc-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+.news-card .nc-item:last-of-type { border-bottom: none; }
+.news-card .nc-link {
+  color: #1e40af;
+  text-decoration: none;
+  font-size: 13px;
+}
+.news-card .nc-link:hover { text-decoration: underline; }
+.news-card .nc-date {
+  font-size: 11px;
+  color: #94a3b8;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.news-card .nc-more {
+  font-size: 11px;
+  color: #94a3b8;
+  text-align: center;
+  padding-top: 4px;
+}
+
+/* §Alpha card chips */
+.alpha-card .ac-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+}
+.alpha-card .ac-chip {
+  display: inline-block;
+  background: #f1f5f9;
+  color: #334155;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.alpha-card .ac-more {
+  font-size: 11px;
+  color: #94a3b8;
+  align-self: center;
+}
+
+/* §Ack card */
+.ack-card .ack-label {
+  font-weight: 600;
+  font-size: 13px;
+  color: #0f172a;
+}
+.ack-card .ack-extra {
+  font-size: 11px;
+  color: #475569;
+}
