@@ -639,8 +639,32 @@ def _wants_reanalysis(message: str) -> bool:
     return has_verb and has_ref
 
 
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# §0.4.29 — DEPRECATION NOTE (keyword tables)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# The keyword-based classifier below (_ENTITY_KW / _OP_KW / classify())
+# is the **fallback path**. The primary routing path is now
+# ``LLMIntentRouter`` in ``core/llm_intent_router.py``, wired into
+# ``Orchestrator.stream_chat`` at the top of each turn.
+#
+# Why kept: LLM provider failures (rate limit / network / parse error /
+# unconfigured factory) cannot be allowed to break write-tool routing
+# (§7.3 #12 safety gate — create_alert / add_to_watchlist / etc. must
+# not silently miss-fire on transient LLM issues). The keyword tables
+# stay operational as the deterministic fallback.
+#
+# §0.4.28 last keyword-table fix: removed bare ``"做一个"`` from
+# _OP_KW[CREATE] because substring matching was hijacking "我做一个完整
+# 分析…" → ALERT/CREATE. The LLM router inherits the same rule via the
+# system prompt's rule #3.
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
 def classify(message: str) -> tuple[Intent, Op]:
-    """§P3-3 — entity × op classifier.
+    """§P3-3 — entity × op classifier (DEPRECATED §0.4.29 — fallback only).
+
+    Replaced by :class:`LLMIntentRouter` as the primary routing path.
+    See the §0.4.29 deprecation banner above.
 
     Returns ``(intent, op)``. Order of detection:
 

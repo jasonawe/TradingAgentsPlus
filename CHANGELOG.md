@@ -2,6 +2,39 @@
 
 All notable changes to TradingAgents are documented here.
 
+## [0.4.29] — 2026-09-23
+### Added
+- `core/llm_intent_router.py` — LLM-backed intent + op classifier (DeepSeek-style
+  routing). Replaces keyword `tier.classify()` as the primary routing path in
+  `Orchestrator.stream_chat`. LLM sees an Intent + Op catalog and returns
+  `{"intent": ..., "op": ..., "confidence": ...}`; case-insensitive enum
+  resolution (handles DeepSeek/GPT-4 returning enum names vs values). Falls back
+  to legacy keyword `classify()` on any failure — never raises.
+- Stats counters (`llm_calls` / `llm_failures` / `parse_failures` /
+  `cache_hits` / `keyword_fallbacks`) for observability. Target fallback rate
+  < 5% in steady state.
+
+### Changed
+- `core/orchestrator.py` — `stream_chat()` now calls
+  `self._intent_router.route(user_message)` instead of `classify()`. Result
+  feeds `state.intent` / `state.op` which drive `_CRUD_DISPATCH` and the
+  short-circuit Tier 1 path. Keyword `classify()` still imported and reachable
+  via LLM failure (target: < 5% of turns).
+- `core/tier.py` — `classify()` / `_OP_KW` / `_ENTITY_KW` now carry a
+  §0.4.29 deprecation banner pointing at the LLM router. Tables unchanged
+  (still serve as fallback).
+- `tests/test_step65_llm_intent_router.py` (NEW, 19 cases) — 5 real ambiguity
+  cases from history + cache hit + 4 failure modes (provider error / timeout /
+  rate limit / unconfigured) + 4 enum-validation cases (unknown intent /
+  unknown op / malformed JSON / markdown-fenced JSON) + 2 stats invariants.
+
+### Tests
+- 195 passed in 15.66s. One unrelated pre-existing failure
+  (`test_step25_d2_crud_total::test_every_display_view_is_known` — missing
+  `display_view` metadata on `compute_alpha_factors`, pre-dates §0.4.29).
+- test_step64 (24 cases) keyword regression net: still green — fallback path
+  confirmed working.
+
 ## [0.4.28] — 2026-09-23
 
 ### Fixed

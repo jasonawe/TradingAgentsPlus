@@ -740,6 +740,25 @@ class Orchestrator:
         else:
             self.plan_cache: PlanTemplateCache = PlanTemplateCache()
 
+        # §0.4.29 — LLM-based intent + op router (primary routing path).
+        # Replaces keyword classify() in stream_chat(). The router falls
+        # back to keyword on LLM failure / parse error, so the existing
+        # §0.4.28 keyword tables (deprecation in tier.py) still serve
+        # as the safety net. Cache is process-local PlanTemplateCache
+        # (in-memory, TTL'd); persistent disk cache is not used here
+        # because intent routes change more often than plan templates
+        # and the per-instance cost of a stale entry is low (a single
+        # extra LLM call).
+        from .llm_intent_router import LLMIntentRouter
+        from tradingagents.agent_harness.core.plan_template import (
+            PlanTemplateCache as _IntentCache,
+        )
+        self._intent_router = LLMIntentRouter(
+            llm_factory=self.llm_factory,
+            cache=_IntentCache(ttl_seconds=300.0, max_entries=128),
+            enabled=True,
+        )
+
     # ------------------------------------------------------------------
     # §P3-2 — per-turn memory helpers
     # ------------------------------------------------------------------
@@ -877,11 +896,25 @@ class Orchestrator:
         # works fine for those) and CREATE/UPDATE/DELETE/RUN → Tier 2
         # PLAN_EXECUTE so _plan() can dispatch via _CRUD_DISPATCH.
         from .tier import (
-            classify as _classify,
+            classify as _classify,            # keyword fallback (still imported)
             classify_multi as _classify_multi,
             fast_route_with_op,
         )
-        intent, op = _classify(user_message)
+        # §0.4.29 — LLM intent router is the primary path. The router
+        # owns (intent, op) classification; keyword _classify() is
+        # reachable only via LLM failure / parse error / disabled
+        # factory. stats on the instance let us monitor the fallback
+    # rate (target: < 5 % in steady state). The result also feeds
+        # ``route.intent`` later in the function, so any divergence
+        # between LLM intent and the legacy fast_route_with_op intent
+        # gets reconciled at the assert below.
+        intent_route = await self._intent_router.route(user_message)
+        intent, op = intent_route.intent, intent_route.op
+        if intent_route.source != "llm" or intent_route.confidence < 0.5:
+            LOGGER.info(
+                "intent route fallback: source=%s confidence=%.2f intent=%s op=%s msg=%r",
+                intent_route.source, intent_route.confidence, intent, op, user_message[:80],
+            )
         # §Step 20 — load the previous turn's session context before
         # routing so carry-forward symbols can populate the route when
         # the user message has no ticker ("加入我的关注" after
