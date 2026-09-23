@@ -2,6 +2,21 @@
 
 All notable changes to TradingAgents are documented here.
 
+## [0.4.24] — 2026-09-23
+
+### Feature
+- **error card retry button (§0.4.24)**: 错误卡片右下角加 `🔄 重试` 按钮。点击重发最近一次 user message（`state.lastUserMessage`）——后端会重新走 Tier 1 短路 / Tier 2 规划，可能拿到新数据。
+- **frontend prefers ``display_html`` (§0.4.25)**: 前端 `appendToolResult` 检测 `payload.result.display_html`，识别 `*-card` 根类后直接 innerHTML，不再走 `formatRawResult` pipe-table 路径（避免重复逻辑）。
+- **backend emits ``display_html`` (§0.4.25)**: `short_circuit.py` 在每次 `tool_result` emit 前调用 `_attach_display_html(tool_name, payload)`，通过 `_TOOL_INTENT_MAP` 把 25 个工具名映射到 Capability intent，再用 `display_view_for` 渲染 friendly card 塞进 payload。
+
+### Fixed
+- **get_history partial-data (§0.4.26)**: 当所有 provider 都返回 NO_DATA 时，`get_history` 不再 raise，而是返回 `candles=[]` 的 `HistoryResult`。前端 friendly card 显示"暂无历史数据 + 提示（该资产可能刚上市 / 数据源未覆盖 / 退市）+ 数据源"。
+- **`_safe_dump` instance method 签名**: 之前 `def _safe_dump(obj)` 漏了 `self`，导致 `self._safe_dump(args)` 报 TypeError（其他测试碰巧用 `@staticmethod` 调用方式才通过）。修正后签名变 `def _safe_dump(self, obj)`。
+
+### Tests
+- 新增 `tests/test_step58_display_html_partial.py`（7 cases）。
+- 更新 `tests/test_step50_history_sparkline.py::test_render_card_empty` 适配新文案（"暂无历史数据"）。
+
 ## [0.4.23] — 2026-09-23
 
 ### Fixed

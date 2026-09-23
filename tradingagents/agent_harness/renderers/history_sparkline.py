@@ -119,10 +119,23 @@ def render_history_card(history) -> str:
     interval = escape(meta.get("interval", "1d"))
 
     if not candles:
+        # §0.4.26 — partial-data friendly empty state. Distinguish "no
+        # candles returned at all" from "raw error" so the user gets a
+        # helpful "该资产可能刚上市 / 数据源未覆盖" message instead of
+        # an error card. Provider name comes from the result payload
+        # when available.
+        provider_note = ""
+        if "provider" in history and history.get("provider"):
+            provider_note = f'<div class="hc-meta">数据源: {escape(str(history["provider"]))}</div>'
         return (
             f'<div class="history-card empty">'
             f'<div class="hc-head">📊 {sym}</div>'
-            f'<div class="hc-empty">暂无行情数据</div></div>'
+            f'<div class="hc-empty">'
+            f'<div>暂无历史数据</div>'
+            f'<div class="hc-hint">该资产可能刚上市 / 数据源未覆盖 / 退市</div>'
+            f'</div>'
+            f'{provider_note}'
+            f'</div>'
         )
 
     closes_vals = [_f(c.get("close")) for c in candles]

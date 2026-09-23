@@ -74,8 +74,9 @@ def test_render_card_extracts_candles_from_data_key():
 
 
 def test_render_card_empty():
+    # §0.4.26 — empty history card now shows "暂无历史数据" + hint.
     html = render_history_card({"symbol": "X"})
-    assert "暂无行情数据" in html
+    assert "暂无历史数据" in html
     assert "<svg" not in html
 
 

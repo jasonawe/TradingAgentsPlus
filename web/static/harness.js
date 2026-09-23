@@ -55,6 +55,24 @@
       return;
     }
 
+    // §0.4.24 — delegated retry-button click handler. Any
+    // error-card emitted by ``appendToolResult`` carries
+    // ``data-retryable="1"`` and a sibling user message bubble; we
+    // re-send the previous user message which makes the backend run
+    // the same tool again (Tier 1 short-circuit re-runs the lookup;
+    // Tier 2 re-plans with cached context).
+    if (state.messagesEl) {
+      state.messagesEl.addEventListener("click", (ev) => {
+        const btn = ev.target && ev.target.closest && ev.target.closest('[data-action="retry-tool"]');
+        if (!btn) return;
+        ev.preventDefault();
+        if (state.busy) return;
+        btn.disabled = true;
+        btn.textContent = "🔄 重试中…";
+        retryLastTool();
+      });
+    }
+
     state.formEl.addEventListener("submit", (e) => {
       e.preventDefault();
       sendMessage();
@@ -937,6 +955,9 @@
   // §0.4.22.fix — shared error-card renderer (kept light-weight on the
   // frontend so the reasoning trace stays slim; full CSS lives in
   // web/static/agent.css under ``.error-card``).
+  // §0.4.24 — when ``p.retryable`` is true we emit a ``🔄 重试`` button
+  // that re-sends the previous user message (re-runs the tool via the
+  // same Tier 1 short-circuit / Tier 2 plan path).
   function renderErrorCard(p, toolName) {
     const code = p.error_code || p.code || "";
     const raw = p.error || p.message || "执行失败";
@@ -950,17 +971,53 @@
     const label = labels[code] || raw;
     const sym = p.symbol || p.ticker || "";
     const symHtml = sym ? ` <span class="ec-symbol">${escapeHtml(sym)}</span>` : "";
-    const codeHtml = code ? `<div class="ec-extras"><span class="ec-code">${escapeHtml(code)}</span></div>` : "";
+    const codeHtml = code ? `<span class="ec-code">${escapeHtml(code)}</span>` : "";
+    const retryHtml = p.retryable
+      ? `<button type="button" class="ec-retry" data-action="retry-tool">🔄 重试</button>`
+      : "";
     return (
       `<div class="error-card">` +
       `<div class="ec-head"><span class="ec-icon">⚠️</span><span class="ec-tool">${escapeHtml(toolName)}</span>${symHtml}</div>` +
       `<div class="ec-body">${escapeHtml(label)}</div>` +
-      codeHtml +
+      `<div class="ec-extras">${codeHtml}${retryHtml}</div>` +
       `</div>`
     );
   }
 
+  // §0.4.24 — retry helper. Looks up the last user message in the chat
+  // transcript (state.lastUserMessage), re-fills the input, and re-sends.
+  // We deliberately don't call sendMessage() directly here so the user
+  // sees the retry in the input first.
+  function retryLastTool() {
+    if (state.busy) return false;
+    const text = (state.lastUserMessage || "").trim();
+    if (!text) {
+      // No previous user message — fall back to an empty input.
+      if (state.inputEl) state.inputEl.focus();
+      return false;
+    }
+    state.inputEl.value = text;
+    sendMessage();
+    return true;
+  }
+
   function appendToolResult(name, payload) {
+    // §0.4.25 — when the backend attaches a pre-rendered friendly card
+    // (``payload.result.display_html``) we use it directly. This keeps
+    // styling consistent with the agent_final bubble and removes the
+    // duplicated logic in ``formatRawResult`` (which serialises the
+    // same shape to pipe-table markdown). Fall back to the old path
+    // for legacy tools that don't emit display_html yet.
+    const resultObj = payload?.result;
+    if (resultObj && typeof resultObj === "object" && typeof resultObj.display_html === "string") {
+      const html = resultObj.display_html;
+      // §XSS guard — only trust the backend's display_html when it's a
+      // known card root class. Otherwise fall through to the legacy path.
+      if (/^<div\s+class="(history|compare|quote|fundamentals|news|alpha|ack|error)-card"/i.test(html.trim())) {
+        return appendMessage("tool-result", html);
+      }
+    }
+
     if (payload?.error) {
       // §0.4.22.fix — friendly error card instead of raw ``❌ tool: msg``.
       // Builds a minimal {error, error_code, symbol} payload and emits
@@ -969,9 +1026,18 @@
         error: payload.error,
         error_code: payload.error_code || payload.code,
         symbol: payload.symbol || (payload.args && payload.args.symbol),
+        retryable: true,  // §0.4.24 — every tool_result error can be retried
       };
       const card = renderErrorCard(errPayload, name || "tool");
-      return appendMessage("tool-result", card);
+      const el = appendMessage("tool-result", card);
+      // §0.4.24 — bind the retry button. delegated event listener
+      // on the messages container so we don't lose bindings when
+      // SSE pushes new bubbles.
+      if (el) {
+        el.dataset.retryable = "1";
+        el.dataset.toolName = name || "tool";
+      }
+      return el;
     }
     const result = payload?.result || payload;
     const status = result?.status;

@@ -100,6 +100,10 @@ class ShortCircuit:
             yield ("tool_call", {"name": tool_name, "args": self._safe_dump(args)})
             result = await tool.invoke(args, context)
             result_payload = self._safe_dump(result)
+            # §0.4.25 — attach a backend-rendered friendly card so the
+            # frontend can drop the duplicated ``formatRawResult`` pipe-
+            # table path. Single source of truth = ``display_view_for``.
+            result_payload = self._attach_display_html(tool_name, result_payload)
             yield ("tool_result", {"name": tool_name, "result": result_payload})
             # v2 spec §D1 N101 fix: Tier 1b — render template when query
             # matches ``TEMPLATE_TRIGGER_KEYWORDS``.  Falls back to raw
@@ -218,10 +222,10 @@ class ShortCircuit:
             try:
                 result = await tool.invoke(args, context)
             except Exception as e:
-                yield ("tool_result", {"name": "get_history", "result": {"symbol": sym, "error": str(e)}})
+                yield ("tool_result", {"name": "get_history", "result": self._attach_display_html("get_history", {"symbol": sym, "error": str(e)})})
                 continue
             payload = self._safe_dump(result)
-            yield ("tool_result", {"name": "get_history", "result": payload})
+            yield ("tool_result", {"name": "get_history", "result": self._attach_display_html("get_history", payload)})
             candles = payload.get("candles") or []
             closes = [c.get("close") for c in candles if c.get("close") is not None]
             series.append({
@@ -365,8 +369,7 @@ class ShortCircuit:
             summary = f"共 {total} 条记录:\n" + summary
         return summary
 
-    @staticmethod
-    def _safe_dump(obj: Any) -> Any:
+    def _safe_dump(self, obj: Any) -> Any:
         """Project a tool output into a JSON-serialisable form.
 
         §Step 8 — when ``obj`` exposes ``display_view()``, prefer it
@@ -385,7 +388,59 @@ class ShortCircuit:
             return obj.model_dump()
         return obj
 
-    @staticmethod
+
+    # §0.4.25 — tool-name → Capability/intent mapping. Centralised so
+    # every ``tool_result`` emit site uses the same intent string and
+    # the friendly-card renderer is the single source of truth.
+    _TOOL_INTENT_MAP: dict[str, str] = {
+        "get_quote": "quote",
+        "get_history": "history",
+        "get_fundamentals": "fundamentals",
+        "get_news": "news",
+        "list_alpha_factors": "alpha",
+        "list_reports": "list",
+        "list_runs": "list",
+        "list_watchlist": "list",
+        "list_notes": "list",
+        "list_alerts": "list",
+        "list_scheduled_tasks": "list",
+        "get_report": "report_read",
+        "create_note": "ack",
+        "update_note": "ack",
+        "delete_note": "ack",
+        "create_alert": "ack",
+        "update_alert": "ack",
+        "delete_alert": "ack",
+        "add_watchlist": "ack",
+        "remove_watchlist": "ack",
+        "create_scheduled_task": "ack",
+        "update_scheduled_task": "ack",
+        "delete_scheduled_task": "ack",
+        "run_trading_agents_analysis": "ack",
+    }
+
+    def _attach_display_html(self, tool_name: str, payload: Any) -> Any:
+        """§0.4.25 — render ``payload`` through ``display_view_for`` and
+        attach ``display_html`` so the frontend can skip its own
+        ``formatRawResult`` pipe-table duplication.
+
+        Only attaches when payload is a dict (most tool results).
+        Renderer failures never crash the SSE stream — graceful fallback
+        to the raw payload.
+        """
+        if not isinstance(payload, dict):
+            return payload
+        try:
+            from tradingagents.agent_harness.tools.display_view import display_view_for
+            intent = self._TOOL_INTENT_MAP.get(tool_name, "")
+            if intent:
+                html = display_view_for(payload, intent=intent)
+                if isinstance(html, str) and "<div" in html:
+                    payload["display_html"] = html
+        except Exception:
+            pass
+        return payload
+
     def _ctx_for_template(result: Any) -> dict:
         """Flatten a tool result (dict / dict-like / Pydantic) into a
         template context dict.  Templates only see primitive values.

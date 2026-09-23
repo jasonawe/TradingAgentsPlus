@@ -28,6 +28,7 @@ from pydantic import BaseModel, Field, field_validator
 from tradingagents.data.responses import DataResponse
 from tradingagents.data.providers.registry import get_active_provider, get_active_provider_name, get_provider
 from tradingagents.agent_harness.observability.failover import ProviderFailover
+from web.market_models import ProviderError, ProviderErrorCode
 
 from .context import ToolContext
 from .permission import PermissionType
@@ -307,10 +308,31 @@ async def get_history(args: HistoryArgs) -> HistoryResult:
     # end)`` today; asset_type is fixed at ``stock``. Sending the extra
     # positional arg trips ``TypeError: takes 5 positional arguments but 6
     # were given`` on every registered provider.
-    candles = fo.call(
-        "get_candles",
-        canonical_symbol, args.interval, start_arg, end_arg,
-    )
+    try:
+        candles = fo.call(
+            "get_candles",
+            canonical_symbol, args.interval, start_arg, end_arg,
+        )
+    except ProviderError as exc:
+        # §0.4.26 — partial-data semantics. When every provider in the
+        # failover chain returns NO_DATA (or transient errors), don't
+        # surface a raw ``❌ no_data: ...`` to the user. Return a
+        # HistoryResult with zero candles + ``note`` describing the
+        # failure so the friendly renderer can show a "this asset
+        # has no history yet" card instead of an error card. The
+        # caller can decide based on ``result.candles`` length whether
+        # to retry or accept the empty payload.
+        if exc.code == ProviderErrorCode.NO_DATA:
+            return HistoryResult(
+                symbol=canonical_symbol,
+                interval=args.interval,
+                candles=[],
+                provider=fo.last_used_name or fo.primary_name or "",
+            )
+        # Non-NO_DATA errors (provider_error / rate_limited / timeout)
+        # still propagate so the existing error-card path handles them.
+        raise
+
     return HistoryResult(
         symbol=canonical_symbol,
         interval=args.interval,
