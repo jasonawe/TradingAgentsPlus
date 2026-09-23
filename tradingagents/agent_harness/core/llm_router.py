@@ -77,6 +77,12 @@ class RouterPlan:
       keyword path kicked in.
     - ``source`` is one of ``"llm"``, ``"cache"``, ``"keyword_fallback"``,
       ``"empty"`` (A-class / system-level).
+    - ``requires_confirmation`` is True when at least one emitted tool
+      is a write tool (create_*/update_*/delete_*/add_to_*/remove_from_*/
+      run_trading_agents_analysis). The synthesizer uses this to
+      phrase the answer as a proposal rather than a completed
+      action — the orchestrator surfaces the actual HITL prompt
+      separately. Set by :meth:`LLMRouter._mark_writes` after parse.
     """
 
     calls: list[ToolCall]
@@ -84,6 +90,7 @@ class RouterPlan:
     fallback_reason: str | None = None
     elapsed_ms: int = 0
     confidence: float = 0.0
+    requires_confirmation: bool = False
 
 
 # ----------------------------------------------------------------------
@@ -135,6 +142,19 @@ class LLMRouter:
         "``[]``. Don't call a tool just to answer a simple question.\n"
         "- Multi-intent queries (\"做完整分析：基础面+新闻+走势\") should "
         "fan out to multiple tools in one parallel group.\n"
+        "\n"
+        "—— Read-only vs write intent (strictly enforced):\n"
+        "When the user asks for ANALYSIS / MONITORING / REVIEW / COMPARE / "
+        "完整分析 / 看看 / 对比 / 走势 / 估值 / "
+        "新闻 / 同业 / 监控告警建议 / 推荐参数, "
+        "the plan MUST be read-only: only list_* / get_* / compute_* "
+        "tools. Do NOT include create_*, update_*, delete_*, add_to_*, "
+        "remove_from_*, run_trading_agents_analysis in such plans, even "
+        "if the user says 推荐 / 建议 / 可以创建. The synthesizer "
+        "phrases recommendations as suggestions; the orchestrator surfaces "
+        "create_alert / etc. separately with HITL when the user EXPLICITLY "
+        "confirms (e.g. 创建 / 新建 / 设置 / 下单 / 加入 / "
+        "启动分析 / 跑一下).\n"
         "\n"
         "Tool catalog:\n"
         "{catalog}\n"
@@ -238,11 +258,17 @@ class LLMRouter:
             self._safe_cache_put(cache_key, calls)
         if not calls:
             self.stats["empty_plans"] += 1
+        # §0.4.31 — mark whether the plan includes a write tool so
+        # the synthesizer knows the user hasn't actually approved
+        # the action yet. The orchestrator surfaces the HITL gate
+        # separately; the answer must NOT claim success.
+        requires_confirmation = self._plan_needs_confirmation(calls)
         return RouterPlan(
             calls=calls,
             source="llm",
             elapsed_ms=_elapsed_ms(start),
             confidence=0.9,
+            requires_confirmation=requires_confirmation,
         )
 
     # ------------------------------------------------------------------
@@ -373,6 +399,28 @@ class LLMRouter:
             if isinstance(item, ToolCall):
                 out.append(item)
         return out
+
+    # §0.4.31 — write-tool detection (drives RouterPlan.requires_confirmation).
+    _WRITE_TOOLS = frozenset({
+        "create_alert", "update_alert", "delete_alert",
+        "delete_alerts_for_symbol",
+        "create_note", "update_note", "delete_note",
+        "delete_notes_for_symbol",
+        "add_to_watchlist", "remove_from_watchlist",
+        "create_scheduled_task", "update_scheduled_task",
+        "delete_scheduled_task", "delete_scheduled_tasks_for_symbol",
+        "run_trading_agents_analysis", "cancel_analysis_run",
+        "run_scheduled_task",
+    })
+
+    def _plan_needs_confirmation(self, calls: list[ToolCall]) -> bool:
+        """Return True if any call in the plan is a write tool.
+
+        The synthesizer treats requires_confirmation=True plans as
+        proposals — the actual HITL gate is surfaced separately by
+        the orchestrator. See §0.4.31.
+        """
+        return any(c.tool in self._WRITE_TOOLS for c in calls)
 
     def _safe_cache_put(self, key: str, calls: list[ToolCall]) -> None:
         try:

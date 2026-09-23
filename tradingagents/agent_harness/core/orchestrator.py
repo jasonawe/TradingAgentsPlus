@@ -230,6 +230,12 @@ class OrchestratorState:
     # ``None`` means router-first fell back to the keyword path (or the
     # legacy Tier 1 short-circuit consumed the turn before _plan ran).
     router_plan: Any = None  # tradingagents.agent_harness.core.llm_router.RouterPlan
+    # §0.4.31 — whether the router plan included any write tool. The
+    # synthesizer treats this as a signal to phrase the answer as
+    # a proposal (建议 / 可以创建) rather than a completed
+    # action. The orchestrator surfaces the actual HITL prompt
+    # separately via _hitl_gate. See LLMRouter._WRITE_TOOLS.
+    requires_confirmation: bool = False
     # Q1 / P2-4: live turn + step bookkeeping. Filled in by ``_stream_chat_impl``.
     turn: Any = None
     current_step_id: int = 0
@@ -1068,6 +1074,13 @@ class Orchestrator:
         # §0.4.30 — propagate router plan (set above) onto state so
         # _plan() reuses it without a second LLM call.
         state.router_plan = router_plan
+        # §0.4.31 — propagate the write-tool flag so the synthesizer
+        # knows to phrase the answer as a proposal, not a completed
+        # action. Falls back to False on the keyword-fallback path
+        # (where _CRUD_DISPATCH handles HITL via _hitl_gate separately).
+        state.requires_confirmation = bool(
+            getattr(router_plan, "requires_confirmation", False)
+        )
 
         # Session lifecycle (roadmap A2): auto-create or update metadata.
         if self._session_store is not None:
@@ -3459,13 +3472,40 @@ class Orchestrator:
 "- NEVER start the answer with `####` headings just to mirror "
 "tool output structure. A single sentence is enough.\n"
         "\n"
-        "Grounding rules:\n"
-        "- Numbers must come from tool results. If a tool returned null / "
-        "\"[stub]\" / an error, surface it as missing rather than inventing "
-        "an estimate.\n"
-        "- Brief historical references (e.g. \"2021 年高点约 53 元\") "
-        "are allowed if marked \"参考\" / \"常识\" — the L3 "
-        "judge down-weights them but does not fail the answer.\n"
+        "Grounding rules (—— strictly enforced; L3 judge fails the answer):\n"
+        "- Numbers, dates, and volume figures MUST come from tool results. "
+        "If a tool returned null / \"[stub]\" / an error / partial data, "
+        "surface it as \"数据缺失\" rather than inventing an estimate. "
+        "DO NOT cite a number you cannot point to in the tool results.\n"
+        "- If a tool returned an error or empty result for a specific "
+        "metric (e.g. \"数据错误\" / \"[]\" / \"no_data\"), say so "
+        "explicitly — do NOT fall back to \"参考\" / \"常识\" "
+        "for that exact metric.\n"
+        "- \"参考\" / \"常识\" references are ONLY allowed for "
+        "general background (e.g. \"2021 年高点约 53 元—参考\"). "
+        "They must NOT replace specific data points the user asked for "
+        "(price / volume / change / etc.).\n"
+        "\n"
+        "UI hallucination prevention (—— common failure mode):\n"
+        "- Do NOT describe UI dialogs, buttons, popups, banners, or pages.\n"
+        "(e.g. never say \"页面已弹出对话框\" / "
+        "\"请点击按钮\").\n"
+        "The user already sees the actual UI. Report the tool-call status "
+        "(e.g. \"已提交 create_alert，等待审批\") or the "
+        "final outcome. The UI layer is not part of your output.\n"
+        "\n"
+        "Write-tool confirmation (—— see state.requires_confirmation):\n"
+        "- If a write tool (create_*/update_*/delete_*/add_to_*/remove_from_*/\n"
+        "run_trading_agents_analysis) appears in tool_results with status "
+        "\"pending_approval\" / \"AWAITING_CONFIRMATION\", the answer must NOT "
+        "say \"已创建\" / \"完成\" — say \"已提交审批，未"
+        "执行\" instead.\n"
+        "- If the user asked for analysis / monitoring / recommendation of "
+        "alerts and the plan emitted create_alert (i.e. requires_confirmation=\n"
+        "True), prefer phrasing it as a \"建议\" / \"可以创建\" "
+        "and NOT as a completed action. The orchestrator surfaces the actual "
+        "confirmation prompt to the user separately.\n"
+
         "\n"
         "Citation contract (Step 22 P1):\n"
         "- When the answer cites numbers / news / events from tool results, "
@@ -3589,14 +3629,14 @@ class Orchestrator:
             })
             pending_note = (
                 "\n\nIMPORTANT: One or more write tools returned "
-                "``pending_approval``. The UI is ALREADY showing a "
-                "confirmation dialog (centered modal) with 批准/拒绝 "
-                "buttons. Tell the user explicitly: \"\u9875\u9762\u5df2 "
-                "\u5f39\u51fa\u5ba1\u6279\u5bf9\u8bdd\u6846\uff0c\u8bf7\u70b9\u51fb "
-                "\u6279\u51c6 \u6216 \u62d2\u7edd \u6309\u94ae\u3002\" Do NOT ask "
-                "the user to type \"\u786e\u8ba4\u5220\u9664\" or similar "
-                "phrases \u2014 the confirmation is a UI action, not a chat "
-                "message. The pending tools are: " + ", ".join(tools) + "."
+                "``pending_approval``. Per the grounding rules above, the "
+                "answer must say \"\u5df2\u63d0\u4ea4\u5ba1\u6279\uff0c\u672a"
+                "\u6267\u884c\" \u2014 NOT \"\u5df2\u521b\u5efa\" / \"\u5b8c"
+                "\u6210\". Do NOT describe UI dialogs, buttons, or modals; "
+                "do NOT ask the user to type \"\u786e\u8ba4\" or similar "
+                "phrases \u2014 confirmation happens out-of-band, not in chat. "
+                "Just state the write-tool status and the pending tools: "
+                + ", ".join(tools) + "."
             )
         return (
             f"Current date: {self._format_now_cst()}\n\n"
@@ -3617,10 +3657,11 @@ class Orchestrator:
             "\"out of scope\". Do NOT ask the user to clarify the ticker "
             "when the focus-asset hint already names it \u2014 that is the answer."
             + ("" if not pending_approvals else
-               "\n\nFor pending_approval results: just acknowledge "
-               "the dialog is showing \u2014 do NOT enumerate the data "
-               "fields or repeat the args. The user will click \u6279\u51c6 "
-               "(Approve) or \u62d2\u7edd (Reject) in the modal."
+               "\n\nFor pending_approval results: state \"\u5df2\u63d0"
+               "\u4ea4\u5ba1\u6279\uff0c\u672a\u6267\u884c\" and do NOT "
+               "enumerate the data fields or repeat the args. Do NOT "
+               "describe UI dialogs / buttons / modals \u2014 confirmation "
+               "happens out-of-band."
               )
         )
 
