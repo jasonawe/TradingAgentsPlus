@@ -1,6 +1,8 @@
-# [Phase 1 — Multi-Agent Runtime Skeleton] Implementation Plan (rev. 5)
+# [Phase 1 — Multi-Agent Runtime Skeleton] Implementation Plan (rev. 6)
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Last review round:** 5 (Pauli). Verdict: APPROVE_WITH_NITS — 9 findings applied (1 HIGH + 4 MEDIUM + 2 LOW + 2 INFO). HIGH #1 introduces `tests/test_multi_agent_orchestrator_wiring.py`; verify this file exists in the test list before starting Phase 1.
 
 **Goal:** Land the type system, `$ref` resolver (rightmost-split precedence, no parens), `PlanCompiler` (group-order case), `GraphExecutor` skeleton (inbox propagation + per-edge hop reset, no cross-run state leak), and `consult_subagent` stub **behind the `runtime.multi_agent` flag (default off)** without changing any existing behaviour. All current tests must remain green.
 
@@ -14,6 +16,8 @@
 - `consult_subagent`'s second param is `context: ToolContext | None = None` (matches every other built-in tool's signature).
 - Compiler's import is `from ...core.orchestrator import _TOOL_TO_AGENT` (THREE dots — `multi_agent` is 3 levels deep from `tradingagents/`).
 - Resolver regex field capture requires leading `[A-Za-z_]` (matches Python attribute rules; rev.5 fix from LOW #8).
+ - **Spec §4.4 vs §4.6 max_hops inconsistency**: §4.4 says loop edge default 3, §4.6 step 4 says 2 (Phase 1 uses 2 per §4.6; rev.3 LOW #14). Future spec reconciliation to 3 affects `test_edge_default_max_hops_is_2_per_spec` + loop regression test (`max_hops=2 → 4 message_log entries`).
+ - **Phase 1 dispatch placement**: multi_agent branch lives in `_plan()` (planner) and runs ALONGSIDE PTC for observability only. Phase 5 (cutover) will move dispatch into `_execute()` and skip PTC (rev.6 INFO #2 / Pauli round-5).
 - All `$ref` tests use rightmost-split precedence; **parentheses are NOT supported in Phase 1**.
 
 **Relationship to existing PlanGraph** (resolves review blocker F2):
@@ -74,6 +78,7 @@
 | `tests/test_multi_agent_nodes.py` | `ToolNode` + stubs |
 | `tests/test_multi_agent_executor.py` | Linear + inbox + budget + heartbeat + **loop-edge** + **cross-run reset** |
 | `tests/test_consult_subagent.py` | Args validation + signature |
+| `tests/test_multi_agent_orchestrator_wiring.py` | Flag-off skips multi_agent; flag-on runs PlanCompiler + GraphExecutor; flag-on falls through to PTC on `CompileError` + generic `Exception` (rev.6 HIGH #1 / Pauli round-5) |
 
 All tests use `asyncio.run()` + `_run(coro)` helper. **No bare `async def test_...`**.
 
@@ -1921,20 +1926,23 @@ git push tradingagentsplus phase1-runtime-skeleton
 - [ ] No dead `_program = _plan_from_router(...)` call
 - [ ] All existing tests pass
 - [ ] `tests/test_agent_runtime_*.py` explicitly pass (collision regression guard)
+- [ ] **`runtime.multi_agent=False` → orchestrator `_plan()` never invokes `PlanCompiler.compile` nor `GraphExecutor.run`** (test `test_orchestrator_flag_off_skips_multi_agent`, rev.6 HIGH #1)
+- [ ] **`runtime.multi_agent=True` → orchestrator invokes `PlanCompiler.compile` once + `GraphExecutor.run` once** (test `test_orchestrator_flag_on_runs_multi_agent`, rev.6 HIGH #1)
+- [ ] **`runtime.multi_agent=True` + compile/Executor raises `CompileError` (or any `Exception`) → orchestrator logs warning + falls through to PTC plan, no exception propagated** (test `test_orchestrator_flag_on_falls_through_on_compile_error`, rev.6 HIGH #1)
 - [ ] `/reports` and `/scheduled` pages still render
 - [ ] Phase 1 tag pushed to `tradingagentsplus`
 
 ## Out of Scope (deferred to later phases)
 
 - **Phase 2**: real LLM call in `LLMNode` + `ConsultNode`; consult_subagent registered via `@tool_registry.register(...)`; **add `consult_subagent` to `_TOOL_TO_AGENT`** mapping; enforce `state.consultation_rate_limit` inside `GraphExecutor._invoke` (no nested `consult_subagent` calls; spec §7 LLM cost risk); **move per-edge loop hop counter from `Edge.hops_used` to `state.edge_hops: dict[(src,dst), int]`** per spec §4.7 (round-4 HIGH #1 follow-up — Phase 1 mutates input GraphSpec as a minimal patch)
-- **Phase 3**: cross-agent `$ref` resolution at runtime (in `ToolNode.run`); LLM router teaches `$ref` syntax; **PlanCompiler scans `call.args` for `$ref` expressions and emits data edges from referenced agent's output** (spec §4.6 step 2); **PlanCompiler enforces per-agent scoping — `$ref` without an explicit edge from the calling node raises `CompileError`** (spec §4.5); **PlanCompiler detects feedback (an agent's `$ref` points to a prior group) and emits a loop edge with `max_hops=2` instead of a data edge** (spec §4.6 step 4); **after each node run, `GraphExecutor` writes `state.agent_outputs[node.id] = result`** so resolver's `_lookup` works for cross-agent refs (round-4 MEDIUM #4); paren support in resolver (only if needed); **entry-node `$ref` resolution may produce stale/missing inputs until `state.agent_outputs` population lands** (round-4 MEDIUM #5)
+- **Phase 3**: cross-agent `$ref` resolution at runtime (in `ToolNode.run`); LLM router teaches `$ref` syntax; **PlanCompiler scans `call.args` for `$ref` expressions and emits data edges from referenced agent's output** (spec §4.6 step 2); **PlanCompiler enforces per-agent scoping — `$ref` without an explicit edge from the calling node raises `CompileError`** (spec §4.5); **PlanCompiler detects feedback (an agent's `$ref` points to a prior group) and emits a loop edge with `max_hops=2` instead of a data edge** (spec §4.6 step 4); **after each node run, `GraphExecutor` writes `state.agent_outputs[node.id] = result`** so resolver's `_lookup` works for cross-agent refs (round-4 MEDIUM #4); paren support in resolver (only if needed); **entry-node `$ref` resolution may produce stale/missing inputs until `state.agent_outputs` population lands** (round-4 MEDIUM #5); **swap executor's `activated: set[str]` (`has-been-run` + `has_loop` bypass) for FieldRef-satisfaction check per spec §4.7 — a node is activated only when every `$ref` in its `inputs` resolves to non-empty `state.agent_outputs`; drop the `has_loop` bypass once FieldRefs gate activation; loop edges still re-fire via the per-edge counter** (rev.6 MEDIUM #1 / Pauli round-5)
 - **Phase 4**: `SubplanNode.run` + `trading_agents` graph fragment; `GraphState.fork()` lands; `symbols` + `plan_id` propagation into `GraphState`; orchestration nodes (`validate_inputs`, `verify_outputs`, `aggregate_signals`) added by `PlanCompiler` per spec §4.6; verifier reads `TypedResult.meta.source_ts` to reject stale outputs (spec §7)
 - **Phase 5**: cutover — `multi_agent=true` becomes default
 - **Phase 5+**: UI SSE events `agent_message` / `agent_handoff` and dock data-flow rows (spec §7); PlanCompiler cache key `(intent, agent_set, plan_hash)` derived from **immutable parts only** — NOT `GraphSpec.to_dict()` (round-4 MEDIUM #2; `to_dict()` includes mutable `hops_used`); a future cache helper should hash `(intent, frozenset(nodes), plan_source_hash)` where `plan_source_hash` is computed from the raw `RouterPlan` before any `Edge.hops_used` mutation
 - **Phase 6**: mid-flight `GraphState` snapshots via `AgentRuntimeStore`
 - **Phase 2 cleanup (optional)**: lift `_TOOL_TO_AGENT` from `core.orchestrator` into `agents/registry.py` or new `agents/tool_to_agent.py`
 
-## Review Fixes Applied (rev. 1 → rev. 5)
+## Review Fixes Applied (rev. 1 → rev. 6)
 
 | ID | Rev. | Fix |
 |---|---|---|
