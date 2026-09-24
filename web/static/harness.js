@@ -904,7 +904,9 @@
         <span class="harness-todo-agent"></span>
       `;
       row.querySelector(".harness-todo-label").textContent = t.label || t.tool || "?";
-      row.querySelector(".harness-todo-agent").textContent = agentBadge(t.agent);
+      const agentEl = row.querySelector(".harness-todo-agent");
+      agentEl.textContent = agentBadge(t.agent);
+      if (t.agent) agentEl.dataset.agent = t.agent;
       row.classList.add(`status-${t.status || "pending"}`);
       list.appendChild(row);
     });
@@ -928,7 +930,10 @@
     if (icon) icon.textContent = todoStatusIcon(status);
     if (patch.agent) {
       const agentEl = row.querySelector(".harness-todo-agent");
-      if (agentEl) agentEl.textContent = agentBadge(patch.agent);
+      if (agentEl) {
+        agentEl.textContent = agentBadge(patch.agent);
+        agentEl.dataset.agent = patch.agent;
+      }
     }
     if (status === "error" && patch.error) {
       const labelEl = row.querySelector(".harness-todo-label");
@@ -978,14 +983,16 @@
   }
 
   function agentBadge(agent) {
-    // Short human-friendly label + emoji.
+    // Short emoji + name. Per-agent colour tints are applied via the
+    // [data-agent] CSS attribute on the badge element so the colour
+    // stays in sync even after status transitions (e.g. done).
     return ({
       data_agent: "🤖 data",
       alpha_agent: "📐 alpha",
       news_agent: "📰 news",
       command_resolver: "✍️ cmd",
       trading_agents: "🏦 ta",
-    })[agent] || agent || "?";
+    })[agent] || (agent ? `🧩 ${agent}` : "❓");
   }
 
   function clearTodoEl() {
