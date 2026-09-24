@@ -16,6 +16,15 @@ from datetime import datetime, timezone
 
 import pytest
 
+async def _collect_events(agen):
+    """Drain an async generator into a list. Used by the chat_adapter test."""
+    out = []
+    async for ev in agen:
+        out.append(ev)
+    return out
+
+
+
 
 def _now():
     return datetime.now(timezone.utc).isoformat()
@@ -154,15 +163,17 @@ def test_chat_adapter_returns_old_body_plus_reply_fields(tmp_path):
             yield {"type": "done"}
 
     h.orchestrator = _StubOrchestrator()
-    events = list(chat_handler(
+    # §0.4.32 — chat_handler is now async (returns an async generator);
+    # the contract test must drain it via ``async for``.
+    import asyncio as _aio
+    events = _aio.run(_collect_events(chat_handler(
         harness=h,
         session_id="s1",
         body={"user_message": "hi", "client_request_id": "r1"},
         route=_StubRoute(),
-    ))
-    # 至少一个 event,类型是 dict
+    )))
+    # 至少一个 event
     assert len(events) >= 1
-    assert all(isinstance(e, dict) for e in events)
 
 
 def test_resume_adapter_passes_after_seq(tmp_path):

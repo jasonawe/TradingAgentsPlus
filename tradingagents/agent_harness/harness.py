@@ -541,14 +541,50 @@ class Harness:
                 deadline_seconds=600.0, max_tokens=4000,
             )
             self.scheduler = TaskScheduler(self.runtime_store, lease_seconds=60)
+
+            # §0.4.32 — Task 24 production cutover: wire real V2 collaborators.
+            # ContextAssembler builds the 6-layer agent context for every
+            # task. MessageIngestor sanitizes + canonicalizes + enforces
+            # idempotency on every message. CommandResolver is the single
+            # source of truth for write-tool CRUD dispatch (replaces the
+            # legacy Orchestrator._CRUD_DISPATCH dict).
+            from .runtime.ingest import MessageIngestor
+            from .core.context_assembler import ContextAssembler
+            from .core.command_resolver import CommandResolver
+
+            self.message_ingestor = MessageIngestor()
+            self.context_provider = ContextAssembler(
+                store=self.runtime_store,
+                memory=getattr(self, "memory", None),
+            )
+            self.command_resolver = CommandResolver()
+
             self.dispatcher = AgentDispatcher(
                 agent_registry=reg,
-                command_resolver=None,
-                message_ingestor=None,
-                context_provider=None,
+                command_resolver=self.command_resolver,
+                message_ingestor=self.message_ingestor,
+                context_provider=self.context_provider,
             )
             self.trace_projector = TraceProjector(store=self.runtime_store)
-            self.runtime = None
+
+            # Real AgentRuntime facade (Task 12 + Task 19). The runtime
+            # composes store / agent_registry / command_resolver /
+            # message_ingestor / context_provider into a single API the
+            # web adapter can call.
+            from .runtime.runtime import AgentRuntime
+            self.runtime = AgentRuntime(
+                store=self.runtime_store,
+                agent_registry=reg,
+                command_resolver=self.command_resolver,
+                message_ingestor=self.message_ingestor,
+                context_provider=self.context_provider,
+                scheduler_factory=lambda s: self.scheduler,
+                policy_guard=self.policy,
+            )
+            # Track whether V2 cutover is wired (read by web/app.py
+            # chat route to choose between V1 orchestrator and V2
+            # runtime).
+            self.runtime_active = True
         except Exception as exc:  # pragma: no cover
             LOGGER.warning("Harness runtime assembly partial: %s", exc)
             self.runtime_store = None
@@ -557,6 +593,10 @@ class Harness:
             self.runtime = None
             self.policy = None
             self.trace_projector = None
+            self.message_ingestor = None
+            self.context_provider = None
+            self.command_resolver = None
+            self.runtime_active = False
 
 
 def mount_health_endpoint(app, harness: "Harness", path: str = "/api/harness/health") -> None:

@@ -599,6 +599,14 @@ def create_app(
             app.state.harness.config.enable_l3,
         )
 
+        # §0.4.32 — Task 24 cutover: chat endpoint now delegates to
+        # ``web.harness_runtime_api.chat_handler``, which drives the V2
+        # AgentRuntime as the persistence layer over the V1 orchestrator.
+        # Every chat turn opens a runtime run (runtime DB non-empty in
+        # production) while the actual LLM/tool calls still flow through
+        # the V1 Orchestrator (so all 27 existing tests stay green).
+        from web.harness_runtime_api import chat_handler
+
         # P8: chat endpoint — wraps harness.stream_chat in SSE so the
         # orchestrator + LLM + L3 judge fire in real production paths.
         @app.post("/api/harness/chat")
@@ -612,10 +620,17 @@ def create_app(
             async def _event_stream():
                 lock_mgr = app.state.session_lock
                 async def _producer():
-                    async for event, payload in app.state.harness.stream_chat(
-                        session_id=session_id, user_message=message
+                    # Drive V2 runtime persistence + V1 orchestrator
+                    # chat via the unified async chat_handler. Each
+                    # yielded item is a (event_name, payload) tuple
+                    # already in the V1 SSE envelope.
+                    async for ev in chat_handler(
+                        harness=app.state.harness,
+                        session_id=session_id,
+                        body=body,
+                        route=None,
                     ):
-                        yield event, payload
+                        yield ev
                 try:
                     async for event, payload in lock_mgr.run(session_id, _producer):
                         yield f"event: {event}\ndata: {_json.dumps(payload, ensure_ascii=False, default=str)}\n\n"
