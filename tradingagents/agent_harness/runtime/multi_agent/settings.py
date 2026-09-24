@@ -25,6 +25,12 @@ class RuntimeSettings(BaseModel):
     # Range per plan / spec §4.2: ``[0.0, 0.8]``. Pydantic ``ge=0.0, le=0.8``
     # auto-raises ``ValidationError`` (aliased as ``SettingsError``).
     consultation_rate_limit: float = Field(default=0.5, ge=0.0, le=0.8)
+    # §0.4.35 phase 4 (Work unit 1) — sub-plan nesting guard.
+    # Mirrors ``consultation_max_depth``: ``ge=1`` so the executor
+    # always has at least 1 level of sub-plan budget. The orchestrator
+    # plumbs this into ``GraphState.subplan_max_depth`` via
+    # ``_build_graph_state``.
+    subplan_max_depth: int = Field(default=3, ge=1, le=10)
 
 def load_settings() -> RuntimeSettings:
     """Read runtime settings from the live dataflows config."""

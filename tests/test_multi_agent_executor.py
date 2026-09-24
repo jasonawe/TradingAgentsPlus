@@ -468,22 +468,33 @@ def test_executor_writes_consult_node_result_to_agent_outputs(monkeypatch):
     assert typed.data["answer"] == "consult answer"
 
 
-def test_executor_writes_failure_marker_for_subplan_node():
-    """SubplanNode raises NotImplementedError → executor writes ok=False marker."""
-    n1 = SubplanNode(id="a", agent_id="data_agent", sub_graph=MagicMock())
-    spec = GraphSpec(nodes={"a": n1}, edges=[], entry="a", exit="a")
+def test_executor_subplan_node_runs_real_sub_graph_and_writes_ok_marker(monkeypatch):
+    """Phase 4 WU1: SubplanNode is no longer a stub — runs self.sub_graph
+    via a fresh GraphExecutor on a forked state. Executor writes the
+    sub-plan's ok=True marker into state.agent_outputs[self.id]."""
+    import tradingagents.agent_harness.runtime.multi_agent.nodes as nodes_mod
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            return MagicMock(ok=True, result={"echoed": tool_name})
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    inner = ToolNode(id="inner_a", agent_id="data_agent",
+                     tool_name="get_quote", raw_args={"symbol": "X"})
+    inner_spec = GraphSpec(
+        nodes={"inner_a": inner}, edges=[], entry="inner_a", exit="inner_a",
+    )
+    outer = SubplanNode(id="a", agent_id="data_agent", sub_graph=inner_spec)
+    spec = GraphSpec(nodes={"a": outer}, edges=[], entry="a", exit="a")
     state = GraphState(run_id="r", turn_id="t", intent="x")
 
-    # Executor swallows the exception (rev.5 contract); agent_outputs must
-    # still record the failure for downstream $ref to detect.
     _run(GraphExecutor().run(spec, state))
 
     assert "a" in state.agent_outputs
     typed = state.agent_outputs["a"]
-    assert typed.data is None
-    assert typed.meta["ok"] is False
-    assert "NotImplementedError" in typed.meta["error"]
-    assert typed.meta["source_agent"] == "data_agent"
+    assert typed.data["ok"] is True
+    assert "sub_results" in typed.data
 
 
 def test_executor_writes_failure_marker_for_failed_llm_node_no_provider(monkeypatch):

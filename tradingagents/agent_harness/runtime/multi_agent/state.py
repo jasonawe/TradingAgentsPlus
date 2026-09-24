@@ -78,6 +78,17 @@ class GraphState:
     # dimension (data/when/loop) if same-(src,dst) tuples with different
     # semantics appear in the same spec.
     edge_hops: dict[tuple[str, str], int] = field(default_factory=dict)
+    # §0.4.35 phase 4 (Work unit 1) — sub-plan nesting guard.
+    # ``subplan_depth`` increments each time SubplanNode.run forks the
+    # state; when it reaches ``subplan_max_depth``, SubplanNode refuses
+    # with a ``SubplanDepthExceeded`` TypedResult. Per-turn state means
+    # this counter auto-resets across turns. Mirrors the consultation
+    # depth/rate-limit pattern from Phase 2.
+    subplan_depth: int = 0
+    # Default mirrors ``RuntimeSettings.subplan_max_depth`` (3). The
+    # orchestrator's ``_build_graph_state`` plumbs the user-configured
+    # value in via the kwarg — see ``core/orchestrator.py``.
+    subplan_max_depth: int = 3
 
     def append_inbox(self, msg: Message) -> None:
         self.inbox.setdefault(msg.receiver, []).append(msg)
@@ -86,4 +97,63 @@ class GraphState:
     def consume_inbox(self, receiver: str) -> list[Message]:
         return self.inbox.pop(receiver, [])
 
-    # NOTE: fork() lands in Phase 4 when SubplanNode needs it.
+    def fork(self) -> "GraphState":
+        """Phase 4 WU1: shallow copy with deep-copied mutable fields.
+
+        Returns an independent ``GraphState`` suitable for ``SubplanNode``
+        to execute a sub-graph in isolation — mutations on the fork do
+        NOT affect the parent (and vice versa). Scalars (run_id, turn_id,
+        intent, counters) share the same value; structural primitives
+        (dicts / lists of TypedResult / Message) are deep-copied.
+
+        INVARIANT: ``TypedResult.data`` is treated as opaque — caller-
+        provided dicts/lists are deep-copied so the fork can mutate
+        nested structures without leaking into the parent.
+        """
+        import copy as _copy
+        from dataclasses import replace
+        return replace(
+            self,
+            agent_outputs={
+                k: TypedResult(
+                    schema=v.schema,
+                    data=_copy.deepcopy(v.data),
+                    meta=dict(v.meta),
+                )
+                for k, v in self.agent_outputs.items()
+            },
+            inbox={
+                recv: [
+                    Message(
+                        sender=m.sender,
+                        receiver=m.receiver,
+                        payload=TypedResult(
+                            schema=m.payload.schema,
+                            data=_copy.deepcopy(m.payload.data),
+                            meta=dict(m.payload.meta),
+                        ),
+                        kind=m.kind,
+                        ts=m.ts,
+                        hop=m.hop,
+                    )
+                    for m in msgs
+                ]
+                for recv, msgs in self.inbox.items()
+            },
+            message_log=[
+                Message(
+                    sender=m.sender,
+                    receiver=m.receiver,
+                    payload=TypedResult(
+                        schema=m.payload.schema,
+                        data=_copy.deepcopy(m.payload.data),
+                        meta=dict(m.payload.meta),
+                    ),
+                    kind=m.kind,
+                    ts=m.ts,
+                    hop=m.hop,
+                )
+                for m in self.message_log
+            ],
+            edge_hops=dict(self.edge_hops),
+        )

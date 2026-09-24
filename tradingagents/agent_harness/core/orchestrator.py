@@ -175,6 +175,8 @@ def _build_graph_state(orch_state, settings):
     """Build a per-turn GraphState from the orchestrator's state.
 
     Phase 1: shallow — only carries run_id / turn_id / intent / budget knobs.
+    Phase 4 WU1: plumbs ``settings.subplan_max_depth`` so nested
+    SubplanNodes refuse at the configured limit (default 3).
     Phase 6 will wire AgentRuntimeStore snapshot loading.
 
     Rev.4: reads ``orch_state.intent.value`` (RouterPlan has no ``intent``
@@ -192,6 +194,7 @@ def _build_graph_state(orch_state, settings):
         hops_remaining=settings.max_hops,
         budget_limit=settings.llm_budget_per_turn,
         consultation_rate_limit=settings.consultation_rate_limit,
+        subplan_max_depth=settings.subplan_max_depth,
     )
 
 

@@ -81,3 +81,29 @@ def test_runtime_settings_rate_limit_boundary_values():
     assert s_low.consultation_rate_limit == 0.0
     s_high = RuntimeSettings(consultation_rate_limit=0.8)
     assert s_high.consultation_rate_limit == 0.8
+
+
+# ────────────────────────────────────────────────────────────────────────
+# §0.4.35 phase 4 — Work unit 1: subplan_max_depth
+# ────────────────────────────────────────────────────────────────────────
+
+def test_runtime_settings_subplan_max_depth_default():
+    """Phase 4 WU1: subplan_max_depth default = 3 (mirrors consultation_max_depth)."""
+    s = RuntimeSettings()
+    assert s.subplan_max_depth == 3
+
+
+def test_runtime_settings_subplan_max_depth_override():
+    s = RuntimeSettings(subplan_max_depth=5)
+    assert s.subplan_max_depth == 5
+
+
+def test_runtime_settings_subplan_max_depth_out_of_range():
+    """subplan_max_depth must be in [1, 10] — out-of-range raises SettingsError."""
+    from tradingagents.agent_harness.runtime.multi_agent.settings import (
+        SettingsError,
+    )
+    with pytest.raises(SettingsError):
+        RuntimeSettings(subplan_max_depth=0)
+    with pytest.raises(SettingsError):
+        RuntimeSettings(subplan_max_depth=11)

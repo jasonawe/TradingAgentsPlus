@@ -19,7 +19,7 @@ from tradingagents.agent_harness.llm.base import (
     LLMProvider,
     LLMResponse,
 )
-from tradingagents.agent_harness.runtime.multi_agent.graph import NodeKind
+from tradingagents.agent_harness.runtime.multi_agent.graph import GraphSpec, NodeKind
 from tradingagents.agent_harness.runtime.multi_agent.nodes import (
     ConsultNode,
     LLMNode,
@@ -105,12 +105,108 @@ def test_tool_node_dispatches_via_pipeline(monkeypatch):
                                 "args": {"symbol": "X"}}
 
 
-def test_subplan_node_raises_not_implemented():
-    # SubplanNode still a stub until Phase 4.
-    node = SubplanNode(id="c", agent_id="trading_agents", sub_graph=MagicMock())
+def test_subplan_node_runs_sub_graph_and_writes_results_to_parent(monkeypatch):
+    """Phase 4 WU1: SubplanNode executes self.sub_graph in a forked state,
+    parent state preserved except for state.agent_outputs[self.id]."""
+    import tradingagents.agent_harness.runtime.multi_agent.nodes as nodes_mod
+
+    captured = {}
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            captured["tool_name"] = tool_name
+            return MagicMock(ok=True, result={"echoed": tool_name})
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    inner = ToolNode(id="inner_a", agent_id="data_agent",
+                     tool_name="get_quote", raw_args={"symbol": "X"})
+    inner_spec = GraphSpec(
+        nodes={"inner_a": inner}, edges=[], entry="inner_a", exit="inner_a",
+    )
+    outer = SubplanNode(id="sub", agent_id="data_agent",
+                        sub_graph=inner_spec)
     state = GraphState(run_id="r", turn_id="t", intent="x")
-    with pytest.raises(NotImplementedError):
-        _run(node.run(state, inbox=[]))
+
+    out = _run(outer.run(state, inbox=[]))
+
+    # SubplanNode returns 1 result-message to next consumer
+    assert len(out) == 1
+    msg = out[0]
+    assert msg.sender == "sub"
+    # data shape mirrors ConsultNode pattern
+    assert msg.payload.data["ok"] is True
+    assert "sub_results" in msg.payload.data
+
+    # Parent state.agent_outputs[self.id] populated
+    assert "sub" in state.agent_outputs
+
+
+def test_subplan_node_refuses_when_subplan_depth_at_max():
+    """Phase 4 WU1: refuses with TypedResult(ok=False) when state.subplan_depth
+    is already at state.subplan_max_depth (depth guard)."""
+    inner = ToolNode(id="inner_a", agent_id="data_agent",
+                     tool_name="get_quote", raw_args={"symbol": "X"})
+    inner_spec = GraphSpec(
+        nodes={"inner_a": inner}, edges=[], entry="inner_a", exit="inner_a",
+    )
+    outer = SubplanNode(id="sub", agent_id="data_agent",
+                        sub_graph=inner_spec)
+
+    state = GraphState(
+        run_id="r", turn_id="t", intent="x",
+        subplan_depth=3, subplan_max_depth=3,
+    )
+
+    out = _run(outer.run(state, inbox=[]))
+
+    # Refusal result-message
+    assert len(out) == 1
+    typed = out[0].payload
+    assert typed.data["ok"] is False
+    assert typed.data["error"] == "SubplanDepthExceeded"
+    assert typed.data["subplan_depth"] == 3
+    assert typed.data["max_depth"] == 3
+    assert typed.meta.get("refused") is True
+
+    # Parent state.agent_outputs[self.id] NOT written on refusal
+    assert "sub" not in state.agent_outputs
+
+
+def test_subplan_node_respects_configurable_subplan_max_depth(monkeypatch):
+    """Phase 4 WU1: subplan_max_depth is configurable on GraphState."""
+    import tradingagents.agent_harness.runtime.multi_agent.nodes as nodes_mod
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            return MagicMock(ok=True, result={"echoed": tool_name})
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    inner = ToolNode(id="inner_a", agent_id="data_agent",
+                     tool_name="get_quote", raw_args={"symbol": "X"})
+    inner_spec = GraphSpec(
+        nodes={"inner_a": inner}, edges=[], entry="inner_a", exit="inner_a",
+    )
+    outer = SubplanNode(id="sub", agent_id="data_agent",
+                        sub_graph=inner_spec)
+
+    # depth=2, max=2 → refuse
+    state_refuse = GraphState(
+        run_id="r", turn_id="t", intent="x",
+        subplan_depth=2, subplan_max_depth=2,
+    )
+    out_refuse = _run(outer.run(state_refuse, inbox=[]))
+    assert out_refuse[0].payload.data["ok"] is False
+
+    # depth=1, max=3 → proceed (write agent_outputs)
+    state_proceed = GraphState(
+        run_id="r", turn_id="t", intent="x",
+        subplan_depth=1, subplan_max_depth=3,
+    )
+    out_proceed = _run(outer.run(state_proceed, inbox=[]))
+    assert out_proceed[0].payload.data["ok"] is True
+    assert "sub" in state_proceed.agent_outputs
 
 
 # ────────────────────────────────────────────────────────────────────────

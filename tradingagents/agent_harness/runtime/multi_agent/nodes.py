@@ -197,7 +197,82 @@ class SubplanNode:
         self.outputs: list[FieldRef] = list(outputs or [])
 
     async def run(self, state: GraphState, inbox: list[Message]) -> list[Message]:
-        raise NotImplementedError("SubplanNode lands in Phase 4")
+        """Phase 4 WU1: execute self.sub_graph in a forked state.
+
+        Spec §4.11 + plan Phase 4 WU1 contract:
+
+        1. **Depth guard** — refuse with ``TypedResult(ok=False,
+           "SubplanDepthExceeded")`` when ``state.subplan_depth >=
+           state.subplan_max_depth``. No mutation on refusal.
+        2. **Fork state** — ``state.fork()`` returns an independent
+           ``GraphState`` (parent untouched by sub-graph execution).
+        3. **Increment depth** on the fork — ``forked.subplan_depth =
+           state.subplan_depth + 1`` so nested SubplanNodes see the
+           bumped depth and refuse at the configured limit.
+        4. **Run sub-graph** via a fresh ``GraphExecutor`` on the fork.
+        5. **Collect results** into ``state.agent_outputs[self.id]``
+           as a TypedResult wrapping the sub-graph's
+           ``agent_outputs`` dict. The parent state is preserved
+           otherwise — only ``state.agent_outputs[self.id]`` is
+           written.
+        6. **Return 1 result-message** to the next consumer (mirrors
+           ``ConsultNode``'s ``{"ok": True, ...}`` envelope).
+
+        INVARIANT: parent state is NEVER mutated by the sub-graph's
+        execution (only by the explicit write of
+        ``state.agent_outputs[self.id]`` here).
+        """
+        # Depth guard — refuse BEFORE forking so a refused sub-plan
+        # doesn't pollute the message_log or agent_outputs.
+        if state.subplan_depth >= state.subplan_max_depth:
+            typed = TypedResult(
+                schema=dict,
+                data={
+                    "ok": False,
+                    "error": "SubplanDepthExceeded",
+                    "subplan_depth": state.subplan_depth,
+                    "max_depth": state.subplan_max_depth,
+                },
+                meta={"refused": True},
+            )
+            return [Message(sender=self.id, receiver=None, payload=typed)]
+
+        # Fork — parent state untouched by sub-graph execution.
+        forked = state.fork()
+        # Increment sub-plan depth on the fork so nested SubplanNodes
+        # inside the sub-graph see the bumped depth and refuse at
+        # state.subplan_max_depth.
+        forked.subplan_depth = state.subplan_depth + 1
+
+        # Lazy import to dodge any cycle through the executor module.
+        from .executor import GraphExecutor
+        await GraphExecutor().run(self.sub_graph, forked)
+
+        # Collect sub-graph outputs into parent's agent_outputs.
+        # Parent agent_outputs is preserved (fork returned a fresh dict
+        # in fork()) — only state.agent_outputs[self.id] is written.
+        sub_results = dict(forked.agent_outputs)
+        state.agent_outputs[self.id] = TypedResult(
+            schema=dict,
+            data=sub_results,
+            meta={
+                "source_ts": time.monotonic(),
+                "source_agent": self.agent_id,
+                "sub_graph_nodes": list(forked.agent_outputs.keys()),
+            },
+        )
+
+        # Result-message to next consumer (Phase 3 routing).
+        typed = TypedResult(
+            schema=dict,
+            data={"ok": True, "sub_results": sub_results},
+            meta={
+                "source_ts": time.monotonic(),
+                "source_agent": self.agent_id,
+                "sub_graph_nodes": list(forked.agent_outputs.keys()),
+            },
+        )
+        return [Message(sender=self.id, receiver=None, payload=typed)]
 
 
 class ConsultNode:
