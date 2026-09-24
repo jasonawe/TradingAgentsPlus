@@ -855,34 +855,15 @@
     clearTodoEl();
   }
 
-  // §0.4.33 — todo checklist helpers. The checklist lives as a
-  // sibling of the assistant bubble in messagesEl, inserted BEFORE
-  // the reasoning trace so the user sees plan → progress → reasoning.
-  // Each row carries (label, tool, agent, status). Status transitions
-  // pending → active → done|error|skipped are patched in place so we
-  // don't rebuild the DOM on every tool_result.
+  // §0.4.33.3 — todo checklist dock. A persistent <details> that
+  // lives between #harness-messages and #harness-form. The dock
+  // auto-shows on the first plan_ready and auto-hides on stream end.
+  // Per-row patches still flow through updateTodoItem — we just
+  // mutate rows inside the dock instead of injecting messages.
   function ensureTodoEl() {
-    if (state.todoEl && state.todoEl.isConnected) return state.todoEl;
-    const el = document.createElement("div");
-    el.className = "harness-todo";
-    el.innerHTML = `
-      <div class="harness-todo-head">
-        <span class="harness-todo-icon">📋</span>
-        <span class="harness-todo-title">执行计划</span>
-        <span class="harness-todo-progress">0 / 0</span>
-      </div>
-      <ul class="harness-todo-list" role="list"></ul>
-    `;
-    // Insert before the reasoning trace so the trace visually trails
-    // the checklist. If trace is missing (e.g. Tier 1 short-circuit)
-    // fall back to appending after the assistant bubble.
-    if (state.traceEl && state.traceEl.parentNode === state.messagesEl) {
-      state.messagesEl.insertBefore(el, state.traceEl);
-    } else if (state.messagesEl.lastChild) {
-      state.messagesEl.appendChild(el);
-    } else {
-      state.messagesEl.appendChild(el);
-    }
+    if (state.todoEl) return state.todoEl;
+    const el = document.getElementById("harness-todo-dock");
+    if (!el) return null;
     state.todoEl = el;
     state.todoItems = [];
     return el;
@@ -890,10 +871,10 @@
 
   function renderTodoList(items) {
     const el = ensureTodoEl();
+    if (!el) return;
     state.todoItems = Array.isArray(items) ? items.slice() : [];
-    const list = el.querySelector(".harness-todo-list");
-    const progress = el.querySelector(".harness-todo-progress");
-    list.innerHTML = "";
+    const body = el.querySelector("[data-bind=\"body\"]");
+    if (body) body.innerHTML = "";
     state.todoItems.forEach((t) => {
       const row = document.createElement("li");
       row.className = "harness-todo-row";
@@ -908,8 +889,10 @@
       agentEl.textContent = agentBadge(t.agent);
       if (t.agent) agentEl.dataset.agent = t.agent;
       row.classList.add(`status-${t.status || "pending"}`);
-      list.appendChild(row);
+      body.appendChild(row);
     });
+    el.hidden = false;
+    el.open = true;
     updateTodoProgress();
     scrollToBottom();
   }
@@ -917,17 +900,18 @@
   function updateTodoItem(patch) {
     if (!patch || !patch.id) return;
     if (!state.todoEl) ensureTodoEl();
-    const row = state.todoEl && state.todoEl.querySelector(`[data-todo-id="${patch.id}"]`);
+    const dock = state.todoEl;
+    if (!dock) return;
+    const row = dock.querySelector(`[data-todo-id="${patch.id}"]`);
     if (!row) return;
-    // Update status class + icon
     row.classList.remove(
       "status-pending", "status-active",
       "status-done", "status-error", "status-skipped"
     );
-    const status = patch.status || "pending";
-    row.classList.add(`status-${status}`);
+    const next = patch.status || "pending";
+    row.classList.add(`status-${next}`);
     const icon = row.querySelector(".harness-todo-status");
-    if (icon) icon.textContent = todoStatusIcon(status);
+    if (icon) icon.textContent = todoStatusIcon(next);
     if (patch.agent) {
       const agentEl = row.querySelector(".harness-todo-agent");
       if (agentEl) {
@@ -935,40 +919,34 @@
         agentEl.dataset.agent = patch.agent;
       }
     }
-    if (status === "error" && patch.error) {
+    if (next === "error" && patch.error) {
       const labelEl = row.querySelector(".harness-todo-label");
       if (labelEl) labelEl.title = String(patch.error);
     }
-    // Brief flash on transition to done (success feedback).
-    if (status === "done") {
+    if (next === "done") {
       row.classList.add("status-done-flash");
       setTimeout(() => row.classList.remove("status-done-flash"), 600);
     }
-    // §0.4.33.1 — sync the in-memory items array so updateTodoProgress
-    // can read back the final state. Previously only the DOM was
-    // updated, leaving the progress counter stuck at "0 / N" forever.
     const item = state.todoItems.find((t) => t.id === patch.id);
     if (item) {
-      item.status = status;
+      item.status = next;
       if (patch.error !== undefined) item.error = patch.error;
     }
     updateTodoProgress();
   }
 
   function updateTodoProgress() {
-    if (!state.todoEl) return;
+    const dock = state.todoEl || document.getElementById("harness-todo-dock");
+    if (!dock) return;
     const total = state.todoItems.length;
     let done = 0;
     state.todoItems.forEach((t) => {
-      // Anything no longer pending counts toward completion so the
-      // progress bar reaches 100% once every item has been processed
-      // (success, failure, or dropped all collapse together).
       if (t.status !== "pending" && t.status !== "active") done += 1;
     });
-    const progress = state.todoEl.querySelector(".harness-todo-progress");
+    const progress = dock.querySelector("[data-bind=\"progress\"]");
     if (progress) progress.textContent = `${done} / ${total}`;
     if (total > 0 && done === total) {
-      state.todoEl.classList.add("is-complete");
+      dock.classList.add("is-complete");
     }
   }
 
@@ -983,9 +961,6 @@
   }
 
   function agentBadge(agent) {
-    // Short emoji + name. Per-agent colour tints are applied via the
-    // [data-agent] CSS attribute on the badge element so the colour
-    // stays in sync even after status transitions (e.g. done).
     return ({
       data_agent: "🤖 data",
       alpha_agent: "📐 alpha",
@@ -996,8 +971,15 @@
   }
 
   function clearTodoEl() {
-    if (state.todoEl && state.todoEl.parentNode) {
-      state.todoEl.parentNode.removeChild(state.todoEl);
+    const dock = state.todoEl || document.getElementById("harness-todo-dock");
+    if (dock) {
+      dock.hidden = true;
+      dock.classList.remove("is-complete");
+      dock.open = false;
+      const body = dock.querySelector("[data-bind=\"body\"]");
+      if (body) body.innerHTML = "";
+      const progress = dock.querySelector("[data-bind=\"progress\"]");
+      if (progress) progress.textContent = "0 / 0";
     }
     state.todoEl = null;
     state.todoItems = [];

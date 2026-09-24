@@ -18,7 +18,7 @@
       })();
     </script>
     <link rel="stylesheet" href="/static/styles.css?v=20260911-styles-1" />
-    <link rel="stylesheet" href="/static/agent.css?v=20260924-agent-9" />
+    <link rel="stylesheet" href="/static/agent.css?v=20260924-agent-10" />
   </head>
   <body class="is-harness-view">
     <!-- Minimal harness-only page. No global app sidebar / topbar /
@@ -92,6 +92,22 @@
             <!-- 隐藏的 session select 保留以兼容 harness.js 既有逻辑(渲染时不使用,只复用 state) -->
             <select id="harness-session-select" hidden></select>
             <div id="harness-messages" class="harness-messages" aria-live="polite"></div>
+            <!-- §0.4.33.3 — persistent collapsible todo dock.
+                 Sits between messages and the input form so it stays
+                 in view while the user reads/scrolls. Width aligns with
+                 the input box. The dock auto-hides when no plan is in
+                 flight; collapses via <details> summary. -->
+            <details id="harness-todo-dock" class="harness-todo-dock" hidden>
+              <summary class="harness-todo-dock-summary">
+                <span class="harness-todo-dock-icon">📋</span>
+                <span class="harness-todo-dock-title">执行计划</span>
+                <span class="harness-todo-dock-progress" data-bind="progress">0 / 0</span>
+                <span class="harness-todo-dock-chevron" aria-hidden="true">▾</span>
+              </summary>
+              <div class="harness-todo-dock-body" data-bind="body">
+                <!-- injected by renderTodoList -->
+              </div>
+            </details>
             <form id="harness-form" class="harness-form" autocomplete="off">
               <textarea id="harness-input" rows="3" data-i18n-placeholder="harness.placeholder" placeholder="例:深度分析 600036.SS 估值,或对比 600036 / 600000"></textarea>
               <button type="submit" id="harness-send-btn" class="btn btn-primary" data-i18n="actions.send">
@@ -243,7 +259,7 @@
       // caller can highlight the right nav item.
       try { window.parent.postMessage({ type: "ta-route", view: "harness" }, "*"); } catch (_) {}
     </script>
-    <script src="/static/harness.js?v=20260924-harness-todo-0.4.33.2" defer></script>
+    <script src="/static/harness.js?v=20260924-harness-todo-dock-0.4.33.3" defer></script>
     <script>
       // Minimal page bootstrap — call TradingAgentsHarness.init() once
       // the harness module is available. The page doesn't have the
