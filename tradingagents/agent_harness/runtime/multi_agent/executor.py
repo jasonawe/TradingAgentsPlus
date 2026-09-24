@@ -97,20 +97,20 @@ class GraphExecutor:
             dest_node=spec.node(entry),
         )
 
-        activated: set[str] = set()
+        # Phase 3 Work unit 3 — FieldRef-satisfaction activation (spec §4.7).
+        # No ``activated`` set + ``has_loop`` bypass; per-message re-eval of
+        # ``_is_activated(node, state)`` drives the schedule. Loop edges
+        # still re-fire via ``state.edge_hops`` (Phase 2 Work unit 5).
         while queue and state.hops_remaining > 0 and state.llm_used < state.budget_limit:
             item = heapq.heappop(queue)
             msg = item.msg
             if msg.receiver not in spec.nodes:
                 continue
-            has_loop = any(
-                e.src == msg.receiver and e.kind == "loop" for e in spec.edges
-            )
-            if msg.receiver in activated and not has_loop:
-                continue
-            activated.add(msg.receiver)
 
             node = spec.node(msg.receiver)
+            if not self._is_activated(node, state):
+                continue
+
             inbox = state.consume_inbox(msg.receiver)
 
             try:
@@ -248,6 +248,37 @@ class GraphExecutor:
         if isinstance(node, SubplanNode):
             return await node.run(state, inbox)
         raise NotImplementedError(f"unknown node kind: {type(node).__name__}")
+
+    def _is_activated(self, node, state: GraphState) -> bool:
+        """Phase 3 Work unit 3 — FieldRef-satisfaction activation rule.
+
+        Spec §4.7:
+        - Node with NO ``$ref`` inputs (e.g. Phase 1 ToolNode with only
+          ``raw_args``) → activated unconditionally on message arrival.
+        - Node WITH ``$ref`` inputs (e.g. ConsultNode with upstream refs
+          populated by PlanCompiler Work unit 2) → activated only when
+          every ``$ref`` resolves to a non-empty ``state.agent_outputs``
+          entry. Phase 3 Work unit 1 populates ``agent_outputs`` after
+          every run, including failure markers (``data=None``,
+          ``meta.ok=False``); such markers correctly reject activation so
+          downstream nodes don't proceed with stale/unavailable inputs.
+
+        Loop edges re-fire via ``state.edge_hops`` (Phase 2 Work unit 5);
+        this method intentionally does NOT consult ``activated`` set or
+        ``has_loop`` bypass — those were Phase 2 semantics dropped here.
+        """
+        inputs = getattr(node, "inputs", None) or []
+        if not inputs:
+            return True
+        for field_ref in inputs:
+            ref_data = state.agent_outputs.get(field_ref.agent)
+            if ref_data is None:
+                return False
+            # TypedResult-shaped: ``data=None`` is the Phase 3 failure
+            # marker. Treat as "not satisfied" so downstream nodes refuse.
+            if hasattr(ref_data, "data") and ref_data.data is None:
+                return False
+        return True
 
     def _edge_fires(self, edge: Edge, state: GraphState, msg: Message) -> bool:
         if edge.kind == "data":

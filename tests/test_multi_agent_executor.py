@@ -24,7 +24,10 @@ from tradingagents.agent_harness.runtime.multi_agent.nodes import (
     SubplanNode,
     ToolNode,
 )
-from tradingagents.agent_harness.runtime.multi_agent.state import GraphState
+from tradingagents.agent_harness.runtime.multi_agent.state import (
+    FieldRef,
+    GraphState,
+)
 
 
 # Repo convention (no pytest-asyncio): sync wrapper that drives asyncio.run.
@@ -551,3 +554,162 @@ def test_executor_agent_outputs_isolated_between_runs(monkeypatch):
     # Both states are independently populated (no shared dict)
     assert s1 is not s2
     assert s1.agent_outputs is not s2.agent_outputs
+
+
+# ----------------------------------------------------------------------
+# §0.4.35 phase 3 — Work unit 3: FieldRef-satisfaction activation rule
+# ----------------------------------------------------------------------
+
+def test_is_activated_no_inputs_returns_true():
+    """A node with empty inputs is activated unconditionally (Phase 1 semantic)."""
+    n1 = ToolNode(id="a", agent_id="data_agent",
+                  tool_name="get_quote", raw_args={"symbol": "X"})
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+    # FieldRef-satisfaction path: _is_activated called directly
+    assert GraphExecutor()._is_activated(n1, state) is True
+
+
+def test_is_activated_fieldref_input_returns_false_when_unsatisfied():
+    """A node with $ref input that has no upstream output is NOT activated."""
+    from tradingagents.agent_harness.runtime.multi_agent.nodes import ConsultNode
+    n1 = ConsultNode(
+        id="c", agent_id="data_agent",
+        target_agent="alpha_agent", question="?",
+        inputs=[FieldRef(agent="data", field="x")],
+    )
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+    # No state.agent_outputs["data"] yet → not activated
+    assert GraphExecutor()._is_activated(n1, state) is False
+
+
+def test_is_activated_fieldref_input_returns_true_when_satisfied():
+    """A node with $ref input activates once upstream populated agent_outputs."""
+    from tradingagents.agent_harness.runtime.multi_agent.nodes import ConsultNode
+    from tradingagents.agent_harness.runtime.multi_agent.state import TypedResult
+    n1 = ConsultNode(
+        id="c", agent_id="data_agent",
+        target_agent="alpha_agent", question="?",
+        inputs=[FieldRef(agent="data", field="x")],
+    )
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+    state.agent_outputs["data"] = TypedResult(
+        schema=dict, data={"x": 42}, meta={"source_ts": 0.0},
+    )
+    assert GraphExecutor()._is_activated(n1, state) is True
+
+
+def test_is_activated_failure_marker_treated_as_unsatisfied():
+    """Failure marker (data=None, ok=False) does NOT satisfy the $ref."""
+    from tradingagents.agent_harness.runtime.multi_agent.nodes import ConsultNode
+    from tradingagents.agent_harness.runtime.multi_agent.state import TypedResult
+    n1 = ConsultNode(
+        id="c", agent_id="data_agent",
+        target_agent="alpha_agent", question="?",
+        inputs=[FieldRef(agent="data", field="x")],
+    )
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+    state.agent_outputs["data"] = TypedResult(
+        schema=dict, data=None, meta={"ok": False, "error": "boom"},
+    )
+    assert GraphExecutor()._is_activated(n1, state) is False
+
+
+def test_is_activated_multiple_refs_requires_all_satisfied():
+    """A node with multiple $ref inputs only activates when ALL are satisfied."""
+    from tradingagents.agent_harness.runtime.multi_agent.nodes import ConsultNode
+    from tradingagents.agent_harness.runtime.multi_agent.state import TypedResult
+    n1 = ConsultNode(
+        id="c", agent_id="data_agent",
+        target_agent="alpha_agent", question="?",
+        inputs=[
+            FieldRef(agent="data", field="x"),
+            FieldRef(agent="news", field="y"),
+        ],
+    )
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+    # Only "data" populated
+    state.agent_outputs["data"] = TypedResult(
+        schema=dict, data={"x": 1}, meta={},
+    )
+    assert GraphExecutor()._is_activated(n1, state) is False
+    # Now both
+    state.agent_outputs["news"] = TypedResult(
+        schema=dict, data={"y": 2}, meta={},
+    )
+    assert GraphExecutor()._is_activated(n1, state) is True
+
+
+def test_executor_skips_node_with_unsatisfied_fieldref_inputs(monkeypatch):
+    """Spec §4.7: ConsultNode with $data.x ref does NOT run until data_agent
+    has populated state.agent_outputs["data"]."""
+    from tradingagents.agent_harness.runtime.multi_agent.nodes import ConsultNode
+    from tradingagents.agent_harness.runtime.multi_agent.state import (
+        TypedResult, Message, FieldRef,
+    )
+
+    consult_calls = []
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            consult_calls.append((tool_name, args))
+            return MagicMock(ok=True, result={"answer": "stub"})
+
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    # Graph: a (ToolNode) → c (ConsultNode with $data ref).
+    # But: node id "a" is NOT named "data" — FieldRef(agent="data") needs
+    # agent_outputs["data"]. So we need a graph where one node's id is "data".
+    n_data = ToolNode(id="data", agent_id="data_agent",
+                      tool_name="get_quote", raw_args={"symbol": "X"})
+    n_c = ConsultNode(
+        id="c", agent_id="data_agent",
+        target_agent="alpha_agent", question="?",
+        inputs=[FieldRef(agent="data", field="x")],
+    )
+    spec = GraphSpec(
+        nodes={"data": n_data, "c": n_c},
+        edges=[Edge(src="data", dst="c", kind="data")],
+        entry="data", exit="c",
+    )
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+
+    _run(GraphExecutor().run(spec, state))
+
+    # n_c ran exactly once — AFTER n_data populated agent_outputs["data"].
+    # Filter to consult_subagent pipeline calls (ToolNode also uses the
+    # pipeline with tool_name="get_quote").
+    consult_subagent_calls = [
+        c for c in consult_calls if c[0] == "consult_subagent"
+    ]
+    assert len(consult_subagent_calls) == 1, (
+        "ConsultNode must run after upstream populates state.agent_outputs[ref.agent]; "
+        f"got {len(consult_subagent_calls)} consult_subagent calls"
+    )
+
+
+def test_executor_loop_edge_still_re_fires_within_max_hops(monkeypatch):
+    """Loop semantics preserved after activation-rule swap: self-loop with
+    max_hops=2 produces 2 loop fires (each = 2 messages = 4 total)."""
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            return MagicMock(ok=True, result={"echoed": tool_name})
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    n1 = ToolNode(id="a", agent_id="data_agent",
+                  tool_name="get_quote", raw_args={"symbol": "X"})
+    spec = GraphSpec(
+        nodes={"a": n1},
+        edges=[Edge(src="a", dst="a", kind="loop", max_hops=2)],
+        entry="a", exit="a",
+    )
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+
+    _run(GraphExecutor().run(spec, state))
+
+    assert len(state.message_log) == 4, (
+        f"loop semantics broken by activation swap: expected 4, got {len(state.message_log)}"
+    )
