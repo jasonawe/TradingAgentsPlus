@@ -3,6 +3,58 @@
 All notable changes to TradingAgents are documented here.
 
 
+## [v0.7.0] — Phase 3 cross-agent `$ref` resolution chain (2026-09-24)
+
+§0.4.35 phase 3 — full cross-agent `$ref` resolution chain landed (spec
+§4.5 / §4.6 / §4.7). Four work-unit commits shipped in stack:
+1. `19fda51` `state.agent_outputs[node.id]` populated after every run
+2. `8a0942c` `PlanCompiler` scans `call.args` for `$ref` (data/loop/scoping)
+3. `94f1be5` `FieldRef`-satisfaction activation rule (replaces `has-been-run`)
+4. `0d0f4c6` `ToolNode.run` resolves `$ref` args at runtime
+
+### Added
+- **Data edge synthesis from `$ref` in `call.args`** — `PlanCompiler` walks
+  each `call.args` dict; emits a `data` edge from the referenced agent's
+  output to the current node.
+- **Loop edge synthesis on feedback `$ref`** — when a `$ref` points back
+  to a prior group (skip-upstream, not adjacent), `PlanCompiler` emits a
+  `loop` edge with `max_hops=2` per spec §4.6 step 4. Adjacent-upstream
+  `$ref` → `data` edge (linear flow).
+- **Per-agent scoping enforcement** — unknown-agent / self-ref /
+  downstream-group `$ref` → `CompileError` (per-agent scoping per spec
+  §4.5).
+- **`ToolNode.run` resolves `$ref` args at runtime** — walks top-level
+  `raw_args` string values; calls `resolve_ref` from Phase 1 resolver;
+  unresolved refs fall back to the literal string (graceful degradation
+  per spec §4.5). Nested dict/list values pass through unchanged (Phase
+  4 may surface the need for a deep-walk mode).
+- **Failure marker in `state.agent_outputs`** — failed nodes (e.g.,
+  `SubplanNode` `NotImplementedError`, depth-exceeded consult) write
+  `TypedResult(data=None, meta={"ok": False, "error": "<ExcType>: <msg>"})`
+  so subsequent `$ref` consumers can detect failure via activation check.
+
+### Changed
+- **`GraphExecutor` activation rule swap** — `has-been-run` set + `has_loop`
+  bypass replaced by `_is_activated(node, state)` method. Per spec
+  §4.7: nodes with `$ref` inputs activate only when every `FieldRef`
+  resolves to a non-`None` `state.agent_outputs` entry; nodes without
+  `$ref` inputs (Phase 1 ToolNodes) activate unconditionally on message
+  arrival. Loop edges still re-fire via `state.edge_hops`.
+- **`PlanCompiler` second-pass `$ref` scan** — added after existing
+  group-order dependency pass. Adds data/loop edges in addition to the
+  group-order derived edges.
+- **Short-name ↔ full-name agent matching** — `_matches(full, short)`
+  helper allows `$data.x` to resolve to `data_agent` (and
+  `$trading.x` to `trading_agents`).
+
+### Regressions
+- Phase 1 5 wiring tests + Phase 1+2 178 tests still pass.
+- Total Phase 1+2+3 test count: **217 passing** across
+  `tests/test_multi_agent_*.py` + `tests/test_consult_subagent.py` +
+  `tests/test_agent_runtime_*.py`.
+- See `docs/superpowers/plans/2026-09-24-multi-agent-message-passing-runtime-phase3.md`
+  for the Phase 3 acceptance checklist.
+
 ## [v0.6.0] — Phase 2 multi-agent runtime extension (2026-09-24)
 
 §0.4.35 phase 2 — real LLM-backed consult_subagent + state-scoped hop
