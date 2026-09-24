@@ -27,6 +27,9 @@
     // 当前累积的 reasoning trace(下一个 tool_call/answer_verified 触发时收尾)
     traceEl: null,
     traceContent: "",
+    // §0.4.33 — todo checklist element + last items (live progress).
+    todoEl: null,
+    todoItems: [],
   };
 
   const SESSION_STORAGE_KEY = "ta.harness.sessionId";
@@ -848,6 +851,138 @@
     }
     state.traceEl = null;
     state.traceContent = "";
+    // §0.4.33 — todo checklist lifetime matches the reasoning trace.
+    clearTodoEl();
+  }
+
+  // §0.4.33 — todo checklist helpers. The checklist lives as a
+  // sibling of the assistant bubble in messagesEl, inserted BEFORE
+  // the reasoning trace so the user sees plan → progress → reasoning.
+  // Each row carries (label, tool, agent, status). Status transitions
+  // pending → active → done|error|skipped are patched in place so we
+  // don't rebuild the DOM on every tool_result.
+  function ensureTodoEl() {
+    if (state.todoEl && state.todoEl.isConnected) return state.todoEl;
+    const el = document.createElement("div");
+    el.className = "harness-todo";
+    el.innerHTML = `
+      <div class="harness-todo-head">
+        <span class="harness-todo-icon">📋</span>
+        <span class="harness-todo-title">执行计划</span>
+        <span class="harness-todo-progress">0 / 0</span>
+      </div>
+      <ul class="harness-todo-list" role="list"></ul>
+    `;
+    // Insert before the reasoning trace so the trace visually trails
+    // the checklist. If trace is missing (e.g. Tier 1 short-circuit)
+    // fall back to appending after the assistant bubble.
+    if (state.traceEl && state.traceEl.parentNode === state.messagesEl) {
+      state.messagesEl.insertBefore(el, state.traceEl);
+    } else if (state.messagesEl.lastChild) {
+      state.messagesEl.appendChild(el);
+    } else {
+      state.messagesEl.appendChild(el);
+    }
+    state.todoEl = el;
+    state.todoItems = [];
+    return el;
+  }
+
+  function renderTodoList(items) {
+    const el = ensureTodoEl();
+    state.todoItems = Array.isArray(items) ? items.slice() : [];
+    const list = el.querySelector(".harness-todo-list");
+    const progress = el.querySelector(".harness-todo-progress");
+    list.innerHTML = "";
+    state.todoItems.forEach((t) => {
+      const row = document.createElement("li");
+      row.className = "harness-todo-row";
+      row.dataset.todoId = t.id;
+      row.innerHTML = `
+        <span class="harness-todo-status" aria-hidden="true">○</span>
+        <span class="harness-todo-label"></span>
+        <span class="harness-todo-agent"></span>
+      `;
+      row.querySelector(".harness-todo-label").textContent = t.label || t.tool || "?";
+      row.querySelector(".harness-todo-agent").textContent = agentBadge(t.agent);
+      row.classList.add(`status-${t.status || "pending"}`);
+      list.appendChild(row);
+    });
+    updateTodoProgress();
+    scrollToBottom();
+  }
+
+  function updateTodoItem(patch) {
+    if (!patch || !patch.id) return;
+    if (!state.todoEl) ensureTodoEl();
+    const row = state.todoEl && state.todoEl.querySelector(`[data-todo-id="${patch.id}"]`);
+    if (!row) return;
+    // Update status class + icon
+    row.classList.remove(
+      "status-pending", "status-active",
+      "status-done", "status-error", "status-skipped"
+    );
+    const status = patch.status || "pending";
+    row.classList.add(`status-${status}`);
+    const icon = row.querySelector(".harness-todo-status");
+    if (icon) icon.textContent = todoStatusIcon(status);
+    if (patch.agent) {
+      const agentEl = row.querySelector(".harness-todo-agent");
+      if (agentEl) agentEl.textContent = agentBadge(patch.agent);
+    }
+    if (status === "error" && patch.error) {
+      const labelEl = row.querySelector(".harness-todo-label");
+      if (labelEl) labelEl.title = String(patch.error);
+    }
+    // Brief flash on transition to done (success feedback).
+    if (status === "done") {
+      row.classList.add("status-done-flash");
+      setTimeout(() => row.classList.remove("status-done-flash"), 600);
+    }
+    updateTodoProgress();
+  }
+
+  function updateTodoProgress() {
+    if (!state.todoEl) return;
+    const total = state.todoItems.length;
+    let done = 0;
+    state.todoItems.forEach((t) => {
+      if (t.status === "done" || t.status === "skipped") done += 1;
+    });
+    const progress = state.todoEl.querySelector(".harness-todo-progress");
+    if (progress) progress.textContent = `${done} / ${total}`;
+    if (total > 0 && done === total) {
+      state.todoEl.classList.add("is-complete");
+    }
+  }
+
+  function todoStatusIcon(status) {
+    return ({
+      pending: "○",
+      active: "◐",
+      done: "✓",
+      error: "✗",
+      skipped: "⊘",
+    })[status] || "○";
+  }
+
+  function agentBadge(agent) {
+    // Short human-friendly label + emoji.
+    return ({
+      data_agent: "🤖 data",
+      alpha_agent: "📐 alpha",
+      news_agent: "📰 news",
+      command_resolver: "✍️ cmd",
+      trading_agents: "🏦 ta",
+    })[agent] || agent || "?";
+  }
+
+  function clearTodoEl() {
+    if (state.todoEl && state.todoEl.parentNode) {
+      state.todoEl.parentNode.removeChild(state.todoEl);
+    }
+    state.todoEl = null;
+    state.todoItems = [];
   }
 
   function appendToolCall(name, args) {
@@ -1600,6 +1735,17 @@
     switch (name) {
       case "plan_started":
         appendReasoningDelta(`▶ 意图识别: ${payload.intent || "?"}\n`);
+        break;
+      case "todo_list":
+        // §0.4.33 — backend emitted the full checklist before plan_ready.
+        // Render (or replace) the DOM checklist. tool_result events will
+        // emit todo_update patches that we apply in place.
+        renderTodoList(payload.items || payload.todos || []);
+        break;
+      case "todo_update":
+        // §0.4.33 — single-row status patch. Updates one row's class +
+        // icon + agent badge without rebuilding the list.
+        updateTodoItem(payload);
         break;
       case "plan_ready": {
         // §14.3.4 — use friendly args in plan display (drop verbose

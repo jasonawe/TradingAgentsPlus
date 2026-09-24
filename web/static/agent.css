@@ -1863,3 +1863,199 @@ details[open] .agent-reasoning-summary::before {
   margin-top: 4px;
 }
 .history-card.empty .hc-head { margin-bottom: 6px; }
+
+/* ────────────────────────────────────────────────
+   §0.4.33 — Harness todo checklist (live progress).
+   Lives as a sibling message between the assistant bubble
+   and the reasoning trace. Renders one row per planned
+   tool call, with status icon + label + agent badge.
+   ──────────────────────────────────────────────── */
+.harness-todo {
+  align-self: stretch;
+  margin: 8px 0 4px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.04));
+  border: 1px solid rgba(99, 102, 241, 0.22);
+  border-left: 3px solid #6366f1;
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--ink-2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  animation: harness-todo-fade-in 0.18s ease-out;
+}
+@keyframes harness-todo-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.harness-todo-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #4338ca;
+  font-size: 13.5px;
+}
+.harness-todo-icon { font-size: 15px; }
+.harness-todo-title { flex: 1; letter-spacing: 0.01em; }
+.harness-todo-progress {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  background: rgba(99, 102, 241, 0.12);
+  color: #4338ca;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+.harness-todo.is-complete .harness-todo-progress {
+  background: rgba(34, 197, 94, 0.18);
+  color: #15803d;
+}
+.harness-todo-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.harness-todo-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.harness-todo-row .harness-todo-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  flex: 0 0 18px;
+}
+.harness-todo-row .harness-todo-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-2);
+}
+.harness-todo-row .harness-todo-agent {
+  flex: 0 0 auto;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.10);
+  color: #4338ca;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-family: inherit;
+}
+/* Status variants — pending (default) */
+.harness-todo-row.status-pending .harness-todo-status {
+  background: rgba(148, 163, 184, 0.18);
+  color: #64748b;
+}
+.harness-todo-row.status-pending {
+  opacity: 0.78;
+}
+/* active — currently executing (rare, backend doesn't emit yet) */
+.harness-todo-row.status-active .harness-todo-status {
+  background: rgba(59, 130, 246, 0.18);
+  color: #2563eb;
+  animation: harness-todo-pulse 1.2s ease-in-out infinite;
+}
+@keyframes harness-todo-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.18); }
+}
+/* done */
+.harness-todo-row.status-done .harness-todo-status {
+  background: rgba(34, 197, 94, 0.20);
+  color: #15803d;
+}
+.harness-todo-row.status-done .harness-todo-label {
+  color: #475569;
+}
+.harness-todo-row.status-done {
+  background: rgba(34, 197, 94, 0.05);
+  border-color: rgba(34, 197, 94, 0.18);
+}
+.harness-todo-row.status-done-flash {
+  animation: harness-todo-flash 0.6s ease-out;
+}
+@keyframes harness-todo-flash {
+  0%   { background: rgba(34, 197, 94, 0.45); }
+  100% { background: rgba(34, 197, 94, 0.05); }
+}
+/* error */
+.harness-todo-row.status-error .harness-todo-status {
+  background: rgba(239, 68, 68, 0.18);
+  color: #b91c1c;
+}
+.harness-todo-row.status-error {
+  background: rgba(239, 68, 68, 0.06);
+  border-color: rgba(239, 68, 68, 0.22);
+}
+.harness-todo-row.status-error .harness-todo-label {
+  color: #b91c1c;
+}
+/* skipped (plan dropped / not executed) */
+.harness-todo-row.status-skipped .harness-todo-status {
+  background: rgba(148, 163, 184, 0.18);
+  color: #94a3b8;
+}
+.harness-todo-row.status-skipped {
+  opacity: 0.55;
+}
+.harness-todo-row.status-skipped .harness-todo-label {
+  text-decoration: line-through;
+  color: #94a3b8;
+}
+
+/* Dark theme parity */
+@media (prefers-color-scheme: dark) {
+  .harness-todo {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.10), rgba(139, 92, 246, 0.07));
+    border-color: rgba(129, 140, 248, 0.32);
+  }
+  .harness-todo-head { color: #a5b4fc; }
+  .harness-todo-progress {
+    background: rgba(129, 140, 248, 0.18);
+    color: #c7d2fe;
+  }
+  .harness-todo.is-complete .harness-todo-progress {
+    background: rgba(34, 197, 94, 0.22);
+    color: #86efac;
+  }
+  .harness-todo-row {
+    background: rgba(15, 23, 42, 0.45);
+    border-color: rgba(129, 140, 248, 0.22);
+    color: #cbd5e1;
+  }
+  .harness-todo-row .harness-todo-label { color: #e2e8f0; }
+  .harness-todo-row .harness-todo-agent {
+    background: rgba(129, 140, 248, 0.18);
+    color: #c7d2fe;
+  }
+  .harness-todo-row.status-done {
+    background: rgba(34, 197, 94, 0.08);
+    border-color: rgba(34, 197, 94, 0.28);
+  }
+  .harness-todo-row.status-done .harness-todo-label { color: #cbd5e1; }
+  .harness-todo-row.status-error {
+    background: rgba(239, 68, 68, 0.10);
+    border-color: rgba(239, 68, 68, 0.32);
+  }
+  .harness-todo-row.status-error .harness-todo-label { color: #fca5a5; }
+}

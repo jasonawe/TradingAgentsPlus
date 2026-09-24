@@ -627,6 +627,75 @@ def _report_id_args(state: Any) -> dict[str, Any]:
     return {"report_id": ""}
 
 
+def _short_args(args: dict[str, Any] | None, *, max_len: int = 60) -> str:
+    """Render tool args as a compact ``k=v, k=v`` string for todo rows.
+
+    - Drops ``None`` values.
+    - For 3+ args, truncates to ``k=v, k=v, … (N total)``.
+    - Long string values are clipped with an ellipsis.
+    """
+    if not args:
+        return ""
+    items: list[str] = []
+    for k, v in args.items():
+        if v is None:
+            continue
+        if isinstance(v, str):
+            sv = v if len(v) <= max_len else v[: max_len - 1] + "…"
+            items.append(f"{k}=\"{sv}\"")
+        elif isinstance(v, (int, float, bool)):
+            items.append(f"{k}={v}")
+        elif isinstance(v, (list, tuple)):
+            items.append(f"{k}=[{len(v)}]")
+        elif isinstance(v, dict):
+            items.append(f"{k}={{…{len(v)}}}")
+        else:
+            items.append(f"{k}={type(v).__name__}")
+    if len(items) >= 3:
+        kept = items[:2]
+        return ", ".join(kept) + f", … ({len(items)} total)"
+    return ", ".join(items)
+
+
+_TOOL_TO_AGENT: dict[str, str] = {
+    # Core read tools
+    "get_quote": "data_agent",
+    "get_quotes_batch": "data_agent",
+    "get_fundamentals": "data_agent",
+    "get_history": "alpha_agent",
+    "get_news": "news_agent",
+    "list_alpha_factors": "alpha_agent",
+    "compute_alpha_factors": "alpha_agent",
+    "evaluate_alpha": "alpha_agent",
+    "list_watchlist": "data_agent",
+    "list_scheduled_tasks": "data_agent",
+    "list_notes": "data_agent",
+    "list_alerts": "data_agent",
+    "list_runs": "data_agent",
+    "list_reports": "data_agent",
+    "get_report": "data_agent",
+    "get_analysis_status": "data_agent",
+    # Write tools — orchestrator still surfaces them; CommandResolver routes.
+    "add_to_watchlist": "command_resolver",
+    "remove_from_watchlist": "command_resolver",
+    "create_alert": "command_resolver",
+    "update_alert": "command_resolver",
+    "delete_alert": "command_resolver",
+    "delete_alerts_for_symbol": "command_resolver",
+    "create_note": "command_resolver",
+    "update_note": "command_resolver",
+    "delete_note": "command_resolver",
+    "delete_notes_for_symbol": "command_resolver",
+    "create_scheduled_task": "command_resolver",
+    "update_scheduled_task": "command_resolver",
+    "delete_scheduled_task": "command_resolver",
+    "delete_scheduled_tasks_for_symbol": "command_resolver",
+    "run_trading_agents_analysis": "trading_agents",
+    "cancel_analysis_run": "trading_agents",
+    "run_scheduled_task": "trading_agents",
+}
+
+
 class Orchestrator:
     """5-node Tier 2 orchestrator.
 
@@ -1555,8 +1624,35 @@ class Orchestrator:
             is_ptc = isinstance(plan, dict) and plan.get("mode") == "ptc"
             ev_name = "plan_ready_ptc" if is_ptc else "plan_ready"
             ev_payload = {"groups": plan.get("groups", [])} if is_ptc else {"steps": plan}
+            # §0.4.33 — build the todo checklist from the plan so
+            # the UI can render a progress bar that updates in
+            # lock-step with tool_result events.
+            todo_items: list[dict[str, Any]] = []
+            if is_ptc:
+                for gi, group in enumerate(plan.get("groups", []) or []):
+                    for ci, call in enumerate(group.get("calls", []) or []):
+                        tool_name = call.get("name") or call.get("tool") or call.get("action") or "?"
+                        todo_items.append({
+                            "id": f"t{gi}.{ci}",
+                            "label": f"{tool_name}({_short_args(call.get('args') or {})})",
+                            "tool": tool_name,
+                            "agent": _TOOL_TO_AGENT.get(tool_name, "?"),
+                            "status": "pending",
+                        })
+            else:
+                for si, step in enumerate(plan or []):
+                    tool_name = step.get("name") or step.get("action") or step.get("tool") or "?"
+                    todo_items.append({
+                        "id": f"s{si}",
+                        "label": f"{tool_name}({_short_args(step.get('args') or {})})",
+                        "tool": tool_name,
+                        "agent": _TOOL_TO_AGENT.get(tool_name, "?"),
+                        "status": "pending",
+                    })
+            ev_payload["todos"] = todo_items
             async for _ev in _step_end("planning", "ok"):
                 yield _ev
+            yield await _emit("todo_list", {"items": todo_items, "total": len(todo_items)})
             current_node = NODE_EXECUTING
             yield await _emit(ev_name, ev_payload)
 
@@ -1572,6 +1668,35 @@ class Orchestrator:
             current_node = NODE_OBSERVING
             for r in results:
                 yield await _emit("tool_result", r)
+                # §0.4.33 — todo_update: mark the matching todo as
+                # done/error so the checklist updates live.
+                tr_name = r.get("name") if isinstance(r, dict) else None
+                tr_ok = bool(r.get("ok")) if isinstance(r, dict) else True
+                tr_error = (r.get("error") if isinstance(r, dict) else None)
+                if tr_name:
+                    for t in todo_items:
+                        if t["tool"] == tr_name and t["status"] in ("pending", "active"):
+                            t["status"] = "done" if tr_ok else "error"
+                            t["error"] = tr_error
+                            yield await _emit("todo_update", {
+                                "id": t["id"],
+                                "status": t["status"],
+                                "tool": t["tool"],
+                                "agent": t["agent"],
+                                "error": tr_error,
+                            })
+                            break
+            # Mark any todos that never produced a tool_result as
+            # skipped so the UI doesn't leave them "pending" forever.
+            for t in todo_items:
+                if t["status"] == "pending":
+                    t["status"] = "skipped"
+                    yield await _emit("todo_update", {
+                        "id": t["id"],
+                        "status": "skipped",
+                        "tool": t["tool"],
+                        "agent": t["agent"],
+                    })
             # §P3-3+ HITL: drain pending approvals and emit
             # ``confirm_request`` SSE events so the frontend shows a
             # confirm dialog. One event per gated tool. The frontend
