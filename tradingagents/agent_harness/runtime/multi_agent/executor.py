@@ -50,10 +50,14 @@ class _Pending:
 
 class GraphExecutor:
     def __init__(self, *, max_hops: int = 8, llm_budget: int = 5,
-                 consultation_rate_limit: float = 0.5) -> None:
+                 consultation_rate_limit: float = 0.5,
+                 consultation_max_depth: int = 3) -> None:
         self.max_hops = max_hops
         self.llm_budget = llm_budget
         self.consultation_rate_limit = consultation_rate_limit
+        # §0.4.35 phase 2 (Work unit 4) — refuses ConsultNode invocations
+        # past this depth so a misbehaving graph can't recurse forever.
+        self.consultation_max_depth = consultation_max_depth
         self._seq = 0
 
     async def run(self, spec: GraphSpec, state: GraphState) -> GraphState:
@@ -167,7 +171,39 @@ class GraphExecutor:
         if isinstance(node, LLMNode):
             return await node.run(state, inbox)
         if isinstance(node, ConsultNode):
-            return await node.run(state, inbox)
+            # §0.4.35 phase 2 (Work unit 4) — depth guard.
+            # If we're already at the configured max depth, refuse the
+            # consult: emit a single ``ok=False`` message addressed to
+            # the consult node itself, do NOT delegate to ConsultNode.run,
+            # and do NOT bump ``state.consultation_used`` (the inner
+            # consult_subagent owns that counter).
+            if state.consultation_depth >= self.consultation_max_depth:
+                refused = TypedResult(
+                    schema=dict,
+                    data={"ok": False, "error": "ConsultDepthExceeded"},
+                    meta={
+                        "refused": True,
+                        "consultation_depth": state.consultation_depth,
+                        "max_depth": self.consultation_max_depth,
+                    },
+                )
+                refused_msg = Message(
+                    sender=node.id, receiver=node.id,
+                    payload=refused, kind="answer", hop=0,
+                )
+                # Land the refusal in state.message_log so observers
+                # (tests, observability) can see it even when the spec
+                # has no downstream edges from this node.
+                state.append_inbox(refused_msg)
+                return [refused_msg]
+            state.consultation_depth += 1
+            try:
+                return await node.run(state, inbox)
+            finally:
+                # Decrement even on ConsultNode.run raising — depth must
+                # return to its pre-invocation value so the next consult
+                # in the same graph isn't refused due to a prior failure.
+                state.consultation_depth -= 1
         if isinstance(node, SubplanNode):
             return await node.run(state, inbox)
         raise NotImplementedError(f"unknown node kind: {type(node).__name__}")

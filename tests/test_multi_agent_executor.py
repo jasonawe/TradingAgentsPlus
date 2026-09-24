@@ -234,3 +234,116 @@ def test_executor_emits_heartbeat_logs(monkeypatch, caplog):
     end_logs = [r for r in caplog.records if "GraphExecutor finished" in r.message]
     assert len(start_logs) >= 1
     assert len(end_logs) >= 1
+
+
+# ----------------------------------------------------------------------
+# §0.4.35 phase 2 — Work unit 4: consultation_depth guard
+# ----------------------------------------------------------------------
+
+def _graph_single_consult():
+    """1 ConsultNode, no edges."""
+    n1 = ConsultNode(id="a", agent_id="data_agent",
+                     target_agent="alpha_agent", question="?")
+    return GraphSpec(nodes={"a": n1}, edges=[], entry="a", exit="a")
+
+
+def test_executor_refuses_consult_when_depth_at_max():
+    """state.consultation_depth == consultation_max_depth → refusal,
+    ok=False result, no consultation_used bump, no depth increment."""
+    n1 = ConsultNode(id="a", agent_id="data_agent",
+                     target_agent="alpha_agent", question="?")
+    spec = GraphSpec(nodes={"a": n1}, edges=[], entry="a", exit="a")
+    state = GraphState(
+        run_id="r", turn_id="t", intent="x",
+        consultation_depth=3,  # already at max (default)
+    )
+
+    out = _run(GraphExecutor(consultation_max_depth=3).run(spec, state))
+
+    assert len(state.message_log) == 1
+    msg = state.message_log[0]
+    assert msg.payload.data["ok"] is False
+    assert msg.payload.data["error"] == "ConsultDepthExceeded"
+    # consultation_used NOT bumped (consult_subagent never invoked)
+    assert out.consultation_used == 0
+    # depth NOT incremented (refusal path)
+    assert state.consultation_depth == 3
+
+
+def test_executor_refuses_consult_when_depth_exceeds_max():
+    """state.consultation_depth > consultation_max_depth → same refusal."""
+    n1 = ConsultNode(id="a", agent_id="data_agent",
+                     target_agent="alpha_agent", question="?")
+    spec = GraphSpec(nodes={"a": n1}, edges=[], entry="a", exit="a")
+    state = GraphState(
+        run_id="r", turn_id="t", intent="x",
+        consultation_depth=4,  # past max
+    )
+
+    out = _run(GraphExecutor(consultation_max_depth=3).run(spec, state))
+
+    assert len(state.message_log) == 1
+    assert out.consultation_used == 0
+    assert state.consultation_depth == 4  # unchanged
+
+
+def test_executor_consult_depth_increments_and_decrements(monkeypatch):
+    """ConsultNode.run fires → depth goes 0→1 inside the call, back to 0 after."""
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+
+    class _InspectingPipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            # Inspect depth at the moment ConsultNode.run is awaiting the pipeline
+            assert tool_context.extra["graph_state"].consultation_depth == 1, (
+                "executor must increment consultation_depth before "
+                "delegating to ConsultNode.run"
+            )
+            return MagicMock(ok=True, result={"answer": "x"})
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline",
+                        lambda: _InspectingPipeline())
+
+    spec = _graph_single_consult()
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+
+    _run(GraphExecutor(consultation_max_depth=3).run(spec, state))
+
+    # Depth restored to 0 after the consult completes
+    assert state.consultation_depth == 0
+
+
+def test_executor_consult_depth_decrements_even_on_consult_node_failure(monkeypatch):
+    """If ConsultNode.run raises, the finally clause restores depth to 0."""
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+
+    class _BoomPipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            raise RuntimeError("simulated consult pipeline failure")
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline",
+                        lambda: _BoomPipeline())
+
+    spec = _graph_single_consult()
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+
+    # Executor swallows node exceptions (rev.5 contract); depth must be restored.
+    _run(GraphExecutor(consultation_max_depth=3).run(spec, state))
+
+    assert state.consultation_depth == 0, (
+        "depth must be decremented in finally even when ConsultNode.run raises"
+    )
+
+
+def test_graph_state_consultation_depth_defaults_to_zero():
+    """Fresh per-turn state starts at depth=0 (auto-reset across turns)."""
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+    assert state.consultation_depth == 0
+
+
+def test_graph_state_consultation_depth_resets_per_state():
+    """Two independent GraphState instances do not share depth counter."""
+    s1 = GraphState(run_id="r", turn_id="t1", intent="x",
+                    consultation_depth=5)
+    s2 = GraphState(run_id="r", turn_id="t2", intent="x")
+    assert s1.consultation_depth == 5  # explicit override preserved
+    assert s2.consultation_depth == 0  # fresh state independent

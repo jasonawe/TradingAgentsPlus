@@ -1,3 +1,4 @@
+import pytest
 # tests/test_multi_agent_settings.py
 import importlib
 
@@ -34,3 +35,49 @@ def test_env_override_runtime_multi_agent(monkeypatch):
     cfg = dfcfg.get_config()
     assert cfg["runtime"]["multi_agent"] is True
     assert cfg["runtime"]["llm_budget_per_turn"] == 9
+
+
+# ----------------------------------------------------------------------
+# §0.4.35 phase 2 — Work unit 4: rate limit + max depth validation
+# ----------------------------------------------------------------------
+
+def test_runtime_settings_consultation_max_depth_default():
+    s = RuntimeSettings()
+    assert s.consultation_max_depth == 3
+
+
+def test_runtime_settings_consultation_max_depth_override():
+    s = RuntimeSettings(consultation_max_depth=5)
+    assert s.consultation_max_depth == 5
+
+
+def test_runtime_settings_consultation_max_depth_out_of_range():
+    """consultation_max_depth must be in [1, 10] — out-of-range raises
+    SettingsError (alias of pydantic.ValidationError)."""
+    from tradingagents.agent_harness.runtime.multi_agent.settings import (
+        SettingsError,
+    )
+    with pytest.raises(SettingsError):
+        RuntimeSettings(consultation_max_depth=0)
+    with pytest.raises(SettingsError):
+        RuntimeSettings(consultation_max_depth=11)
+
+
+def test_runtime_settings_rate_limit_out_of_range():
+    """consultation_rate_limit must be in [0.0, 0.8] — 0.9 raises
+    SettingsError (alias of pydantic.ValidationError)."""
+    from tradingagents.agent_harness.runtime.multi_agent.settings import (
+        SettingsError,
+    )
+    with pytest.raises(SettingsError):
+        RuntimeSettings(consultation_rate_limit=0.9)
+    with pytest.raises(SettingsError):
+        RuntimeSettings(consultation_rate_limit=-0.1)
+
+
+def test_runtime_settings_rate_limit_boundary_values():
+    """0.0 and 0.8 are both valid; 0.0 → ConsultBudgetExceeded at runtime."""
+    s_low = RuntimeSettings(consultation_rate_limit=0.0)
+    assert s_low.consultation_rate_limit == 0.0
+    s_high = RuntimeSettings(consultation_rate_limit=0.8)
+    assert s_high.consultation_rate_limit == 0.8

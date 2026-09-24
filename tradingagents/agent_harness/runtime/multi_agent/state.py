@@ -52,6 +52,11 @@ class GraphState:
     hops_remaining: int = 8
     llm_used: int = 0
     consultation_used: int = 0
+    # §0.4.35 phase 2 (Work unit 4) — tracks live consult nesting so the
+    # executor can refuse ConsultNode invocations that would push the
+    # graph past ``RuntimeSettings.consultation_max_depth`` (default 3).
+    # Per-turn state means this counter auto-resets across turns.
+    consultation_depth: int = 0
     # NOTE: `consultation_rate_limit` is dead in Phase 1 — Phase 2 enforces
     # the "no nested consult" rule inside GraphExecutor._invoke (Out of Scope).
     budget_limit: int = 5
