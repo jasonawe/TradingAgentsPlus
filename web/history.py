@@ -156,19 +156,76 @@ class ReportHistory:
                 return record
 
     def search_reports(self, **filters: Any) -> dict[str, Any]:
-        if self.repository is None:
+        # §0.4.34 — filesystem-first when no real filters are set, OR
+        # when the DB returns 0 rows for a no-filter request. This
+        # handles the case where the report_index_outbox hasn't been
+        # drained yet (or has been wiped), so the DB has zero indexed
+        # rows even though complete_report.md files live on disk under
+        # results_dir/web_reports/. Filters (ticker / status / date /
+        # asset_type) still go through the DB so paginated, narrowed
+        # queries stay fast.
+        page = int(filters.get("page") or 1)
+        page_size = int(filters.get("page_size") or 20)
+        has_real_filters = any(
+            filters.get(k)
+            for k in ("query", "ticker", "status", "asset_type", "date_from", "date_to")
+        )
+
+        if self.repository is None or not has_real_filters:
             records = self.refresh()
-            page = int(filters.get("page", 1))
-            page_size = int(filters.get("page_size", 20))
+            sort = filters.get("sort") or "generated_at_desc"
+            records = self._apply_sort(records, sort)
             start = (page - 1) * page_size
+            sliced = records[start : start + page_size]
             return {
-                "items": records[start : start + page_size],
+                "items": sliced,
                 "page": page,
                 "page_size": page_size,
                 "total": len(records),
                 "has_next": start + page_size < len(records),
             }
-        return self.repository.search(**filters)
+
+        result = self.repository.search(**filters)
+        # DB returned nothing for a no-filter request — fall through to
+        # the filesystem scan. This is the recovery path for a DB that
+        # hasn\'t been backfilled yet.
+        if not result.get("items") and not has_real_filters:
+            records = self.refresh()
+            sort = filters.get("sort") or "generated_at_desc"
+            records = self._apply_sort(records, sort)
+            start = (page - 1) * page_size
+            sliced = records[start : start + page_size]
+            return {
+                "items": sliced,
+                "page": page,
+                "page_size": page_size,
+                "total": len(records),
+                "has_next": start + page_size < len(records),
+            }
+        return result
+
+    @staticmethod
+    def _apply_sort(records: list[dict[str, Any]], sort: str) -> list[dict[str, Any]]:
+        """Sort a list of report records (filesystem shape) by sort key.
+
+        Mirrors ReportIndexRepository.SORTS: generated_at_desc / _asc /
+        ticker_asc. Records with missing generated_at fall to the end
+        on descending order, the front on ascending — same as the DB
+        SQL ``generated_at IS NULL ASC`` ordering.
+        """
+        def key(rec: dict[str, Any]) -> tuple[int, str, str]:
+            ts = rec.get("generated_at") or ""
+            ticker = (rec.get("ticker") or "").lower()
+            report_id = rec.get("report_id") or ""
+            return (0 if ts else 1, ticker, report_id)
+
+        if sort == "ticker_asc":
+            records = sorted(records, key=lambda r: ((r.get("ticker") or "").lower(), r.get("report_id") or ""))
+        elif sort == "generated_at_asc":
+            records = sorted(records, key=lambda r: (r.get("generated_at") or "9999"))
+        else:  # generated_at_desc (default)
+            records = sorted(records, key=lambda r: (r.get("generated_at") or ""), reverse=True)
+        return records
 
     def retry_outbox(self, limit: int = 50) -> int:
         return self.repository.retry_outbox(limit) if self.repository is not None else 0
