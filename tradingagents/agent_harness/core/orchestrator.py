@@ -137,6 +137,100 @@ def _dedupe_record(session_id: str, name: str, args: Any, result: dict) -> None:
 
 LOGGER = logging.getLogger(__name__)
 
+
+# ════════════════════════════════════════════════════════════════════
+# §0.4.35 Phase 1 — multi-agent runtime wiring
+# ════════════════════════════════════════════════════════════════════
+# Rev.7 BLOCKER 2 (Aquinas round-6): MUST import lazily INSIDE the dispatch
+# branch, not at module top, to avoid circular import
+# (orchestrator → multi_agent → compiler → orchestrator).
+# The symbols are resolved on first dispatch call only.
+
+def _lazy_multi_agent():
+    """Lazy import resolver for multi_agent symbols (Rev.10 MEDIUM #2).
+
+    INVARIANT: core/orchestrator.py must NEVER import from
+    runtime.multi_agent at module top — doing so creates a cycle
+    (orchestrator → multi_agent/__init__.py → compiler.py →
+    core.orchestrator with _TOOL_TO_AGENT still undefined).
+
+    Concurrency safety: Python's import lock serializes
+    sys.modules writes, so concurrent dispatch calls result in
+    at-most-one import being executed (the rest hit sys.modules
+    cache). The classes returned are module-level singletons
+    and safe to share across asyncio tasks.
+
+    Tests in tests/test_multi_agent_orchestrator_wiring.py pin
+    this invariant by patching PlanCompiler / GraphExecutor /
+    load_settings in sys.modules before invoking _maybe_run.
+    """
+    from ..runtime.multi_agent import (
+        GraphExecutor as _GE, PlanCompiler as _PC,
+        CompileError as _CE, load_settings as _ls,
+    )
+    return _GE, _PC, _CE, _ls
+
+
+def _build_graph_state(orch_state, settings):
+    """Build a per-turn GraphState from the orchestrator's state.
+
+    Phase 1: shallow — only carries run_id / turn_id / intent / budget knobs.
+    Phase 6 will wire AgentRuntimeStore snapshot loading.
+
+    Rev.4: reads ``orch_state.intent.value`` (RouterPlan has no ``intent``
+    field — see round-2 BLOCKER #1).
+    Rev.5: helper signature is (orch_state, settings); ``router_plan`` was
+    unused (LOW #17).
+    """
+    from ..runtime.multi_agent import GraphState
+    intent_obj = getattr(orch_state, "intent", None)
+    intent_str = str(getattr(intent_obj, "value", "unknown")) if intent_obj else "unknown"
+    return GraphState(
+        run_id=getattr(orch_state, "session_id", "unknown"),
+        turn_id=str(getattr(getattr(orch_state, "turn", None), "turn_id", "unknown")),
+        intent=intent_str,
+        hops_remaining=settings.max_hops,
+        budget_limit=settings.llm_budget_per_turn,
+        consultation_rate_limit=settings.consultation_rate_limit,
+    )
+
+
+async def _maybe_run_multi_agent(router_plan, orch_state):
+    """Phase 1 multi_agent dispatch.
+
+    Returns the compiled GraphSpec on success; returns None to signal
+    "fall through to the legacy PTC code path". Never raises — all
+    error categories (flag off, settings invalid, compile error,
+    executor error) collapse to a None return + a structured log line.
+    """
+    GraphExecutor, PlanCompiler, CompileError, load_settings = _lazy_multi_agent()
+    try:
+        _settings = load_settings()
+    except Exception as exc:  # Rev.7 MEDIUM #2: Pydantic ValidationError
+        LOGGER.warning("runtime settings invalid, falling back to PTC: %s", exc)
+        return None
+    if not _settings.multi_agent:
+        return None  # flag off — PTC is the source of truth
+    try:
+        _spec = PlanCompiler().compile(router_plan)
+    except CompileError as exc:
+        LOGGER.warning("graph compile failed, falling back to PTC: %s", exc)
+        return None
+    try:
+        _state = _build_graph_state(orch_state, _settings)
+        await GraphExecutor(
+            max_hops=_settings.max_hops,
+            llm_budget=_settings.llm_budget_per_turn,
+            consultation_rate_limit=_settings.consultation_rate_limit,
+        ).run(_spec, _state)
+    except Exception as exc:
+        LOGGER.exception("graph execution failed, falling back to PTC: %s", exc)
+        return None
+    # Phase 1 keeps behaviour parity — multi_agent path is observability-only.
+    # PTC still runs below for any post-graph aggregation.
+    return _spec
+
+
 # ---------------------------------------------------------------------------
 # Verification helpers (P8 L3)
 # ---------------------------------------------------------------------------
@@ -2244,6 +2338,18 @@ class Orchestrator:
                 LOGGER.info("_plan: LLM router raised: %s", e)
                 router_plan = None
         if router_plan is not None and router_plan.source in ("llm", "cache") and router_plan.calls:
+            # §0.4.35 Phase 1 — opt-in multi-agent runtime path.
+            # Rev.7 BLOCKER 2 (Aquinas round-6): lazy resolver — top-level import would
+            # trigger circular import (orchestrator → multi_agent → compiler → orchestrator).
+            #
+            # Rev.8 BLOCKER #2 (Kant round-7): Replaced the inline raise-and-fall-through
+            # pattern with a call to extracted helper `_maybe_run_multi_agent()` defined
+            # below. Helper returns None on "fall through to PTC" and the spec on
+            # "graph ran successfully". Cleaner than the implicit _ForcePTCFallback
+            # exception path AND makes the dispatch directly unit-testable (Task 10 wiring tests).
+            _spec = await _maybe_run_multi_agent(router_plan, state)
+            # `_spec` is None when (a) flag off, (b) settings invalid, (c) compile error,
+            # (d) executor error. In all cases the original PTC code below still runs.
             plan = self._plan_from_router(router_plan, state)
             plan = await self.pre_plan_hook(plan, state, context)
             if plan:
