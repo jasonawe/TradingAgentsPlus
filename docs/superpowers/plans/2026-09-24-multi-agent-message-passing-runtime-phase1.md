@@ -1,8 +1,8 @@
-# [Phase 1 — Multi-Agent Runtime Skeleton] Implementation Plan (rev. 7)
+# [Phase 1 — Multi-Agent Runtime Skeleton] Implementation Plan (rev. 8)
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Last review round:** 6 (Aquinas). Verdict: BLOCK — 2 BLOCKERs introduced by rev.6 HIGH #1; both now resolved in rev.7 (1 HIGH + 4 MEDIUM + 2 LOW + 2 INFO). HIGH #1 introduces `tests/test_multi_agent_orchestrator_wiring.py`; verify this file exists in the test list before starting Phase 1.
+**Last review round:** 7 (Kant). Verdict: BLOCK — 3 BLOCKERs introduced by rev.7 + 2 MEDIUM + 1 LOW; BLOCKERs (#1 test factory syntax / #2 _ForcePTCFallback undefined / #3 non-runnable wiring tests) all resolved in rev.8 by switching to a `_maybe_run_multi_agent()` helper that returns None on fall-through. (1 HIGH + 4 MEDIUM + 2 LOW + 2 INFO). HIGH #1 introduces `tests/test_multi_agent_orchestrator_wiring.py`; verify this file exists in the test list before starting Phase 1.
 
 **Goal:** Land the type system, `$ref` resolver (rightmost-split precedence, no parens), `PlanCompiler` (group-order case), `GraphExecutor` skeleton (inbox propagation + per-edge hop reset, no cross-run state leak), and `consult_subagent` stub **behind the `runtime.multi_agent` flag (default off)** without changing any existing behaviour. All current tests must remain green.
 
@@ -16,6 +16,7 @@
 - `consult_subagent`'s second param is `context: ToolContext | None = None` (matches every other built-in tool's signature).
 - Compiler's import of `_TOOL_TO_AGENT` is **LAZY** (inside `PlanCompiler.compile()`, not at module top) per rev.7 BLOCKER 2 (Aquinas round-6) — top-level import creates a circular dependency (orchestrator → multi_agent → compiler → orchestrator). See `core/orchestrator.py:2947` for an existing documention of this class of bug.
 - Orchestrator's `PlanCompiler`/`GraphExecutor`/`load_settings` imports are also LAZY via `_lazy_multi_agent()` helper for the same reason.
+- **Phase 1 multi_agent dispatch lives in `_maybe_run_multi_agent()` helper** (orchestrator module), not inline in `_plan()`. Returns the compiled spec on success, None on any fall-through path (flag off / settings invalid / compile error / executor error). This makes the dispatch directly unit-testable (Task 9.5) and replaces rev.7's broken `_ForcePTCFallback()` exception path (rev.8 BLOCKER #2 / Kant round-7).
 - Resolver regex field capture requires leading `[A-Za-z_]` (matches Python attribute rules; rev.5 fix from LOW #8).
  - **Spec §4.4 vs §4.6 max_hops inconsistency**: §4.4 says loop edge default 3, §4.6 step 4 says 2 (Phase 1 uses 2 per §4.6; rev.3 LOW #14). Future spec reconciliation to 3 affects `test_edge_default_max_hops_is_2_per_spec` + loop regression test (`max_hops=2 → 4 message_log entries`).
  - **Phase 1 dispatch placement**: multi_agent branch lives in `_plan()` (planner) and runs ALONGSIDE PTC for observability only. Phase 5 (cutover) will move dispatch into `_execute()` and skip PTC (rev.6 INFO #2 / Pauli round-5).
@@ -1366,7 +1367,7 @@ async def _run(coro):
 
 def _graph_two_tool_nodes():
     n1 = ToolNode(id="a", agent_id="data_agent",
-                  tool_name="get_quote", raw_args={"{"}": "X"}.replace("{}", "symbol") if False else {"symbol": "X"})
+                  tool_name="get_quote", raw_args={"symbol": "X"})
     n2 = ToolNode(id="b", agent_id="data_agent",
                   tool_name="get_fundamentals", raw_args={"symbol": "X"})
     return GraphSpec(
@@ -1760,39 +1761,84 @@ This file is referenced 4 times in rev.6 but no Task created it (Aquinas round-6
 
 ```python
 # tests/test_multi_agent_orchestrator_wiring.py
+"""Regression tests for the Phase 1 multi_agent flag-gated dispatch.
+
+Rev.8 BLOCKER #3 (Kant round-7) rewrite: previous rev.7 tests used
+`from tradingagents.default_config import cfg` (no such symbol), called
+`orchestrator._plan(...)` with Python Ellipsis as args (TypeError at
+runtime), and built a stub GraphSpec with non-existent `terminals=` /
+`metadata=` kwargs. New tests pin the actual contract against the
+helper extracted in Task 10.3 (`_maybe_run_multi_agent`).
+
+These tests rely on `tests/conftest.py::_isolate_config` autouse fixture
+to reset `dataflows._config` before/after each test. If that fixture is
+removed, the cfg.set_config mutations will leak across tests.
+"""
 import asyncio
+import logging
 from unittest.mock import AsyncMock, MagicMock
 
-from tradingagents.default_config import cfg
-from tradingagents.agent_harness.core import orchestrator
+from tradingagents.dataflows.config import set_config
+from tradingagents.agent_harness.core import orchestrator as orch_mod
 from tradingagents.agent_harness.runtime.multi_agent import CompileError
+from tradingagents.agent_harness.runtime.multi_agent.graph import GraphSpec, Edge
 
 
 def _run(coro):
-    return asyncio.get_event_loop().run_until_complete(coro) if False else asyncio.run(coro)
+    """asyncio.run() wrapper — repo convention (no pytest-asyncio)."""
+    return asyncio.run(coro)
+
+
+def _stub_spec():
+    """Minimal valid GraphSpec — nodes={'a': ToolNode(...)} + a → b data edge."""
+    from tradingagents.agent_harness.runtime.multi_agent.nodes import ToolNode
+    n1 = ToolNode(id="a", agent_id="data_agent",
+                  tool_name="get_quote", raw_args={"symbol": "X"})
+    return GraphSpec(
+        nodes={"a": n1},
+        edges=[Edge(src="a", dst="a", kind="data")],
+        entry="a", exit="a",
+    )
+
+
+async def _call_dispatch(plan):
+    """Invoke _maybe_run_multi_agent with a stub orch_state — the helper
+    extracted in Task 10.3 (rev.8 BLOCKER #2). Returns whatever the helper
+    returns (compiled spec on success, None on fall-through)."""
+    fake_state = MagicMock()
+    fake_state.session_id = "test-session"
+    fake_state.intent = MagicMock()
+    fake_state.intent.value = "compare"
+    fake_state.turn = MagicMock()
+    fake_state.turn.turn_id = "test-turn"
+    return await orch_mod._maybe_run_multi_agent(plan, fake_state)
 
 
 def test_orchestrator_flag_off_skips_multi_agent(monkeypatch):
-    cfg.set_config({"runtime": {"multi_agent": False}})
+    """runtime.multi_agent=False → helper returns None without calling
+    PlanCompiler.compile or GraphExecutor.run."""
+    set_config({"runtime": {"multi_agent": False}})
 
     compile_called = []
     monkeypatch.setattr(
         "tradingagents.agent_harness.runtime.multi_agent.PlanCompiler.compile",
         lambda self, plan: compile_called.append(plan) or _stub_spec(),
     )
-    run_mock = AsyncMock(side_effect=AssertionError("should not run when flag is off"))
     monkeypatch.setattr(
         "tradingagents.agent_harness.runtime.multi_agent.GraphExecutor.run",
-        run_mock,
+        AsyncMock(side_effect=AssertionError(
+            "GraphExecutor.run must NOT be called when flag is off")),
     )
 
-    # Invoke _plan() with a minimal router_plan — assert compile_called == [].
-    _run(orchestrator._plan(...))
+    result = _run(_call_dispatch(plan=MagicMock()))
+    assert result is None, "flag-off must return None (no graph run)"
     assert compile_called == [], "flag-off must skip PlanCompiler"
 
 
 def test_orchestrator_flag_on_runs_multi_agent(monkeypatch):
-    cfg.set_config({"runtime": {"multi_agent": True}})
+    """runtime.multi_agent=True → helper returns compiled spec; PlanCompiler
+    invoked once and GraphExecutor.run invoked once."""
+    set_config({"runtime": {"multi_agent": True}})
 
     compile_called = []
     run_called = []
@@ -1804,7 +1850,7 @@ def test_orchestrator_flag_on_runs_multi_agent(monkeypatch):
 
     class _StubExecutor:
         def __init__(self, *a, **kw):
-            pass
+            self.kw = kw
 
         async def run(self, spec, state):
             run_called.append((spec, state))
@@ -1819,13 +1865,16 @@ def test_orchestrator_flag_on_runs_multi_agent(monkeypatch):
         _StubExecutor,
     )
 
-    _run(orchestrator._plan(...))
-    assert len(compile_called) == 1
-    assert len(run_called) == 1
+    result = _run(_call_dispatch(plan=MagicMock()))
+    assert len(compile_called) == 1, "flag-on must invoke PlanCompiler once"
+    assert len(run_called) == 1, "flag-on must invoke GraphExecutor once"
+    assert result is not None, "flag-on success returns the compiled spec"
 
 
 def test_orchestrator_flag_on_falls_through_on_compile_error(monkeypatch, caplog):
-    cfg.set_config({"runtime": {"multi_agent": True}})
+    """runtime.multi_agent=True + PlanCompiler raises CompileError → helper
+    returns None (no exception), logs fall-through warning."""
+    set_config({"runtime": {"multi_agent": True}})
 
     class _BoomCompiler:
         def compile(self, plan):
@@ -1835,27 +1884,48 @@ def test_orchestrator_flag_on_falls_through_on_compile_error(monkeypatch, caplog
         "tradingagents.agent_harness.runtime.multi_agent.PlanCompiler",
         _BoomCompiler,
     )
+    monkeypatch.setattr(
+        "tradingagents.agent_harness.runtime.multi_agent.GraphExecutor.run",
+        AsyncMock(side_effect=AssertionError(
+            "executor must not be called when compile fails")),
+    )
 
-    # _plan() must NOT raise — fall through to PTC.
-    import logging
     caplog.set_level(logging.WARNING)
-    _run(orchestrator._plan(...))
+    result = _run(_call_dispatch(plan=MagicMock()))
+    assert result is None, "CompileError must yield None (fall through)"
     assert any(
         "graph compile failed, falling back to PTC" in rec.message
         for rec in caplog.records
     ), "CompileError must log a fall-through warning"
 
 
-def _stub_spec():
-    from tradingagents.agent_harness.runtime.multi_agent.graph import GraphSpec
-    return GraphSpec(nodes={}, edges=[], entry=None, terminals=set(), metadata={})
+def test_orchestrator_flag_on_falls_through_on_settings_error(monkeypatch, caplog):
+    """Rev.7 MEDIUM #2: Pydantic ValidationError from load_settings() must
+    also fall through to None (no NameError for `_ForcePTCFallback`)."""
+    set_config({"runtime": {"multi_agent": True}})
+
+    def _boom_settings():
+        raise ValueError("invalid runtime schema")
+
+    monkeypatch.setattr(
+        "tradingagents.agent_harness.runtime.multi_agent.load_settings",
+        _boom_settings,
+    )
+
+    caplog.set_level(logging.WARNING)
+    result = _run(_call_dispatch(plan=MagicMock()))
+    assert result is None, "settings error must fall through to None"
+    assert any(
+        "runtime settings invalid, falling back to PTC" in rec.message
+        for rec in caplog.records
+    )
 ```
 
 - [ ] **Step 9.5.2: Commit**
 
 ```bash
 git add tests/test_multi_agent_orchestrator_wiring.py
-git commit -m "test(runtime): §0.4.35 phase 1 — orchestrator flag-off/on/fall-through (rev.7 BLOCKER 1)"
+git commit -m "test(runtime): §0.4.35 phase 1 — orchestrator flag-off/on/fall-through (rev.8 BLOCKER #3)"
 ```
 
 ---
@@ -1915,7 +1985,53 @@ def _lazy_multi_agent():
     return _GE, _PC, _CE, _ls
 ```
 
+```python
+# Rev.8 BLOCKER #2 (Kant round-7): extracted the dispatch logic into a
+# dedicated helper that returns the compiled spec on success and None
+# on any fall-through path. Solves the `_ForcePTCFallback` undefined
+# problem from rev.7 by avoiding exceptions altogether for fall-through,
+# and makes Task 9.5 wiring tests directly callable (no need to set up
+# an OrchestratorState + ToolContext to invoke this).
+async def _maybe_run_multi_agent(router_plan, orch_state):
+    """Phase 1 multi_agent dispatch.
+
+    Returns the compiled GraphSpec on success; returns None to signal
+    "fall through to the legacy PTC code path". Never raises — all
+    error categories (flag off, settings invalid, compile error,
+    executor error) collapse to a None return + a structured log line.
+    """
+    GraphExecutor, PlanCompiler, CompileError, load_settings = _lazy_multi_agent()
+    try:
+        _settings = load_settings()
+    except Exception as exc:  # Rev.7 MEDIUM #2: Pydantic ValidationError
+        LOGGER.warning("runtime settings invalid, falling back to PTC: %s", exc)
+        return None
+    if not _settings.multi_agent:
+        return None  # flag off — PTC is the source of truth
+    try:
+        _spec = PlanCompiler().compile(router_plan)
+    except CompileError as exc:
+        LOGGER.warning("graph compile failed, falling back to PTC: %s", exc)
+        return None
+    try:
+        _state = _build_graph_state(orch_state, _settings)
+        await GraphExecutor(
+            max_hops=_settings.max_hops,
+            llm_budget=_settings.llm_budget_per_turn,
+            consultation_rate_limit=_settings.consultation_rate_limit,
+        ).run(_spec, _state)
+    except Exception as exc:  # pragma: no cover
+        LOGGER.exception("graph execution failed, falling back to PTC: %s", exc)
+        return None
+    # Phase 1 keeps behaviour parity — multi_agent path is observability-only.
+    # PTC still runs below for any post-graph aggregation.
+    return _spec
+```
+
 Add helper near other `_build_*` helpers:
+
+```python
+def _build_graph_state(orch_state, settings):
 
 ```python
 def _build_graph_state(orch_state, settings):
@@ -1948,31 +2064,15 @@ At the dispatch site (immediately BEFORE the PTC dispatch, inside the `if router
 # §0.4.35 Phase 1 — opt-in multi-agent runtime path.
 # Rev.7 BLOCKER 2 (Aquinas round-6): lazy resolver — top-level import would
 # trigger circular import (orchestrator → multi_agent → compiler → orchestrator).
-GraphExecutor, PlanCompiler, CompileError, load_settings = _lazy_multi_agent()
-try:
-    _settings = load_settings()
-except Exception as exc:  # pragma: no cover — Rev.7 MEDIUM #2: Pydantic ValidationError must fall through
-    LOGGER.warning("runtime settings invalid, falling back to PTC: %s", exc)
-    raise _ForcePTCFallback() from exc
-if _settings.multi_agent:
-    try:
-        _spec = PlanCompiler().compile(router_plan)
-        _state = _build_graph_state(state, _settings)
-        await GraphExecutor(
-            max_hops=_settings.max_hops,
-            llm_budget=_settings.llm_budget_per_turn,
-            consultation_rate_limit=_settings.consultation_rate_limit,
-        ).run(_spec, _state)
-        # Phase 1 keeps behaviour parity — multi_agent path is observability-only.
-        # PTC still runs below for any post-graph aggregation.
-    except CompileError as exc:
-        LOGGER.warning(
-            "graph compile failed, falling back to PTC: %s", exc,
-        )
-    except Exception as exc:  # pragma: no cover
-        LOGGER.exception(
-            "graph execution failed, falling back to PTC: %s", exc,
-        )
+#
+# Rev.8 BLOCKER #2 (Kant round-7): Replaced the inline raise-and-fall-through
+# pattern with a call to extracted helper `_maybe_run_multi_agent()` defined
+# below. Helper returns None on "fall through to PTC" and the spec on
+# "graph ran successfully". Cleaner than the implicit _ForcePTCFallback
+# exception path AND makes the dispatch directly unit-testable (Task 9.5).
+_spec = await _maybe_run_multi_agent(router_plan, state)
+# `_spec` is None when (a) flag off, (b) settings invalid, (c) compile error,
+# (d) executor error. In all cases the original PTC code below still runs.
 ```
 
 - [ ] **Step 10.4: Run full test suite (default OFF)**
@@ -2063,6 +2163,7 @@ git push tradingagentsplus phase1-runtime-skeleton
 - [ ] `consult_subagent` stub: param `context: ToolContext | None = None`; raises `NotImplementedError`; NOT registered yet
 - [ ] `ConsultNode.outputs` typed `list[FieldRef]`
 - [ ] **`ConsultNode` stub does NOT consume `state.consultation_used`** (parallel to existing LLMNode test; rev.7 MEDIUM #4 / Aquinas round-6)
+- [ ] **`test_executor_swallows_not_implemented_for_consult_node` exists in `tests/test_multi_agent_executor.py`** — runs a ConsultNode stub and asserts `state.consultation_used` is unchanged post-run (rev.8 follow-up / Kant round-7)
 - [ ] `ToolNode.run` populates `TypedResult.meta` with `source_ts` and `source_agent`
 - [ ] Default flag OFF → PTC path identical to before
 - [ ] `multi_agent=true` flag → GraphExecutor runs (heartbeat confirmed in logs)
@@ -2091,7 +2192,7 @@ git push tradingagentsplus phase1-runtime-skeleton
 - **Phase 6+**: Spec §4.8 'GraphExecutor checks if it can flatten to PTC for speed' (rev.7 INFO #2 / Aquinas round-6) — evaluation-only optimization; never the source of truth
 - **Phase 2 cleanup (optional)**: lift `_TOOL_TO_AGENT` from `core.orchestrator` into `agents/registry.py` or new `agents/tool_to_agent.py`
 
-## Review Fixes Applied (rev. 1 → rev. 7)
+## Review Fixes Applied (rev. 1 → rev. 8)
 
 | ID | Rev. | Fix |
 |---|---|---|
