@@ -1,25 +1,35 @@
-"""Tests for runtime/multi_agent/nodes.py (Phase 1).
+"""Tests for runtime/multi_agent/nodes.py (Phase 2).
 
-Per plan Task 7:
-  - ToolNode dispatches via ToolPipeline and emits a Message
-  - LLMNode / SubplanNode / ConsultNode raise NotImplementedError
-  - ConsultNode.outputs is typed ``list[FieldRef]`` (empty list default)
+Per plan Work unit 3:
+  - ToolNode dispatches via ToolPipeline and emits a Message (Phase 1)
+  - LLMNode.run() calls the harness LLM, increments state.llm_used, emits
+    1 result-message; raises NotImplementedError if state.llm_provider
+    is None (Phase 1 wiring contract preserved).
+  - SubplanNode still raises NotImplementedError (Phase 4 stub).
+  - ConsultNode.run() routes through ToolPipeline with consult_subagent
+    as the executor; emits 1 result-message; stores answer in
+    state.agent_outputs[self.id] via consult_subagent.
 """
 import asyncio
 from unittest.mock import MagicMock
 
 import pytest
 
+from tradingagents.agent_harness.llm.base import (
+    LLMProvider,
+    LLMResponse,
+)
+from tradingagents.agent_harness.runtime.multi_agent.graph import NodeKind
 from tradingagents.agent_harness.runtime.multi_agent.nodes import (
     ConsultNode,
     LLMNode,
     SubplanNode,
     ToolNode,
 )
-from tradingagents.agent_harness.runtime.multi_agent.graph import NodeKind
 from tradingagents.agent_harness.runtime.multi_agent.state import (
     FieldRef,
     GraphState,
+    TypedResult,
 )
 
 
@@ -29,6 +39,20 @@ from tradingagents.agent_harness.runtime.multi_agent.state import (
 # the inner pipeline / NotImplementedError never runs. Fix: use asyncio.run.
 def _run(coro):
     return asyncio.run(coro)
+
+
+class _FakeLLMProvider(LLMProvider):
+    """Captures every complete() call. Returns a fixed answer."""
+
+    name = "fake"
+
+    def __init__(self, content: str = "stubbed-answer") -> None:
+        self._content = content
+        self.calls: list[list] = []
+
+    def complete(self, messages, *, temperature=0.0, max_tokens=None, stop=None):
+        self.calls.append(list(messages))
+        return LLMResponse(content=self._content, provider="fake", model="fake")
 
 
 def test_node_kind_attributes():
@@ -81,23 +105,246 @@ def test_tool_node_dispatches_via_pipeline(monkeypatch):
                                 "args": {"symbol": "X"}}
 
 
-def test_llm_node_raises_not_implemented():
-    node = LLMNode(id="b", agent_id="data_agent", system_prompt="...")
-    state = GraphState(run_id="r", turn_id="t", intent="x")
-    with pytest.raises(NotImplementedError):
-        _run(node.run(state, inbox=[]))
-
-
 def test_subplan_node_raises_not_implemented():
+    # SubplanNode still a stub until Phase 4.
     node = SubplanNode(id="c", agent_id="trading_agents", sub_graph=MagicMock())
     state = GraphState(run_id="r", turn_id="t", intent="x")
     with pytest.raises(NotImplementedError):
         _run(node.run(state, inbox=[]))
 
 
-def test_consult_node_raises_not_implemented():
-    node = ConsultNode(id="d", agent_id="data_agent",
-                       target_agent="alpha_agent", question="?")
+# ────────────────────────────────────────────────────────────────────────
+# LLMNode — Phase 2 Work unit 3
+# ────────────────────────────────────────────────────────────────────────
+
+def test_llm_node_happy_path_emits_message_and_increments_budget():
+    provider = _FakeLLMProvider(content="my-answer")
+    state = GraphState(run_id="r", turn_id="t", intent="x",
+                       llm_provider=provider)
+    node = LLMNode(id="a", agent_id="data_agent",
+                   system_prompt="You are a helpful agent.")
+
+    out = _run(node.run(state, inbox=[]))
+
+    assert len(out) == 1
+    msg = out[0]
+    assert msg.sender == "a"
+    assert msg.payload.data["answer"] == "my-answer"
+    assert msg.payload.data["llm_used"] == 1
+    assert msg.payload.meta["source_agent"] == "data_agent"
+    assert state.llm_used == 1
+    # LLM was called once with system + user prompt
+    assert len(provider.calls) == 1
+    msgs = provider.calls[0]
+    assert len(msgs) == 2
+    assert msgs[0].role == "system"
+    assert "helpful agent" in msgs[0].content
+    assert msgs[1].role == "user"
+
+
+def test_llm_node_no_provider_raises_not_implemented_and_skips_budget():
+    """Phase 2 contract: missing state.llm_provider → NotImplementedError.
+    Executor swallows (Phase 1 wiring tests rely on this) and llm_used
+    is NOT incremented because the raise happens BEFORE the increment."""
     state = GraphState(run_id="r", turn_id="t", intent="x")
+    assert state.llm_provider is None  # default
+    node = LLMNode(id="b", agent_id="data_agent", system_prompt="...")
+
     with pytest.raises(NotImplementedError):
         _run(node.run(state, inbox=[]))
+    assert state.llm_used == 0
+
+
+def test_llm_node_extracts_question_from_inbox_string():
+    provider = _FakeLLMProvider(content="answer")
+    state = GraphState(run_id="r", turn_id="t", intent="x",
+                       llm_provider=provider)
+    node = LLMNode(id="c", agent_id="data_agent", system_prompt="...")
+
+    # Pre-populate an inbox with a string-typed question.
+    inbox = [
+        _msg("upstream", "c", "What is the price trend for 600036.SS?"),
+    ]
+    out = _run(node.run(state, inbox=inbox))
+
+    # Question was extracted into the user prompt.
+    user_prompt = provider.calls[0][1].content
+    assert "What is the price trend for 600036.SS?" in user_prompt
+    assert len(out) == 1
+    assert out[0].payload.data["llm_used"] == 1
+
+
+# ────────────────────────────────────────────────────────────────────────
+# ConsultNode — Phase 2 Work unit 3
+# ────────────────────────────────────────────────────────────────────────
+
+def test_consult_node_happy_path_stores_and_emits(monkeypatch):
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+
+    provider = _FakeLLMProvider(content="answer-from-alpha")
+    state = GraphState(run_id="r", turn_id="t", intent="x",
+                       llm_provider=provider)
+
+    captured = {}
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            captured["tool_name"] = tool_name
+            captured["args"] = args
+            captured["tool_context"] = tool_context
+            # Drive the executor so consult_subagent actually runs.
+            result_dict = await executor(args, tool_context)
+            return MagicMock(ok=True, result=result_dict, error=None)
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    node = ConsultNode(
+        id="c", agent_id="data_agent",
+        target_agent="alpha_agent", question="why?",
+    )
+    out = _run(node.run(state, inbox=[]))
+
+    # 1. One emitted message
+    assert len(out) == 1
+    msg = out[0]
+    assert msg.sender == "c"
+    assert msg.payload.data["ok"] is True
+    assert msg.payload.data["answer"] == "answer-from-alpha"
+
+    # 2. consult_subagent stored answer in state.agent_outputs[self.id]
+    assert "c" in state.agent_outputs
+    assert state.agent_outputs["c"].data == "answer-from-alpha"
+    assert state.agent_outputs["c"].meta["source_agent"] == "alpha_agent"
+
+    # 3. consultation_used incremented by consult_subagent
+    assert state.consultation_used == 1
+
+    # 4. ToolPipeline was invoked with the right tool name + context
+    assert captured["tool_name"] == "consult_subagent"
+    assert captured["tool_context"].extra["graph_state"] is state
+    assert captured["tool_context"].extra["graph_node_id"] == "c"
+    assert captured["tool_context"].extra["llm_provider"] is provider
+
+    # 5. Args built correctly from ConsultNode fields
+    assert captured["args"].target_agent == "alpha_agent"
+    assert captured["args"].question == "why?"
+    assert captured["args"].context_refs == []  # no inputs
+    assert captured["args"].max_tokens == 512
+
+
+def test_consult_node_serializes_inputs_to_context_refs(monkeypatch):
+    """Plan §1: context_refs = [ref.agent + ref.field for ref in self.inputs]."""
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+
+    provider = _FakeLLMProvider(content="answer")
+    state = GraphState(run_id="r", turn_id="t", intent="x",
+                       llm_provider=provider)
+
+    captured = {}
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            captured["args"] = args
+            return MagicMock(ok=True, result={"answer": "x"}, error=None)
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    node = ConsultNode(
+        id="c", agent_id="data_agent",
+        target_agent="alpha_agent", question="?",
+        inputs=[
+            FieldRef(agent="data", field="q.symbol"),
+            FieldRef(agent="data", field="q.meta.isin"),
+        ],
+    )
+    _run(node.run(state, inbox=[]))
+
+    assert captured["args"].context_refs == ["data.q.symbol", "data.q.meta.isin"]
+
+
+def test_consult_node_pipeline_error_emits_ok_false_message(monkeypatch):
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            return MagicMock(ok=False, result=None,
+                             error="consult rate exceeded")
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    provider = _FakeLLMProvider(content="should-not-be-called")
+    state = GraphState(run_id="r", turn_id="t", intent="x",
+                       llm_provider=provider)
+    node = ConsultNode(id="d", agent_id="data_agent",
+                       target_agent="alpha_agent", question="x")
+
+    out = _run(node.run(state, inbox=[]))
+
+    assert len(out) == 1
+    assert out[0].payload.data["ok"] is False
+    assert out[0].payload.data["error"] == "consult rate exceeded"
+    # consult_subagent never ran → no state mutation
+    assert state.consultation_used == 0
+    assert "d" not in state.agent_outputs
+    # LLM provider never called
+    assert provider.calls == []
+
+
+def test_consult_node_consult_budget_exceeded_propagates_through_pipeline(monkeypatch):
+    """Phase 2 Work unit 4 — verify the executor raises ConsultBudgetExceeded
+    when consultation_used is already at the cap; the pipeline catches the
+    exception and ConsultNode.run() emits ok=False."""
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            # Drive the executor — it raises ConsultBudgetExceeded.
+            return await _real_pipeline_run(tool_name, args, tool_context, executor)
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    provider = _FakeLLMProvider(content="should-not-be-called")
+    state = GraphState(run_id="r", turn_id="t", intent="x",
+                       llm_provider=provider, budget_limit=5,
+                       consultation_rate_limit=0.5)
+    # Pre-fill to the cap: ceil(0.5 * 5) = 2
+    state.consultation_used = 2
+
+    node = ConsultNode(id="e", agent_id="data_agent",
+                       target_agent="alpha_agent", question="x")
+    out = _run(node.run(state, inbox=[]))
+
+    assert len(out) == 1
+    assert out[0].payload.data["ok"] is False
+    assert "consultation rate limit" in out[0].payload.data["error"]
+    assert state.consultation_used == 2  # not incremented (refused)
+
+
+async def _real_pipeline_run(tool_name, args, tool_context, executor):
+    """Helper: invokes executor directly (no real pipeline). Matches the
+    behaviour a real pipeline would have: catches exceptions and returns
+    a MagicMock(ok=False, error=str(exc)) when the executor raises."""
+    from tradingagents.agent_harness.tools.pipeline import ToolPipeline
+    # Use the real pipeline so it captures the exception via its try/except.
+    pipeline = ToolPipeline()
+    return await pipeline.run(
+        tool_name=tool_name, args=args, tool_context=tool_context,
+        executor=executor,
+    )
+
+
+# ────────────────────────────────────────────────────────────────────────
+# Helpers
+# ────────────────────────────────────────────────────────────────────────
+
+def _msg(sender: str, receiver: str, data: str):
+    """Build a simple inbound message for inbox tests."""
+    return _make_message(sender, receiver, data)
+
+
+def _make_message(sender: str, receiver: str, data: str):
+    from tradingagents.agent_harness.runtime.multi_agent.state import Message
+    return Message(
+        sender=sender, receiver=receiver,
+        payload=TypedResult(schema=str, data=data, meta={}),
+    )

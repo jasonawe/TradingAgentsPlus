@@ -56,6 +56,13 @@ class GraphState:
     # the "no nested consult" rule inside GraphExecutor._invoke (Out of Scope).
     budget_limit: int = 5
     consultation_rate_limit: float = 0.5
+    # Phase 2 Work unit 3 — LLMProvider handle for LLMNode.run().
+    # Set by the orchestrator before GraphExecutor.run() when the runtime
+    # multi_agent flag is on. Defaults to None so Phase 1 graphs run
+    # unchanged; LLMNode.run() raises NotImplementedError if None (executor
+    # catches + logs warning, llm_used unchanged — Phase 1 wiring tests
+    # continue to pass).
+    llm_provider: Any = None
 
     def append_inbox(self, msg: Message) -> None:
         self.inbox.setdefault(msg.receiver, []).append(msg)

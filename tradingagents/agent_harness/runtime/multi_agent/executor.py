@@ -152,18 +152,22 @@ class GraphExecutor:
 
     async def _invoke(self, node, state: GraphState,
                       inbox: list[Message]) -> list[Message]:
-        # rev.4: budget accounting happens AFTER the call so stubbed nodes
-        # (which raise NotImplementedError caught by run()) don't consume budget.
+        # Phase 2: budget accounting is owned by the node implementations
+        # (LLMNode.run increments llm_used AFTER the LLM call; consult_subagent
+        # increments consultation_used AFTER the guards fire). The executor
+        # simply dispatches and observes — no double-counting.
+        #
+        # Phase 1 used to increment here so stubbed nodes that raised
+        # NotImplementedError didn't bump the counter. Phase 2 nodes never
+        # raise on the happy path (LLMNode raises ONLY when no provider is
+        # wired, which the executor's outer try/except NotImplementedError
+        # catches — same observable behaviour).
         if isinstance(node, ToolNode):
             return await node.run(state, inbox)
         if isinstance(node, LLMNode):
-            out = await node.run(state, inbox)
-            state.llm_used += 1
-            return out
+            return await node.run(state, inbox)
         if isinstance(node, ConsultNode):
-            out = await node.run(state, inbox)
-            state.consultation_used += 1
-            return out
+            return await node.run(state, inbox)
         if isinstance(node, SubplanNode):
             return await node.run(state, inbox)
         raise NotImplementedError(f"unknown node kind: {type(node).__name__}")

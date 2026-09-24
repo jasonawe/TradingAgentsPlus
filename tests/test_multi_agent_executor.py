@@ -128,9 +128,14 @@ def test_executor_swallows_not_implemented_for_llm_node(monkeypatch):
 
 
 def test_executor_swallows_not_implemented_for_consult_node(monkeypatch):
-    """Rev.8 follow-up / Kant round-7 + rev.9 MEDIUM #1: parallel to
-    test_executor_swallows_not_implemented_for_llm_node — ConsultNode
-    stub must NOT consume state.consultation_used on NotImplementedError."""
+    """Phase 1: ConsultNode stub raised NotImplementedError; executor
+    caught + never bumped state.consultation_used. Phase 2 (Work unit 3):
+    ConsultNode is wired through ToolPipeline → consult_subagent. This
+    test stubs the pipeline to return ``MagicMock(ok=True, result={})``
+    WITHOUT invoking the executor, so consult_subagent never runs and
+    consultation_used stays 0. The Phase 1 invariant
+    (consultation_used unchanged) is preserved by construction — the
+    trigger is no longer an exception swallow but pipeline-stage bypass."""
     from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
 
     class FakePipeline:
