@@ -3,6 +3,45 @@
 All notable changes to TradingAgents are documented here.
 
 
+## [v0.6.0] — Phase 2 multi-agent runtime extension (2026-09-24)
+
+§0.4.35 phase 2 — real LLM-backed consult_subagent + state-scoped hop
+counter landed. Five work-unit commits shipped in stack:
+1. `c0c67d8` `consult_subagent` real LLM wrapper (spec §4.10)
+2. `05274d9` `consult_subagent` registered + `_TOOL_TO_AGENT` mapping
+3. `2cee71e` LLMNode + ConsultNode real `run()` implementations
+4. `0c9f834` `consultation_rate_limit` + nested-consult depth guard
+5. `5771c9a` `state.edge_hops` migration (Edge.hops_used removal)
+
+### Added
+- `consult_subagent(args, context)` — real LLM call with `context_refs`
+  resolution, `consultation_used` budget enforcement, depth tracking
+  (max 3 by default), and `state.agent_outputs[id]` storage. Read-only,
+  no tool invocation in consult mode (spec §4.10).
+- `consultation_rate_limit` (0.0 ≤ x ≤ 0.8) and `consultation_max_depth`
+  (1 ≤ x ≤ 10) settings. Out-of-range values raise `SettingsError`
+  (aliased to `pydantic.ValidationError`).
+- `state.consultation_depth` per-turn auto-reset; nested consult
+  deeper than `consultation_max_depth` produces a refused message
+  (`data.ok = False`, `data.error = "ConsultDepthExceeded"`).
+
+### Changed
+- `Edge.hops_used` removed; per-edge hop counter now lives on
+  `state.edge_hops[(src, dst)]` (spec §4.7). Cross-run safe — reset
+  to `{}` at top of `GraphExecutor.run()`. Phase 1 executor's
+  double-increment bug fixed (LLMNode/ConsultNode are sole budget
+  owners; executor no longer bumps `state.llm_used` redundantly).
+- `GraphSpec.to_dict()` no longer emits `hops_used` (Edge fields
+  are now immutable; the snapshot is safe to use as a cache key).
+
+### Regressions
+- Phase 1 5 wiring tests + 8 executor tests + 53 other tests still
+  pass. Total Phase 1+2 test count: 191 passing across
+  `tests/test_multi_agent_*.py` + `tests/test_consult_subagent.py` +
+  `tests/test_agent_runtime_*.py`.
+- See `docs/superpowers/plans/2026-09-24-multi-agent-message-passing-runtime-phase2.md`
+  for the Phase 2 acceptance checklist.
+
 ## [v0.5.0] — Phase 1 multi-agent runtime skeleton (2026-09-24)
 
 §0.4.35 phase 1 — types + executor skeleton landed (flag-gated,
