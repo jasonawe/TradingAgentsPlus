@@ -1,8 +1,8 @@
-# [Phase 1 — Multi-Agent Runtime Skeleton] Implementation Plan (rev. 8)
+# [Phase 1 — Multi-Agent Runtime Skeleton] Implementation Plan (rev. 9)
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Last review round:** 7 (Kant). Verdict: BLOCK — 3 BLOCKERs introduced by rev.7 + 2 MEDIUM + 1 LOW; BLOCKERs (#1 test factory syntax / #2 _ForcePTCFallback undefined / #3 non-runnable wiring tests) all resolved in rev.8 by switching to a `_maybe_run_multi_agent()` helper that returns None on fall-through. (1 HIGH + 4 MEDIUM + 2 LOW + 2 INFO). HIGH #1 introduces `tests/test_multi_agent_orchestrator_wiring.py`; verify this file exists in the test list before starting Phase 1.
+**Last review round:** 8 (Pauli). Verdict: APPROVE_WITH_NITS — fix-of-fix severity trend = decreasing. 1 HIGH (Task 9.5→10 order dep causing broken intermediate commit) resolved by renumbering to Task 10→11→12 order. 4 MEDIUM (missing consult_node test, version-bump task, state mutation leak, budget guard), 3 LOW, 1 INFO all ratcheted into Phase 2 follow-ups.
 
 **Goal:** Land the type system, `$ref` resolver (rightmost-split precedence, no parens), `PlanCompiler` (group-order case), `GraphExecutor` skeleton (inbox propagation + per-edge hop reset, no cross-run state leak), and `consult_subagent` stub **behind the `runtime.multi_agent` flag (default off)** without changing any existing behaviour. All current tests must remain green.
 
@@ -16,7 +16,7 @@
 - `consult_subagent`'s second param is `context: ToolContext | None = None` (matches every other built-in tool's signature).
 - Compiler's import of `_TOOL_TO_AGENT` is **LAZY** (inside `PlanCompiler.compile()`, not at module top) per rev.7 BLOCKER 2 (Aquinas round-6) — top-level import creates a circular dependency (orchestrator → multi_agent → compiler → orchestrator). See `core/orchestrator.py:2947` for an existing documention of this class of bug.
 - Orchestrator's `PlanCompiler`/`GraphExecutor`/`load_settings` imports are also LAZY via `_lazy_multi_agent()` helper for the same reason.
-- **Phase 1 multi_agent dispatch lives in `_maybe_run_multi_agent()` helper** (orchestrator module), not inline in `_plan()`. Returns the compiled spec on success, None on any fall-through path (flag off / settings invalid / compile error / executor error). This makes the dispatch directly unit-testable (Task 9.5) and replaces rev.7's broken `_ForcePTCFallback()` exception path (rev.8 BLOCKER #2 / Kant round-7).
+- **Phase 1 multi_agent dispatch lives in `_maybe_run_multi_agent()` helper** (orchestrator module), not inline in `_plan()`. Returns the compiled spec on success, None on any fall-through path (flag off / settings invalid / compile error / executor error). This makes the dispatch directly unit-testable (Task 10 — wiring tests) and replaces rev.7's broken `_ForcePTCFallback()` exception path (rev.8 BLOCKER #2 / Kant round-7).
 - Resolver regex field capture requires leading `[A-Za-z_]` (matches Python attribute rules; rev.5 fix from LOW #8).
  - **Spec §4.4 vs §4.6 max_hops inconsistency**: §4.4 says loop edge default 3, §4.6 step 4 says 2 (Phase 1 uses 2 per §4.6; rev.3 LOW #14). Future spec reconciliation to 3 affects `test_edge_default_max_hops_is_2_per_spec` + loop regression test (`max_hops=2 → 4 message_log entries`).
  - **Phase 1 dispatch placement**: multi_agent branch lives in `_plan()` (planner) and runs ALONGSIDE PTC for observability only. Phase 5 (cutover) will move dispatch into `_execute()` and skip PTC (rev.6 INFO #2 / Pauli round-5).
@@ -1454,8 +1454,32 @@ def test_executor_swallows_not_implemented_for_llm_node(monkeypatch):
     spec = GraphSpec(nodes={"a": n1}, edges=[], entry="a", exit="a")
     state = GraphState(run_id="r", turn_id="t", intent="x")
     out = _run(GraphExecutor().run(spec, state))
-    assert out.intent == "x"
+        assert out.intent == "x"
     assert out.llm_used == 0
+
+
+def test_executor_swallows_not_implemented_for_consult_node(monkeypatch):
+    """Rev.8 follow-up / Kant round-7 + rev.9 MEDIUM #1: parallel to
+    test_executor_swallows_not_implemented_for_llm_node — ConsultNode
+    stub must NOT consume state.consultation_used on NotImplementedError."""
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            return MagicMock(ok=True, result={})
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    n1 = ConsultNode(id="a", agent_id="data_agent",
+                     target_agent="alpha_agent", question="?")
+    spec = GraphSpec(nodes={"a": n1}, edges=[], entry="a", exit="a")
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+    out = _run(GraphExecutor().run(spec, state))
+    assert out.intent == "x"
+    assert out.consultation_used == 0, (
+        "ConsultNode stub must not consume consultation_used on NotImplementedError"
+    )
+
 
 
 def test_executor_loop_edge_re_executes_upstream(monkeypatch):
@@ -1742,7 +1766,7 @@ class GraphExecutor:
 
 - [ ] **Step 9.4: Run, expect PASS**
 
-- [ ] **Step 9.5: Commit**
+- [ ] **Step 10.2: Commit**
 
 ```bash
 git add tradingagents/agent_harness/runtime/multi_agent/executor.py \
@@ -1750,14 +1774,14 @@ git add tradingagents/agent_harness/runtime/multi_agent/executor.py \
 git commit -m "feat(runtime): §0.4.35 phase 1 — GraphExecutor (per-run reset, cross-run safe)"
 ```
 
-### Task 9.5: Create `tests/test_multi_agent_orchestrator_wiring.py` (BLOCKER 1, rev.7)
+### Task 10: Create `tests/test_multi_agent_orchestrator_wiring.py` (renamed from Task 9.5 — rev.9 HIGH #1 order dep)
 
 **Files:**
 - Create: `tests/test_multi_agent_orchestrator_wiring.py`
 
 This file is referenced 4 times in rev.6 but no Task created it (Aquinas round-6 BLOCKER 1). **Phase 1 ships with `multi_agent=False` as default; without these three tests, the flag-gated dispatch has no regression guard.**
 
-- [ ] **Step 9.5.1: Write the three tests**
+- [ ] **Step 10.1: Write the three tests**
 
 ```python
 # tests/test_multi_agent_orchestrator_wiring.py
@@ -1768,7 +1792,7 @@ Rev.8 BLOCKER #3 (Kant round-7) rewrite: previous rev.7 tests used
 `orchestrator._plan(...)` with Python Ellipsis as args (TypeError at
 runtime), and built a stub GraphSpec with non-existent `terminals=` /
 `metadata=` kwargs. New tests pin the actual contract against the
-helper extracted in Task 10.3 (`_maybe_run_multi_agent`).
+helper extracted in Task 11.3 (`_maybe_run_multi_agent`).
 
 These tests rely on `tests/conftest.py::_isolate_config` autouse fixture
 to reset `dataflows._config` before/after each test. If that fixture is
@@ -1803,7 +1827,7 @@ def _stub_spec():
 
 async def _call_dispatch(plan):
     """Invoke _maybe_run_multi_agent with a stub orch_state — the helper
-    extracted in Task 10.3 (rev.8 BLOCKER #2). Returns whatever the helper
+    extracted in Task 11.3 (rev.8 BLOCKER #2). Returns whatever the helper
     returns (compiled spec on success, None on fall-through)."""
     fake_state = MagicMock()
     fake_state.session_id = "test-session"
@@ -1921,22 +1945,22 @@ def test_orchestrator_flag_on_falls_through_on_settings_error(monkeypatch, caplo
     )
 ```
 
-- [ ] **Step 9.5.2: Commit**
+- [ ] **Step 10.2: Commit**
 
 ```bash
 git add tests/test_multi_agent_orchestrator_wiring.py
-git commit -m "test(runtime): §0.4.35 phase 1 — orchestrator flag-off/on/fall-through (rev.8 BLOCKER #3)"
+git commit -m "test(runtime): §0.4.35 phase 1 — orchestrator flag-off/on/fall-through (rev.8 BLOCKER #3 — moved to Task 11 in rev.9)"
 ```
 
 ---
 
-### Task 10: Wire executor into orchestrator (helper takes `(orch_state, settings)`)
+### Task 11: Wire executor into orchestrator (helper takes `(orch_state, settings)` + defines `_maybe_run_multi_agent`)
 
 **Files:**
 - Modify: `tradingagents/agent_harness/runtime/multi_agent/__init__.py` (expand exports)
 - Modify: `tradingagents/agent_harness/core/orchestrator.py`
 
-- [ ] **Step 10.1: Expand `__init__.py`**
+- [ ] **Step 11.1: Expand `__init__.py`**
 
 ```python
 # tradingagents/agent_harness/runtime/multi_agent/__init__.py
@@ -1957,13 +1981,13 @@ __all__ = [
 ]
 ```
 
-- [ ] **Step 10.2: Locate dispatch site**
+- [ ] **Step 11.2: Locate dispatch site**
 
 ```bash
 rg -n "_plan_from_router|router_plan is not None" tradingagents/agent_harness/core/orchestrator.py | head
 ```
 
-- [ ] **Step 10.3: Add helper + flag-gated branch**
+- [ ] **Step 11.3: Add helper + flag-gated branch**
 
 Add at module top of `orchestrator.py`:
 
@@ -1990,7 +2014,7 @@ def _lazy_multi_agent():
 # dedicated helper that returns the compiled spec on success and None
 # on any fall-through path. Solves the `_ForcePTCFallback` undefined
 # problem from rev.7 by avoiding exceptions altogether for fall-through,
-# and makes Task 9.5 wiring tests directly callable (no need to set up
+# and makes Task 10 wiring tests directly callable (no need to set up
 # an OrchestratorState + ToolContext to invoke this).
 async def _maybe_run_multi_agent(router_plan, orch_state):
     """Phase 1 multi_agent dispatch.
@@ -2069,19 +2093,19 @@ At the dispatch site (immediately BEFORE the PTC dispatch, inside the `if router
 # pattern with a call to extracted helper `_maybe_run_multi_agent()` defined
 # below. Helper returns None on "fall through to PTC" and the spec on
 # "graph ran successfully". Cleaner than the implicit _ForcePTCFallback
-# exception path AND makes the dispatch directly unit-testable (Task 9.5).
+# exception path AND makes the dispatch directly unit-testable (Task 10 wiring tests).
 _spec = await _maybe_run_multi_agent(router_plan, state)
 # `_spec` is None when (a) flag off, (b) settings invalid, (c) compile error,
 # (d) executor error. In all cases the original PTC code below still runs.
 ```
 
-- [ ] **Step 10.4: Run full test suite (default OFF)**
+- [ ] **Step 11.4: Run full test suite (default OFF)**
 
 ```bash
 .venv/bin/python -m pytest tests/ -x -q
 ```
 
-- [ ] **Step 10.5: Smoke-test ON path (do NOT commit)**
+- [ ] **Step 11.5: Smoke-test ON path (do NOT commit)**
 
 ```bash
 TRADINGAGENTS_RUNTIME_MULTI_AGENT=true launchctl kickstart -k "gui/$(id -u)/com.tradingagents.web.venv"
@@ -2097,7 +2121,7 @@ Reset:
 launchctl kickstart -k "gui/$(id -u)/com.tradingagents.web.venv"
 ```
 
-- [ ] **Step 10.6: Commit**
+- [ ] **Step 11.6: Commit**
 
 ```bash
 git add tradingagents/agent_harness/runtime/multi_agent/__init__.py \
@@ -2105,9 +2129,9 @@ git add tradingagents/agent_harness/runtime/multi_agent/__init__.py \
 git commit -m "feat(runtime): §0.4.35 phase 1 — flag-gated GraphExecutor dispatch (default off)"
 ```
 
-### Task 11: End-to-end smoke test
+### Task 12: End-to-end smoke test (renumbered from Task 11)
 
-- [ ] **Step 11.1: Run new tests + collision regression guard**
+- [ ] **Step 12.1: Run new tests + collision regression guard**
 
 ```bash
 .venv/bin/python -m pytest \
@@ -2117,20 +2141,20 @@ git commit -m "feat(runtime): §0.4.35 phase 1 — flag-gated GraphExecutor disp
     -q
 ```
 
-- [ ] **Step 11.2: Run full repo test suite**
+- [ ] **Step 12.2: Run full repo test suite**
 
 ```bash
 .venv/bin/python -m pytest tests/ -q
 ```
 
-- [ ] **Step 11.3: Manual sanity**
+- [ ] **Step 12.3: Manual sanity**
 
 - Start the service: `launchctl kickstart -k "gui/$(id -u)/com.tradingagents.web.venv"`
 - Open `http://127.0.0.1:8000/`
 - Send a chat; confirm `/reports` and `/scheduled` lists still render.
 - Tail `/tmp/tradingagents-web-venv.log` for new stack traces mentioning `agent_harness.runtime.multi_agent`.
 
-- [ ] **Step 11.4: Tag the phase**
+- [ ] **Step 12.4: Tag the phase**
 
 ```bash
 git tag -a phase1-runtime-skeleton -m "§0.4.35 phase 1 — types + executor skeleton landed"
@@ -2192,7 +2216,27 @@ git push tradingagentsplus phase1-runtime-skeleton
 - **Phase 6+**: Spec §4.8 'GraphExecutor checks if it can flatten to PTC for speed' (rev.7 INFO #2 / Aquinas round-6) — evaluation-only optimization; never the source of truth
 - **Phase 2 cleanup (optional)**: lift `_TOOL_TO_AGENT` from `core.orchestrator` into `agents/registry.py` or new `agents/tool_to_agent.py`
 
-## Review Fixes Applied (rev. 1 → rev. 8)
+
+- [ ] **Step 12.5: Version bump + CHANGELOG** (rev.9 MEDIUM #2)
+
+Per user standing instruction "每次改文件 bump 版本号", Phase 1 ships as a
+visible release. Bump `tradingagents/_version.py` (or `__init__.py`
+`__version__`) to `v0.X.Y+1`, append a CHANGELOG entry under a
+"Phase 1 multi-agent runtime skeleton" heading, commit:
+
+```bash
+git add tradingagents/_version.py CHANGELOG.md
+git commit -m "chore(release): §0.4.35 phase 1 — bump version to v0.X.Y (multi-agent runtime skeleton)"
+git push tradingagentsplus main
+```
+
+NOTE: find the current `__version__` with `rg -n "__version__" tradingagents/`;
+if `_version.py` doesn't exist, create one as a one-line stub
+(`__version__ = "v0.X.Y"`). This is non-blocking — if bumped wrong, Phase 1
+still ships; record the version step in Phase 2 follow-up.
+
+
+## Review Fixes Applied (rev. 1 → rev. 9)
 
 | ID | Rev. | Fix |
 |---|---|---|
