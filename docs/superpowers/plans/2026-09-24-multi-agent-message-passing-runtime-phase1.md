@@ -1,10 +1,12 @@
-# [Phase 1 — Multi-Agent Runtime Skeleton] Implementation Plan (rev. 2)
+# [Phase 1 — Multi-Agent Runtime Skeleton] Implementation Plan (rev. 3)
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Land the type system, `$ref` resolver, `PlanCompiler` (group-order case), `GraphExecutor` skeleton, and `consult_subagent` stub **behind the `runtime.multi_agent` flag (default off)** without changing any existing behaviour. All current tests must remain green.
+**Goal:** Land the type system, `$ref` resolver (with proper operator precedence), `PlanCompiler` (group-order case), `GraphExecutor` skeleton (with inbox plumbing), and `consult_subagent` stub **behind the `runtime.multi_agent` flag (default off)** without changing any existing behaviour. All current tests must remain green.
 
 **Architecture:** All new code lives under a NEW sub-package `tradingagents/agent_harness/runtime/multi_agent/` to avoid colliding with the existing supervised AgentRuntime module (`AgentRuntime`, `AgentRuntimeStore`, `PlanGraph`, `GraphPatch`, etc.). The orchestrator gains a new code path gated by `runtime.multi_agent`; the existing PTC branch is untouched in this phase.
+
+**Critical Phase 1 contract** (locked in rev. 3 after round-2 review): the executor MUST populate `state.inbox` for downstream nodes whenever it fires an edge. Without this, the spec §4.7 "data flow between subagents" goal is hollow and Phase 3's `$ref` resolver would have nothing to read. The executor calls `state.append_inbox(new_msg)` for every edge fire — this both appends to the audit log and deposits the message into the receiver's inbox for the next activation.
 
 **Relationship to existing PlanGraph** (resolves review blocker F2):
 - `PlanGraph` (existing, supervised V2 runtime): run-level DAG — Tasks, dependencies, lifecycle states, persistence. Long-lived (hours to days).
@@ -30,41 +32,40 @@
 
 | File | Lines | Responsibility |
 |---|---|---|
-| `__init__.py` | ~30 | Public exports: `GraphSpec`, `Edge`, `NodeKind`, `BaseNode`, `GraphState`, `TypedResult`, `Message`, `FieldRef`, `ToolNode`, `LLMNode`, `SubplanNode`, `ConsultNode`, `GraphExecutor`, `PlanCompiler`, `CompileError`, `RuntimeSettings` |
-| `settings.py` | ~30 | `RuntimeSettings` (Pydantic BaseModel) + `load_settings()` factory that reads from `tradingagents.dataflows.config` |
-| `state.py` | ~150 | `GraphState`, `TypedResult`, `Message`, `FieldRef` (dataclasses) |
-| `graph.py` | ~150 | `NodeKind` (Enum), `BaseNode` (Protocol), `Edge` (dataclass + `__post_init__` validation), `GraphSpec` (dataclass + custom `to_dict()`) |
-| `resolver.py` | ~150 | `parse_ref()`, `is_ref_expr()`, `resolve_ref()` (pure functions) |
-| `nodes.py` | ~250 | `_NodeBase` + `ToolNode` (uses `ToolPipeline.run`) + `LLMNode`/`SubplanNode`/`ConsultNode` stubs (raise `NotImplementedError`) |
-| `compiler.py` | ~200 | `PlanCompiler` (compiles `RouterPlan` → `GraphSpec`); reads cross-group deps from group order (NOT per-call `depends_on`, which doesn't exist on `ToolCall` per B5) |
-| `executor.py` | ~300 | `GraphExecutor` (priority queue + budget guard + activation); swallows `NotImplementedError` for not-yet-implemented node kinds |
+| `__init__.py` | ~30 | Public exports: `GraphSpec`, `Edge`, `NodeKind`, `BaseNode`, `GraphState`, `TypedResult`, `Message`, `FieldRef`, `ToolNode`, `LLMNode`, `SubplanNode`, `ConsultNode`, `GraphExecutor`, `PlanCompiler`, `CompileError`, `RuntimeSettings`, `load_settings` |
+| `settings.py` | ~30 | `RuntimeSettings` (Pydantic BaseModel) + `load_settings()` factory that reads from `tradingagents.default_config` |
+| `state.py` | ~120 | `GraphState`, `TypedResult`, `Message`, `FieldRef` (dataclasses). `append_inbox` is the canonical way to deposit a message into a receiver's inbox (it also appends to `message_log`). |
+| `graph.py` | ~140 | `NodeKind` (Enum), `BaseNode` (Protocol), `Edge` (dataclass + `__post_init__` validation), `GraphSpec` (dataclass + custom `to_dict()`) |
+| `resolver.py` | ~180 | `parse_ref()`, `is_ref_expr()`, `resolve_ref()` (pure functions, **rightmost-split precedence** for multi-op expressions) |
+| `nodes.py` | ~200 | `ToolNode` (uses `ToolPipeline.run` correctly) + `LLMNode`/`SubplanNode`/`ConsultNode` stubs. **No `_NodeBase` indirection** — subclasses set attributes directly. |
+| `compiler.py` | ~180 | `PlanCompiler` (compiles `RouterPlan` → `GraphSpec`); reads cross-group deps from group order (NOT per-call `depends_on`, which doesn't exist on `ToolCall` per B5) |
+| `executor.py` | ~280 | `GraphExecutor` (priority queue + budget guard + **inbox plumbing**); swallows `NotImplementedError` for not-yet-implemented node kinds; emits INFO heartbeats so smoke tests can verify execution |
 
 ### Modified files
 
 | File | Change |
 |---|---|
-| `tradingagents/default_config.py` | Add `runtime.multi_agent=false`, `runtime.llm_budget_per_turn=5`, `runtime.max_hops=8`, `runtime.consultation_rate_limit=0.5` |
-| `tradingagents/dataflows/config.py` | Add `TRADINGAGENTS_RUNTIME_MULTI_AGENT` and the 3 numeric siblings to `_ENV_OVERRIDES` |
-| `tradingagents/agent_harness/core/orchestrator.py` | Add `if settings.runtime.multi_agent:` branch that calls `PlanCompiler.compile()` then `GraphExecutor.run()`; fall through to PTC on `CompileError` or any `Exception` during graph execution |
+| `tradingagents/default_config.py` | (a) Add `runtime.multi_agent=false`, `runtime.llm_budget_per_turn=5`, `runtime.max_hops=8`, `runtime.consultation_rate_limit=0.5` to `DEFAULT_CONFIG`. (b) Add 4 new entries to `_ENV_OVERRIDES` (`TRADINGAGENTS_RUNTIME_MULTI_AGENT` etc.). (c) Add `_set_dotted(cfg, dotted_key, value)` helper (10 lines). (d) Update `_apply_env_overrides` to call `_set_dotted` so dotted keys walk the config tree. |
+| `tradingagents/agent_harness/core/orchestrator.py` | Add `if _settings.multi_agent:` branch that calls `PlanCompiler.compile()` then `GraphExecutor.run()`; fall through to PTC on `CompileError` or any `Exception` during graph execution. The fragment drops the redundant `_program = _plan_from_router(...)` call (already happens upstream at line 2247). |
 
 ### New tool (separate file)
 
 | File | Lines | Responsibility |
 |---|---|---|
-| `tradingagents/agent_harness/tools/builtin_consult.py` | ~80 | `ConsultSubagentArgs` (Pydantic) + `consult_subagent` async fn that raises `NotImplementedError`. **Phase 2 wires registration into the per-harness `ToolRegistry` via `@tool_registry.register(...)` decorator; Phase 1 does not register.** |
+| `tradingagents/agent_harness/tools/builtin_consult.py` | ~80 | `ConsultSubagentArgs` (Pydantic) + `consult_subagent` async fn. **Critical**: second param is named `context` (NOT `ctx`) so `FunctionTool.invoke` (`tools/base.py:91-95`) auto-injects the tool context. The stub raises `NotImplementedError`. Phase 2 wires registration via `@tool_registry.register(...)` on the per-harness `ToolRegistry`; Phase 1 does NOT register. |
 
 ### New test files (flat in `tests/`, NOT nested)
 
 | File | Coverage |
 |---|---|
-| `tests/test_multi_agent_settings.py` | `RuntimeSettings` defaults + override |
+| `tests/test_multi_agent_settings.py` | `RuntimeSettings` defaults + override + **env var injection** (covers the dotted-path helper) |
 | `tests/test_multi_agent_state.py` | `GraphState`/`TypedResult`/`Message`/`FieldRef` round-trip |
 | `tests/test_multi_agent_graph.py` | `GraphSpec` validation + `to_dict()` round-trip + `Edge.kind` validation |
-| `tests/test_multi_agent_resolver.py` | `$ref` parser + evaluator (success, fallback, malformed, arithmetic, ternary) |
+| `tests/test_multi_agent_resolver.py` | `$ref` parser + evaluator — **includes multi-op arithmetic precedence tests** |
 | `tests/test_multi_agent_compiler.py` | `PlanCompiler` simple case + `_TOOL_TO_AGENT` mapping (including agent-as-tool entries like `add_to_watchlist` → `command_resolver`) |
 | `tests/test_multi_agent_nodes.py` | `ToolNode` stub end-to-end via mocked `ToolPipeline.run` |
-| `tests/test_multi_agent_executor.py` | `GraphExecutor.run()` walks 2-node linear graph; budget guard kicks in at limit |
-| `tests/test_consult_subagent.py` | `ConsultSubagentArgs` validation + stub raises `NotImplementedError` |
+| `tests/test_multi_agent_executor.py` | `GraphExecutor.run()` walks 2-node linear graph; **inbox propagation regression**; budget guard; priority by node kind |
+| `tests/test_consult_subagent.py` | `ConsultSubagentArgs` validation + stub raises `NotImplementedError` + signature uses `context=` |
 
 All tests use the existing `asyncio.run()` + `_run(coro)` pattern from `tests/test_tool_pipeline.py:30`. **No bare `async def test_...`** (per review B4).
 
@@ -72,18 +73,19 @@ All tests use the existing `asyncio.run()` + `_run(coro)` pattern from `tests/te
 
 ## Chunk 1: Settings + Types (no behavior change, just shape)
 
-### Task 1: `RuntimeSettings` + config wiring
+### Task 1: `RuntimeSettings` + config wiring (dotted-path + env var injection)
 
 **Files:**
 - Create: `tradingagents/agent_harness/runtime/multi_agent/settings.py`
-- Modify: `tradingagents/default_config.py` (add `runtime` block)
-- Modify: `tradingagents/dataflows/config.py` (add env override entries)
+- Modify: `tradingagents/default_config.py` (add `runtime` block + env overrides + `_set_dotted` helper)
 - Test: `tests/test_multi_agent_settings.py`
 
-- [ ] **Step 1.1: Write failing test**
+- [ ] **Step 1.1: Write failing test (3 cases)**
 
 ```python
 # tests/test_multi_agent_settings.py
+import importlib
+
 from tradingagents.agent_harness.runtime.multi_agent.settings import (
     RuntimeSettings, load_settings,
 )
@@ -100,19 +102,32 @@ def test_runtime_settings_override():
     assert s.multi_agent is True
     assert s.llm_budget_per_turn == 2
 
-def test_load_settings_reads_from_config(monkeypatch):
-    # Sanity: load_settings() pulls from the live config dict.
+def test_load_settings_reads_from_set_config():
+    # Sanity: load_settings() pulls from the live config dict via set_config.
     from tradingagents.dataflows import config as cfg
     cfg.set_config({"runtime": {"multi_agent": True, "llm_budget_per_turn": 7}})
     s = load_settings()
     assert s.multi_agent is True
     assert s.llm_budget_per_turn == 7
+
+def test_env_override_runtime_multi_agent(monkeypatch):
+    # Verify the dotted-path env var wiring lands at the right nested key.
+    monkeypatch.setenv("TRADINGAGENTS_RUNTIME_MULTI_AGENT", "true")
+    monkeypatch.setenv("TRADINGAGENTS_RUNTIME_LLM_BUDGET_PER_TURN", "9")
+    # Re-import default_config so _apply_env_overrides runs against fresh env.
+    import tradingagents.default_config as dc
+    importlib.reload(dc)
+    import tradingagents.dataflows.config as dfcfg
+    importlib.reload(dfcfg)
+    cfg = dfcfg.get_config()
+    assert cfg["runtime"]["multi_agent"] is True
+    assert cfg["runtime"]["llm_budget_per_turn"] == 9
 ```
 
 - [ ] **Step 1.2: Run, expect FAIL**
 
 Run: `.venv/bin/python -m pytest tests/test_multi_agent_settings.py -v`
-Expected: `ModuleNotFoundError: tradingagents.agent_harness.runtime.multi_agent.settings`
+Expected: `ModuleNotFoundError: tradingagents.agent_harness.runtime.multi_agent.settings` (first 3) + missing env override (4th).
 
 - [ ] **Step 1.3: Implement `settings.py`**
 
@@ -136,36 +151,100 @@ def load_settings() -> RuntimeSettings:
     return RuntimeSettings(**block)
 ```
 
-- [ ] **Step 1.4: Add to `default_config.py`**
+- [ ] **Step 1.4: Add `runtime` block to `DEFAULT_CONFIG`**
 
 At the bottom of the `DEFAULT_CONFIG` dict in `tradingagents/default_config.py`, before the closing `}`:
 
 ```python
-# §0.4.35 Phase 1 — multi-agent runtime (default off; PTC remains live path)
-"runtime": {
-    "multi_agent": False,
-    "llm_budget_per_turn": 5,
-    "max_hops": 8,
-    "consultation_rate_limit": 0.5,
-},
+    # §0.4.35 Phase 1 — multi-agent runtime (default off; PTC remains live path)
+    "runtime": {
+        "multi_agent": False,
+        "llm_budget_per_turn": 5,
+        "max_hops": 8,
+        "consultation_rate_limit": 0.5,
+    },
 ```
 
-- [ ] **Step 1.5: Add env overrides in `dataflows/config.py`**
+- [ ] **Step 1.5: Add env overrides + `_set_dotted` helper to `default_config.py`**
 
-In `_ENV_OVERRIDES` (in `tradingagents/dataflows/config.py`), add:
+In `tradingagents/default_config.py`, add the following 4 entries to the existing `_ENV_OVERRIDES` dict (lines 11-33):
 
 ```python
-"TRADINGAGENTS_RUNTIME_MULTI_AGENT":          "runtime.multi_agent",
-"TRADINGAGENTS_RUNTIME_LLM_BUDGET_PER_TURN":  "runtime.llm_budget_per_turn",
-"TRADINGAGENTS_RUNTIME_MAX_HOPS":             "runtime.max_hops",
-"TRADINGAGENTS_RUNTIME_CONSULTATION_RATE":    "runtime.consultation_rate_limit",
+    # §0.4.35 Phase 1 — dotted paths land at the runtime.* block
+    "TRADINGAGENTS_RUNTIME_MULTI_AGENT":          "runtime.multi_agent",
+    "TRADINGAGENTS_RUNTIME_LLM_BUDGET_PER_TURN":  "runtime.llm_budget_per_turn",
+    "TRADINGAGENTS_RUNTIME_MAX_HOPS":             "runtime.max_hops",
+    "TRADINGAGENTS_RUNTIME_CONSULTATION_RATE":    "runtime.consultation_rate_limit",
 ```
 
-Note these are dotted paths — `_apply_env_overrides` would need a tiny extension to walk dotted keys. Either:
-- (preferred) Update `_apply_env_overrides` to handle dotted paths via `_set_dotted(config, key, value)`
-- (fallback) Flatten the `runtime.*` keys into top-level config keys
+Add this helper near `_apply_env_overrides` (after `_coerce`):
 
-For Phase 1 minimum, add the env override entries and update `_apply_env_overrides` to support dotted keys (one-line change in the helper).
+```python
+def _set_dotted(cfg: dict, dotted_key: str, value: Any) -> dict:
+    """Walk a dotted key path and assign the leaf value.
+
+    Example:
+        >>> _set_dotted({}, "runtime.multi_agent", True)
+        {"runtime": {"multi_agent": True}}
+    """
+    parts = dotted_key.split(".")
+    cur = cfg
+    for part in parts[:-1]:
+        if part not in cur or not isinstance(cur[part], dict):
+            cur[part] = {}
+        cur = cur[part]
+    cur[parts[-1]] = value
+    return cfg
+```
+
+Update `_apply_env_overrides` (replace the `config[key] = _coerce(...)` line) so it calls `_set_dotted` for dotted keys:
+
+```python
+def _apply_env_overrides(config: dict) -> dict:
+    """Apply TRADINGAGENTS_* env vars to the config dict in-place."""
+    for env_var, key in _ENV_OVERRIDES.items():
+        raw = os.environ.get(env_var)
+        if raw is None or raw == "":
+            continue
+        try:
+            coerced = _coerce(raw, _lookup_dotted(config, key))
+        except ValueError as exc:
+            raise ValueError(f"Invalid value for {env_var}: {exc}") from exc
+        _set_dotted(config, key, coerced)
+    return config
+
+def _lookup_dotted(cfg: dict, dotted_key: str):
+    """Read a dotted key without mutating. Returns None for missing paths."""
+    parts = dotted_key.split(".")
+    cur: Any = cfg
+    for part in parts:
+        if isinstance(cur, dict) and part in cur:
+            cur = cur[part]
+        else:
+            return None
+    return cur
+```
+
+For backward compatibility: flat keys (no dot) still hit the same path; `_set_dotted({}, "alpha", 1)` returns `{"alpha": 1}` and `_lookup_dotted({}, "alpha")` returns `None`, which `_coerce` then receives as `None` — Python-level check needed: in the existing `_coerce(value, reference=None)`, all branches assume `reference` is non-None. Add a guard so flat keys where the default isn't yet in `DEFAULT_CONFIG` still coerce against a sentinel:
+
+```python
+def _apply_env_overrides(config: dict) -> dict:
+    """Apply TRADINGAGENTS_* env vars to the config dict in-place."""
+    for env_var, key in _ENV_OVERRIDES.items():
+        raw = os.environ.get(env_var)
+        if raw is None or raw == "":
+            continue
+        reference = _lookup_dotted(config, key)
+        if reference is None:
+            # No existing default — best-effort coerce against the raw string.
+            reference = raw
+        try:
+            coerced = _coerce(raw, reference)
+        except ValueError as exc:
+            raise ValueError(f"Invalid value for {env_var}: {exc}") from exc
+        _set_dotted(config, key, coerced)
+    return config
+```
 
 - [ ] **Step 1.6: Run, expect PASS**
 
@@ -174,9 +253,8 @@ For Phase 1 minimum, add the env override entries and update `_apply_env_overrid
 ```bash
 git add tradingagents/agent_harness/runtime/multi_agent/settings.py \
         tradingagents/default_config.py \
-        tradingagents/dataflows/config.py \
         tests/test_multi_agent_settings.py
-git commit -m "feat(runtime): §0.4.35 phase 1 — RuntimeSettings + config block (multi_agent off)"
+git commit -m "feat(runtime): §0.4.35 phase 1 — RuntimeSettings + dotted-path env overrides"
 ```
 
 ### Task 2: `GraphState` + `TypedResult` + `Message` + `FieldRef`
@@ -212,14 +290,22 @@ def test_fieldref_str():
     r = FieldRef(agent="data", field="quote.symbol")
     assert str(r) == "\$data.quote.symbol"
 
-def test_graph_state_consume_inbox():
+def test_graph_state_append_inbox_deposits_and_logs():
+    state = GraphState(run_id="r1", turn_id="t1", intent="analysis")
+    msg = Message(sender="x", receiver="y",
+                  payload=TypedResult(schema=dict, data={"a": 1}, meta={}))
+    state.append_inbox(msg)
+    assert state.inbox["y"] == [msg]
+    assert state.message_log == [msg]
+
+def test_graph_state_consume_inbox_is_idempotent():
     state = GraphState(run_id="r1", turn_id="t1", intent="analysis")
     msg = Message(sender="x", receiver="y",
                   payload=TypedResult(schema=dict, data={"a": 1}, meta={}))
     state.append_inbox(msg)
     inbox = state.consume_inbox("y")
     assert len(inbox) == 1
-    assert state.consume_inbox("y") == []  # idempotent
+    assert state.consume_inbox("y") == []
 ```
 
 - [ ] **Step 2.2: Run, expect FAIL**
@@ -274,10 +360,18 @@ class GraphState:
     consultation_rate_limit: float = 0.5
 
     def append_inbox(self, msg: Message) -> None:
+        """Deposit a message into a receiver's inbox AND the audit log.
+
+        Per spec §4.7: this is the canonical way messages flow between nodes.
+        The executor calls this for every edge fire so the next activation
+        of the downstream node can ``consume_inbox(receiver)`` and see its
+        upstream inputs.
+        """
         self.inbox.setdefault(msg.receiver, []).append(msg)
         self.message_log.append(msg)
 
     def consume_inbox(self, receiver: str) -> list[Message]:
+        """Pop and return all messages addressed to ``receiver``. Idempotent."""
         return self.inbox.pop(receiver, [])
 
     # NOTE: fork() lands in Phase 4 when SubplanNode needs it.
@@ -370,7 +464,7 @@ __post_init__ (see review H3).
 from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Literal, Optional, Protocol, runtime_checkable
+from typing import Any, Optional, Protocol, runtime_checkable
 import json
 
 from .state import FieldRef, Message, TypedResult
@@ -456,7 +550,7 @@ git add tradingagents/agent_harness/runtime/multi_agent/graph.py \
 git commit -m "feat(runtime): §0.4.35 phase 1 — NodeKind, Edge (validated), GraphSpec"
 ```
 
-### Task 4: `__init__.py` public exports
+### Task 4: `__init__.py` partial exports
 
 **Files:**
 - Create: `tradingagents/agent_harness/runtime/multi_agent/__init__.py`
@@ -468,7 +562,7 @@ git commit -m "feat(runtime): §0.4.35 phase 1 — NodeKind, Edge (validated), G
 from .graph import NodeKind, Edge, GraphSpec, BaseNode
 from .state import GraphState, TypedResult, Message, FieldRef
 from .settings import RuntimeSettings, load_settings
-# Nodes + executor + compiler are added in Tasks 7/8/9.
+# Nodes + executor + compiler are added in later tasks.
 
 __all__ = [
     "NodeKind", "Edge", "GraphSpec", "BaseNode",
@@ -493,13 +587,13 @@ git commit -m "feat(runtime): §0.4.35 phase 1 — multi_agent package __init__ 
 
 ## Chunk 2: Resolver + consult_subagent Stub
 
-### Task 5: `$ref` parser + evaluator (pure functions)
+### Task 5: `$ref` parser + evaluator (rightmost-split precedence)
 
 **Files:**
 - Create: `tradingagents/agent_harness/runtime/multi_agent/resolver.py`
 - Test: `tests/test_multi_agent_resolver.py`
 
-- [ ] **Step 5.1: Write failing tests**
+- [ ] **Step 5.1: Write failing tests — including multi-op precedence**
 
 ```python
 # tests/test_multi_agent_resolver.py
@@ -514,7 +608,11 @@ def _state():
     return GraphState(
         run_id="r", turn_id="t", intent="x",
         agent_outputs={
-            "data": TypedResult(schema=dict, data={"quote": {"symbol": "600036.SS"}}, meta={}),
+            "data": TypedResult(
+                schema=dict,
+                data={"x": 2, "y": 3, "q": {"symbol": "600036.SS"}, "tag": "buy"},
+                meta={},
+            ),
             "alpha": TypedResult(schema=dict, data={"price": 40.5}, meta={}),
         },
     )
@@ -528,23 +626,42 @@ def test_parse_ref_no_dollar_returns_none():
 def test_is_ref_expr():
     assert is_ref_expr("\$data.x")
     assert not is_ref_expr("hello")
-    assert is_ref_expr("\$data.x * 1.5")  # expression form
+    assert is_ref_expr("\$data.x * 1.5")
 
 def test_resolve_ref_simple():
     s = _state()
-    assert resolve_ref("\$data.quote.symbol", s) == "600036.SS"
+    assert resolve_ref("\$data.q.symbol", s) == "600036.SS"
 
-def test_resolve_ref_arithmetic():
+def test_resolve_ref_nested_dict():
+    s = _state()
+    assert resolve_ref("\$data.q.symbol", s) == "600036.SS"
+
+def test_resolve_ref_arithmetic_single_op():
     s = _state()
     assert resolve_ref("\$alpha.price * 2", s) == 81.0
-
-def test_resolve_ref_arithmetic_with_constant():
-    s = _state()
     assert resolve_ref("\$alpha.price * 1.5", s) == 60.75
+
+def test_resolve_ref_arithmetic_precedence_two_refs_with_constant():
+    # Critical rev.3 test — earlier resolver got this WRONG
+    # (x * (2 + y) * 3 == 60 for x=2, y=3; correct is x*2 + y*3 == 13).
+    s = _state()
+    assert resolve_ref("\$data.x * 2 + \$data.y * 3", s) == 13
+
+def test_resolve_ref_arithmetic_precedence_left_associative():
+    s = _state()
+    # 2 + 3 * 4 == 14 (not 20)
+    assert resolve_ref("\$data.x + \$data.y * 4", s) == 14
+    # (2 + 3) * 4 == 20
+    assert resolve_ref("(\$data.x + \$data.y) * 4", s) == 20
 
 def test_resolve_ref_ternary_truthy():
     s = _state()
     assert resolve_ref("\$alpha.price > 40 ? 'expensive' : 'cheap'", s) == "expensive"
+
+def test_resolve_ref_arithmetic_in_ternary():
+    s = _state()
+    # (\$data.x * 2 == 4) ? 'four' : 'other'
+    assert resolve_ref("\$data.x * 2 == 4 ? 'four' : 'other'", s) == "four"
 
 def test_resolve_ref_falls_back_to_literal():
     s = _state()
@@ -555,13 +672,20 @@ def test_resolve_ref_passes_through_non_string():
     assert resolve_ref(42, s) == 42
 ```
 
-- [ ] **Step 5.2: Run, expect FAIL**
+- [ ] **Step 5.2: Run, expect FAIL** (the precedence test will fail with rev. 2 logic)
 
-- [ ] **Step 5.3: Implement `resolver.py`**
+- [ ] **Step 5.3: Implement `resolver.py` with rightmost-split precedence**
 
 ```python
 # tradingagents/agent_harness/runtime/multi_agent/resolver.py
-"""Pure \$ref parser + evaluator for the multi-agent runtime (Phase 1)."""
+"""Pure \$ref parser + evaluator for the multi-agent runtime (Phase 1).
+
+Operator precedence is handled by **rightmost-split**: we iterate operators
+from LOWEST precedence to HIGHEST, and at each level find the RIGHTMOST
+occurrence. This gives left-to-right associativity with correct precedence:
+``\$data.x * 2 + \$data.y * 3`` parses as ``(\$data.x * 2) + (\$data.y * 3)``,
+not ``\$data.x * (2 + \$data.y) * 3``.
+"""
 from __future__ import annotations
 import re
 from typing import Any, Optional
@@ -607,6 +731,13 @@ def _truthy(v: Any) -> bool:
         return v != 0
     return bool(v)
 
+def _try_split(value: str, op: str):
+    """Find the rightmost occurrence of op and split there. Returns (left, right) or None."""
+    idx = value.rfind(op)
+    if idx < 0:
+        return None
+    return value[:idx], value[idx + len(op):]
+
 def _eval_expr(value: str, state: GraphState) -> Any:
     # Ternary (lowest precedence in our surface)
     if "?" in value and ":" in value:
@@ -615,39 +746,52 @@ def _eval_expr(value: str, state: GraphState) -> Any:
         cond_val = _eval_expr(cond.strip(), state)
         chosen = a if _truthy(cond_val) else b
         return _eval_expr(chosen.strip(), state)
-    # Arithmetic: handle `$x.y * N` and friends (left-to-right)
-    for op, fn in ((" * ", lambda a, b: a * b),
-                   (" + ", lambda a, b: a + b),
-                   (" - ", lambda a, b: a - b),
-                   (" / ", lambda a, b: a / b)):
-        if op in value:
-            left, right = value.split(op, 1)
+
+    # Arithmetic — process by precedence (low to high), rightmost split
+    for ops in [
+        # Level 1: addition / subtraction (lowest)
+        [(" + ", lambda a, b: a + b),
+         (" - ", lambda a, b: a - b)],
+        # Level 2: multiplication / division
+        [(" * ", lambda a, b: a * b),
+         (" / ", lambda a, b: a / b)],
+    ]:
+        for op, fn in ops:
+            split = _try_split(value, op)
+            if split is None:
+                continue
+            left, right = split
             return fn(_eval_expr(left.strip(), state),
                       _eval_expr(right.strip(), state))
-    # Comparison (for ternary predicate): `$x.y > N`
+
+    # Comparison (higher precedence than arithmetic; lower than ref-lookup below)
     for op, fn in ((" >= ", lambda a, b: a >= b),
                    (" <= ", lambda a, b: a <= b),
                    (" == ", lambda a, b: a == b),
                    (" != ", lambda a, b: a != b),
                    (" > ", lambda a, b: a > b),
                    (" < ", lambda a, b: a < b)):
-        if op in value:
-            left, right = value.split(op, 1)
-            return fn(_eval_expr(left.strip(), state),
-                      _eval_expr(right.strip(), state))
+        split = _try_split(value, op)
+        if split is None:
+            continue
+        left, right = split
+        return fn(_eval_expr(left.strip(), state),
+                  _eval_expr(right.strip(), state))
+
     # Plain $ref
     ref = parse_ref(value.strip())
     if ref:
         agent, dotted = ref
         return _lookup(state, agent, dotted)
-    # Literal
+
+    # Literal (int / float / string)
+    stripped = value.strip()
     try:
-        return int(value.strip())
+        return int(stripped)
     except ValueError:
         try:
-            return float(value.strip())
+            return float(stripped)
         except ValueError:
-            stripped = value.strip()
             if stripped.startswith('"') and stripped.endswith('"'):
                 return stripped[1:-1]
             return stripped
@@ -671,22 +815,23 @@ def resolve_ref(value: str, state: GraphState, *, literal: Any = None) -> Any:
 ```bash
 git add tradingagents/agent_harness/runtime/multi_agent/resolver.py \
         tests/test_multi_agent_resolver.py
-git commit -m "feat(runtime): §0.4.35 phase 1 — \$ref parser/evaluator (arithmetic, ternary)"
+git commit -m "feat(runtime): §0.4.35 phase 1 — \$ref parser/evaluator (rightmost-split precedence)"
 ```
 
-### Task 6: `consult_subagent` tool stub (NO registration)
+### Task 6: `consult_subagent` tool stub (param named `context`, NO registration)
 
 **Files:**
 - Create: `tradingagents/agent_harness/tools/builtin_consult.py`
 - Test: `tests/test_consult_subagent.py`
 
-> **Phase 1 does NOT register the tool** — registration lands in Phase 2 via `@tool_registry.register(...)` on the per-harness `ToolRegistry` instance. Phase 1 just creates the callable + args schema so the contract is locked.
+> **Phase 1 does NOT register the tool** — registration lands in Phase 2 via `@tool_registry.register(...)` on the per-harness `ToolRegistry` instance (`Harness.__init__` calls `install_builtin_tools(self.tool_registry)`). **Critical rev.3 fix**: the second param is named `context`, NOT `ctx`, because `FunctionTool.invoke` (`tools/base.py:91-95`) only auto-injects the tool context when the param is literally named `"context"`. Getting this wrong now means Phase 2 has to rebuild the contract.
 
 - [ ] **Step 6.1: Write failing tests**
 
 ```python
 # tests/test_consult_subagent.py
 import asyncio
+import inspect
 import pytest
 from tradingagents.agent_harness.tools.builtin_consult import (
     ConsultSubagentArgs, consult_subagent,
@@ -699,15 +844,20 @@ def test_consult_args_validation():
     with pytest.raises(Exception):
         ConsultSubagentArgs(target_agent="", question="x")  # min_length=1
 
-async def _run(coro):
-    return await coro
+def test_consult_subagent_signature_uses_context_param():
+    # Phase 2 hazard guard: FunctionTool.invoke auto-injects context only
+    # when the param is literally named "context".
+    sig = inspect.signature(consult_subagent)
+    params = list(sig.parameters.keys())
+    assert "context" in params, (
+        f"FunctionTool.invoke only auto-injects the tool context when the "
+        f"param name is 'context' (see tools/base.py:91-95); got {params!r}"
+    )
 
 def test_consult_subagent_stub_raises():
+    args = ConsultSubagentArgs(target_agent="data_agent", question="hi")
     with pytest.raises(NotImplementedError):
-        _run(consult_subagent(
-            ConsultSubagentArgs(target_agent="data_agent", question="hi"),
-            ctx={"run_id": "r", "turn_id": "t"},
-        ))
+        asyncio.run(consult_subagent(args, context={"run_id": "r", "turn_id": "t"}))
 ```
 
 - [ ] **Step 6.2: Run, expect FAIL**
@@ -720,7 +870,12 @@ def test_consult_subagent_stub_raises():
 
 Phase 1 surfaces the contract only. Registration happens in Phase 2 via
 ``@tool_registry.register(...)`` on the per-harness ``ToolRegistry``
-instance (see `tradingagents/agent_harness/harness.py:82`).
+instance (see ``Harness.__init__`` which calls ``install_builtin_tools``).
+
+CRITICAL: the second param is named ``context`` (not ``ctx``) because
+``FunctionTool.invoke`` (``tradingagents/agent_harness/tools/base.py:91-95``)
+only auto-injects the tool context when the param is literally named
+``"context"``. If we rename later, every caller will break.
 """
 from __future__ import annotations
 from typing import Any
@@ -732,7 +887,7 @@ class ConsultSubagentArgs(BaseModel):
     context_refs: list[str] = Field(default_factory=list)
     max_tokens: int = Field(default=512, ge=64, le=2048)
 
-async def consult_subagent(args: ConsultSubagentArgs, ctx: dict[str, Any]) -> dict[str, Any]:
+async def consult_subagent(args: ConsultSubagentArgs, context: dict[str, Any]) -> dict[str, Any]:
     """Phase 1: surface only. Real LLM call lands in Phase 2."""
     raise NotImplementedError(
         "consult_subagent lands in §0.4.35 phase 2 "
@@ -747,30 +902,28 @@ async def consult_subagent(args: ConsultSubagentArgs, ctx: dict[str, Any]) -> di
 ```bash
 git add tradingagents/agent_harness/tools/builtin_consult.py \
         tests/test_consult_subagent.py
-git commit -m "feat(runtime): §0.4.35 phase 1 — consult_subagent stub (no registry yet)"
+git commit -m "feat(runtime): §0.4.35 phase 1 — consult_subagent stub (context-named param)"
 ```
 
 ---
 
 ## Chunk 3: Nodes + PlanCompiler
 
-> Order matters: `nodes.py` defines `ToolNode` first, then `compiler.py` uses it. **No `depends_on` on `ToolCall`** (B5) — compiler reads cross-group deps from group order, same as the existing `_plan_from_router()` at `orchestrator.py:2125`.
-
-### Task 7: `ToolNode` + stub nodes
+### Task 7: `ToolNode` + stub nodes (no `_NodeBase` indirection)
 
 **Files:**
 - Create: `tradingagents/agent_harness/runtime/multi_agent/nodes.py`
 - Test: `tests/test_multi_agent_nodes.py`
 
+> **No `_NodeBase` parallel hierarchy** (rev.3 fix from review L12): subclasses set `id / agent_id / kind / inputs / outputs` directly in their `__init__`. Drops ~30 lines.
+
 - [ ] **Step 7.1: Verify ToolPipeline call signature**
 
-Re-confirm the live call site:
-
 ```bash
-rg -n "pipeline\\.run\\(" tradingagents/agent_harness/core/orchestrator.py
+rg -n "async def run\\(" tradingagents/agent_harness/tools/pipeline.py
 ```
 
-Expected shape: `await pipeline.run(tool_name=..., args=..., tool_context=..., executor=tool.invoke)`.
+Expected: `pipeline.run(tool_name=..., args=..., tool_context=..., executor=...)` returning a `PipelineResult` with `ok / result / error` attrs.
 
 - [ ] **Step 7.2: Write failing tests**
 
@@ -824,20 +977,23 @@ def test_tool_node_dispatches_via_pipeline(monkeypatch):
 def test_llm_node_raises_not_implemented():
     node = LLMNode(id="b", agent_id="data_agent", system_prompt="...")
     state = GraphState(run_id="r", turn_id="t", intent="x")
-    with __import__("pytest").raises(NotImplementedError):
+    import pytest
+    with pytest.raises(NotImplementedError):
         _run(node.run(state, inbox=[]))
 
 def test_subplan_node_raises_not_implemented():
     node = SubplanNode(id="c", agent_id="trading_agents", sub_graph=MagicMock())
     state = GraphState(run_id="r", turn_id="t", intent="x")
-    with __import__("pytest").raises(NotImplementedError):
+    import pytest
+    with pytest.raises(NotImplementedError):
         _run(node.run(state, inbox=[]))
 
 def test_consult_node_raises_not_implemented():
     node = ConsultNode(id="d", agent_id="data_agent",
                        target_agent="alpha_agent", question="?")
     state = GraphState(run_id="r", turn_id="t", intent="x")
-    with __import__("pytest").raises(NotImplementedError):
+    import pytest
+    with pytest.raises(NotImplementedError):
         _run(node.run(state, inbox=[]))
 ```
 
@@ -855,54 +1011,41 @@ raise ``NotImplementedError`` until their respective phases land. The
 finishes gracefully.
 """
 from __future__ import annotations
-from dataclasses import dataclass
 from typing import Any, Optional
 
-from .graph import NodeKind, BaseNode
+from .graph import NodeKind
 from .state import FieldRef, GraphState, Message, TypedResult
 
 
 def _default_pipeline():
-    """Lazy import to avoid import cycles and to let tests monkeypatch."""
+    """Lazy import to avoid cycles and to let tests monkeypatch."""
     from tradingagents.agent_harness.tools.pipeline import ToolPipeline
     return ToolPipeline()
 
 
-class _NodeBase:
-    id: str
-    agent_id: str
-    kind: NodeKind
-    inputs: list[FieldRef]
-    outputs: list[FieldRef]
+class ToolNode:
+    """A node that invokes a single tool via ToolPipeline (Phase 1)."""
+    kind = NodeKind.TOOL
 
-    def __init__(self, id: str, agent_id: str, kind: NodeKind,
+    def __init__(self, id: str, agent_id: str, tool_name: str,
+                 raw_args: dict[str, Any],
                  inputs: Optional[list[FieldRef]] = None,
                  outputs: Optional[list[FieldRef]] = None) -> None:
         self.id = id
         self.agent_id = agent_id
-        self.kind = kind
-        self.inputs = list(inputs or [])
-        self.outputs = list(outputs or [])
-
-
-class ToolNode(_NodeBase):
-    def __init__(self, id: str, agent_id: str, tool_name: str,
-                 raw_args: dict[str, Any]) -> None:
-        super().__init__(id, agent_id, NodeKind.TOOL)
         self.tool_name = tool_name
         self.raw_args = raw_args
+        self.inputs: list[FieldRef] = list(inputs or [])
+        self.outputs: list[FieldRef] = list(outputs or [])
 
     async def run(self, state: GraphState, inbox: list[Message]) -> list[Message]:
         # Phase 3 will resolve $refs in self.raw_args via resolver.resolve_ref.
         from tradingagents.agent_harness.tools.context import ToolContext
         ctx = ToolContext(session_id=state.run_id, intent=state.intent)
         pipeline = _default_pipeline()
-        # We don't have a ToolRegistry instance here; Phase 1 defers the
-        # actual tool dispatch to the orchestrator's wrapper. For now we
-        # construct a no-op executor and let the pipeline's pre/guard hooks
-        # validate the call (real tool lookup lands when the orchestrator
-        # wires its own ToolRegistry into the executor — Phase 1 keeps
-        # the executor pipeline-only to avoid double-dispatch).
+        # Phase 1: avoid double-dispatch — the orchestrator's ToolRegistry
+        # owns the real `tool.invoke`; here we run a no-op executor so the
+        # pipeline's pre/guard hooks validate the call without dispatching.
         async def _noop_executor(args, context):
             return {"phase1_stub": True, "tool": self.tool_name, "args": args}
         pipe_res = await pipeline.run(
@@ -916,30 +1059,54 @@ class ToolNode(_NodeBase):
         return [Message(sender=self.id, receiver="*", payload=typed)]
 
 
-class LLMNode(_NodeBase):
-    def __init__(self, id: str, agent_id: str, system_prompt: str) -> None:
-        super().__init__(id, agent_id, NodeKind.LLM)
+class LLMNode:
+    """Phase 1 stub — raises NotImplementedError."""
+    kind = NodeKind.LLM
+
+    def __init__(self, id: str, agent_id: str, system_prompt: str,
+                 inputs: Optional[list[FieldRef]] = None,
+                 outputs: Optional[list[FieldRef]] = None) -> None:
+        self.id = id
+        self.agent_id = agent_id
         self.system_prompt = system_prompt
+        self.inputs: list[FieldRef] = list(inputs or [])
+        self.outputs: list[FieldRef] = list(outputs or [])
 
     async def run(self, state: GraphState, inbox: list[Message]) -> list[Message]:
         raise NotImplementedError("LLMNode lands in Phase 2")
 
 
-class SubplanNode(_NodeBase):
-    def __init__(self, id: str, agent_id: str, sub_graph) -> None:
-        super().__init__(id, agent_id, NodeKind.SUBPLAN)
+class SubplanNode:
+    """Phase 1 stub — raises NotImplementedError."""
+    kind = NodeKind.SUBPLAN
+
+    def __init__(self, id: str, agent_id: str, sub_graph,
+                 inputs: Optional[list[FieldRef]] = None,
+                 outputs: Optional[list[FieldRef]] = None) -> None:
+        self.id = id
+        self.agent_id = agent_id
         self.sub_graph = sub_graph
+        self.inputs: list[FieldRef] = list(inputs or [])
+        self.outputs: list[FieldRef] = list(outputs or [])
 
     async def run(self, state: GraphState, inbox: list[Message]) -> list[Message]:
         raise NotImplementedError("SubplanNode lands in Phase 4")
 
 
-class ConsultNode(_NodeBase):
+class ConsultNode:
+    """Phase 1 stub — raises NotImplementedError."""
+    kind = NodeKind.CONSULT
+
     def __init__(self, id: str, agent_id: str, target_agent: str,
-                 question: str) -> None:
-        super().__init__(id, agent_id, NodeKind.CONSULT)
+                 question: str,
+                 inputs: Optional[list[FieldRef]] = None,
+                 outputs: Optional[list[FieldRef]] = None) -> None:
+        self.id = id
+        self.agent_id = agent_id
         self.target_agent = target_agent
         self.question = question
+        self.inputs: list[FieldRef] = list(inputs or [])
+        self.outputs: list[list[FieldRef]] = list(outputs or [])
 
     async def run(self, state: GraphState, inbox: list[Message]) -> list[Message]:
         raise NotImplementedError("ConsultNode lands in Phase 2")
@@ -952,22 +1119,22 @@ class ConsultNode(_NodeBase):
 ```bash
 git add tradingagents/agent_harness/runtime/multi_agent/nodes.py \
         tests/test_multi_agent_nodes.py
-git commit -m "feat(runtime): §0.4.35 phase 1 — ToolNode (pipeline) + LLM/Subplan/Consult stubs"
+git commit -m "feat(runtime): §0.4.35 phase 1 — ToolNode + stubs (no _NodeBase indirection)"
 ```
 
-### Task 8: `PlanCompiler` (group-order deps)
+### Task 8: `PlanCompiler` (group-order deps + correct mapping)
 
 **Files:**
 - Create: `tradingagents/agent_harness/runtime/multi_agent/compiler.py`
 - Test: `tests/test_multi_agent_compiler.py`
+
+> **`_TOOL_TO_AGENT` coupling** (rev.3 fix from review M11): committed to keeping in `core.orchestrator` for Phase 1. The docstring below makes this explicit. A future Phase 2 cleanup task can lift it if desired.
 
 - [ ] **Step 8.1: Verify `ToolCall` shape (no `depends_on`)**
 
 ```bash
 rg -n "class ToolCall" tradingagents/agent_harness/core/llm_router.py
 ```
-
-Confirm `ToolCall = (tool, args, parallel_group, dropped_reason)` — no `depends_on` field.
 
 - [ ] **Step 8.2: Write failing tests**
 
@@ -1007,8 +1174,6 @@ def test_compiler_single_group_emits_one_tool_node_per_call_and_join():
 
 
 def test_compiler_two_groups_get_cross_group_data_edge_from_group_order():
-    # Same dependency inference the live _plan_from_router() uses:
-    # group N depends on group N-1 when calls' groups are sequential.
     plan = FakePlan([
         FakeCall("get_quote", {"symbol": "x"}, parallel_group=0),
         FakeCall("compute_alpha", {"symbol": "x"}, parallel_group=1),
@@ -1017,16 +1182,25 @@ def test_compiler_two_groups_get_cross_group_data_edge_from_group_order():
     edges = {(e.src, e.dst) for e in spec.edges}
     assert ("call_0", "join_0") in edges
     assert ("call_1", "join_1") in edges
-    # cross-group: join_0 -> call_1
+    assert ("join_0", "call_1") in edges  # cross-group from group_order
+
+
+def test_compiler_three_groups_chain_through_joins():
+    plan = FakePlan([
+        FakeCall("get_quote", {}, parallel_group=0),
+        FakeCall("get_fundamentals", {}, parallel_group=1),
+        FakeCall("compute_alpha", {}, parallel_group=2),
+    ])
+    spec = PlanCompiler().compile(plan)
+    edges = {(e.src, e.dst) for e in spec.edges}
     assert ("join_0", "call_1") in edges
+    assert ("join_1", "call_2") in edges
 
 
 def test_compiler_maps_tool_to_agent_via_TOOL_TO_AGENT():
     plan = FakePlan([
         FakeCall("get_quote", {}, parallel_group=0),
-        # write tool → agent name, not a "real" tool
         FakeCall("add_to_watchlist", {}, parallel_group=0),
-        # deep-analysis tool
         FakeCall("run_trading_agents_analysis", {}, parallel_group=0),
     ])
     spec = PlanCompiler().compile(plan)
@@ -1059,6 +1233,12 @@ Group-order dependency inference (NOT per-call ``depends_on`` because
 ``ToolCall`` does not have one — see review B5). Same heuristic the live
 ``Orchestrator._plan_from_router()`` uses: group N depends on group N-1
 when groups arrive in numerical order.
+
+NOTE on ``_TOOL_TO_AGENT`` coupling (rev.3 fix from review M11): this
+intentionally imports from ``core.orchestrator`` for Phase 1. The mapping
+is internal to the orchestrator module today; lifting it to
+``agents/registry.py`` would be a separate cleanup task. Not a Phase 1
+concern.
 """
 from __future__ import annotations
 from typing import Any
@@ -1066,9 +1246,6 @@ from typing import Any
 from .graph import GraphSpec, Edge, BaseNode
 from .nodes import ToolNode
 
-# Single source of truth: import the orchestrator's mapping. Acceptable
-# coupling within the same package; Phase 3 may lift this to agents/registry.py
-# once we consolidate the agent taxonomy.
 from ..core.orchestrator import _TOOL_TO_AGENT
 
 class CompileError(Exception):
@@ -1138,22 +1315,32 @@ git commit -m "feat(runtime): §0.4.35 phase 1 — PlanCompiler (group-order cro
 
 ## Chunk 4: Executor + Orchestrator Wiring
 
-### Task 9: `GraphExecutor` skeleton
+### Task 9: `GraphExecutor` skeleton (inbox propagation + correct budget accounting + heartbeat logs)
 
 **Files:**
 - Create: `tradingagents/agent_harness/runtime/multi_agent/executor.py`
 - Test: `tests/test_multi_agent_executor.py`
 
-- [ ] **Step 9.1: Write failing tests**
+> **Critical rev.3 fix from review BLOCKER #2**: the executor MUST call `state.append_inbox(new_msg)` for every edge fire. Without this, downstream `consume_inbox()` returns empty and the data-flow architecture is hollow.
+>
+> **Critical rev.3 fix from review MEDIUM #8**: `state.llm_used += 1` moves to AFTER `await node.run(...)` so stubbed `LLMNode`s don't consume budget.
+>
+> **Critical rev.3 fix from review MEDIUM #10**: `_enqueue` takes a `source_node` argument and uses `_PRIORITY[node.kind.value]` instead of `_PRIORITY[msg.kind]` (which always defaulted to 5 because msg.kind ∈ {data,question,answer,delta}).
+
+- [ ] **Step 9.1: Write failing tests (4 cases)**
 
 ```python
 # tests/test_multi_agent_executor.py
 import asyncio
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from tradingagents.agent_harness.runtime.multi_agent.executor import GraphExecutor
-from tradingagents.agent_harness.runtime.multi_agent.graph import GraphSpec, Edge
-from tradingagents.agent_harness.runtime.multi_agent.nodes import ToolNode
+from tradingagents.agent_harness.runtime.multi_agent.graph import (
+    GraphSpec, Edge, NodeKind,
+)
+from tradingagents.agent_harness.runtime.multi_agent.nodes import (
+    ToolNode, LLMNode,
+)
 from tradingagents.agent_harness.runtime.multi_agent.state import GraphState
 
 async def _run(coro):
@@ -1173,8 +1360,6 @@ def _graph_two_tool_nodes():
 
 
 def test_executor_walks_linear_graph(monkeypatch):
-    # Phase 1: stub the pipeline to avoid double-dispatch; we only verify
-    # the executor walks the graph, message log grows, and state returns.
     from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
 
     class FakePipeline:
@@ -1186,7 +1371,33 @@ def test_executor_walks_linear_graph(monkeypatch):
     state = GraphState(run_id="r", turn_id="t", intent="x")
     out = _run(GraphExecutor().run(_graph_two_tool_nodes(), state))
     assert out.intent == "x"
-    assert len(state.message_log) >= 2  # both nodes produced messages
+    assert len(state.message_log) >= 2
+
+
+def test_executor_populates_downstream_inbox(monkeypatch):
+    """Regression for round-2 BLOCKER #2: data flow architecture must
+    populate state.inbox for downstream nodes via state.append_inbox."""
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            return MagicMock(ok=True, result={"echoed": tool_name})
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+    _run(GraphExecutor().run(_graph_two_tool_nodes(), state))
+
+    # The cross-edge message from a -> b should be in state.message_log
+    # (append_inbox appends to BOTH inbox and message_log).
+    cross_messages = [
+        m for m in state.message_log
+        if m.receiver == "b" and m.sender == "a"
+    ]
+    assert len(cross_messages) >= 1, (
+        f"executor did not populate inbox for downstream node b; "
+        f"message_log={state.message_log}"
+    )
 
 
 def test_executor_budget_guard(monkeypatch):
@@ -1202,7 +1413,7 @@ def test_executor_budget_guard(monkeypatch):
                        llm_used=5, budget_limit=5)
     state.hops_remaining = 8
     out = _run(GraphExecutor().run(_graph_two_tool_nodes(), state))
-    assert out.llm_used == 5  # guard prevented any LLM use
+    assert out.llm_used == 5
 
 
 def test_executor_swallows_not_implemented_for_llm_node(monkeypatch):
@@ -1214,7 +1425,6 @@ def test_executor_swallows_not_implemented_for_llm_node(monkeypatch):
 
     monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
 
-    from tradingagents.agent_harness.runtime.multi_agent.nodes import LLMNode
     n1 = LLMNode(id="a", agent_id="data_agent", system_prompt="...")
     spec = GraphSpec(
         nodes={"a": n1},
@@ -1225,6 +1435,32 @@ def test_executor_swallows_not_implemented_for_llm_node(monkeypatch):
     # Should NOT raise — executor logs a warning and returns
     out = _run(GraphExecutor().run(spec, state))
     assert out.intent == "x"
+    # Critical rev.3 fix: stubbed LLMNode must NOT consume budget
+    assert out.llm_used == 0, (
+        f"stubbed LLMNode consumed llm_used={out.llm_used}; "
+        f"expected 0 (rev.3 fix from MEDIUM #8)"
+    )
+
+
+def test_executor_emits_heartbeat_logs(monkeypatch, caplog):
+    """Smoke test (Task 10.5) verifies via heartbeat logs, not absence of failure."""
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+    import logging
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            return MagicMock(ok=True, result={})
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    caplog.set_level(logging.INFO, logger="tradingagents.agent_harness.runtime.multi_agent.executor")
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+    _run(GraphExecutor().run(_graph_two_tool_nodes(), state))
+
+    start_logs = [r for r in caplog.records if "GraphExecutor starting" in r.message]
+    end_logs = [r for r in caplog.records if "GraphExecutor finished" in r.message]
+    assert len(start_logs) >= 1, "executor did not emit start heartbeat"
+    assert len(end_logs) >= 1, "executor did not emit end heartbeat"
 ```
 
 - [ ] **Step 9.2: Run, expect FAIL**
@@ -1239,6 +1475,10 @@ Walks a GraphSpec using a priority queue. Honours budget + hop guards.
 Phase 1 fully handles ``ToolNode``; the other node kinds raise
 ``NotImplementedError`` which the executor catches + logs as a warning so
 the graph still finishes gracefully.
+
+Rev.3 contract: every edge fire MUST call ``state.append_inbox(new_msg)``
+so downstream ``consume_inbox(receiver)`` sees upstream outputs. Without
+this the data-flow architecture is hollow (spec §4.7 violated).
 """
 from __future__ import annotations
 import heapq
@@ -1253,7 +1493,13 @@ from .state import GraphState, Message, TypedResult
 LOGGER = logging.getLogger(__name__)
 
 # Priority by node kind (lower = earlier)
-_PRIORITY = {"verifier": 0, "llm": 1, "tool": 2, "consult": 3, "subplan": 4}
+# NodeKind values: tool=2, llm=1, subplan=4, consult=3
+_PRIORITY = {
+    "tool": 2,
+    "llm": 1,
+    "subplan": 4,
+    "consult": 3,
+}
 
 
 @dataclass(order=True)
@@ -1272,18 +1518,24 @@ class GraphExecutor:
         self._seq = 0
 
     async def run(self, spec: GraphSpec, state: GraphState) -> GraphState:
+        LOGGER.info(
+            "multi_agent: GraphExecutor starting (spec=%d nodes, %d edges)",
+            len(spec.nodes), len(spec.edges),
+        )
+
         state.hops_remaining = min(state.hops_remaining, self.max_hops)
         state.budget_limit = min(state.budget_limit, self.llm_budget)
 
         entry = spec.entry or (next(iter(spec.nodes)) if spec.nodes else None)
         if entry is None:
+            LOGGER.info("multi_agent: GraphExecutor finished (empty graph)")
             return state
 
         queue: list[_Pending] = []
         self._enqueue(queue, entry, Message(
             sender="__start__", receiver=entry,
             payload=TypedResult(schema=dict, data={}, meta={}),
-        ))
+        ), source_node=spec.node(entry))
 
         activated: set[str] = set()
         while queue and state.hops_remaining > 0 and state.llm_used < state.budget_limit:
@@ -1311,34 +1563,48 @@ class GraphExecutor:
                 continue
 
             for m in out_messages:
-                state.message_log.append(m)
                 for edge in spec.edges_from(node.id):
                     if not self._edge_fires(edge, state, m):
                         continue
-                    self._enqueue(queue, edge.dst, Message(
+                    new_msg = Message(
                         sender=node.id, receiver=edge.dst,
                         payload=m.payload, kind=m.kind, hop=m.hop + 1,
-                    ))
+                    )
+                    # CRITICAL (rev.3): append_inbox deposits into inbox AND log
+                    state.append_inbox(new_msg)
+                    self._enqueue(queue, edge.dst, new_msg, source_node=spec.node(edge.dst))
                     if edge.kind == "loop" and state.hops_remaining > 0:
                         state.hops_remaining -= 1
-                        self._enqueue(queue, edge.src, Message(
+                        loop_msg = Message(
                             sender=node.id, receiver=edge.src,
                             payload=m.payload, kind=m.kind, hop=m.hop + 1,
-                        ))
+                        )
+                        state.append_inbox(loop_msg)
+                        self._enqueue(queue, edge.src, loop_msg, source_node=spec.node(edge.src))
             state.hops_remaining -= 1
 
+        LOGGER.info(
+            "multi_agent: GraphExecutor finished (hops_used=%d, msgs=%d)",
+            8 - state.hops_remaining, len(state.message_log),
+        )
         return state
 
     async def _invoke(self, node, state: GraphState,
                       inbox: list[Message]) -> list[Message]:
+        # NOTE: budget accounting happens AFTER the call so stubbed nodes
+        # (which raise NotImplementedError caught by run()) don't consume
+        # budget. See rev.3 fix from MEDIUM #8.
         if isinstance(node, ToolNode):
-            return await node.run(state, inbox)
+            out = await node.run(state, inbox)
+            return out
         if isinstance(node, LLMNode):
+            out = await node.run(state, inbox)
             state.llm_used += 1
-            return await node.run(state, inbox)
+            return out
         if isinstance(node, ConsultNode):
+            out = await node.run(state, inbox)
             state.consultation_used += 1
-            return await node.run(state, inbox)
+            return out
         if isinstance(node, SubplanNode):
             return await node.run(state, inbox)
         raise NotImplementedError(f"unknown node kind: {type(node).__name__}")
@@ -1358,8 +1624,13 @@ class GraphExecutor:
         return False
 
     def _enqueue(self, queue: list[_Pending], receiver: str,
-                 msg: Message) -> None:
-        prio = _PRIORITY.get(msg.kind, 5)
+                 msg: Message, *, source_node: Optional[BaseNode] = None) -> None:
+        # CRITICAL (rev.3): use source_node.kind.value, NOT msg.kind.
+        # msg.kind ∈ {data, question, answer, delta} doesn't appear in _PRIORITY.
+        if source_node is not None:
+            prio = _PRIORITY.get(source_node.kind.value, 5)
+        else:
+            prio = 5
         self._seq += 1
         heapq.heappush(queue, _Pending(priority=prio, seq=self._seq, msg=msg))
 ```
@@ -1371,14 +1642,19 @@ class GraphExecutor:
 ```bash
 git add tradingagents/agent_harness/runtime/multi_agent/executor.py \
         tests/test_multi_agent_executor.py
-git commit -m "feat(runtime): §0.4.35 phase 1 — GraphExecutor skeleton + budget guard"
+git commit -m "feat(runtime): §0.4.35 phase 1 — GraphExecutor (inbox propagation + budget + heartbeat)"
 ```
 
-### Task 10: Wire executor into orchestrator (flag-gated)
+### Task 10: Wire executor into orchestrator (flag-gated, drop dead code)
 
 **Files:**
 - Modify: `tradingagents/agent_harness/runtime/multi_agent/__init__.py` (add executor/compiler/nodes to exports)
 - Modify: `tradingagents/agent_harness/core/orchestrator.py`
+
+> **Critical rev.3 fixes**:
+> - `_build_graph_state` reads `orch_state.intent.value` (NOT `router_plan.intent` which doesn't exist)
+> - Drops the dead `_program = _plan_from_router(router_plan, state)` call (already happens upstream at line 2247 — calling it again is duplicate work)
+> - Uses `_settings.max_hops` / `_settings.llm_budget_per_turn` for `hops_remaining` / `budget_limit`
 
 - [ ] **Step 10.1: Expand `__init__.py`**
 
@@ -1404,12 +1680,12 @@ __all__ = [
 - [ ] **Step 10.2: Locate dispatch site**
 
 ```bash
-rg -n "_plan_from_router|dispatch|asyncio\\.gather" tradingagents/agent_harness/core/orchestrator.py | head
+rg -n "_plan_from_router|router_plan is not None" tradingagents/agent_harness/core/orchestrator.py | head
 ```
 
-Note the line number where `_plan_from_router` returns a PTC program. We insert the new branch immediately after that, before PTC dispatch.
+The branch sits inside `if router_plan is not None and router_plan.source in ("llm", "cache") and router_plan.calls:` (around line 2246).
 
-- [ ] **Step 10.3: Add helper + flag-gated branch**
+- [ ] **Step 10.3: Add helper + flag-gated branch (no dead code)**
 
 Add at module top of `orchestrator.py` (after existing imports):
 
@@ -1419,24 +1695,45 @@ from ..runtime.multi_agent import (
 )
 ```
 
-Find the spot where `_plan_from_router(router_plan, state)` is consumed. The dispatch loop runs the PTC program (`mode == "ptc"`). Wrap it:
+Add the helper near the other `_build_*` helpers:
 
 ```python
-# After _plan_from_router returns, before PTC dispatch:
-_program = _plan_from_router(router_plan, state)
-_settings = load_settings()
+def _build_graph_state(router_plan, orch_state, settings):
+    """Build a per-turn GraphState from the orchestrator's state.
 
+    Phase 1: shallow — only carries run_id / turn_id / intent / budget knobs.
+    Phase 6 will wire AgentRuntimeStore snapshot loading.
+    """
+    from ..runtime.multi_agent import GraphState
+    intent_obj = getattr(orch_state, "intent", None)
+    intent_str = str(getattr(intent_obj, "value", "unknown")) if intent_obj else "unknown"
+    return GraphState(
+        run_id=getattr(orch_state, "session_id", "unknown"),
+        turn_id=str(getattr(getattr(orch_state, "turn", None), "turn_id", "unknown")),
+        intent=intent_str,
+        hops_remaining=settings.max_hops,
+        budget_limit=settings.llm_budget_per_turn,
+        consultation_rate_limit=settings.consultation_rate_limit,
+    )
+```
+
+At the dispatch site, immediately BEFORE the PTC dispatch (inside the `if router_plan is not None and ...` block):
+
+```python
+# §0.4.35 Phase 1 — opt-in multi-agent runtime path.
+# Falls through to PTC on any exception so default behaviour is unchanged.
+_settings = load_settings()
 if _settings.multi_agent:
     try:
         _spec = PlanCompiler().compile(router_plan)
-        _state = _build_graph_state(router_plan, state)
+        _state = _build_graph_state(router_plan, state, _settings)
         await GraphExecutor(
             max_hops=_settings.max_hops,
             llm_budget=_settings.llm_budget_per_turn,
             consultation_rate_limit=_settings.consultation_rate_limit,
         ).run(_spec, _state)
-        # Fall through to PTC for any post-graph aggregation
-        # (Phase 1 keeps behaviour parity — multi_agent path is observability-only).
+        # Phase 1 keeps behaviour parity — multi_agent path is observability-only.
+        # PTC still runs below for any post-graph aggregation.
     except CompileError as exc:
         LOGGER.warning(
             "graph compile failed, falling back to PTC: %s", exc,
@@ -1445,24 +1742,6 @@ if _settings.multi_agent:
         LOGGER.exception(
             "graph execution failed, falling back to PTC: %s", exc,
         )
-```
-
-And add the helper `_build_graph_state` near the helper section:
-
-```python
-def _build_graph_state(router_plan, orch_state):
-    """Build a per-turn GraphState from the orchestrator's state.
-
-    Phase 1: shallow — only carries run_id / turn_id / intent. Phase 6
-    will wire AgentRuntimeStore snapshot loading.
-    """
-    from ..runtime.multi_agent import GraphState
-    return GraphState(
-        run_id=getattr(orch_state, "session_id", "unknown"),
-        turn_id=str(getattr(getattr(orch_state, "turn", None), "turn_id", "unknown")),
-        intent=str(getattr(router_plan, "intent", "unknown")),
-        hops_remaining=8, budget_limit=5,
-    )
 ```
 
 - [ ] **Step 10.4: Run full test suite (default OFF)**
@@ -1482,10 +1761,10 @@ TRADINGAGENTS_RUNTIME_MULTI_AGENT=true launchctl kickstart -k "gui/$(id -u)/com.
 Send a chat, then tail:
 
 ```bash
-tail -f /tmp/tradingagents-web-venv.log | grep -i "multi_agent\|graph executor\|compile"
+tail -f /tmp/tradingagents-web-venv.log | grep "multi_agent: GraphExecutor"
 ```
 
-Then unset:
+Expected output should include `multi_agent: GraphExecutor starting (spec=...)` and `multi_agent: GraphExecutor finished (...)`. Then unset:
 ```bash
 launchctl kickstart -k "gui/$(id -u)/com.tradingagents.web.venv"
 ```
@@ -1502,7 +1781,15 @@ git commit -m "feat(runtime): §0.4.35 phase 1 — flag-gated GraphExecutor disp
 
 **Files:** none (uses existing harness UI)
 
-- [ ] **Step 11.1: Run full test suite**
+- [ ] **Step 11.1: Run full test suite (incl. existing runtime tests)**
+
+```bash
+.venv/bin/python -m pytest tests/test_agent_runtime_*.py tests/test_multi_agent_*.py tests/test_consult_subagent.py -q
+```
+
+Expected: all pass. Explicitly running the existing runtime tests confirms no collision with `tradingagents/agent_harness/runtime/multi_agent/`.
+
+- [ ] **Step 11.2: Run full repo test suite**
 
 ```bash
 .venv/bin/python -m pytest tests/ -q
@@ -1510,14 +1797,14 @@ git commit -m "feat(runtime): §0.4.35 phase 1 — flag-gated GraphExecutor disp
 
 Expected: all pass.
 
-- [ ] **Step 11.2: Manual sanity**
+- [ ] **Step 11.3: Manual sanity**
 
 - Start the service: `launchctl kickstart -k "gui/$(id -u)/com.tradingagents.web.venv"`
 - Open `http://127.0.0.1:8000/`
 - Send a chat; confirm `/reports` and `/scheduled` lists still render (`8f3815f` fix must not regress).
 - Tail `/tmp/tradingagents-web-venv.log` for new stack traces mentioning `agent_harness.runtime.multi_agent`.
 
-- [ ] **Step 11.3: Tag the phase**
+- [ ] **Step 11.4: Tag the phase**
 
 ```bash
 git tag -a phase1-runtime-skeleton -m "§0.4.35 phase 1 — types + executor skeleton landed"
@@ -1529,48 +1816,73 @@ git push tradingagentsplus phase1-runtime-skeleton
 ## Acceptance Checklist (Phase 1)
 
 - [ ] `RuntimeSettings` defaults match spec §4.9 (`multi_agent=false`, `llm_budget_per_turn=5`, `max_hops=8`, `consultation_rate_limit=0.5`)
-- [ ] `TRADINGAGENTS_RUNTIME_MULTI_AGENT` env var toggles the flag
+- [ ] `TRADINGAGENTS_RUNTIME_MULTI_AGENT` env var toggles the flag (covered by `test_env_override_runtime_multi_agent`)
 - [ ] `GraphState` / `TypedResult` / `Message` / `FieldRef` importable from `tradingagents.agent_harness.runtime.multi_agent`
 - [ ] `GraphSpec` validates nodes + edges; `to_dict()` round-trips cleanly
 - [ ] `Edge.__post_init__` rejects `kind` outside `("data", "when", "loop")`
-- [ ] `resolve_ref()` handles `$agent.field`, `* N`, `? a : b`, comparison predicates; falls back to literal on failure
-- [ ] `PlanCompiler` produces a `GraphSpec` for the simple flat-parallel case AND the 2-group sequential case
+- [ ] `resolve_ref()` handles `$agent.field`, `* N`, `? a : b`, comparison predicates, **multi-op arithmetic with correct precedence** (`$data.x * 2 + $data.y * 3` parses as `(x*2) + (y*3)`); falls back to literal on failure
+- [ ] `PlanCompiler` produces a `GraphSpec` for the simple flat-parallel case AND the 2-group AND 3-group sequential cases
 - [ ] `PlanCompiler` correctly maps `_TOOL_TO_AGENT` (including `command_resolver` and `trading_agents` agent-as-tool entries)
 - [ ] `GraphExecutor.run()` walks a 2-node linear graph with `ToolNode` and respects budget
+- [ ] `GraphExecutor` populates downstream `state.inbox` for every edge fire (regression test `test_executor_populates_downstream_inbox`)
 - [ ] `GraphExecutor` swallows `NotImplementedError` for `LLMNode`/`SubplanNode`/`ConsultNode` (logs warning, continues)
-- [ ] `consult_subagent` stub exists; raises `NotImplementedError`; NOT registered yet (Phase 2)
+- [ ] `GraphExecutor` does NOT consume `llm_used` for stubbed LLMNodes (regression test `test_executor_swallows_not_implemented_for_llm_node` asserts `out.llm_used == 0`)
+- [ ] `GraphExecutor` emits `multi_agent: GraphExecutor starting/finished` heartbeat logs (regression test `test_executor_emits_heartbeat_logs`)
+- [ ] `_enqueue` uses `node.kind.value` for priority (not `msg.kind`)
+- [ ] `consult_subagent` stub exists; second param named `context` (not `ctx`); raises `NotImplementedError`; NOT registered yet (Phase 2)
 - [ ] Default flag OFF → PTC path identical to before (all existing tests pass)
-- [ ] `multi_agent=true` flag → GraphExecutor runs (smoke test confirmed in logs)
+- [ ] `multi_agent=true` flag → GraphExecutor runs (heartbeat confirmed in logs, not just "no crash")
+- [ ] `_build_graph_state` reads `orch_state.intent.value`, NOT `router_plan.intent` (the latter doesn't exist)
+- [ ] No dead `_program = _plan_from_router(router_plan, state)` call in the wiring branch (already done upstream)
 - [ ] All existing tests pass (`pytest tests/ -q`)
+- [ ] `tests/test_agent_runtime_*.py` explicitly pass (collision regression guard)
 - [ ] `/reports` and `/scheduled` pages still render (regression guard)
 - [ ] Phase 1 tag pushed to `tradingagentsplus`
 
 ## Out of Scope (deferred to later phases)
 
-- Phase 2: real LLM call in `LLMNode` + `ConsultNode`; consult_subagent registered via `@tool_registry.register(...)`; budget enforcement wired end-to-end
+- Phase 2: real LLM call in `LLMNode` + `ConsultNode`; consult_subagent registered via `@tool_registry.register(...)` on the per-harness `ToolRegistry`; **add `consult_subagent` to `_TOOL_TO_AGENT` mapping** (e.g. → `consult_agent` or `router`)
 - Phase 3: cross-agent `$ref` resolution at runtime (in `ToolNode.run`); LLM router teaches `$ref` syntax
-- Phase 4: `SubplanNode.run` + `trading_agents` graph fragment; `GraphState.fork()` lands
+- Phase 4: `SubplanNode.run` + `trading_agents` graph fragment; `GraphState.fork()` lands; **`symbols` propagation into `GraphState`** (per spec §4.1)
+- Phase 4: orchestration nodes (`validate_inputs`, `verify_outputs`, `aggregate_signals`) added by `PlanCompiler` per spec §4.6
 - Phase 5: cutover — `multi_agent=true` becomes default
 - Phase 6: mid-flight `GraphState` snapshots via `AgentRuntimeStore` (existing `tradingagents/agent_harness/runtime/store.py`)
+- Phase 2 cleanup (optional): lift `_TOOL_TO_AGENT` from `core.orchestrator` into `agents/registry.py` or new `agents/tool_to_agent.py`
 
-## Review Fixes Applied (rev. 1 → rev. 2)
+## Review Fixes Applied (rev. 1 → rev. 2 → rev. 3)
 
-| ID | Fix |
-|---|---|
-| **B1** Package collision | New sub-package `runtime/multi_agent/` — existing `runtime/` untouched |
-| **B2** Design overlap | Added "Relationship to existing PlanGraph" section — `PlanGraph` (run-level) and `GraphSpec` (turn-level) are complementary |
-| **B3** Test dir collision | Tests moved to flat `tests/test_multi_agent_*.py` |
-| **B4** No `pytest-asyncio` | All tests use `asyncio.run()` + `_run(coro)` helper (matches `tests/test_tool_pipeline.py` pattern) |
-| **B5** `ToolCall` no `depends_on` | Compiler reads cross-group deps from group order (matches `_plan_from_router()` heuristic) |
-| **B6** Wrong config location | Settings live in `tradingagents/default_config.py` + `_ENV_OVERRIDES` in `dataflows/config.py`; dotted-path support added to `_apply_env_overrides` |
-| **H1** ToolPipeline signature | `ToolNode.run` uses `await pipeline.run(tool_name, args, tool_context, executor=...)` correctly |
-| **H2** Tool registration API | Phase 1 does NOT register; Phase 2 wires `@tool_registry.register(...)` |
-| **H3** Edge validation | `Edge.__post_init__` validates `kind` in `("data", "when", "loop")` |
-| **H4** Protocol in Pydantic field | `GraphSpec` is a `@dataclass`; nodes are duck-typed; custom `to_dict()` handles serialization |
-| **H5** `_TOOL_TO_AGENT` coupling | Documented as acceptable within-package coupling; Phase 3 may lift to `agents/registry.py` |
-| **H6** Undefined helpers | `_build_graph_state` defined inline in Task 10 |
-| **H7** Rollback semantics | `CompileError` AND generic `Exception` both fall through to PTC (defensive) |
-| **M2** Premature `fork()` | Removed; will land in Phase 4 |
-| **M5** Test naming | All new tests prefixed `test_multi_agent_*` |
-| **M8** `_TOOL_TO_AGENT` coverage | `test_compiler_maps_tool_to_agent_via_TOOL_TO_AGENT` covers agent-as-tool entries |
-| **L5** Chunk ordering | Compiler moved to Chunk 3 (after Nodes) to avoid forward-reference import errors |
+| ID | Rev. | Fix |
+|---|---|---|
+| **B1** Package collision | r1 | New sub-package `runtime/multi_agent/` — existing `runtime/` untouched |
+| **B2** Design overlap | r1 | Added "Relationship to existing PlanGraph" section |
+| **B3** Test dir collision | r1 | Tests moved to flat `tests/test_multi_agent_*.py` |
+| **B4** No `pytest-asyncio` | r1 | All tests use `asyncio.run()` + `_run(coro)` helper |
+| **B5** `ToolCall` no `depends_on` | r1 | Compiler reads cross-group deps from group order |
+| **B6** Wrong config location | r1 | Settings in `default_config.py` + env override (dotted-path support) |
+| **H1** ToolPipeline signature | r1 | `ToolNode.run` uses correct `await pipeline.run(...)` signature |
+| **H2** Tool registration API | r1 | Phase 1 does NOT register; Phase 2 wires `@tool_registry.register(...)` |
+| **H3** Edge validation | r1 | `Edge.__post_init__` validates `kind` in `("data", "when", "loop")` |
+| **H4** Protocol in Pydantic field | r1 | `GraphSpec` is a `@dataclass`; custom `to_dict()` handles serialization |
+| **H5** `_TOOL_TO_AGENT` coupling | r1 | Documented; Phase 3 may lift |
+| **H6** Undefined helpers | r1 | `_build_graph_state` defined inline in Task 10 |
+| **H7** Rollback semantics | r1 | `CompileError` AND generic `Exception` both fall through to PTC |
+| **M2** Premature `fork()` | r1 | Removed; will land in Phase 4 |
+| **M5** Test naming | r1 | All new tests prefixed `test_multi_agent_*` |
+| **M8** `_TOOL_TO_AGENT` coverage | r1 | Test covers agent-as-tool entries |
+| **L5** Chunk ordering | r1 | Compiler moved to Chunk 3 (after Nodes) |
+| **BLOCKER #1** (r2) `_build_graph_state.intent` | r3 | Reads `orch_state.intent.value` (the real location); uses settings for budget knobs |
+| **BLOCKER #2** (r2) Executor doesn't populate inbox | r3 | Fan-out calls `state.append_inbox(new_msg)` for every edge fire + regression test |
+| **BLOCKER #3** (r2) Resolver precedence | r3 | Rightmost-split precedence at each operator level; multi-op tests added |
+| **HIGH #4** (r2) Wrong file path for env overrides | r3 | All references now point to `tradingagents/default_config.py` |
+| **HIGH #5** (r2) Hand-waved dotted-path | r3 | `_set_dotted` + `_lookup_dotted` helpers fully implemented + env-var test |
+| **HIGH #6** (r2) `consult_subagent` ctx→context | r3 | Param renamed; signature guard test added |
+| **HIGH #7** (r2) Dead `_program = _plan_from_router(...)` | r3 | Removed from wiring branch |
+| **MEDIUM #8** (r2) llm_used before call | r3 | Increments AFTER `await node.run()`; regression test asserts `out.llm_used == 0` for stubbed LLM |
+| **MEDIUM #9** (r2) Smoke test can't verify execution | r3 | Added `multi_agent: GraphExecutor starting/finished` heartbeat logs + test |
+| **MEDIUM #10** (r2) Priority uses msg.kind | r3 | `_enqueue` takes `source_node` and uses `_PRIORITY[node.kind.value]` |
+| **MEDIUM #11** (r2) `_TOOL_TO_AGENT` coupling aspirational | r3 | Docstring commits to keeping in `core.orchestrator` for Phase 1; Phase 2 cleanup tracked in Out of Scope |
+| **LOW #12** (r2) `_NodeBase` parallel hierarchy | r3 | Removed; subclasses set attributes directly |
+| **LOW #13** (r2) `consult_subagent` not in `_TOOL_TO_AGENT` | r3 | Added to Out of Scope as Phase 2 task |
+| **LOW #14** (r2) `harness.py:82` line off-by-one | r3 | Doc now references `Harness.__init__` without line number |
+| **INFO #15** (r2) `symbols`/`plan_id` not in GraphState | r3 | Added to Out of Scope as Phase 4 task |
+| **INFO #16** (r2) Spec §4.6 orchestration nodes | r3 | Added to Out of Scope as Phase 4 task |
