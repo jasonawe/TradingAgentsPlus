@@ -31,6 +31,11 @@ _ENV_OVERRIDES = {
     "TRADINGAGENTS_GOOGLE_THINKING_LEVEL":   "google_thinking_level",
     "TRADINGAGENTS_OPENAI_REASONING_EFFORT": "openai_reasoning_effort",
     "TRADINGAGENTS_ANTHROPIC_EFFORT":        "anthropic_effort",
+    # §0.4.35 Phase 1 — dotted paths land at the runtime.* block
+    "TRADINGAGENTS_RUNTIME_MULTI_AGENT":          "runtime.multi_agent",
+    "TRADINGAGENTS_RUNTIME_LLM_BUDGET_PER_TURN":  "runtime.llm_budget_per_turn",
+    "TRADINGAGENTS_RUNTIME_MAX_HOPS":             "runtime.max_hops",
+    "TRADINGAGENTS_RUNTIME_CONSULTATION_RATE":    "runtime.consultation_rate_limit",
 }
 
 
@@ -61,16 +66,44 @@ def _coerce(value: str, reference):
     return value
 
 
+def _set_dotted(cfg: dict, dotted_key: str, value) -> dict:
+    """Walk a dotted key path and assign the leaf value."""
+    parts = dotted_key.split(".")
+    cur = cfg
+    for part in parts[:-1]:
+        if part not in cur or not isinstance(cur[part], dict):
+            cur[part] = {}
+        cur = cur[part]
+    cur[parts[-1]] = value
+    return cfg
+
+
+def _lookup_dotted(cfg: dict, dotted_key: str):
+    """Read a dotted key without mutating. Returns None for missing paths."""
+    parts = dotted_key.split(".")
+    cur = cfg
+    for part in parts:
+        if isinstance(cur, dict) and part in cur:
+            cur = cur[part]
+        else:
+            return None
+    return cur
+
+
 def _apply_env_overrides(config: dict) -> dict:
     """Apply TRADINGAGENTS_* env vars to the config dict in-place."""
     for env_var, key in _ENV_OVERRIDES.items():
         raw = os.environ.get(env_var)
         if raw is None or raw == "":
             continue
+        reference = _lookup_dotted(config, key)
+        if reference is None:
+            reference = raw
         try:
-            config[key] = _coerce(raw, config.get(key))
+            coerced = _coerce(raw, reference)
         except ValueError as exc:
             raise ValueError(f"Invalid value for {env_var}: {exc}") from exc
+        _set_dotted(config, key, coerced)
     return config
 
 
@@ -175,6 +208,13 @@ DEFAULT_CONFIG = _apply_env_overrides({
         ".SS":  "000001.SS",   # Shanghai (SSE Composite)
         ".SZ":  "399001.SZ",   # Shenzhen (SZSE Component)
         "":     "SPY",         # default for US-listed tickers (no suffix)
+    },
+    # §0.4.35 Phase 1 — multi-agent runtime (default off; PTC remains live path)
+    "runtime": {
+        "multi_agent": False,
+        "llm_budget_per_turn": 5,
+        "max_hops": 8,
+        "consultation_rate_limit": 0.5,
     },
 })
 
