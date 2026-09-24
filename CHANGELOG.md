@@ -3,6 +3,61 @@
 All notable changes to TradingAgents are documented here.
 
 
+## [v0.5.0] — Phase 1 multi-agent runtime skeleton (2026-09-24)
+
+§0.4.35 phase 1 — types + executor skeleton landed (flag-gated,
+default OFF; opt-in via `runtime.multi_agent=True` or
+`TRADINGAGENTS_RUNTIME_MULTI_AGENT=true`). See
+`docs/superpowers/plans/2026-09-24-multi-agent-message-passing-runtime-phase1.md`
+for the full plan and acceptance criteria.
+
+### Added
+- `tradingagents/agent_harness/runtime/multi_agent/` (NEW package) —
+  types and executor skeleton: `GraphState` / `TypedResult` / `Message`
+  / `FieldRef`, `NodeKind` / `Edge` / `GraphSpec` / `BaseNode`,
+  `ToolNode` / `LLMNode` / `SubplanNode` / `ConsultNode`, `$ref`
+  resolver (rightmost-split precedence, no parens, tightened field
+  regex), `PlanCompiler` (group-order deps), `GraphExecutor`
+  (priority queue, per-run `Edge.hops_used` reset, NotImplementedError
+  swallow, cross-run safe), `RuntimeSettings` (Pydantic) +
+  `load_settings()`.
+- `tradingagents/agent_harness/core/orchestrator.py` — added
+  `_lazy_multi_agent()`, `_build_graph_state()`,
+  `_maybe_run_multi_agent()` helpers + wired into the
+  `_plan()` dispatch site (default OFF; falls back to PTC).
+- `tradingagents/agent_harness/tools/builtin_consult.py` —
+  `consult_subagent` tool stub (raises NotImplementedError until
+  Phase 2; per-harness `@tool_registry.register(...)` registration
+  deferred to Phase 2).
+- `tradingagents/default_config.py` — added `runtime.*` config block
+  + dotted-path env override extension to `_apply_env_overrides`.
+- `tradingagents/_version.py` (NEW) — `__version__ = "v0.5.0"`.
+
+### Tests
+- `tests/test_multi_agent_settings.py` (4 tests)
+- `tests/test_multi_agent_state.py` (5 tests)
+- `tests/test_multi_agent_graph.py` (6 tests)
+- `tests/test_multi_agent_resolver.py` (16 tests)
+- `tests/test_multi_agent_nodes.py` (6 tests)
+- `tests/test_multi_agent_compiler.py` (≥1 test)
+- `tests/test_multi_agent_executor.py` (8 tests)
+- `tests/test_multi_agent_orchestrator_wiring.py` (5 tests)
+- `tests/test_consult_subagent.py` (consult_subagent tool stub)
+
+All 167 tests across `tests/test_multi_agent_*.py`,
+`tests/test_consult_subagent.py`, and `tests/test_agent_runtime_*.py`
+pass. Phase 1 introduces zero regressions on `main`.
+
+### Out of Scope (deferred to later phases)
+- `$ref` runtime resolution inside `ToolNode.run` (Phase 3)
+- Per-harness `@tool_registry.register(...)` for `consult_subagent`
+  (Phase 2)
+- LLMNode / SubplanNode / ConsultNode real implementations
+  (Phases 2 + 4)
+- AgentRuntimeStore snapshot loading into `GraphState` (Phase 6)
+- `_TOOL_TO_AGENT` lift from `core/orchestrator.py` into
+  `agents/registry.py` (Phase 2 cleanup)
+
 ## [0.4.30] — 2026-09-23
 
 ### Added
