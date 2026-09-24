@@ -348,3 +348,125 @@ def _make_message(sender: str, receiver: str, data: str):
         sender=sender, receiver=receiver,
         payload=TypedResult(schema=str, data=data, meta={}),
     )
+
+
+
+# ────────────────────────────────────────────────────────────────────────
+# ToolNode — Phase 3 Work unit 4 ($ref resolution at runtime, spec §4.5)
+# ────────────────────────────────────────────────────────────────────────
+
+def test_tool_node_resolves_simple_dollar_ref_to_actual_value(monkeypatch):
+    """$data.quote.symbol resolves to state.agent_outputs['data'].data['quote']['symbol']."""
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+
+    captured = {}
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            captured["args"] = args
+            return MagicMock(ok=True, result={"echoed": tool_name})
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+    state.agent_outputs["data"] = TypedResult(
+        schema=dict,
+        data={"quote": {"symbol": "600036.SS"}, "x": 40.5},
+        meta={},
+    )
+    node = ToolNode(
+        id="a", agent_id="data_agent",
+        tool_name="get_quote",
+        raw_args={"symbol": "$data.quote.symbol"},
+    )
+    _run(node.run(state, inbox=[]))
+    assert captured["args"] == {"symbol": "600036.SS"}
+
+
+def test_tool_node_resolves_arithmetic_expression(monkeypatch):
+    """$data.x * 1.5 resolves to the arithmetic result (Phase 1 resolver)."""
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+
+    captured = {}
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            captured["args"] = args
+            return MagicMock(ok=True, result={})
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+    state.agent_outputs["data"] = TypedResult(
+        schema=dict, data={"x": 40.5}, meta={},
+    )
+    node = ToolNode(
+        id="a", agent_id="data_agent",
+        tool_name="compute_alpha_factors",
+        raw_args={"weight": "$data.x * 1.5"},
+    )
+    _run(node.run(state, inbox=[]))
+    assert captured["args"] == {"weight": 60.75}
+
+
+def test_tool_node_unresolved_ref_falls_back_to_literal(monkeypatch):
+    """$unknown.y with no agent_outputs['unknown'] → kept as literal string
+    (spec §4.5 graceful degradation — preserves LLM intent)."""
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+
+    captured = {}
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            captured["args"] = args
+            return MagicMock(ok=True, result={})
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+    # Intentionally NOT populating state.agent_outputs["unknown"].
+    node = ToolNode(
+        id="a", agent_id="data_agent",
+        tool_name="get_quote",
+        raw_args={"bad": "$unknown.y"},
+    )
+    _run(node.run(state, inbox=[]))
+    assert captured["args"] == {"bad": "$unknown.y"}
+
+
+def test_tool_node_mixed_args_resolves_strings_passes_other_types(monkeypatch):
+    """Mixed dict: string $refs resolve; non-string types pass through unchanged."""
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+
+    captured = {}
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            captured["args"] = args
+            return MagicMock(ok=True, result={})
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+    state.agent_outputs["data"] = TypedResult(
+        schema=dict, data={"quote": {"symbol": "600036.SS"}}, meta={},
+    )
+    node = ToolNode(
+        id="a", agent_id="data_agent",
+        tool_name="get_quote",
+        raw_args={
+            "symbol": "$data.quote.symbol",
+            "limit": 10,
+            "tags": ["a", "b"],
+            "flag": True,
+            "unused": None,
+        },
+    )
+    _run(node.run(state, inbox=[]))
+    assert captured["args"] == {
+        "symbol": "600036.SS",   # resolved
+        "limit": 10,             # int, passthrough
+        "tags": ["a", "b"],      # list, passthrough
+        "flag": True,            # bool, passthrough
+        "unused": None,          # None, passthrough
+    }

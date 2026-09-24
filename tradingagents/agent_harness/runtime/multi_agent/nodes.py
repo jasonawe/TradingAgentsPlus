@@ -37,6 +37,31 @@ def _default_pipeline():
     return ToolPipeline()
 
 
+def _resolve_args(raw_args: dict | None, state) -> dict:
+    """Resolve ``$ref`` strings in ``raw_args`` against ``state.agent_outputs``.
+
+    Phase 3 Work unit 4 (spec §4.5). Per the spec, resolution failures
+    fall back to the literal string the LLM emitted — preserves the
+    LLM's intent and lets downstream tool see exactly what was written.
+
+    - String values containing ``$`` are passed through Phase 1
+      ``resolve_ref`` (parses arithmetic, nested dict lookups, etc.).
+    - If ``resolve_ref`` returns ``None`` (agent not in state, missing
+      field, parse error) → fall back to the original literal string.
+    - Non-string values (int, list, bool, None, dict, …) pass through
+      unchanged — only top-level string values are touched.
+    """
+    from .resolver import resolve_ref
+    resolved: dict = {}
+    for k, v in (raw_args or {}).items():
+        if isinstance(v, str):
+            result = resolve_ref(v, state, literal=None)
+            resolved[k] = v if result is None else result
+        else:
+            resolved[k] = v
+    return resolved
+
+
 class ToolNode:
     kind = NodeKind.TOOL
 
@@ -56,11 +81,16 @@ class ToolNode:
         ctx = ToolContext(session_id=state.run_id, intent=state.intent)
         pipeline = _default_pipeline()
 
+        # Phase 3 Work unit 4 (spec §4.5): resolve $ref strings in
+        # raw_args against state.agent_outputs BEFORE invoking the tool.
+        # Graceful degradation — unresolved refs stay as literal strings.
+        resolved_args = _resolve_args(self.raw_args, state)
+
         async def _noop_executor(args, context):
             return {"phase1_stub": True, "tool": self.tool_name, "args": args}
         pipe_res = await pipeline.run(
             tool_name=self.tool_name,
-            args=dict(self.raw_args or {}),
+            args=resolved_args,
             tool_context=ctx,
             executor=_noop_executor,
         )
