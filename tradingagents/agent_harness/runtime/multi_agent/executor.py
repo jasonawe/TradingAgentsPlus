@@ -160,6 +160,43 @@ class GraphExecutor:
 
     async def _invoke(self, node, state: GraphState,
                       inbox: list[Message]) -> list[Message]:
+        """Dispatch to the node's ``run()`` and ALWAYS record the outcome
+        in ``state.agent_outputs[node.id]`` — Phase 3 Work unit 1 contract.
+
+        Happy path: writes the last message's ``TypedResult`` payload as the
+        node's canonical output.
+
+        Failure path (any exception from ``node.run()``): writes a
+        ``TypedResult(data=None, meta={ok=False, error=...})`` placeholder
+        so downstream ``$ref`` resolution (Phase 3 Work unit 3) can detect
+        the failure.
+
+        For ConsultNode: ``last-write-wins`` semantics — Phase 2's internal
+        write inside ``ConsultNode.run`` is overwritten by the executor's
+        write here, but the ``data`` shape (``{"ok": True, ...}``) is
+        equivalent so downstream ``$ref`` resolves to the same answer.
+        """
+        try:
+            out_messages = await self._dispatch_to_node(node, state, inbox)
+        except Exception as exc:
+            # Phase 3 Work unit 1: failure marker so $ref can detect.
+            state.agent_outputs[node.id] = TypedResult(
+                schema=dict,
+                data=None,
+                meta={
+                    "ok": False,
+                    "error": f"{type(exc).__name__}: {exc}",
+                    "source_agent": getattr(node, "agent_id", None),
+                },
+            )
+            raise
+
+        if out_messages:
+            state.agent_outputs[node.id] = out_messages[-1].payload
+        return out_messages
+
+    async def _dispatch_to_node(self, node, state: GraphState,
+                                inbox: list[Message]) -> list[Message]:
         # Phase 2: budget accounting is owned by the node implementations
         # (LLMNode.run increments llm_used AFTER the LLM call; consult_subagent
         # increments consultation_used AFTER the guards fire). The executor

@@ -21,6 +21,7 @@ from tradingagents.agent_harness.runtime.multi_agent.graph import (
 from tradingagents.agent_harness.runtime.multi_agent.nodes import (
     ConsultNode,
     LLMNode,
+    SubplanNode,
     ToolNode,
 )
 from tradingagents.agent_harness.runtime.multi_agent.state import GraphState
@@ -382,3 +383,171 @@ def test_graph_state_consultation_depth_resets_per_state():
     s2 = GraphState(run_id="r", turn_id="t2", intent="x")
     assert s1.consultation_depth == 5  # explicit override preserved
     assert s2.consultation_depth == 0  # fresh state independent
+
+
+# ----------------------------------------------------------------------
+# §0.4.35 phase 3 — Work unit 1: state.agent_outputs[node.id] = result
+# ----------------------------------------------------------------------
+
+def test_executor_writes_tool_node_result_to_agent_outputs(monkeypatch):
+    """ToolNode happy path → state.agent_outputs["a"] is the result's TypedResult."""
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            return MagicMock(ok=True, result={"echoed": tool_name, "args": args})
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    n1 = ToolNode(id="a", agent_id="data_agent",
+                  tool_name="get_quote", raw_args={"symbol": "X"})
+    spec = GraphSpec(nodes={"a": n1}, edges=[], entry="a", exit="a")
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+
+    _run(GraphExecutor().run(spec, state))
+
+    assert "a" in state.agent_outputs
+    typed = state.agent_outputs["a"]
+    assert typed.data == {"echoed": "get_quote", "args": {"symbol": "X"}}
+    assert typed.meta["source_agent"] == "data_agent"
+
+
+def test_executor_writes_llm_node_result_to_agent_outputs(monkeypatch):
+    """LLMNode happy path → state.agent_outputs["a"] is the answer TypedResult."""
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            return MagicMock(ok=True, result={"echoed": tool_name})
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    fake_provider = MagicMock()
+    fake_provider.complete.return_value = MagicMock(content="the answer")
+    n1 = LLMNode(id="a", agent_id="data_agent", system_prompt="...")
+    spec = GraphSpec(nodes={"a": n1}, edges=[], entry="a", exit="a")
+    state = GraphState(
+        run_id="r", turn_id="t", intent="x",
+        llm_provider=fake_provider,
+    )
+
+    _run(GraphExecutor().run(spec, state))
+
+    assert "a" in state.agent_outputs
+    typed = state.agent_outputs["a"]
+    assert typed.data["answer"] == "the answer"
+    assert typed.data["llm_used"] == 1
+    assert typed.meta["source_agent"] == "data_agent"
+
+
+def test_executor_writes_consult_node_result_to_agent_outputs(monkeypatch):
+    """ConsultNode happy path → executor writes the canonical TypedResult
+    (last-write-wins; overwrites ConsultNode's internal write)."""
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            return MagicMock(ok=True, result={"answer": "consult answer"})
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    n1 = ConsultNode(id="a", agent_id="data_agent",
+                     target_agent="alpha_agent", question="?")
+    spec = GraphSpec(nodes={"a": n1}, edges=[], entry="a", exit="a")
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+
+    _run(GraphExecutor().run(spec, state))
+
+    assert "a" in state.agent_outputs
+    typed = state.agent_outputs["a"]
+    # The executor's write uses ConsultNode's out_messages[-1].payload shape
+    assert typed.data["ok"] is True
+    assert typed.data["answer"] == "consult answer"
+
+
+def test_executor_writes_failure_marker_for_subplan_node():
+    """SubplanNode raises NotImplementedError → executor writes ok=False marker."""
+    n1 = SubplanNode(id="a", agent_id="data_agent", sub_graph=MagicMock())
+    spec = GraphSpec(nodes={"a": n1}, edges=[], entry="a", exit="a")
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+
+    # Executor swallows the exception (rev.5 contract); agent_outputs must
+    # still record the failure for downstream $ref to detect.
+    _run(GraphExecutor().run(spec, state))
+
+    assert "a" in state.agent_outputs
+    typed = state.agent_outputs["a"]
+    assert typed.data is None
+    assert typed.meta["ok"] is False
+    assert "NotImplementedError" in typed.meta["error"]
+    assert typed.meta["source_agent"] == "data_agent"
+
+
+def test_executor_writes_failure_marker_for_failed_llm_node_no_provider(monkeypatch):
+    """LLMNode raises NotImplementedError when no provider wired → marker written."""
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            return MagicMock(ok=True, result={})
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    n1 = LLMNode(id="a", agent_id="data_agent", system_prompt="...")
+    spec = GraphSpec(nodes={"a": n1}, edges=[], entry="a", exit="a")
+    state = GraphState(run_id="r", turn_id="t", intent="x", llm_provider=None)
+
+    _run(GraphExecutor().run(spec, state))
+
+    assert "a" in state.agent_outputs
+    typed = state.agent_outputs["a"]
+    assert typed.data is None
+    assert typed.meta["ok"] is False
+    assert "NotImplementedError" in typed.meta["error"]
+
+
+def test_executor_writes_refused_marker_for_depth_exceeded_consult():
+    """ConsultNode refused by depth guard → executor writes the refused TypedResult."""
+    n1 = ConsultNode(id="a", agent_id="data_agent",
+                     target_agent="alpha_agent", question="?")
+    spec = GraphSpec(nodes={"a": n1}, edges=[], entry="a", exit="a")
+    state = GraphState(
+        run_id="r", turn_id="t", intent="x",
+        consultation_depth=3,  # at max
+    )
+
+    _run(GraphExecutor(consultation_max_depth=3).run(spec, state))
+
+    assert "a" in state.agent_outputs
+    typed = state.agent_outputs["a"]
+    assert typed.data["ok"] is False
+    assert typed.data["error"] == "ConsultDepthExceeded"
+    assert typed.meta["refused"] is True
+
+
+def test_executor_agent_outputs_isolated_between_runs(monkeypatch):
+    """Two independent GraphState instances do not share agent_outputs."""
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            return MagicMock(ok=True, result={"echoed": tool_name, "args": args})
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    n1 = ToolNode(id="a", agent_id="data_agent",
+                  tool_name="get_quote", raw_args={"symbol": "X"})
+    spec = GraphSpec(nodes={"a": n1}, edges=[], entry="a", exit="a")
+
+    s1 = GraphState(run_id="r", turn_id="t1", intent="x")
+    s2 = GraphState(run_id="r", turn_id="t2", intent="x")
+
+    _run(GraphExecutor().run(spec, s1))
+    _run(GraphExecutor().run(spec, s2))
+
+    expected = {"echoed": "get_quote", "args": {"symbol": "X"}}
+    assert s1.agent_outputs["a"].data == expected
+    assert s2.agent_outputs["a"].data == expected
+    # Both states are independently populated (no shared dict)
+    assert s1 is not s2
+    assert s1.agent_outputs is not s2.agent_outputs
