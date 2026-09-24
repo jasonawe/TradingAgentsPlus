@@ -787,6 +787,9 @@ _TOOL_TO_AGENT: dict[str, str] = {
     "run_trading_agents_analysis": "trading_agents",
     "cancel_analysis_run": "trading_agents",
     "run_scheduled_task": "trading_agents",
+    # §0.4.35 phase 2 — inter-agent dialogue tool (spec §4.10).
+    # Routed to the synthesizer agent for prompt composition + budget.
+    "consult_subagent": "synthesizer",
 }
 
 

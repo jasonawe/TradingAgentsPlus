@@ -182,3 +182,34 @@ def test_consult_subagent_no_state_runs_but_does_not_store():
     assert out["consultation_used"] == 0
     # No state to store into; just confirm the call didn't crash.
     assert len(provider.calls) == 1
+
+
+# ----------------------------------------------------------------------
+# §0.4.35 phase 2 — Work unit 2: registration + _TOOL_TO_AGENT mapping
+# ----------------------------------------------------------------------
+
+def test_consult_subagent_registered_in_tool_registry():
+    """After Work unit 2, install_builtin_tools registers consult_subagent."""
+    from tradingagents.agent_harness.tools.builtin import install_builtin_tools
+    from tradingagents.agent_harness.tools.registry import ToolRegistry
+    from tradingagents.agent_harness.tools.builtin_consult import (
+        consult_subagent, ConsultSubagentArgs,
+    )
+
+    reg = ToolRegistry()
+    install_builtin_tools(reg)
+
+    tool = reg.get("consult_subagent")
+    assert tool is not None, "consult_subagent must be registered"
+    assert tool.name == "consult_subagent"
+    assert tool.schema.args_schema is ConsultSubagentArgs
+    # tool wraps the same callable the module exports
+    assert tool._func is consult_subagent
+
+
+def test_consult_subagent_in_TOOL_TO_AGENT():
+    """consult_subagent routes to the synthesizer agent (spec §4.10)."""
+    from tradingagents.agent_harness.core.orchestrator import _TOOL_TO_AGENT
+
+    assert "consult_subagent" in _TOOL_TO_AGENT
+    assert _TOOL_TO_AGENT["consult_subagent"] == "synthesizer"

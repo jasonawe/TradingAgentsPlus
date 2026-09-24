@@ -34,6 +34,7 @@ from .context import ToolContext
 from .permission import PermissionType
 from .capabilities import Capability
 
+from .builtin_consult import consult_subagent as _consult_subagent, ConsultSubagentArgs as _ConsultSubagentArgs
 from .schema import ToolSchema, SideEffectMode
 
 # ----------------------------------------------------------------------
@@ -2118,5 +2119,27 @@ def install_builtin_tools(registry) -> None:
             "category": "crud",
         },
     )(delete_scheduled_task)
+
+    # §0.4.35 phase 2 — consult_subagent (inter-agent dialogue, spec §4.10).
+    # Reads from state.agent_outputs via context_refs, calls target_agent's
+    # LLM with composed prompt, stores answer under node_id for downstream
+    # $ref resolution. Read-only permission — no tool use.
+    registry.register(
+        name="consult_subagent",
+        description=(
+            "Consult a sibling sub-agent (read-only — no tool use). "
+            "Pass context_refs to inject upstream agent outputs. "
+            "Returns the target agent's answer; counts against "
+            "consultation_used budget."
+        ),
+        args_schema=_ConsultSubagentArgs,
+        result_schema=dict,
+        permission=PermissionType.READ,
+        metadata={
+            "capabilities": [Capability.META.value],
+            "display_view": "ack",
+            "category": "consult",
+        },
+    )(_consult_subagent)
 
 
