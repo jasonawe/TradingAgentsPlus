@@ -42,6 +42,67 @@
     "算一下 600036.SS 的 alpha158 因子",
   ];
 
+  // §0.4.33.4 — Sub-Agent registry. Six specialised agents that share
+  // the orchestrator. Each card in the welcome screen and each chip in
+  // the dock header renders from this single source. Adding a new
+  // sub-agent = adding one row here + one entry in _TOOL_TO_AGENT.
+  const SUBAGENT_REGISTRY = [
+    {
+      id: "data_agent",
+      icon: "🤖",
+      label: "DataAgent",
+      role: "行情 + 基本面",
+      desc: "Fetch quote + fundamentals for one symbol.",
+      tools: ["get_quote", "get_quotes_batch", "get_fundamentals", "list_*"],
+      color: "data",
+    },
+    {
+      id: "alpha_agent",
+      icon: "📐",
+      label: "AlphaAgent",
+      role: "量化因子 + K 线",
+      desc: "alpha158 factor computation + IC evaluation.",
+      tools: ["get_history", "list_alpha_factors", "compute_alpha_factors", "evaluate_alpha"],
+      color: "alpha",
+    },
+    {
+      id: "news_agent",
+      icon: "📰",
+      label: "NewsAgent",
+      role: "新闻舆情",
+      desc: "Recent news headlines + sentiment summary.",
+      tools: ["get_news"],
+      color: "news",
+    },
+    {
+      id: "command_resolver",
+      icon: "✍️",
+      label: "CommandResolver",
+      role: "写操作路由",
+      desc: "Routes write tools (watchlist / alerts / notes / scheduled) with HITL approval.",
+      tools: ["add_/remove_/update_*", "create_alert/note/task"],
+      color: "cmd",
+    },
+    {
+      id: "trading_agents",
+      icon: "🏦",
+      label: "TradingAgents",
+      role: "深度研究报告",
+      desc: "Multi-agent deep research run (analysts → research → trader → risk).",
+      tools: ["run_trading_agents_analysis", "cancel_analysis_run"],
+      color: "ta",
+    },
+    {
+      id: "orchestrator",
+      icon: "🧭",
+      label: "Orchestrator",
+      role: "规划 / 验证 / 综合",
+      desc: "Planner + Verifier (L1/L2/L3) + Synthesizer — the brain that ties agents together.",
+      tools: [],
+      color: "orch",
+    },
+  ];
+
   // ─────────────────────────────────────────────────
   // init — called by app.js
   // ─────────────────────────────────────────────────
@@ -893,7 +954,16 @@
     });
     el.hidden = false;
     el.open = true;
+    // Inject the agent chip row into the dock header on first render.
+    const summaryRow = el.querySelector(".harness-todo-dock-summary");
+    if (summaryRow && !summaryRow.querySelector(".harness-agent-chip-row")) {
+      const row = document.createElement("div");
+      row.className = "harness-agent-chip-row";
+      row.innerHTML = renderSubagentChipRow();
+      summaryRow.parentNode.insertBefore(row, summaryRow.nextSibling);
+    }
     updateTodoProgress();
+    updateSubagentChipsFromState();
     scrollToBottom();
   }
 
@@ -933,6 +1003,7 @@
       if (patch.error !== undefined) item.error = patch.error;
     }
     updateTodoProgress();
+    updateSubagentChipsFromState();
   }
 
   function updateTodoProgress() {
@@ -948,6 +1019,11 @@
     if (total > 0 && done === total) {
       dock.classList.add("is-complete");
     }
+  }
+
+  function updateSubagentChipsFromState() {
+    const { active, worked } = computeAgentActivity();
+    updateSubagentChips(active, worked);
   }
 
   function todoStatusIcon(status) {
@@ -980,9 +1056,16 @@
       if (body) body.innerHTML = "";
       const progress = dock.querySelector("[data-bind=\"progress\"]");
       if (progress) progress.textContent = "0 / 0";
+      const chipRow = dock.querySelector(".harness-agent-chip-row");
+      if (chipRow) chipRow.remove();
     }
     state.todoEl = null;
     state.todoItems = [];
+    // Reset chip states globally (welcome screen too).
+    document.querySelectorAll(".harness-agent-chip").forEach((c) => {
+      c.classList.remove("is-active", "is-worked");
+      c.classList.add("is-idle");
+    });
   }
 
   function appendToolCall(name, args) {
@@ -1308,19 +1391,77 @@
     } catch (_) { /* silent — toggle is non-critical */ }
   }
 
+  // §0.4.33.4 — Sub-agent card grid for the welcome screen. Each card
+  // carries the agent's icon, label, role, short description, and the
+  // tools it owns. Renders from SUBAGENT_REGISTRY so a new agent
+  // = one entry in the registry, no template change required.
+  function renderSubagentCards() {
+    return SUBAGENT_REGISTRY.map((a) => `
+      <div class="harness-agent-card" data-color="${a.color}" title="${escapeHtml(a.desc)}">
+        <div class="harness-agent-card-icon">${a.icon}</div>
+        <div class="harness-agent-card-body">
+          <div class="harness-agent-card-label">${escapeHtml(a.label)}</div>
+          <div class="harness-agent-card-role">${escapeHtml(a.role)}</div>
+          <div class="harness-agent-card-tools">${a.tools.map(escapeHtml).join(" · ")}</div>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  // §0.4.33.4 — Sub-agent chip row for the dock header. Smaller than
+  // the cards; just an icon + name + status indicator. When todos are
+  // active, the matching chip lights up. Once any of its tools land
+  // ``done``/``error``/``skipped`` it counts as "worked" and stays lit
+  // until the dock is cleared.
+  function renderSubagentChipRow() {
+    return SUBAGENT_REGISTRY.map((a) => `
+      <span class="harness-agent-chip" data-agent="${a.id}" data-color="${a.color}">
+        <span class="harness-agent-chip-icon">${a.icon}</span>
+        <span class="harness-agent-chip-label">${escapeHtml(a.label)}</span>
+        <span class="harness-agent-chip-dot" aria-hidden="true"></span>
+      </span>
+    `).join("");
+  }
+
+  // Update chip activity in place. ``activeAgents`` = Set of agent
+  // ids currently executing (pending/active rows). ``workedAgents`` =
+  // Set of agent ids that produced at least one done/error/skipped row.
+  function updateSubagentChips(activeAgents, workedAgents) {
+    const chips = document.querySelectorAll(".harness-agent-chip");
+    chips.forEach((c) => {
+      const id = c.dataset.agent;
+      c.classList.remove("is-active", "is-worked", "is-idle");
+      if (activeAgents && activeAgents.has(id)) c.classList.add("is-active");
+      else if (workedAgents && workedAgents.has(id)) c.classList.add("is-worked");
+      else c.classList.add("is-idle");
+    });
+  }
+
+  function computeAgentActivity() {
+    const active = new Set();
+    const worked = new Set();
+    state.todoItems.forEach((t) => {
+      if (!t.agent) return;
+      if (t.status === "pending" || t.status === "active") active.add(t.agent);
+      else if (t.status === "done" || t.status === "error" || t.status === "skipped") worked.add(t.agent);
+    });
+    return { active, worked };
+  }
+
   function renderWelcome() {
     if (state.messagesEl.children.length > 0) return;
     state.messagesEl.innerHTML = `
       <div class="harness-welcome">
         <div class="harness-welcome-icon">🤖</div>
         <div class="harness-welcome-title">理财通用 Agent (P8 Harness)</div>
-        <div class="harness-welcome-stats">
-          <span class="harness-welcome-stat"><b>6</b><span>sub-agents</span></span>
-          <span class="harness-welcome-stat"><b>19</b><span>tools</span></span>
-          <span class="harness-welcome-stat"><b>L3</b><span>judge</span></span>
-          <span class="harness-welcome-stat"><b>7</b><span>写操作需审批</span></span>
+        <div class="harness-welcome-subtitle">6 sub-agents · 19 tools · L3 judge · 7 写操作需审批</div>
+        <div class="harness-welcome-divider"></div>
+        <div class="harness-welcome-section-label">Sub-Agent 团队</div>
+        <div class="harness-agent-grid">
+          ${renderSubagentCards()}
         </div>
         <div class="harness-welcome-divider"></div>
+        <div class="harness-welcome-section-label">试试这些</div>
         <div class="harness-welcome-suggestions">
           ${SUGGESTIONS.map(
             (s) => `<div class="harness-suggestion-chip" data-suggestion="${s.replace(/"/g, "&quot;")}">${s}</div>`

@@ -1108,34 +1108,171 @@ details[open] .agent-reasoning-summary::before {
   color: var(--ink);
   letter-spacing: -0.015em;
 }
-.harness-welcome-stats {
-  display: flex;
-  justify-content: center;
-  gap: 0.6rem;
-  margin-bottom: 1.25rem;
-  flex-wrap: wrap;
+.harness-welcome-subtitle {
+  margin: -0.4rem 0 0.4rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  letter-spacing: 0.02em;
 }
-.harness-welcome-stat {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.1rem;
-  padding: 0.5rem 0.75rem;
+.harness-welcome-section-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  margin: 0.2rem 0 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: center;
+  opacity: 0.7;
+}
+
+/* ── Sub-Agent team cards (welcome screen) ── */
+.harness-agent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.65rem;
+  margin: 0 auto 0.4rem;
+  max-width: 56rem;
+}
+.harness-agent-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 0.7rem 0.8rem;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
-  font-size: 0.7rem;
-  color: var(--muted);
-  letter-spacing: 0.02em;
   box-shadow: var(--shadow-1);
+  text-align: left;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-.harness-welcome-stat b {
-  font-size: 1.1rem;
+.harness-agent-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-2);
+  border-color: var(--accent);
+}
+.harness-agent-card[data-color="data"]   { border-left: 3px solid #6366f1; }
+.harness-agent-card[data-color="alpha"]  { border-left: 3px solid #8b5cf6; }
+.harness-agent-card[data-color="news"]   { border-left: 3px solid #f59e0b; }
+.harness-agent-card[data-color="cmd"]    { border-left: 3px solid #22c55e; }
+.harness-agent-card[data-color="ta"]     { border-left: 3px solid #ec4899; }
+.harness-agent-card[data-color="orch"]   { border-left: 3px solid #0ea5e9; }
+.harness-agent-card-icon {
+  font-size: 1.3rem;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--panel-2);
+}
+.harness-agent-card[data-color="data"]  .harness-agent-card-icon { background: #eef2ff; }
+.harness-agent-card[data-color="alpha"] .harness-agent-card-icon { background: #f5f3ff; }
+.harness-agent-card[data-color="news"]  .harness-agent-card-icon { background: #fef3c7; }
+.harness-agent-card[data-color="cmd"]   .harness-agent-card-icon { background: #f0fdf4; }
+.harness-agent-card[data-color="ta"]    .harness-agent-card-icon { background: #fce7f3; }
+.harness-agent-card[data-color="orch"]  .harness-agent-card-icon { background: #e0f2fe; }
+.harness-agent-card-body {
+  min-width: 0;
+  flex: 1;
+}
+.harness-agent-card-label {
+  font-size: 0.85rem;
   font-weight: 600;
-  color: var(--accent);
-  letter-spacing: -0.01em;
-  line-height: 1;
+  color: var(--ink);
+  line-height: 1.2;
 }
+.harness-agent-card-role {
+  font-size: 0.72rem;
+  color: var(--accent);
+  font-weight: 500;
+  margin-top: 1px;
+  letter-spacing: 0.01em;
+}
+.harness-agent-card-tools {
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin-top: 4px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* ── Sub-Agent chip row (dock header, live activity) ── */
+.harness-agent-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 4px 8px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 6px;
+}
+.harness-agent-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  letter-spacing: 0.01em;
+  transition: all 0.15s ease;
+}
+.harness-agent-chip-icon { font-size: 12px; }
+.harness-agent-chip-label {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+}
+.harness-agent-chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+  opacity: 0.5;
+  flex: 0 0 6px;
+  transition: all 0.2s ease;
+}
+.harness-agent-chip.is-idle {
+  opacity: 0.55;
+}
+.harness-agent-chip.is-active {
+  color: var(--ink);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  animation: harness-agent-chip-pulse 1.5s ease-in-out infinite;
+}
+.harness-agent-chip.is-active .harness-agent-chip-dot {
+  background: var(--accent);
+  opacity: 1;
+  animation: harness-agent-chip-dot-pulse 1.2s ease-in-out infinite;
+}
+.harness-agent-chip.is-worked {
+  color: var(--ink);
+  border-color: var(--green, #22c55e);
+  background: rgba(34, 197, 94, 0.10);
+}
+.harness-agent-chip.is-worked .harness-agent-chip-dot {
+  background: #22c55e;
+  opacity: 1;
+}
+@keyframes harness-agent-chip-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px var(--accent-soft); }
+  50%      { box-shadow: 0 0 0 5px var(--accent-soft); }
+}
+@keyframes harness-agent-chip-dot-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.5); opacity: 0.7; }
+}
+
 .harness-welcome-divider {
   width: 60px;
   height: 1px;
@@ -2070,6 +2207,28 @@ details[open] .agent-reasoning-summary::before {
     background: rgba(34, 197, 94, 0.22);
     color: #bbf7d0;
     border-color: rgba(34, 197, 94, 0.45);
+  }
+  .harness-agent-card {
+    background: rgba(15, 23, 42, 0.55);
+    border-color: rgba(129, 140, 248, 0.22);
+  }
+  .harness-agent-card-label { color: #e2e8f0; }
+  .harness-agent-card-role  { color: #a5b4fc; }
+  .harness-agent-card-tools { color: #94a3b8; }
+  .harness-agent-chip {
+    background: rgba(15, 23, 42, 0.55);
+    border-color: rgba(129, 140, 248, 0.22);
+    color: #94a3b8;
+  }
+  .harness-agent-chip.is-active {
+    background: rgba(99, 102, 241, 0.22);
+    border-color: rgba(129, 140, 248, 0.55);
+    color: #e0e7ff;
+  }
+  .harness-agent-chip.is-worked {
+    background: rgba(34, 197, 94, 0.18);
+    border-color: rgba(34, 197, 94, 0.45);
+    color: #bbf7d0;
   }
   .harness-todo-dock-chevron { color: #a5b4fc; }
   .harness-todo-row {
