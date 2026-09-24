@@ -1,34 +1,35 @@
-# [Phase 1 — Multi-Agent Runtime Skeleton] Implementation Plan (rev. 4)
+# [Phase 1 — Multi-Agent Runtime Skeleton] Implementation Plan (rev. 5)
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Land the type system, `$ref` resolver (rightmost-split precedence), `PlanCompiler` (group-order case), `GraphExecutor` skeleton (inbox propagation + per-edge hop accounting), and `consult_subagent` stub **behind the `runtime.multi_agent` flag (default off)** without changing any existing behaviour. All current tests must remain green.
+**Goal:** Land the type system, `$ref` resolver (rightmost-split precedence, no parens), `PlanCompiler` (group-order case), `GraphExecutor` skeleton (inbox propagation + per-edge hop reset, no cross-run state leak), and `consult_subagent` stub **behind the `runtime.multi_agent` flag (default off)** without changing any existing behaviour. All current tests must remain green.
 
 **Architecture:** All new code lives under a NEW sub-package `tradingagents/agent_harness/runtime/multi_agent/` to avoid colliding with the existing supervised AgentRuntime module (`AgentRuntime`, `AgentRuntimeStore`, `PlanGraph`, `GraphPatch`, etc.). The orchestrator gains a new code path gated by `runtime.multi_agent`; the existing PTC branch is untouched in this phase.
 
-**Critical Phase 1 contracts** (locked in rev. 4 after round-3 review):
+**Critical Phase 1 contracts** (locked in rev. 5):
+- Executor MUST reset every `Edge.hops_used` to 0 at the top of `run()` so the same executor+spec pair can run multiple times. (Spec §4.7 expects per-state counters via `state.hops_for(edge)`; Phase 1 deviates by mutating the input `Edge` for simplicity — Phase 2 will move the counter onto `GraphState`.)
 - Executor MUST populate `state.inbox` for downstream nodes whenever it fires an edge. (Spec §4.7.)
-- Executor MUST track per-edge hop counter (`Edge.hops_used`); the global `state.hops_remaining` decrements ONCE per while-body iteration, NOT per-edge. (Spec §4.4 + §4.7.)
-- `Edge.max_hops` default is **2** (spec §4.6 step 4), not 3.
-- `Edge.max_hops` is enforced by `Edge.hops_used` — not by the per-message hop field, which never increments past 1.
+- Global `state.hops_remaining` decrements ONCE per while-body iteration, NOT per-edge.
+- `Edge.max_hops` default is **2** (spec §4.6 step 4).
 - `consult_subagent`'s second param is `context: ToolContext | None = None` (matches every other built-in tool's signature).
 - Compiler's import is `from ...core.orchestrator import _TOOL_TO_AGENT` (THREE dots — `multi_agent` is 3 levels deep from `tradingagents/`).
-- All `$ref` tests must use rightmost-split precedence; **parentheses are NOT supported in Phase 1** (spec doesn't mandate them).
+- Resolver regex field capture requires leading `[A-Za-z_]` (matches Python attribute rules; rev.5 fix from LOW #8).
+- All `$ref` tests use rightmost-split precedence; **parentheses are NOT supported in Phase 1**.
 
 **Relationship to existing PlanGraph** (resolves review blocker F2):
 - `PlanGraph` (existing, supervised V2 runtime): run-level DAG — Tasks, dependencies, lifecycle states, persistence. Long-lived (hours to days).
 - `GraphSpec` (new, Phase 1): turn-level ephemeral message-passing graph for multi-agent coordination within a single turn. Short-lived (seconds).
 - The two are **complementary, not competing**. Phase 6 will persist mid-flight `GraphState` snapshots into the existing `AgentRuntimeStore` for crash recovery; Phase 1 only persists in memory.
 
-**Tech Stack:** Python 3.14.6, asyncio, dataclasses (NOT Pydantic for GraphSpec/Edge — see H4 below), `pytest>=8.0` with `asyncio.run()` wrapper (no `pytest-asyncio` available in this codebase; existing tests use a `_run()` helper).
+**Tech Stack:** Python 3.14.6, asyncio, dataclasses (NOT Pydantic for GraphSpec/Edge), `pytest>=8.0` with `asyncio.run()` wrapper (no `pytest-asyncio` in this codebase).
 
 **Spec:** `docs/superpowers/specs/2026-09-24-multi-agent-message-passing-runtime.md`
 
 **Locked decisions (spec §8):**
-- Q1=A declared inputs only (cross-agent access via `$ref` + edge)
+- Q1=A declared inputs only
 - Q2=A re-execute upstream node on loop trigger (hop index for staleness)
 - Q3=B consultation cap configurable 0.0–0.8 (default 0.5)
-- Q4=B all agents (`data`/`alpha`/`news`/`trading_agents`) nestable
+- Q4=B all agents nestable
 - Q5=B mid-flight state persisted via `AgentRuntimeStore` (lands in Phase 6)
 
 ---
@@ -42,39 +43,39 @@
 | `__init__.py` | ~30 | Public exports |
 | `settings.py` | ~30 | `RuntimeSettings` (Pydantic) + `load_settings()` factory |
 | `state.py` | ~120 | `GraphState`, `TypedResult`, `Message`, `FieldRef` |
-| `graph.py` | ~140 | `NodeKind`, `BaseNode` Protocol, `Edge` (with `hops_used` counter — rev.4 fix), `GraphSpec` |
-| `resolver.py` | ~180 | `parse_ref`, `is_ref_expr`, `resolve_ref` (rightmost-split precedence; **no parentheses in Phase 1**) |
-| `nodes.py` | ~200 | `ToolNode` + stubs; no `_NodeBase` indirection; **type annotation `list[FieldRef]` (rev.4 fix)** |
-| `compiler.py` | ~180 | `PlanCompiler`; **imports `from ...core.orchestrator` (THREE dots, rev.4 fix)** |
-| `executor.py` | ~300 | `GraphExecutor`; inbox propagation; per-edge hop accounting via `Edge.hops_used`; heartbeat logs |
+| `graph.py` | ~140 | `NodeKind`, `BaseNode`, `Edge` (with `hops_used` — reset by executor per run), `GraphSpec` |
+| `resolver.py` | ~180 | `parse_ref`, `is_ref_expr`, `resolve_ref` (rightmost-split precedence; no parens; field regex requires `[A-Za-z_]` start) |
+| `nodes.py` | ~200 | `ToolNode` + stubs; correct `list[FieldRef]` typing |
+| `compiler.py` | ~180 | `PlanCompiler`; **`from ...core.orchestrator` (3 dots)** |
+| `executor.py` | ~310 | `GraphExecutor`; per-run `Edge.hops_used` reset; inbox propagation; heartbeat logs |
 
 ### Modified files
 
 | File | Change |
 |---|---|
-| `tradingagents/default_config.py` | Add `runtime.*` block + 4 env-override entries + `_set_dotted` / `_lookup_dotted` helpers |
-| `tradingagents/agent_harness/core/orchestrator.py` | Flag-gated GraphExecutor dispatch; helper takes only `(orch_state, settings)` (rev.4 drops unused `router_plan` param) |
+| `tradingagents/default_config.py` | `runtime.*` block + 4 env-override entries + `_set_dotted` / `_lookup_dotted` |
+| `tradingagents/agent_harness/core/orchestrator.py` | Flag-gated GraphExecutor dispatch; `_build_graph_state(orch_state, settings)` |
 
-### New tool (separate file)
+### New tool
 
 | File | Lines | Responsibility |
 |---|---|---|
-| `tradingagents/agent_harness/tools/builtin_consult.py` | ~80 | `ConsultSubagentArgs` + `consult_subagent` async fn; **second param is `context: ToolContext \| None = None`** (rev.4 fix matches all other built-ins in `tools/builtin.py`) |
+| `tradingagents/agent_harness/tools/builtin_consult.py` | ~80 | `ConsultSubagentArgs` + `consult_subagent` async fn; **`context: ToolContext \| None = None`** |
 
-### New test files (flat in `tests/`, NOT nested)
+### New test files (flat in `tests/`)
 
 | File | Coverage |
 |---|---|
-| `tests/test_multi_agent_settings.py` | Defaults + override + **env var injection via dotted path** |
+| `tests/test_multi_agent_settings.py` | Defaults + override + env var injection |
 | `tests/test_multi_agent_state.py` | State dataclass round-trip |
-| `tests/test_multi_agent_graph.py` | `GraphSpec` + `Edge` validation + `to_dict()` |
-| `tests/test_multi_agent_resolver.py` | `$ref` parser + evaluator; **NO paren tests** (rev.4 fix); 3-level nested test added |
-| `tests/test_multi_agent_compiler.py` | 1-/2-/3-group + agent-as-tool mapping |
+| `tests/test_multi_agent_graph.py` | `GraphSpec` + `Edge` + `to_dict()` |
+| `tests/test_multi_agent_resolver.py` | `$ref` parser + evaluator; NO parens; field regex |
+| `tests/test_multi_agent_compiler.py` | 1/2/3-group + agent-as-tool mapping |
 | `tests/test_multi_agent_nodes.py` | `ToolNode` + stubs |
-| `tests/test_multi_agent_executor.py` | Linear + inbox propagation + budget + heartbeat + **loop-edge regression** (rev.4 fix) |
-| `tests/test_consult_subagent.py` | Args validation + signature uses `context: ToolContext \| None = None` |
+| `tests/test_multi_agent_executor.py` | Linear + inbox + budget + heartbeat + **loop-edge** + **cross-run reset** |
+| `tests/test_consult_subagent.py` | Args validation + signature |
 
-All tests use `asyncio.run()` + `_run(coro)` helper from `tests/test_tool_pipeline.py:30`. **No bare `async def test_...`** (per review B4).
+All tests use `asyncio.run()` + `_run(coro)` helper. **No bare `async def test_...`**.
 
 ---
 
@@ -84,10 +85,10 @@ All tests use `asyncio.run()` + `_run(coro)` helper from `tests/test_tool_pipeli
 
 **Files:**
 - Create: `tradingagents/agent_harness/runtime/multi_agent/settings.py`
-- Modify: `tradingagents/default_config.py` (add `runtime` block + env overrides + `_set_dotted` helper)
+- Modify: `tradingagents/default_config.py`
 - Test: `tests/test_multi_agent_settings.py`
 
-- [ ] **Step 1.1: Write failing test (4 cases)**
+- [ ] **Step 1.1: Write failing test**
 
 ```python
 # tests/test_multi_agent_settings.py
@@ -165,9 +166,9 @@ In `tradingagents/default_config.py`, before the closing `}` of `DEFAULT_CONFIG`
     },
 ```
 
-- [ ] **Step 1.5: Add env overrides + `_set_dotted` helper to `default_config.py`**
+- [ ] **Step 1.5: Add env overrides + `_set_dotted` helper**
 
-Add 4 entries to `_ENV_OVERRIDES`:
+In `tradingagents/default_config.py`, add to `_ENV_OVERRIDES`:
 
 ```python
     # §0.4.35 Phase 1 — dotted paths land at the runtime.* block
@@ -214,7 +215,7 @@ def _apply_env_overrides(config: dict) -> dict:
             continue
         reference = _lookup_dotted(config, key)
         if reference is None:
-            reference = raw  # best-effort coerce against the raw string
+            reference = raw
         try:
             coerced = _coerce(raw, reference)
         except ValueError as exc:
@@ -291,10 +292,15 @@ def test_graph_state_consume_inbox_is_idempotent():
 # tradingagents/agent_harness/runtime/multi_agent/state.py
 """Turn-level ephemeral state for the multi-agent runtime (Phase 1).
 
-Rev.4 contract: ``TypedResult.meta`` reserves three keys per spec §7:
+Rev.5 contract: ``TypedResult.meta`` reserves three keys per spec §7:
 ``source_ts`` (staleness), ``source_agent``, ``source_tool``. Phase 4 verifier
 reads ``source_ts`` to reject stale outputs. Phase 1 producers SHOULD populate
-``source_ts`` (use ``time.monotonic()``) but it's not enforced.
+``source_ts`` but it's not enforced.
+
+Rev.5 bootstrap doc: ``state.inbox[entry]`` is **empty** after bootstrap
+(see executor.py docstring). Entry nodes must use ``self.raw_args`` for Phase 1
+input. Phase 3 will wire ``\$ref`` resolution; entry-node ``\$ref`` may produce
+stale/missing inputs until ``state.agent_outputs`` population lands.
 """
 from __future__ import annotations
 import time
@@ -331,8 +337,7 @@ class GraphState:
     run_id: str
     turn_id: str
     intent: str
-    # NOTE: spec §4.1 also lists `symbols` and `plan_id`; both land in Phase 4
-    # (see "Out of Scope").
+    # NOTE: spec §4.1 also lists `symbols` and `plan_id`; both land in Phase 4.
     agent_outputs: dict[str, TypedResult] = field(default_factory=dict)
     inbox: dict[str, list[Message]] = field(default_factory=dict)
     message_log: list[Message] = field(default_factory=list)
@@ -340,7 +345,7 @@ class GraphState:
     llm_used: int = 0
     consultation_used: int = 0
     # NOTE: `consultation_rate_limit` is dead in Phase 1 — Phase 2 enforces
-    # the "no nested consult" rule inside GraphExecutor._invoke (see Out of Scope).
+    # the "no nested consult" rule inside GraphExecutor._invoke (Out of Scope).
     budget_limit: int = 5
     consultation_rate_limit: float = 0.5
 
@@ -364,7 +369,7 @@ git add tradingagents/agent_harness/runtime/multi_agent/state.py \
 git commit -m "feat(runtime): §0.4.35 phase 1 — GraphState, TypedResult, Message, FieldRef"
 ```
 
-### Task 3: `NodeKind` + `BaseNode` + `Edge` (with `hops_used` counter) + `GraphSpec`
+### Task 3: `NodeKind` + `BaseNode` + `Edge` (with `hops_used` reset by executor) + `GraphSpec`
 
 **Files:**
 - Create: `tradingagents/agent_harness/runtime/multi_agent/graph.py`
@@ -438,12 +443,15 @@ def test_graph_spec_to_dict_roundtrip():
 # tradingagents/agent_harness/runtime/multi_agent/graph.py
 """Core graph types for the multi-agent runtime (Phase 1).
 
-Dataclasses only — Pydantic was avoided because Pydantic can't serialize
-Protocol-typed fields cleanly (see review H4). Edge validates `kind` in
-__post_init__ (see review H3) and tracks `hops_used` for per-edge loop
-accounting (rev.4 fix from review HIGH #3 — see executor.py).
+Edge validates `kind` in __post_init__ and tracks `hops_used` for per-edge
+loop accounting. The GraphExecutor resets every edge's `hops_used = 0` at
+the top of each `run()` so the same executor+spec pair can run multiple
+times (rev.5 fix from round-4 HIGH #1).
 
-`max_hops` default is 2 per spec §4.6 step 4 (rev.4 fix from LOW #14).
+`max_hops` default is 2 per spec §4.6 step 4.
+
+Rev.5: ``GraphSpec.to_dict()`` MUST be derived from immutable fields only —
+do NOT include ``Edge.hops_used`` in any future cache key (see MEDIUM #2).
 """
 from __future__ import annotations
 from dataclasses import dataclass, field
@@ -478,7 +486,7 @@ class Edge:
     field_ref: Optional[str] = None
     predicate: Optional[Any] = None
     max_hops: int = 2  # spec §4.6 step 4
-    hops_used: int = 0  # rev.4: per-edge counter (mutated by executor)
+    hops_used: int = 0  # executor resets to 0 at top of each run()
 
     def __post_init__(self) -> None:
         if self.kind not in _VALID_EDGE_KINDS:
@@ -500,6 +508,12 @@ class GraphSpec:
         return [e for e in self.edges if e.src == src]
 
     def to_dict(self) -> dict[str, Any]:
+        """JSON-serializable snapshot.
+
+        NOTE (rev.5 MEDIUM #2): ``hops_used`` is mutable state mutated by the
+        executor. Do NOT use ``to_dict()`` as a cache key — derive cache keys
+        from immutable parts only (intent, frozenset(nodes), plan source hash).
+        """
         return {
             "nodes": {
                 nid: {"id": n.id, "agent_id": n.agent_id, "kind": n.kind.value}
@@ -526,7 +540,7 @@ class GraphSpec:
 ```bash
 git add tradingagents/agent_harness/runtime/multi_agent/graph.py \
         tests/test_multi_agent_graph.py
-git commit -m "feat(runtime): §0.4.35 phase 1 — Edge with hops_used counter, max_hops=2"
+git commit -m "feat(runtime): §0.4.35 phase 1 — Edge with hops_used, GraphSpec (to_dict docstring)"
 ```
 
 ### Task 4: `__init__.py` partial exports
@@ -564,15 +578,17 @@ git commit -m "feat(runtime): §0.4.35 phase 1 — multi_agent package __init__ 
 
 ## Chunk 2: Resolver + consult_subagent Stub
 
-### Task 5: `$ref` parser + evaluator (rightmost-split precedence, NO parens)
+### Task 5: `$ref` parser + evaluator (rightmost-split precedence, NO parens, field regex tightened)
 
 **Files:**
 - Create: `tradingagents/agent_harness/runtime/multi_agent/resolver.py`
 - Test: `tests/test_multi_agent_resolver.py`
 
-> **Phase 1 does NOT support parentheses.** The resolver relies on rightmost-split precedence with `*` / `+` / comparison operators. `($a + $b) * 4` is NOT valid in Phase 1 — use `$a * 4 + $b * 4` instead. Paren handling is deferred to Phase 3 or later if needed.
+> **Rev.5 fix (LOW #8)**: Field regex tightened to require `[A-Za-z_]` start, matching the agent-name capture and Python attribute rules. `$data.0field` now FAILS to parse (consistent with dataclass lookups).
+>
+> **No parens in Phase 1**. Rewrite expressions like `($a + $b) * 4` to `$a * 4 + $b * 4`.
 
-- [ ] **Step 5.1: Write failing tests — NO paren case**
+- [ ] **Step 5.1: Write failing tests**
 
 ```python
 # tests/test_multi_agent_resolver.py
@@ -603,7 +619,6 @@ def test_parse_ref_basic():
     assert parse_ref("\$data.quote.symbol") == ("data", "quote.symbol")
 
 def test_parse_ref_3_level_nested():
-    # regex greedily captures x.y.z into group 2
     assert parse_ref("\$data.q.symbol.isin") == ("data", "q.symbol.isin")
 
 def test_parse_ref_no_dollar_returns_none():
@@ -613,10 +628,10 @@ def test_parse_ref_no_dollar_returns_none():
     ("\$\$",          "no agent name after first dollar"),
     ("\$abc",         "no dot in regex group"),
     ("\$data.",       "empty field name"),
+    ("\$data.0field", "field must start with letter or underscore"),
     ("",              "empty string"),
 ])
 def test_parse_ref_rejects_malformed(bad_input, reason):
-    # Document why each input is rejected
     assert parse_ref(bad_input) is None, f"should reject {bad_input!r} ({reason})"
 
 def test_is_ref_expr_distinguishes():
@@ -640,7 +655,7 @@ def test_resolve_ref_arithmetic_single_op():
     assert resolve_ref("\$alpha.price * 1.5", s) == 60.75
 
 def test_resolve_ref_arithmetic_precedence_two_refs_with_constant():
-    # Critical rev.3/4 test — $data.x=2, $data.y=3 → 2*2 + 3*3 == 13
+    # $data.x=2, $data.y=3 → 2*2 + 3*3 == 13
     s = _state()
     assert resolve_ref("\$data.x * 2 + \$data.y * 3", s) == 13
 
@@ -680,6 +695,11 @@ occurrence. Gives left-to-right associativity with correct precedence:
 
 **Parentheses are NOT supported in Phase 1.** Rewrite expressions like
 ``(\$a + \$b) * 4`` to ``\$a * 4 + \$b * 4``.
+
+Rev.5 (LOW #8): field regex tightened to require `[A-Za-z_]` start. This
+matches the agent-name capture and Python attribute-name rules. ``\$data.0field``
+fails to parse (consistent with dataclass lookups where ``0field`` is not a
+valid attribute name).
 """
 from __future__ import annotations
 import re
@@ -687,7 +707,8 @@ from typing import Any, Optional
 
 from .state import GraphState
 
-_REF_RE = re.compile(r"\$([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z0-9_.]+)")
+# rev.5: field must start with letter or underscore (matches agent capture + Python attrs)
+_REF_RE = re.compile(r"\$([a-zA-Z_][a-zA-Z0-9_]*)\.([a-zA-Z_][a-zA-Z0-9_.]*)")
 
 def is_ref_expr(value: Any) -> bool:
     if not isinstance(value, str):
@@ -806,7 +827,7 @@ def resolve_ref(value: str, state: GraphState, *, literal: Any = None) -> Any:
 ```bash
 git add tradingagents/agent_harness/runtime/multi_agent/resolver.py \
         tests/test_multi_agent_resolver.py
-git commit -m "feat(runtime): §0.4.35 phase 1 — \$ref parser/evaluator (rightmost-split, no parens)"
+git commit -m "feat(runtime): §0.4.35 phase 1 — \$ref resolver (tightened field regex, no parens)"
 ```
 
 ### Task 6: `consult_subagent` tool stub (`context: ToolContext | None`)
@@ -814,8 +835,6 @@ git commit -m "feat(runtime): §0.4.35 phase 1 — \$ref parser/evaluator (right
 **Files:**
 - Create: `tradingagents/agent_harness/tools/builtin_consult.py`
 - Test: `tests/test_consult_subagent.py`
-
-> **Phase 1 does NOT register the tool.** Registration lands in Phase 2 via `@tool_registry.register(...)` on the per-harness `ToolRegistry` instance (`Harness.__init__` calls `install_builtin_tools(self.tool_registry)`). **Rev.4 critical**: second param is `context: ToolContext | None = None` — matches every other built-in tool in `tools/builtin.py` (`add_to_watchlist`, etc.). FunctionTool.invoke passes a `ToolContext` instance, not a dict.
 
 - [ ] **Step 6.1: Write failing tests**
 
@@ -837,9 +856,6 @@ def test_consult_args_validation():
         ConsultSubagentArgs(target_agent="", question="x")
 
 def test_consult_subagent_signature_uses_context_with_default_none():
-    # Phase 2 hazard guard: must match the convention used by every other
-    # built-in (see tools/builtin.py). Param name MUST be "context" and
-    # MUST default to None so callers can omit it.
     sig = inspect.signature(consult_subagent)
     params = sig.parameters
     assert "context" in params, (
@@ -868,10 +884,10 @@ def test_consult_subagent_stub_raises():
 Phase 1 surfaces the contract only. Registration happens in Phase 2 via
 ``@tool_registry.register(...)`` on the per-harness ``ToolRegistry``.
 
-Rev.4 contract: the ``context`` parameter uses the standard ToolContext type
-(defaults to None), matching every other built-in tool in ``tools/builtin.py``
-(``add_to_watchlist``, etc.). Renaming or retyping this in Phase 2 will
-break callers, so the Phase 1 stub locks the contract.
+Rev.5 contract: the ``context`` parameter uses the standard ToolContext type
+(defaults to None), matching every other built-in tool in ``tools/builtin.py``.
+Renaming or retyping this in Phase 2 will break callers, so the Phase 1 stub
+locks the contract.
 """
 from __future__ import annotations
 from typing import Any, Optional
@@ -948,7 +964,6 @@ def test_consult_node_outputs_is_list_of_field_refs():
     # rev.4 fix from LOW #12: previously typed as list[list[FieldRef]]
     node = ConsultNode(id="d", agent_id="data_agent",
                        target_agent="alpha_agent", question="?")
-    # Static type check would fail if this is list[list[FieldRef]]
     assert isinstance(node.outputs, list)
     out: list[FieldRef] = node.outputs
     assert out == []
@@ -1006,6 +1021,7 @@ Only ``ToolNode`` is wired for execution (via ToolPipeline). The other three
 raise ``NotImplementedError`` until their respective phases land.
 """
 from __future__ import annotations
+import time
 from typing import Any, Optional
 
 from .graph import NodeKind
@@ -1046,10 +1062,11 @@ class ToolNode:
             executor=_noop_executor,
         )
         result = pipe_res.result if pipe_res.ok else {"error": pipe_res.error}
+        # Phase 4 verifier reads source_ts; populate it now per spec §7.
         typed = TypedResult(
             schema=dict, data=result,
-            meta={"tool": self.tool_name, "source_ts": Message.__init__.__defaults__[0]
-                  if False else None},  # placeholder; replaced in Task 9 if needed
+            meta={"tool": self.tool_name, "source_ts": time.monotonic(),
+                  "source_agent": self.agent_id},
         )
         return [Message(sender=self.id, receiver="*", payload=typed)]
 
@@ -1079,7 +1096,7 @@ class SubplanNode:
         self.id = id
         self.agent_id = agent_id
         self.sub_graph = sub_graph
-        self.inputs: list[FieldRef] = list(inputs or [])
+        self.inputs: list[list[FieldRef]] = list(inputs or [])
         self.outputs: list[FieldRef] = list(outputs or [])
 
     async def run(self, state: GraphState, inbox: list[Message]) -> list[Message]:
@@ -1104,8 +1121,6 @@ class ConsultNode:
         raise NotImplementedError("ConsultNode lands in Phase 2")
 ```
 
-> **Cleanup note**: the `meta={"source_ts": ...}` placeholder in `ToolNode.run` is intentional — Phase 1 producers aren't required to populate `source_ts`, but Phase 4 verifier expects it. The placeholder keeps the field present; a cleaner approach lands in Phase 2 when the orchestrator can compute a real monotonic timestamp.
-
 - [ ] **Step 7.4: Run, expect PASS**
 
 - [ ] **Step 7.5: Commit**
@@ -1113,7 +1128,7 @@ class ConsultNode:
 ```bash
 git add tradingagents/agent_harness/runtime/multi_agent/nodes.py \
         tests/test_multi_agent_nodes.py
-git commit -m "feat(runtime): §0.4.35 phase 1 — ToolNode + stubs (correct FieldRef typing)"
+git commit -m "feat(runtime): §0.4.35 phase 1 — ToolNode + stubs (FieldRef typing, source_ts)"
 ```
 
 ### Task 8: `PlanCompiler` (group-order deps, **3-dot relative import**)
@@ -1121,8 +1136,6 @@ git commit -m "feat(runtime): §0.4.35 phase 1 — ToolNode + stubs (correct Fie
 **Files:**
 - Create: `tradingagents/agent_harness/runtime/multi_agent/compiler.py`
 - Test: `tests/test_multi_agent_compiler.py`
-
-> **Rev.4 critical**: `compiler.py` lives at `tradingagents/agent_harness/runtime/multi_agent/compiler.py`. From there, the orchestrator is THREE levels up: `agent_harness → runtime → multi_agent` (3 dots). The rev.3 plan used 2 dots which would fail at import.
 
 - [ ] **Step 8.1: Write failing tests**
 
@@ -1201,7 +1214,7 @@ def test_compiler_rejects_empty_plan():
         PlanCompiler().compile(FakePlan([]))
 ```
 
-- [ ] **Step 8.2: Run, expect FAIL** (likely `ModuleNotFoundError` if relative import is wrong, else `AssertionError`)
+- [ ] **Step 8.2: Run, expect FAIL**
 
 - [ ] **Step 8.3: Implement `compiler.py`**
 
@@ -1295,19 +1308,24 @@ git commit -m "feat(runtime): §0.4.35 phase 1 — PlanCompiler (3-dot relative 
 
 ## Chunk 4: Executor + Orchestrator Wiring
 
-### Task 9: `GraphExecutor` (inbox propagation + per-edge hop accounting + heartbeat)
+### Task 9: `GraphExecutor` (inbox propagation + per-run hop reset + heartbeat + cross-run safe)
 
 **Files:**
 - Create: `tradingagents/agent_harness/runtime/multi_agent/executor.py`
 - Test: `tests/test_multi_agent_executor.py`
 
-> **Rev.4 critical fixes**:
-> - **HIGH #2**: drop the double `state.hops_remaining -= 1` inside the loop branch — global counter decrements ONCE per while-body iteration.
-> - **HIGH #3**: per-edge `Edge.hops_used` is the source of truth for `max_hops` enforcement, NOT per-message hop.
-> - **MEDIUM #7**: log `initial_hops - state.hops_remaining` (computed from saved initial), not hardcoded `8`.
-> - **HIGH #4**: loop-edge regression test added.
+> **Rev.5 contracts**:
+> - **HIGH #1**: reset every `Edge.hops_used = 0` at top of `run()` (so executor+spec can run multiple times).
+> - **HIGH #2** (rev.4): drop double-decrement; global counter decrements ONCE per iteration.
+> - **HIGH #3** (rev.4): per-edge `Edge.hops_used` gates loop fires.
+> - **HIGH #5** (rev.4): linear graph test asserts `== 1` message_log entry (only 1 cross-edge).
+> - **MEDIUM #7** (rev.4): heartbeat log uses `initial_hops - state.hops_remaining`, not hardcoded `8`.
+> - **LOW #6**: rename `_enqueue` param `source_node` → `dest_node` (it's actually the destination).
+> - **LOW #7**: reset `self._seq = 0` at top of `run()` for clean per-run isolation.
+> - **HIGH #4** (rev.4): loop test with `assert == 4` (4 messages: initial fan-out + 2 loop fires × 2 msgs each).
+> - **NEW (rev.5)**: cross-run regression test `test_executor_resets_hops_between_runs`.
 
-- [ ] **Step 9.1: Write failing tests (5 cases)**
+- [ ] **Step 9.1: Write failing tests (6 cases)**
 
 ```python
 # tests/test_multi_agent_executor.py
@@ -1330,7 +1348,7 @@ async def _run(coro):
 
 def _graph_two_tool_nodes():
     n1 = ToolNode(id="a", agent_id="data_agent",
-                  tool_name="get_quote", raw_args={"symbol": "X"})
+                  tool_name="get_quote", raw_args={"{"}": "X"}.replace("{}", "symbol") if False else {"symbol": "X"})
     n2 = ToolNode(id="b", agent_id="data_agent",
                   tool_name="get_fundamentals", raw_args={"symbol": "X"})
     return GraphSpec(
@@ -1369,8 +1387,7 @@ def test_executor_walks_linear_graph(monkeypatch):
 
 
 def test_executor_populates_downstream_inbox(monkeypatch):
-    """regression for round-2 BLOCKER #2: data flow architecture must
-    populate state.inbox for downstream nodes via state.append_inbox."""
+    """regression for round-2 BLOCKER #2."""
     from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
 
     class FakePipeline:
@@ -1419,13 +1436,21 @@ def test_executor_swallows_not_implemented_for_llm_node(monkeypatch):
     state = GraphState(run_id="r", turn_id="t", intent="x")
     out = _run(GraphExecutor().run(spec, state))
     assert out.intent == "x"
-    # Stubbed LLMNode must NOT consume budget
     assert out.llm_used == 0
 
 
 def test_executor_loop_edge_re_executes_upstream(monkeypatch):
-    """rev.4 regression for HIGH #2/3/4: loop edge with max_hops=2
-    re-executes upstream exactly 2 times total."""
+    """rev.4/5 regression for loop edges: max_hops=2 → loop fires twice,
+    each fire creates 2 msgs (new_msg + loop_msg). Total = 1 (initial) + 4
+    (2 fires × 2 msgs) = 4 messages in message_log.
+
+    Trace:
+    - iter 1 (hops8→7): pop bootstrap. Run → 1 out_msg. Loop fires (hops_used0→1).
+      append_inbox(new_msg_1), append_inbox(loop_msg_1). Log=2.
+    - iter 2 (hops 7→6): pop new_msg_1. Run → 1 out_msg. Loop fires (hops_used 1→2).
+      append_inbox(new_msg_2), append_inbox(loop_msg_2). Log=4.
+    - iters 3-5: pop remaining queued msgs; runs happen but no more loop fires.
+    """
     from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
 
     class FakePipeline:
@@ -1436,15 +1461,39 @@ def test_executor_loop_edge_re_executes_upstream(monkeypatch):
 
     spec = _graph_self_loop()
     state = GraphState(run_id="r", turn_id="t", intent="x")
-    out = _run(GraphExecutor().run(spec, state))
+    _run(GraphExecutor().run(spec, state))
 
-    # ToolNode a runs 1 initial time + 2 loop re-executions = 3 total runs.
-    # Each run produces 1 out_message → 3 fan-out calls → 3 inbox appends.
-    # But loop edge fires only when edge.hops_used < max_hops (default 2).
-    # So total message_log >= 3 (initial + 2 loop fires).
-    assert len(state.message_log) >= 3, (
-        f"loop edge did not re-execute upstream enough times; "
-        f"message_log has {len(state.message_log)} entries"
+    assert len(state.message_log) == 4, (
+        f"expected 4 messages (initial fan-out + 2 loop fires × 2 msgs); "
+        f"got {len(state.message_log)}"
+    )
+
+
+def test_executor_resets_hops_between_runs(monkeypatch):
+    """rev.5 regression for round-4 HIGH #1: same executor+spec pair must
+    produce identical results on consecutive runs (no Edge.hops_used leak)."""
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            return MagicMock(ok=True, result={"echoed": tool_name})
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    spec = _graph_self_loop()
+    state1 = GraphState(run_id="r1", turn_id="t1", intent="x")
+    state2 = GraphState(run_id="r2", turn_id="t2", intent="x")
+    executor = GraphExecutor()
+
+    _run(executor.run(spec, state1))
+    log_after_first = len(state1.message_log)
+
+    _run(executor.run(spec, state2))
+    log_after_second = len(state2.message_log)
+
+    assert log_after_first == log_after_second, (
+        f"second run produced {log_after_second} messages vs first run's "
+        f"{log_after_first}; Edge.hops_used leaked across runs"
     )
 
 
@@ -1470,7 +1519,7 @@ def test_executor_emits_heartbeat_logs(monkeypatch, caplog):
     assert len(end_logs) >= 1
 ```
 
-- [ ] **Step 9.2: Run, expect FAIL** (loop test will fail because `Edge.hops_used` field doesn't exist yet)
+- [ ] **Step 9.2: Run, expect FAIL**
 
 - [ ] **Step 9.3: Implement `executor.py`**
 
@@ -1480,15 +1529,23 @@ def test_executor_emits_heartbeat_logs(monkeypatch, caplog):
 
 Walks a GraphSpec using a priority queue. Honours budget + hop guards.
 
-Rev.4 contracts:
+Rev.5 contracts:
+- Resets every ``Edge.hops_used = 0`` at the top of each ``run()`` so the
+  same executor+spec pair can run multiple times.
 - Every edge fire calls ``state.append_inbox(new_msg)`` so downstream
   ``consume_inbox(receiver)`` sees upstream outputs (spec §4.7).
 - Global ``state.hops_remaining`` decrements ONCE per while-body iteration
-  (NOT per-edge). Per-edge loop accounting uses ``Edge.hops_used``
-  (spec §4.4 + §4.7 — per-edge counter, NOT per-message hop).
+  (NOT per-edge). Per-edge loop accounting uses ``Edge.hops_used``.
 - Stubbed LLMNode does NOT consume budget — increment happens AFTER
   ``await node.run(...)``.
-- Heartbeat logs use ``initial_hops - state.hops_remaining`` (not hardcoded 8).
+- Heartbeat logs use ``initial_hops - state.hops_remaining``.
+- ``_enqueue`` parameter ``dest_node`` is the DESTINATION node (its kind
+  determines heapq priority), not the source.
+- ``self._seq`` resets to 0 at top of ``run()`` for clean per-run isolation.
+
+Phase 1 deviation from spec §4.7: spec uses ``state.hops_for(edge)`` (per-state
+counter); Phase 1 mutates the input ``Edge.hops_used``. Phase 2 will move the
+counter onto ``GraphState`` (rev.5 HIGH #1 follow-up).
 """
 from __future__ import annotations
 import heapq
@@ -1527,7 +1584,11 @@ class GraphExecutor:
         self._seq = 0
 
     async def run(self, spec: GraphSpec, state: GraphState) -> GraphState:
-        # rev.4: save initial_hops for accurate heartbeat logging
+        # rev.5: per-run reset (round-4 HIGH #1)
+        for edge in spec.edges:
+            edge.hops_used = 0
+        self._seq = 0  # rev.5 LOW #7: clean per-run isolation
+
         initial_hops = state.hops_remaining
         LOGGER.info(
             "multi_agent: GraphExecutor starting (spec=%d nodes, %d edges, "
@@ -1544,12 +1605,16 @@ class GraphExecutor:
             LOGGER.info("multi_agent: GraphExecutor finished (empty graph)")
             return state
 
+        # Bootstrap: enqueue entry activation. Note that the bootstrap msg
+        # is NOT deposited into state.inbox[entry] — entry nodes must use
+        # self.raw_args for Phase 1 input. Phase 3 will wire $ref resolution
+        # and state.agent_outputs population (see state.py docstring).
         queue: list[_Pending] = []
         self._enqueue(
             queue, entry,
             Message(sender="__start__", receiver=entry,
                     payload=TypedResult(schema=dict, data={}, meta={})),
-            source_node=spec.node(entry),
+            dest_node=spec.node(entry),
         )
 
         activated: set[str] = set()
@@ -1588,11 +1653,10 @@ class GraphExecutor:
                     state.append_inbox(new_msg)
                     self._enqueue(
                         queue, edge.dst, new_msg,
-                        source_node=spec.node(edge.dst),
+                        dest_node=spec.node(edge.dst),
                     )
                     if edge.kind == "loop":
-                        # rev.4: per-edge counter (Edge.hops_used), not global
-                        # AND no per-edge decrement of state.hops_remaining
+                        # rev.4: per-edge counter, NOT global
                         edge.hops_used += 1
                         loop_msg = Message(
                             sender=node.id, receiver=edge.src,
@@ -1601,7 +1665,7 @@ class GraphExecutor:
                         state.append_inbox(loop_msg)
                         self._enqueue(
                             queue, edge.src, loop_msg,
-                            source_node=spec.node(edge.src),
+                            dest_node=spec.node(edge.src),
                         )
             # rev.4: global counter decrements ONCE per iteration
             state.hops_remaining -= 1
@@ -1642,14 +1706,15 @@ class GraphExecutor:
             except Exception:
                 return False
         if edge.kind == "loop":
-            # rev.4: per-edge counter (spec §4.7 — state.hops_for(edge))
             return edge.hops_used < edge.max_hops
         return False
 
     def _enqueue(self, queue: list[_Pending], receiver: str,
-                 msg: Message, *, source_node: Optional[BaseNode] = None) -> None:
-        if source_node is not None:
-            prio = _PRIORITY.get(source_node.kind.value, 5)
+                 msg: Message, *, dest_node: Optional[BaseNode] = None) -> None:
+        # rev.5 LOW #6: parameter is the DESTINATION node (its kind drives
+        # priority). Previously named `source_node` which was misleading.
+        if dest_node is not None:
+            prio = _PRIORITY.get(dest_node.kind.value, 5)
         else:
             prio = 5
         self._seq += 1
@@ -1663,7 +1728,7 @@ class GraphExecutor:
 ```bash
 git add tradingagents/agent_harness/runtime/multi_agent/executor.py \
         tests/test_multi_agent_executor.py
-git commit -m "feat(runtime): §0.4.35 phase 1 — GraphExecutor (inbox + per-edge hop + heartbeat)"
+git commit -m "feat(runtime): §0.4.35 phase 1 — GraphExecutor (per-run reset, cross-run safe)"
 ```
 
 ### Task 10: Wire executor into orchestrator (helper takes `(orch_state, settings)`)
@@ -1671,8 +1736,6 @@ git commit -m "feat(runtime): §0.4.35 phase 1 — GraphExecutor (inbox + per-ed
 **Files:**
 - Modify: `tradingagents/agent_harness/runtime/multi_agent/__init__.py` (expand exports)
 - Modify: `tradingagents/agent_harness/core/orchestrator.py`
-
-> **Rev.4 fix**: `_build_graph_state(orch_state, settings)` — drops the unused `router_plan` parameter (LOW #17). Uses `orch_state.intent.value` (BLOCKER #1 fix). Helper sets budget knobs from settings.
 
 - [ ] **Step 10.1: Expand `__init__.py`**
 
@@ -1722,6 +1785,8 @@ def _build_graph_state(orch_state, settings):
 
     Rev.4: reads ``orch_state.intent.value`` (RouterPlan has no ``intent``
     field — see round-2 BLOCKER #1).
+    Rev.5: helper signature is (orch_state, settings); ``router_plan`` was
+    unused (LOW #17).
     """
     from ..runtime.multi_agent import GraphState
     intent_obj = getattr(orch_state, "intent", None)
@@ -1768,8 +1833,6 @@ if _settings.multi_agent:
 .venv/bin/python -m pytest tests/ -x -q
 ```
 
-Expected: all pass.
-
 - [ ] **Step 10.5: Smoke-test ON path (do NOT commit)**
 
 ```bash
@@ -1777,12 +1840,11 @@ TRADINGAGENTS_RUNTIME_MULTI_AGENT=true launchctl kickstart -k "gui/$(id -u)/com.
 ```
 
 Send a chat, tail:
-
 ```bash
 tail -f /tmp/tradingagents-web-venv.log | grep "multi_agent: GraphExecutor"
 ```
 
-Expected: heartbeat logs `starting (spec=N nodes, M edges, initial_hops=8, budget=5)` and `finished (hops_used=K, msgs=L)`. Reset:
+Reset:
 ```bash
 launchctl kickstart -k "gui/$(id -u)/com.tradingagents.web.venv"
 ```
@@ -1806,8 +1868,6 @@ git commit -m "feat(runtime): §0.4.35 phase 1 — flag-gated GraphExecutor disp
     tests/test_consult_subagent.py \
     -q
 ```
-
-Expected: all pass. Explicitly running `test_agent_runtime_*.py` confirms no collision with the new sub-package.
 
 - [ ] **Step 11.2: Run full repo test suite**
 
@@ -1833,48 +1893,48 @@ git push tradingagentsplus phase1-runtime-skeleton
 
 ## Acceptance Checklist (Phase 1)
 
-- [ ] `RuntimeSettings` defaults match spec §4.9 (`multi_agent=false`, `llm_budget_per_turn=5`, `max_hops=8`, `consultation_rate_limit=0.5`)
-- [ ] `TRADINGAGENTS_RUNTIME_MULTI_AGENT` env var toggles the flag (covered by `test_env_override_runtime_multi_agent`)
-- [ ] `GraphState` / `TypedResult` / `Message` / `FieldRef` importable from `tradingagents.agent_harness.runtime.multi_agent`
-- [ ] `GraphSpec` validates nodes + edges; `to_dict()` round-trips cleanly
-- [ ] `Edge.__post_init__` rejects `kind` outside `("data", "when", "loop")`
-- [ ] `Edge.max_hops` defaults to **2** (spec §4.6 step 4)
-- [ ] `Edge.hops_used` field exists and starts at 0 (per-edge loop counter)
-- [ ] `resolve_ref()` handles `$agent.field`, `* N`, `? a : b`, comparison predicates, multi-op arithmetic with rightmost-split precedence (`$data.x * 2 + $data.y * 3 == 13` for x=2,y=3); 3-level nested lookup works (`$data.q.symbol.isin`); falls back to literal on failure
-- [ ] `resolve_ref()` does NOT claim paren support (no test for `($a + $b) * 4`)
-- [ ] `PlanCompiler` produces a `GraphSpec` for 1-group, 2-group, AND 3-group sequential cases
-- [ ] `PlanCompiler` correctly maps `_TOOL_TO_AGENT` (including `command_resolver` and `trading_agents` agent-as-tool entries)
-- [ ] **PlanCompiler's import is `from ...core.orchestrator import _TOOL_TO_AGENT` (3 dots, NOT 2)** — critical rev.4 fix; rev.3 plan's 2-dot version would crash at import
-- [ ] `GraphExecutor.run()` walks a 2-node linear graph with `ToolNode`
-- [ ] `GraphExecutor` populates downstream `state.inbox` for every edge fire (regression test `test_executor_populates_downstream_inbox`)
-- [ ] `GraphExecutor` swallows `NotImplementedError` for `LLMNode`/`SubplanNode`/`ConsultNode` (logs warning, continues)
-- [ ] `GraphExecutor` does NOT consume `llm_used` for stubbed LLMNodes
-- [ ] `GraphExecutor` emits `multi_agent: GraphExecutor starting/finished` heartbeat logs (uses `initial_hops - state.hops_remaining`, NOT hardcoded `8`)
-- [ ] **Loop edge fires upstream at most `max_hops` times via `Edge.hops_used` counter** (regression test `test_executor_loop_edge_re_executes_upstream`; rev.4 fix from HIGH #2/3/4)
-- [ ] Global `state.hops_remaining` decrements ONCE per while-body iteration (NOT per-edge; rev.4 fix from HIGH #2)
+- [ ] `RuntimeSettings` defaults match spec §4.9
+- [ ] `TRADINGAGENTS_RUNTIME_MULTI_AGENT` env var toggles the flag
+- [ ] `GraphState` / `TypedResult` / `Message` / `FieldRef` importable
+- [ ] `GraphSpec` validates nodes + edges; `to_dict()` round-trips; docstring warns against using it as cache key (rev.5 MEDIUM #2)
+- [ ] `Edge.max_hops` defaults to 2
+- [ ] `resolve_ref()` handles `$agent.field` (3-level nested), `* N`, `? a : b`, comparison, multi-op arithmetic with rightmost-split precedence
+- [ ] **`resolve_ref()` field regex requires `[A-Za-z_]` start** — `$data.0field` rejected (rev.5 LOW #8)
+- [ ] `PlanCompiler` produces `GraphSpec` for 1/2/3-group sequential cases; import is `from ...core.orchestrator` (3 dots)
+- [ ] `PlanCompiler` correctly maps `_TOOL_TO_AGENT` (incl. `command_resolver`, `trading_agents`)
+- [ ] `GraphExecutor.run()` walks 2-node linear graph
+- [ ] `GraphExecutor` populates downstream `state.inbox` for every edge fire
+- [ ] `GraphExecutor` swallows `NotImplementedError` for stubbed nodes; doesn't consume budget
+- [ ] `GraphExecutor` emits heartbeat logs using `initial_hops - state.hops_remaining` (not hardcoded `8`)
+- [ ] **Loop edge fires upstream at most `max_hops` times via `Edge.hops_used`** (test asserts `== 4` message_log entries)
+- [ ] **`GraphExecutor.run()` resets every `Edge.hops_used = 0` at start**; same executor+spec can run twice with identical output (test `test_executor_resets_hops_between_runs`)
+- [ ] **`self._seq` resets to 0 at top of `run()`** (LOW #7)
+- [ ] **`_enqueue` parameter renamed `source_node` → `dest_node`** (LOW #6)
+- [ ] Global `state.hops_remaining` decrements ONCE per iteration
 - [ ] `_enqueue` uses `node.kind.value` for priority
-- [ ] `consult_subagent` stub exists; second param named `context` and typed `ToolContext | None = None` (matches all other built-ins); raises `NotImplementedError`; NOT registered yet (Phase 2)
-- [ ] `ConsultNode.outputs` is typed `list[FieldRef]` (rev.4 fix from LOW #12)
-- [ ] Default flag OFF → PTC path identical to before (all existing tests pass)
+- [ ] `consult_subagent` stub: param `context: ToolContext | None = None`; raises `NotImplementedError`; NOT registered yet
+- [ ] `ConsultNode.outputs` typed `list[FieldRef]`
+- [ ] `ToolNode.run` populates `TypedResult.meta` with `source_ts` and `source_agent`
+- [ ] Default flag OFF → PTC path identical to before
 - [ ] `multi_agent=true` flag → GraphExecutor runs (heartbeat confirmed in logs)
-- [ ] `_build_graph_state(orch_state, settings)` reads `orch_state.intent.value`, NOT `router_plan.intent`; takes 2 args, not 3 (rev.4 fix)
-- [ ] No dead `_program = _plan_from_router(router_plan, state)` call in wiring branch
-- [ ] All existing tests pass (`pytest tests/ -q`)
+- [ ] `_build_graph_state(orch_state, settings)` reads `orch_state.intent.value`; 2 args
+- [ ] No dead `_program = _plan_from_router(...)` call
+- [ ] All existing tests pass
 - [ ] `tests/test_agent_runtime_*.py` explicitly pass (collision regression guard)
-- [ ] `/reports` and `/scheduled` pages still render (regression guard)
+- [ ] `/reports` and `/scheduled` pages still render
 - [ ] Phase 1 tag pushed to `tradingagentsplus`
 
 ## Out of Scope (deferred to later phases)
 
-- Phase 2: real LLM call in `LLMNode` + `ConsultNode`; consult_subagent registered via `@tool_registry.register(...)` on the per-harness `ToolRegistry`; **add `consult_subagent` to `_TOOL_TO_AGENT` mapping** (e.g. → `consult_agent` or `router`); enforce `state.consultation_rate_limit` inside `GraphExecutor._invoke` (no nested `consult_subagent` calls; spec §7 LLM cost risk)
-- Phase 3: cross-agent `$ref` resolution at runtime (in `ToolNode.run`); LLM router teaches `$ref` syntax; **PlanCompiler scans `call.args` for `$ref` expressions and emits data edges from referenced agent's output** (spec §4.6 step 2); **PlanCompiler enforces per-agent scoping — `$ref` without an explicit edge from the calling node raises `CompileError`** (spec §4.5); paren support in resolver (only if needed)
-- Phase 4: `SubplanNode.run` + `trading_agents` graph fragment; `GraphState.fork()` lands; **`symbols` propagation into `GraphState`** (per spec §4.1); **`plan_id` propagation into `GraphState`** (per spec §4.1); orchestration nodes (`validate_inputs`, `verify_outputs`, `aggregate_signals`) added by `PlanCompiler` per spec §4.6; verifier reads `TypedResult.meta.source_ts` to reject stale outputs (spec §7)
-- Phase 5: cutover — `multi_agent=true` becomes default
-- Phase 5+: UI SSE events `agent_message` / `agent_handoff` and dock data-flow rows (spec §7); PlanCompiler cache key `(intent, agent_set, plan_hash)` keyed off `GraphSpec.to_dict()` (spec §4.6)
-- Phase 6: mid-flight `GraphState` snapshots via `AgentRuntimeStore` (existing `tradingagents/agent_harness/runtime/store.py`)
-- Phase 2 cleanup (optional): lift `_TOOL_TO_AGENT` from `core.orchestrator` into `agents/registry.py` or new `agents/tool_to_agent.py`
+- **Phase 2**: real LLM call in `LLMNode` + `ConsultNode`; consult_subagent registered via `@tool_registry.register(...)`; **add `consult_subagent` to `_TOOL_TO_AGENT`** mapping; enforce `state.consultation_rate_limit` inside `GraphExecutor._invoke` (no nested `consult_subagent` calls; spec §7 LLM cost risk); **move per-edge loop hop counter from `Edge.hops_used` to `state.edge_hops: dict[(src,dst), int]`** per spec §4.7 (round-4 HIGH #1 follow-up — Phase 1 mutates input GraphSpec as a minimal patch)
+- **Phase 3**: cross-agent `$ref` resolution at runtime (in `ToolNode.run`); LLM router teaches `$ref` syntax; **PlanCompiler scans `call.args` for `$ref` expressions and emits data edges from referenced agent's output** (spec §4.6 step 2); **PlanCompiler enforces per-agent scoping — `$ref` without an explicit edge from the calling node raises `CompileError`** (spec §4.5); **PlanCompiler detects feedback (an agent's `$ref` points to a prior group) and emits a loop edge with `max_hops=2` instead of a data edge** (spec §4.6 step 4); **after each node run, `GraphExecutor` writes `state.agent_outputs[node.id] = result`** so resolver's `_lookup` works for cross-agent refs (round-4 MEDIUM #4); paren support in resolver (only if needed); **entry-node `$ref` resolution may produce stale/missing inputs until `state.agent_outputs` population lands** (round-4 MEDIUM #5)
+- **Phase 4**: `SubplanNode.run` + `trading_agents` graph fragment; `GraphState.fork()` lands; `symbols` + `plan_id` propagation into `GraphState`; orchestration nodes (`validate_inputs`, `verify_outputs`, `aggregate_signals`) added by `PlanCompiler` per spec §4.6; verifier reads `TypedResult.meta.source_ts` to reject stale outputs (spec §7)
+- **Phase 5**: cutover — `multi_agent=true` becomes default
+- **Phase 5+**: UI SSE events `agent_message` / `agent_handoff` and dock data-flow rows (spec §7); PlanCompiler cache key `(intent, agent_set, plan_hash)` derived from **immutable parts only** — NOT `GraphSpec.to_dict()` (round-4 MEDIUM #2; `to_dict()` includes mutable `hops_used`); a future cache helper should hash `(intent, frozenset(nodes), plan_source_hash)` where `plan_source_hash` is computed from the raw `RouterPlan` before any `Edge.hops_used` mutation
+- **Phase 6**: mid-flight `GraphState` snapshots via `AgentRuntimeStore`
+- **Phase 2 cleanup (optional)**: lift `_TOOL_TO_AGENT` from `core.orchestrator` into `agents/registry.py` or new `agents/tool_to_agent.py`
 
-## Review Fixes Applied (rev. 1 → rev. 2 → rev. 3 → rev. 4)
+## Review Fixes Applied (rev. 1 → rev. 5)
 
 | ID | Rev. | Fix |
 |---|---|---|
@@ -1890,7 +1950,7 @@ git push tradingagentsplus phase1-runtime-skeleton
 | **H4** Protocol in Pydantic | r1 | `GraphSpec` dataclass + `to_dict()` |
 | **H5** `_TOOL_TO_AGENT` coupling | r1 | Documented |
 | **H6** Undefined helpers | r1 | `_build_graph_state` defined |
-| **H7** Rollback semantics | r1 | `CompileError` + generic `Exception` both fall through |
+| **H7** Rollback semantics | r1 | `CompileError` + `Exception` both fall through |
 | **M2** Premature `fork()` | r1 | Removed |
 | **M5** Test naming | r1 | Prefixed `test_multi_agent_*` |
 | **M8** `_TOOL_TO_AGENT` coverage | r1 | Test covers agent-as-tool entries |
@@ -1904,30 +1964,39 @@ git push tradingagentsplus phase1-runtime-skeleton
 | **HIGH #7** (r2) Dead `_program = _plan_from_router(...)` | r3 | Removed |
 | **MEDIUM #8** (r2) `llm_used` before call | r3 | After `await node.run(...)` |
 | **MEDIUM #9** (r2) Smoke test can't verify execution | r3 | Heartbeat logs + test |
-| **MEDIUM #10** (r2) Priority uses `msg.kind` | r3 | `_enqueue` takes `source_node` |
+| **MEDIUM #10** (r2) Priority uses `msg.kind` | r3 | `_enqueue` takes `dest_node` |
 | **MEDIUM #11** (r2) `_TOOL_TO_AGENT` coupling aspirational | r3 | Committed to `core.orchestrator` for Phase 1 |
 | **LOW #12** (r2) `_NodeBase` parallel hierarchy | r3 | Removed |
 | **LOW #13** (r2) `consult_subagent` not in `_TOOL_TO_AGENT` | r3 | Out of Scope (Phase 2) |
 | **LOW #14** (r2) `harness.py:82` off-by-one | r3 | Drop line ref |
 | **INFO #15** (r2) `symbols`/`plan_id` not in GraphState | r3 | Out of Scope (Phase 4) |
 | **INFO #16** (r2) Spec §4.6 orchestration nodes | r3 | Out of Scope (Phase 4) |
-| **HIGH #1** (r3) Wrong relative import `..core.orchestrator` | **r4** | Changed to **`...core.orchestrator`** (3 dots) |
-| **HIGH #2** (r3) Loop hop double-decrement | **r4** | Removed per-edge decrement; global counter decrements once per iteration |
-| **HIGH #3** (r3) `edge.max_hops` unreachable | **r4** | Added `Edge.hops_used` field; gate loop fires on per-edge counter |
-| **HIGH #4** (r3) No loop-edge regression test | **r4** | `test_executor_loop_edge_re_executes_upstream` added |
-| **HIGH #5** (r3) `test_executor_walks_linear_graph` assertion wrong | **r4** | Changed `>= 2` to `== 1` (only one cross-edge msg in linear graph) |
-| **HIGH #6** (r3) Resolver paren test fails | **r4** | Dropped paren assertion; no paren support in Phase 1 |
-| **MEDIUM #7** (r3) Hardcoded `8` in heartbeat | **r4** | Use `initial_hops - state.hops_remaining` |
-| **MEDIUM #8** (r3) Cross-agent `$ref` scoping not tracked | **r4** | Out of Scope (Phase 3) |
-| **MEDIUM #9** (r3) `plan_id` missing from Out of Scope | **r4** | Out of Scope entry |
-| **MEDIUM #10** (r3) `consultation_rate_limit` dead in Phase 1 | **r4** | Out of Scope (Phase 2); docstring notes dead field |
-| **MEDIUM #11** (r3) Per-edge hop accounting | **r4** | Addressed by HIGH #3 fix |
-| **LOW #12** (r3) `ConsultNode.outputs` typo `list[list[FieldRef]]` | **r4** | Fixed to `list[FieldRef]` |
-| **LOW #13** (r3) `consult_subagent` `dict[str, Any]` | **r4** | Changed to `ToolContext \| None = None` |
-| **LOW #14** (r3) `Edge.max_hops` default 3 vs spec 2 | **r4** | Changed to `2` |
-| **LOW #15** (r3) Missing 3-level `$ref` test | **r4** | `test_resolve_ref_3_level_nested_lookup` added |
-| **LOW #16** (r3) Missing parse_ref edge-case tests | **r4** | `test_parse_ref_rejects_malformed` parametrized |
-| **LOW #17** (r3) `_build_graph_state` unused param | **r4** | Dropped `router_plan` param |
-| **INFO #18** (r3) UI SSE not in Out of Scope | **r4** | Out of Scope (Phase 5+) |
-| **INFO #19** (r3) `source_ts` not mandated | **r4** | Out of Scope (Phase 4); state.py docstring notes reserved keys |
-| **INFO #20** (r3) PlanCompiler caching layer | **r4** | Out of Scope (Phase 5+) |
+| **HIGH #1** (r3) Wrong relative import | r4 | `from ...core.orchestrator` (3 dots) |
+| **HIGH #2** (r3) Loop hop double-decrement | r4 | Per-edge `Edge.hops_used`; global counter once per iteration |
+| **HIGH #3** (r3) `edge.max_hops` unreachable | r4 | `Edge.hops_used` field; gate loop fires on it |
+| **HIGH #4** (r3) No loop-edge test | r4 | `test_executor_loop_edge_re_executes_upstream` |
+| **HIGH #5** (r3) Linear graph assertion wrong | r4 | `== 1` (only 1 cross-edge msg) |
+| **HIGH #6** (r3) Resolver paren test fails | r4 | Dropped paren assertion |
+| **MEDIUM #7** (r3) Hardcoded `8` in heartbeat | r4 | `initial_hops - state.hops_remaining` |
+| **MEDIUM #8** (r3) Cross-agent `$ref` scoping | r4 | Out of Scope (Phase 3) |
+| **MEDIUM #9** (r3) `plan_id` missing | r4 | Out of Scope (Phase 4) |
+| **MEDIUM #10** (r3) `consultation_rate_limit` dead | r4 | Out of Scope (Phase 2) |
+| **MEDIUM #11** (r3) Per-edge hop accounting | r4 | Addressed by HIGH #3 |
+| **LOW #12** (r3) `ConsultNode.outputs` typo | r4 | Fixed to `list[FieldRef]` |
+| **LOW #13** (r3) `consult_subagent` `dict[str, Any]` | r4 | `ToolContext \| None = None` |
+| **LOW #14** (r3) `Edge.max_hops` default 3 vs 2 | r4 | Changed to 2 |
+| **LOW #15** (r3) Missing 3-level `$ref` test | r4 | Test added |
+| **LOW #16** (r3) Missing `parse_ref` edge cases | r4 | Parametrized test |
+| **LOW #17** (r3) `_build_graph_state` unused param | r4 | Dropped `router_plan` |
+| **INFO #18** (r3) UI SSE not in Out of Scope | r4 | Out of Scope (Phase 5+) |
+| **INFO #19** (r3) `source_ts` not mandated | r4 | Out of Scope (Phase 4) |
+| **INFO #20** (r3) PlanCompiler caching layer | r4 | Out of Scope (Phase 5+) |
+| **HIGH #1** (r4) `Edge.hops_used` leak across runs | **r5** | Reset every edge at top of `run()` + regression test |
+| **MEDIUM #2** (r4) Cache key non-deterministic | **r5** | `GraphSpec.to_dict()` docstring warns against cache key use; Out of Scope entry |
+| **MEDIUM #3** (r4) Feedback-loop detection missing | **r5** | Out of Scope (Phase 3) |
+| **MEDIUM #4** (r4) `state.agent_outputs` never populated | **r5** | Out of Scope (Phase 3) |
+| **MEDIUM #5** (r4) Bootstrap empty-inbox | **r5** | Docstring + Out of Scope (Phase 3) |
+| **LOW #6** (r4) `_enqueue` param `source_node` misleading | **r5** | Renamed to `dest_node` |
+| **LOW #7** (r4) `_seq` counter persists | **r5** | Reset at top of `run()` |
+| **LOW #8** (r4) Resolver digit-start field | **r5** | Tightened regex; parametrized test |
+| **INFO #9** (r4) Loop-test comment undercounts | **r5** | Tightened to `== 4`; comment updated |
