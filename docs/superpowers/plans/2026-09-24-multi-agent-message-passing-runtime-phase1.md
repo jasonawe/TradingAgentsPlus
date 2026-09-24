@@ -1,8 +1,8 @@
-# [Phase 1 — Multi-Agent Runtime Skeleton] Implementation Plan (rev. 9)
+# [Phase 1 — Multi-Agent Runtime Skeleton] Implementation Plan (rev. 10)
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Last review round:** 8 (Pauli). Verdict: APPROVE_WITH_NITS — fix-of-fix severity trend = decreasing. 1 HIGH (Task 9.5→10 order dep causing broken intermediate commit) resolved by renumbering to Task 10→11→12 order. 4 MEDIUM (missing consult_node test, version-bump task, state mutation leak, budget guard), 3 LOW, 1 INFO all ratcheted into Phase 2 follow-ups.
+**Last review round:** 10 (Kant). Verdict: BLOCK — 1 fresh BLOCKER introduced by rev.9 (8-space indent in `tests/test_multi_agent_executor.py:108`) + 2 MEDIUM + 2 LOW. All resolved in rev.10. Round-9 APPROVE missed the indent regression because visual inspection doesn't catch Python syntax. Mechanical `python3 -c "compile()"` validation is now part of the workflow.
 
 **Goal:** Land the type system, `$ref` resolver (rightmost-split precedence, no parens), `PlanCompiler` (group-order case), `GraphExecutor` skeleton (inbox propagation + per-edge hop reset, no cross-run state leak), and `consult_subagent` stub **behind the `runtime.multi_agent` flag (default off)** without changing any existing behaviour. All current tests must remain green.
 
@@ -1454,7 +1454,7 @@ def test_executor_swallows_not_implemented_for_llm_node(monkeypatch):
     spec = GraphSpec(nodes={"a": n1}, edges=[], entry="a", exit="a")
     state = GraphState(run_id="r", turn_id="t", intent="x")
     out = _run(GraphExecutor().run(spec, state))
-        assert out.intent == "x"
+    assert out.intent == "x"
     assert out.llm_used == 0
 
 
@@ -1943,6 +1943,41 @@ def test_orchestrator_flag_on_falls_through_on_settings_error(monkeypatch, caplo
         "runtime settings invalid, falling back to PTC" in rec.message
         for rec in caplog.records
     )
+
+
+
+def test_orchestrator_flag_on_falls_through_on_executor_runtime_error(monkeypatch, caplog):
+    """Rev.10 MEDIUM #1: helper's 4th fall-through path — GraphExecutor.run
+    raises Exception → helper returns None, logs fall-through warning."""
+    set_config({"runtime": {"multi_agent": True}})
+
+    class _OkCompiler:
+        def compile(self, plan):
+            return _stub_spec()
+
+    class _BoomExecutor:
+        def __init__(self, *a, **kw):
+            pass
+
+        async def run(self, spec, state):
+            raise RuntimeError("executor internal error")
+
+    monkeypatch.setattr(
+        "tradingagents.agent_harness.runtime.multi_agent.PlanCompiler",
+        _OkCompiler,
+    )
+    monkeypatch.setattr(
+        "tradingagents.agent_harness.runtime.multi_agent.GraphExecutor",
+        _BoomExecutor,
+    )
+
+    caplog.set_level(logging.WARNING)
+    result = _run(_call_dispatch(plan=MagicMock()))
+    assert result is None, "executor errors must fall through to None"
+    assert any(
+        "graph execution failed, falling back to PTC" in rec.message
+        for rec in caplog.records
+    ), "executor errors must log a fall-through warning"
 ```
 
 - [ ] **Step 10.2: Commit**
@@ -2002,6 +2037,23 @@ After the existing import section, define a lazy-resolver helper:
 
 ```python
 def _lazy_multi_agent():
+    """Lazy import resolver for multi_agent symbols (Rev.10 MEDIUM #2).
+
+    INVARIANT: core/orchestrator.py must NEVER import from
+    runtime.multi_agent at module top — doing so creates a cycle
+    (orchestrator → multi_agent/__init__.py → compiler.py →
+    core.orchestrator with _TOOL_TO_AGENT still undefined).
+
+    Concurrency safety: Python's import lock serializes
+    sys.modules writes, so concurrent dispatch calls result in
+    at-most-one import being executed (the rest hit sys.modules
+    cache). The classes returned are module-level singletons
+    and safe to share across asyncio tasks.
+
+    Tests in tests/test_multi_agent_orchestrator_wiring.py pin
+    this invariant by patching PlanCompiler / GraphExecutor /
+    load_settings in sys.modules before invoking _maybe_run.
+    """
     from ..runtime.multi_agent import (
         GraphExecutor as _GE, PlanCompiler as _PC,
         CompileError as _CE, load_settings as _ls,
@@ -2044,7 +2096,7 @@ async def _maybe_run_multi_agent(router_plan, orch_state):
             llm_budget=_settings.llm_budget_per_turn,
             consultation_rate_limit=_settings.consultation_rate_limit,
         ).run(_spec, _state)
-    except Exception as exc:  # pragma: no cover
+    except Exception as exc:
         LOGGER.exception("graph execution failed, falling back to PTC: %s", exc)
         return None
     # Phase 1 keeps behaviour parity — multi_agent path is observability-only.
@@ -2236,7 +2288,7 @@ if `_version.py` doesn't exist, create one as a one-line stub
 still ships; record the version step in Phase 2 follow-up.
 
 
-## Review Fixes Applied (rev. 1 → rev. 9)
+## Review Fixes Applied (rev. 1 → rev. 10)
 
 | ID | Rev. | Fix |
 |---|---|---|
@@ -2302,3 +2354,31 @@ still ships; record the version step in Phase 2 follow-up.
 | **LOW #7** (r4) `_seq` counter persists | **r5** | Reset at top of `run()` |
 | **LOW #8** (r4) Resolver digit-start field | **r5** | Tightened regex; parametrized test |
 | **INFO #9** (r4) Loop-test comment undercounts | **r5** | Tightened to `== 4`; comment updated |
+
+
+---
+
+## Post-rev.5 Review Fixes (rev. 6 → rev. 10)
+
+| ID | Rev. | Fix |
+|---|---|---|
+| **H1** (r6) Wiring tests ghost-referenced | **r7** | Task 9.5 created (initially broken, fixed in r8) |
+| **H2** (r6) Top-level imports create cycle | **r7** | Lazy `_lazy_multi_agent` + lazy `_TOOL_TO_AGENT` |
+| **M1** (r6) FieldRef semantics unclear | **r7** | Two-way semantics in Out-of-Scope |
+| **M2** (r6) ValidationError not caught | **r7** | try/except + `_ForcePTCFallback` (broken, replaced r8) |
+| **M3** (r6) Phase 5 cutover TBD | **r7** | 3 candidates documented |
+| **M4** (r6) ConsultNode regression test missing | **r7** | Acceptance line (no test) → test added r9 |
+| **B1** (r7) SyntaxError in test factory | **r8** | Fixed `_graph_two_tool_nodes` |
+| **B2** (r7) `_ForcePTCFallback` undefined | **r8** | Replaced with `_maybe_run_multi_agent` returning None |
+| **B3** (r7) Wiring tests non-runnable | **r8** | Real `_maybe_run_multi_agent` calls |
+| **H1** (r8) Task 9.5→10 order dep | **r9** | Renumbered to Task 10→11→12 |
+| **M1** (r8) Missing consult_node test | **r9** | Added `test_executor_swallows_not_implemented_for_consult_node` |
+| **M2** (r8) No version-bump step | **r9** | Added Step 12.5 |
+| **B1** (r10) SyntaxError at executor test line 108 | **r10** | 8-space indent → 4-space indent (this rev) |
+| **M1** (r10) No 4th fall-through test (executor error) | **r10** | Added `test_orchestrator_flag_on_falls_through_on_executor_runtime_error` + removed `# pragma: no cover` |
+| **M2** (r10) `_lazy_multi_agent` docstring missing | **r10** | Added invariant + concurrency safety docstring |
+
+Round-7 → Round-10 fix-of-fix cycle: the inline-edit pattern (rev.6 fix → rev.7 fix → ... rev.10 fix) bit us 3 times.
+The "_maybe_run_multi_agent() helper + pytest code extract" refactor in rev.8 broke the cycle by making
+the dispatch directly testable. Future revs should encourage the same pattern: extract testable helpers,
+write mechanical tests, then check syntax with `python3 -c "compile(...)"` before commit.
