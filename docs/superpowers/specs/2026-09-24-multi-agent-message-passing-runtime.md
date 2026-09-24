@@ -154,7 +154,9 @@ class Edge:
 
 - **data edge**: always fires when src produces output
 - **when edge**: fires only when predicate is true
-- **loop edge**: fires repeatedly, capped by max_hops (default 3)
+- **loop edge**: re-executes upstream node, capped by max_hops
+  (default 3). Each re-execution increments `hop` index on the message;
+  downstream nodes can branch on hop > 0 to detect stale inputs.
 
 ### 4.5 Symbol Resolution ($refs)
 
@@ -175,6 +177,8 @@ Resolver rules:
 - `<expr> * <num>` — arithmetic over resolved values
 - `<expr> ? <a> : <b>` — ternary
 - Literal fallback if any path fails → the resolved value, not error
+- Per-agent scoping: a node can only `$ref` outputs from agents it has
+  an explicit edge from. Cross-agent `$ref` without edge = compile error.
 
 Resolver is **pure** — runs once per call before tool dispatch. Failures
 fall back to the literal arg the LLM provided (graceful degradation).
@@ -256,9 +260,9 @@ to a non-empty `state.agent_outputs`).
 
 ```yaml
 multi_subagent:
-  llm_budget_per_turn: 5        # max LLM nodes per turn
-  max_hops: 8                   # safety cap on graph depth
-  consultation_rate_limit: 0.5  # consultations can't exceed 50% of LLM budget
+  llm_budget_per_turn: 5           # max LLM nodes per turn
+  max_hops: 8                      # safety cap on graph depth
+  consultation_rate_limit: 0.5     # default cap; configurable 0.0–0.8
 ```
 
 When budget is hit, remaining LLM nodes are skipped with a logged warning
@@ -319,7 +323,7 @@ becomes an observable node.
 | `tradingagents/agent_harness/runtime/resolver.py` | ~150 | `$ref` parser + evaluator |
 | `tradingagents/agent_harness/runtime/nodes.py` | ~300 | `ToolNode`, `LLMNode`, `SubplanNode`, `ConsultNode` |
 | `tradingagents/agent_harness/runtime/compiler.py` | ~200 | `PlanCompiler` (RouterPlan → GraphSpec) |
-| `tradingagents/agent_harness/runtime/agents.py` | ~200 | `data_agent` / `alpha_agent` / `news_agent` graph fragments |
+| `tradingagents/agent_harness/runtime/agents.py` | ~400 | `data_agent` / `alpha_agent` / `news_agent` / `trading_agents` graph fragments (all nestable) |
 | `tradingagents/agent_harness/tools/builtin_consult.py` | ~120 | `consult_subagent` tool wrapper |
 
 | Modified file | Change |
@@ -345,8 +349,12 @@ Phases:
 1. **Phase 1** — types + GraphExecutor (no behavior change, all tests pass)
 2. **Phase 2** — `consult_subagent` tool exposed; opt-in via router flag
 3. **Phase 3** — `$ref` resolver live; LLM router emits plans with refs
-4. **Phase 4** — `subplan` nesting live; `trading_agents` becomes a graph
+4. **Phase 4** — `subplan` nesting live; `trading_agents` (then `data_agent`, `alpha_agent`) become first-class graphs
 5. **Phase 5** — cutover: `multi_agent=true` is default; PTC becomes fallback
+6. **Phase 6** — mid-flight state persistence via `AgentRuntimeStore`
+   (existing `tradingagents/agent_harness/runtime/store.py`). After every
+   node output, snapshot `GraphState` keyed by `(run_id, turn_id, node_id)`
+   so a process crash can resume from the last completed node.
 
 Each phase is one commit, gated by the same test suite. Rollback = flip flag.
 
@@ -362,23 +370,15 @@ Each phase is one commit, gated by the same test suite. Rollback = flip flag.
 | LLM router emits plans that don't compile | Compiler returns `CompileError`; orchestrator falls back to PTC |
 | UI doesn't show what's happening | New SSE events + dock data-flow rows; UI matches backend state |
 
-## 8. Open Questions for User
+## 8. Locked Decisions
 
-1. **Per-agent state scoping**: should nodes see all of `GraphState` or
-   only fields declared in their `inputs`? (Recommend: declared only,
-   for safety; manual escape hatch for cross-agent fields.)
-2. **Loop semantics**: when a loop fires, does the upstream node
-   re-execute or just re-broadcast the cached output? (Recommend:
-   re-broadcast cached, mark with `hop` so downstream knows it's stale.)
-3. **`consult_subagent` rate limit**: 50% of budget feels right for most
-   queries but may starve deep multi-step analyses. (Recommend: per-turn
-   budget total, with consultation share configurable 0.0–0.8.)
-4. **Subplan naming**: should `trading_agents` be the only subplan at
-   launch, or expose `data_agent`, `alpha_agent` as subplans too?
-   (Recommend: only `trading_agents` at first; other agents stay flat
-   until we see the value.)
-5. **Persisted graph state**: should graph state be persisted mid-flight
-   for crash recovery? (Recommend: no for v1, see Phase 6 follow-up.)
+| # | Decision | Choice | Rationale |
+|---|---|---|---|
+| 1 | Per-agent state scoping | **A — declared inputs only** | Safety; cross-agent access goes through `$ref` + explicit edge |
+| 2 | Loop edge semantics | **A — re-execute upstream node** | Fresh data; downstream gets `hop` index for staleness tracking |
+| 3 | `consult_subagent` rate limit | **B — configurable 0.0–0.8** | Different query types need different caps; default 0.5 |
+| 4 | Subplan scope | **B — all agents can nest** | `data_agent` / `alpha_agent` / `trading_agents` all expose graph fragments |
+| 5 | Persisted graph state | **B — mid-flight state persisted** | Crash recovery from any node; uses existing checkpoint store |
 
 ## 9. Success Metrics
 
