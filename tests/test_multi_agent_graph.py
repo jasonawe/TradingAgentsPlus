@@ -17,7 +17,20 @@ def test_edge_default_max_hops_is_2_per_spec():
     # Spec §4.6 step 4: loop edges default to max_hops=2.
     e = Edge(src="a", dst="b", kind="loop")
     assert e.max_hops == 2
-    assert e.hops_used == 0
+
+
+def test_edge_has_no_hops_used_attribute_phase2():
+    """Phase 2 Work unit 5: ``Edge.hops_used`` removed (spec §4.7 strict).
+
+    Per-edge loop counter lives on ``state.edge_hops[(src, dst)]``,
+    not on the Edge instance. The executor's ``run()`` resets the state
+    counter at the top of every invocation — no Edge mutation needed.
+    """
+    e = Edge(src="a", dst="b", kind="loop", max_hops=3)
+    assert not hasattr(e, "hops_used"), (
+        "Phase 2 migration incomplete: Edge.hops_used must be removed; "
+        "use state.edge_hops[(src, dst)] instead"
+    )
 
 def test_edge_accepts_valid_kinds():
     for k in ("data", "when", "loop"):

@@ -68,6 +68,16 @@ class GraphState:
     # catches + logs warning, llm_used unchanged — Phase 1 wiring tests
     # continue to pass).
     llm_provider: Any = None
+    # Phase 2 Work unit 5 — per-edge loop counters live on state, NOT on
+    # Edge instances (spec §4.7). The executor resets this to ``{}`` at the
+    # top of every ``run()`` so the same executor+spec pair can run
+    # multiple times without leaking state across turns.
+    #
+    # Key = (src, dst); Value = number of times the edge has fired.
+    # Tuple keys are hashable + comparable; Phase 3 may add an edge_kind
+    # dimension (data/when/loop) if same-(src,dst) tuples with different
+    # semantics appear in the same spec.
+    edge_hops: dict[tuple[str, str], int] = field(default_factory=dict)
 
     def append_inbox(self, msg: Message) -> None:
         self.inbox.setdefault(msg.receiver, []).append(msg)

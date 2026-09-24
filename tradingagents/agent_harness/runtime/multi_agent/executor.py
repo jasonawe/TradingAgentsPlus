@@ -1,24 +1,24 @@
-"""Phase 1 GraphExecutor skeleton.
+"""Phase 2 GraphExecutor.
 
 Walks a GraphSpec using a priority queue. Honours budget + hop guards.
 
-Rev.5 contracts:
-- Resets every ``Edge.hops_used = 0`` at the top of each ``run()`` so the
-  same executor+spec pair can run multiple times.
+Contracts (Phase 2 Work unit 5 — spec §4.7 strict):
+- Per-edge loop accounting lives on ``state.edge_hops[(src, dst)]``,
+  NOT on ``Edge`` instances (``Edge.hops_used`` removed).
+- ``run()`` resets ``state.edge_hops = {}`` at the top of every
+  invocation so the same executor+spec pair is reusable across turns.
 - Every edge fire calls ``state.append_inbox(new_msg)`` so downstream
   ``consume_inbox(receiver)`` sees upstream outputs (spec §4.7).
 - Global ``state.hops_remaining`` decrements ONCE per while-body iteration
-  (NOT per-edge). Per-edge loop accounting uses ``Edge.hops_used``.
-- Stubbed LLMNode does NOT consume budget — increment happens AFTER
-  ``await node.run(...)``.
+  (NOT per-edge).
 - Heartbeat logs use ``initial_hops - state.hops_remaining``.
 - ``_enqueue`` parameter ``dest_node`` is the DESTINATION node (its kind
   determines heapq priority), not the source.
 - ``self._seq`` resets to 0 at top of ``run()`` for clean per-run isolation.
 
-Phase 1 deviation from spec §4.7: spec uses ``state.hops_for(edge)`` (per-state
-counter); Phase 1 mutates the input ``Edge.hops_used``. Phase 2 will move the
-counter onto ``GraphState`` (rev.5 HIGH #1 follow-up).
+Per-edge loop counter is read via ``state.edge_hops.get((edge.src, edge.dst), 0)``
+in ``_edge_fires`` and incremented to ``state.edge_hops[(src, dst)] += 1``
+after each loop fire.
 """
 from __future__ import annotations
 import heapq
@@ -61,9 +61,12 @@ class GraphExecutor:
         self._seq = 0
 
     async def run(self, spec: GraphSpec, state: GraphState) -> GraphState:
-        # rev.5: per-run reset (round-4 HIGH #1)
-        for edge in spec.edges:
-            edge.hops_used = 0
+        # Phase 2 Work unit 5 (spec §4.7): per-run reset of per-edge
+        # loop counters. Lives on state (NOT on Edge), so rebind to
+        # a fresh dict rather than mutate — guarantees no carry-over
+        # across turns even if a caller mutated state.edge_hops between
+        # invocations.
+        state.edge_hops = {}
         self._seq = 0  # rev.5 LOW #7: clean per-run isolation
 
         initial_hops = state.hops_remaining
@@ -133,8 +136,9 @@ class GraphExecutor:
                         dest_node=spec.node(edge.dst),
                     )
                     if edge.kind == "loop":
-                        # rev.4: per-edge counter, NOT global
-                        edge.hops_used += 1
+                        # Phase 2 Work unit 5: per-edge counter on state.
+                        key = (edge.src, edge.dst)
+                        state.edge_hops[key] = state.edge_hops.get(key, 0) + 1
                         loop_msg = Message(
                             sender=node.id, receiver=edge.src,
                             payload=m.payload, kind=m.kind, hop=m.hop + 1,
@@ -219,7 +223,10 @@ class GraphExecutor:
             except Exception:
                 return False
         if edge.kind == "loop":
-            return edge.hops_used < edge.max_hops
+            # Phase 2 Work unit 5: counter lives on state, NOT Edge.
+            # Missing key (edge never fired) treated as 0.
+            used = state.edge_hops.get((edge.src, edge.dst), 0)
+            return used < edge.max_hops
         return False
 
     def _enqueue(self, queue: list[_Pending], receiver: str,

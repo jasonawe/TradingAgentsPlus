@@ -1,14 +1,15 @@
-"""Core graph types for the multi-agent runtime (Phase 1).
+"""Core graph types for the multi-agent runtime (Phase 2).
 
-Edge validates `kind` in __post_init__ and tracks `hops_used` for per-edge
-loop accounting. The GraphExecutor resets every edge's `hops_used = 0` at
-the top of each `run()` so the same executor+spec pair can run multiple
-times (rev.5 fix from round-4 HIGH #1).
+Edge validates `kind` in __post_init__. Per-edge loop accounting lives on
+``state.edge_hops[(src, dst)]`` (Phase 2 Work unit 5, spec §4.7); the
+executor resets ``state.edge_hops = {}`` at the top of every ``run()``
+so the same executor+spec pair can run multiple times without leaking
+state across turns.
 
 `max_hops` default is 2 per spec §4.6 step 4.
 
-Rev.5: ``GraphSpec.to_dict()`` MUST be derived from immutable fields only —
-do NOT include ``Edge.hops_used`` in any future cache key (see MEDIUM #2).
+Rev.5: ``GraphSpec.to_dict()`` is derived from immutable fields only —
+safe to use as a cache key (no mutable state mutated by the executor).
 """
 from __future__ import annotations
 from dataclasses import dataclass, field
@@ -43,7 +44,6 @@ class Edge:
     field_ref: Optional[str] = None
     predicate: Optional[Any] = None
     max_hops: int = 2  # spec §4.6 step 4
-    hops_used: int = 0  # executor resets to 0 at top of each run()
 
     def __post_init__(self) -> None:
         if self.kind not in _VALID_EDGE_KINDS:
@@ -67,9 +67,10 @@ class GraphSpec:
     def to_dict(self) -> dict[str, Any]:
         """JSON-serializable snapshot.
 
-        NOTE (rev.5 MEDIUM #2): ``hops_used`` is mutable state mutated by the
-        executor. Do NOT use ``to_dict()`` as a cache key — derive cache keys
-        from immutable parts only (intent, frozenset(nodes), plan source hash).
+        All fields are immutable post-construction (Phase 2 Work unit 5
+        removed ``Edge.hops_used``), so this snapshot is safe to use as a
+        cache key (spec §4.7 strict). Per-run counters live on
+        ``state.edge_hops``, not on Edge instances.
         """
         return {
             "nodes": {
@@ -78,8 +79,7 @@ class GraphSpec:
             },
             "edges": [
                 {"src": e.src, "dst": e.dst, "kind": e.kind,
-                 "field_ref": e.field_ref, "max_hops": e.max_hops,
-                 "hops_used": e.hops_used}
+                 "field_ref": e.field_ref, "max_hops": e.max_hops}
                 for e in self.edges
             ],
             "entry": self.entry,

@@ -1,7 +1,7 @@
 """Tests for runtime/multi_agent/executor.py (Phase 1).
 
 Per plan Task 9 contracts:
-- per-run Edge.hops_used reset + self._seq reset
+- per-run state.edge_hops reset + self._seq reset
 - inbox propagation across edges
 - budget guard (no LLM fires past budget)
 - NotImplementedError swallow for LLMNode AND ConsultNode stubs (no budget burn)
@@ -184,11 +184,46 @@ def test_executor_loop_edge_re_executes_upstream(monkeypatch):
         f"expected 4 messages (initial fan-out + 2 loop fires × 2 msgs); "
         f"got {len(state.message_log)}"
     )
+    # Phase 2 (Work unit 5): per-edge loop counter lives on state, NOT Edge.
+    # After 2 fires (max_hops=2), the self-loop edge has counter 2.
+    assert state.edge_hops == {("a", "a"): 2}
+
+
+def test_executor_state_edge_hops_resets_per_run(monkeypatch):
+    """Phase 2 Work unit 5: ``run()`` resets ``state.edge_hops = {}`` at
+    the top so the same executor+spec pair is reusable across turns."""
+    from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
+
+    class FakePipeline:
+        async def run(self, *, tool_name, args, tool_context, executor):
+            return MagicMock(ok=True, result={"echoed": tool_name})
+
+    monkeypatch.setattr(nodes_mod, "_default_pipeline", lambda: FakePipeline())
+
+    # Pre-populate state.edge_hops with stale values from a prior run.
+    # The executor must clear them at the top of run().
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+    state.edge_hops = {("stale", "edge"): 99}
+
+    spec = _graph_self_loop()
+    _run(GraphExecutor().run(spec, state))
+
+    # Stale entry cleared; only fresh entries from this run remain.
+    assert ("stale", "edge") not in state.edge_hops
+    assert state.edge_hops == {("a", "a"): 2}
+
+
+def test_executor_state_edge_hops_starts_empty():
+    """Phase 2 Work unit 5: default state.edge_hops is an empty dict."""
+    state = GraphState(run_id="r", turn_id="t", intent="x")
+    assert state.edge_hops == {}
+    assert isinstance(state.edge_hops, dict)
 
 
 def test_executor_resets_hops_between_runs(monkeypatch):
-    """rev.5 regression for round-4 HIGH #1: same executor+spec pair must
-    produce identical results on consecutive runs (no Edge.hops_used leak)."""
+    """Phase 2 (Work unit 5) regression for round-4 HIGH #1: same
+    executor+spec pair must produce identical results on consecutive
+    runs (no state.edge_hops leak between turns)."""
     from tradingagents.agent_harness.runtime.multi_agent import nodes as nodes_mod
 
     class FakePipeline:
@@ -210,7 +245,7 @@ def test_executor_resets_hops_between_runs(monkeypatch):
 
     assert log_after_first == log_after_second, (
         f"second run produced {log_after_second} messages vs first run's "
-        f"{log_after_first}; Edge.hops_used leaked across runs"
+        f"{log_after_first}; state.edge_hops leaked across runs"
     )
 
 
