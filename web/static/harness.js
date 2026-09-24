@@ -939,6 +939,14 @@
       row.classList.add("status-done-flash");
       setTimeout(() => row.classList.remove("status-done-flash"), 600);
     }
+    // §0.4.33.1 — sync the in-memory items array so updateTodoProgress
+    // can read back the final state. Previously only the DOM was
+    // updated, leaving the progress counter stuck at "0 / N" forever.
+    const item = state.todoItems.find((t) => t.id === patch.id);
+    if (item) {
+      item.status = status;
+      if (patch.error !== undefined) item.error = patch.error;
+    }
     updateTodoProgress();
   }
 
