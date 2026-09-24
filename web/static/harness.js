@@ -947,7 +947,10 @@
     const total = state.todoItems.length;
     let done = 0;
     state.todoItems.forEach((t) => {
-      if (t.status === "done" || t.status === "skipped") done += 1;
+      // Anything no longer pending counts toward completion so the
+      // progress bar reaches 100% once every item has been processed
+      // (success, failure, or dropped all collapse together).
+      if (t.status !== "pending" && t.status !== "active") done += 1;
     });
     const progress = state.todoEl.querySelector(".harness-todo-progress");
     if (progress) progress.textContent = `${done} / ${total}`;
